@@ -10,7 +10,10 @@
          v-model="formData.Username"
          label="Username "
          type="text"
-         hint="Username">
+         hint="Username"
+         :error="formError.hasOwnProperty('Username')"
+         :error-message="formError.Username"
+         >
          </q-input>
        
        <q-input 
@@ -18,7 +21,8 @@
            filled :type="isPwd ? 'password' : 'text'" 
            hint="Password"
            label="Password"
-           lazy-rules
+           :error="formError.hasOwnProperty('Password')"
+           :error-message="formError.Password"
            >
            <template v-slot:append>
              <q-icon
@@ -36,8 +40,13 @@
          />
        </div>
      </q-form>
-  
-   </div>
+     <q-inner-loading
+        :showing="isLoading"
+        label="Please wait..."
+        label-class="text-teal"
+        label-style="font-size: 1.1em"
+      />
+     </div>
     </div>
   </template>
   
@@ -59,6 +68,7 @@
   export default {
    setup () {
     const router = useRouter(); // Initialize Vue Router
+    const isLoading = ref(false)
 
       const initFormData = () => {
       return {
@@ -71,12 +81,10 @@
     const formError = ref ({})
 
     const goAdminValidation = async () => {
+      isLoading.value = true;
       try {
         const { data } = await $axios.post('/admin/validate', formData.value);
-       
-        /*   // Store token in localStorage (or sessionStorage)
-          localStorage.setItem('authToken', data.token); // Save token for persiste */
-          
+           
         // Store token in sessionStorage instead of localStorage
         sessionStorage.setItem('authToken', data.token); 
 
@@ -85,12 +93,17 @@
         router.push('/admin/dashboard'); // Change the path to your desired route
 
       } catch (error) {
-        if (error.response && error.response.status === 401) {
+        if (error.response.status === 422) {
+          console.log("Validation Errors:", error.response.data); // Show errors in console
+          formError.value = error.response.data;
+        }
+        else if (error.response && error.response.status === 401) {
           $notify('negative','error',"Invalid username or password")
         } else {
           console.log("error", error);
-
         }
+      } finally {
+        isLoading.value = false;
       }
     };
 
@@ -107,7 +120,7 @@
        goAdminValidation,
        formData,
        formError,
-
+      isLoading,
      }
    }
   }
