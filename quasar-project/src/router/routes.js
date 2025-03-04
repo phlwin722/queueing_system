@@ -8,6 +8,10 @@ const routes = [
     component: () => import("pages/LoginInterface/index.vue"), // Dynamically load the login component
   },
   {
+    path: "/customer/customer_QrCode", // The login page path
+    component: () => import("pages/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
+  },
+  {
     path: "/admin/dashboard", // The main path for the admin dashboard
     component: () => import("layouts/MainLayout.vue"), // Load the MainLayout which contains a sidebar or header
 
