@@ -16,19 +16,24 @@ class AdminController extends Controller
             // Find an admin record in the database with the provided username
             $admin = Admin::where('Username', $request->Username)->first();
         
-            // Check if the admin exists and if the provided password matches the stored hashed password
-            if (!$admin || !Hash::check($request->Password, $admin->Password)) {
-                // If the username doesn't exist or the password is incorrect, return an error response
+            if ($admin) {
+                // Check if the admin exists and if the provided password matches the stored hashed password
+                if (!$admin || !Hash::check($request->Password, $admin->Password)) {
+                    // If the username doesn't exist or the password is incorrect, return an error response
+                    return response()->json([
+                        'error' => 'Invalid credentials'
+                    ], 401);
+                }
+            
+                // If authentication is successful, return a success response
                 return response()->json([
-                    'error' => 'Invalid credentials'
-                ], 401);
+                    // 'result' => $admin,
+                    'result' => "admin",
+                    'message' => 'Login successful'
+                ]);
+            }else {
+
             }
-        
-            // If authentication is successful, return a success response
-            return response()->json([
-                'result' => $admin,
-                'message' => 'Login successful'
-            ]);
         } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json(
