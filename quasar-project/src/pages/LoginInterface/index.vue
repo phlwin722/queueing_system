@@ -84,13 +84,17 @@
       isLoading.value = true;
       try {
         const { data } = await $axios.post('/admin/validate', formData.value);
-           
-        // Store token in sessionStorage instead of localStorage
-        sessionStorage.setItem('authToken', data.token); 
+        // Reset formError to an empty object after successful validation
+        formError.value = {}; // Clear error messages
 
-        // If login is successful, redirect to the admin dashboard
-        $notify('positive','done',data.message)
-        router.push('/admin/dashboard'); // Change the path to your desired route
+        if (data.result == 'admin') {
+          // Store token in sessionStorage instead of localStorage
+         sessionStorage.setItem('authToken', data.token); 
+
+          // If login is successful, redirect to the admin dashboard
+          $notify('positive','done',data.message)
+          router.push('/admin/dashboard'); // Change the path to your desired route
+        }
 
       } catch (error) {
         if (error.response.status === 422) {
@@ -98,6 +102,9 @@
           formError.value = error.response.data;
         }
         else if (error.response && error.response.status === 401) {
+          // Reset formError to an empty object after successful validation
+          formError.value = {}; // Clear error messages
+          
           $notify('negative','error',"Invalid username or password")
         } else {
           console.log("error", error);
