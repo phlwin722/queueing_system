@@ -25,8 +25,16 @@ const routes = [
         component: () => import("pages/admin_Dashboard/index.vue"), // Load the dashboard page
       },
       {
-        path: "/admin/qr_code", // Path for the QR Code management page
-        component: () => import("pages/admin_Qrcode/index.vue"), // Load the QR code page
+        path: "/admin/teller/manage", // Path for the QR Code management page
+        component: () => import("pages/admin_TellerManage/index.vue"), // Load the QR code page
+      },
+      {
+        path: "/admin/teller/servicetype", // Path for the QR Code management page
+        component: () => import("pages/admin_TellerServicetype/index.vue"), // Load the QR code page
+      },
+      {
+        path: "/admin/archive", // Path for the QR Code management page
+        component: () => import("pages/admin_Archieve/index.vue"), // Load the QR code page
       },
     ],
 
