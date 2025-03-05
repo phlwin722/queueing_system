@@ -183,11 +183,6 @@ export default defineComponent({
           icon: "admin_panel_settings", 
           link: "/admin/admin_Queue",
         },
-        {
-          title: "QR Code",
-          icon: "qr_code_2", 
-          link: "/queue-qr",
-        },
       ],
 
       toggleLeftDrawer() {

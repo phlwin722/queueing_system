@@ -1,6 +1,6 @@
 <template>
-      <q-page class="flex flex-center">
-        <q-card class="q-pa-md shadow-2" style="width: 350px; text-align: center; margin-bottom: auto;">
+      <div class="flex flex-center">
+        <q-card class="q-pa-md shadow-2" style="width: 350px; margin-top: 6%; text-align: center; margin-bottom: auto;">
           <q-card-section>
             <div class="text-h6">Scan to Join the Queue</div>
           </q-card-section>
@@ -10,7 +10,7 @@
             <div v-else>Generating QR Code...</div>
           </q-card-section>
         </q-card>
-      </q-page>
+      </div>
   </template>
   
   <script>
