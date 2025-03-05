@@ -43,12 +43,11 @@
                 </q-item-section>
   
                 <q-item-section side>
-                  <q-btn :disable=serving color="green" label="Cater" @click="caterCustomer(customer.id)" />
-                  <q-btn :disable=serving color="red" label="Cancel" class="q-ml-sm" @click="beforeCancel(customer)" />
+                  <q-btn color="green" label="Cater" @click="caterCustomer(customer.id)" />
+                  <q-btn color="red" label="Cancel" class="q-ml-sm" @click="beforeCancel(customer)" />
   
                   <!-- Wait Button (Only for the first customer in the queue) -->
                   <q-btn
-                    :disable=serving
                     v-if="index === 0 && !waiting"
                     color="orange"
                     label="Wait"
@@ -90,7 +89,6 @@
       const currentServing = ref(null)
       const waiting = ref(false)
       const waitTime = ref(63)
-      const serving = ref(false)
       let waitTimer = null
       let refreshInterval = null
   
@@ -104,6 +102,7 @@
           const response = await $axios.post('/admin/queue-list')
           queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
           currentServing.value = response.data.current_serving
+          
         } catch (error) {
           console.error(error)
         }
@@ -113,13 +112,12 @@
       const caterCustomer = async (customerId) => {
         try {
           await $axios.post('/admin/cater', { id: customerId })
-          serving.value = true
           fetchQueue()
           $notify('positive', 'check', 'Customer is now being served.')
           stopWait() // Stop wait if customer is catered
         } catch (error) {
           console.error(error)
-          $notify('negative', 'error', 'Failed to cater customer.')
+          $notify('negative', 'error', 'You are currently serving a customer. Please finish it first!.')
         }
       }
   //cancel dialog
@@ -154,31 +152,38 @@
       const finishCustomer = async (customerId) => {
         try {
           await $axios.post('/admin/finish', { id: customerId })
-          serving.value = false
           fetchQueue()
+          
           $notify('positive', 'check', 'Customer has been marked as finished.')
         } catch (error) {
           console.error(error)
           $notify('negative', 'error', 'Failed to finish serving.')
         }
       }
+      
   
       // Start waiting process
       const startWait = async (customerId, queueNumber) => {
-        try {
-          const response = await $axios.post('/admin/start-wait', { queue_number: queueNumber })
+          try { 
+           
+          if(currentServing.value != null){
+            $notify('negative', 'error', 'Please finish the current customer first.')
+          }else{
+            const response = await $axios.post('/admin/start-wait', { queue_number: queueNumber })
           
-          waiting.value = true
-          waitTime.value = 63
-  
-          waitTimer = setInterval(() => {
-            if (waitTime.value > 0) {
-              waitTime.value--
-            } else {
-              cancelCustomer(customerId) // Auto-cancel after 1 minute
-              stopWait()
-            }
-          }, 1000)
+            waiting.value = true
+            waitTime.value = 63
+            $notify('positive', 'check', response.data.message)
+            waitTimer = setInterval(() => {
+              if (waitTime.value > 0) {
+                waitTime.value--
+              } else {
+                cancelCustomer(customerId) // Auto-cancel after 1 minute
+                stopWait()
+              }
+            }, 1000)
+          }
+          
         } catch (error) {
           console.error(error)
           $notify('negative', 'error', 'Failed to set waiting customer.')
@@ -222,7 +227,6 @@
         startWait,
         waiting,
         waitTime,
-        serving,
         beforeCancel,
   
         // Pagination

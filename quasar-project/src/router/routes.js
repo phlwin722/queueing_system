@@ -12,6 +12,14 @@ const routes = [
     component: () => import("pages/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
   },
   {
+    path: "/customer-dashboard", // Path for the QR Code management page
+    component: () => import("pages/customer_Dashboard/index.vue"), // Load the QR code page
+  },
+  {
+    path: '/customer-register/:token' ,
+    component: () => import('pages/customer_Register/index.vue')
+  },
+  {
     path: "/teller/Interface", // The login page path
     component: () => import("pages/teller_Interface/index.vue"), // Dynamically load the login component
   },
@@ -39,14 +47,6 @@ const routes = [
       {
         path: "/admin/admin_Queue", // Path for the QR Code management page
         component: () => import("pages/admin_Queue/index.vue"), // Load the QR code page
-      },
-      {
-        path: "/customer-dashboard", // Path for the QR Code management page
-        component: () => import("pages/customer_Dashboard/index.vue"), // Load the QR code page
-      },
-      {
-        path: '/customer-register/:token' ,
-        component: () => import('pages/customer_Register/index.vue')
       },
       {
         path: '/queue-qr', 

@@ -1,6 +1,6 @@
 <template>
-    <q-page class="flex flex-center">
-      <q-card class="q-pa-md shadow-2" style="width: 350px;">
+    <div class="flex flex-center">
+      <q-card class="q-pa-md shadow-2" style="width: 350px; margin-top: 12%;">
         <q-card-section>
           <div class="text-h6 text-center">Join the Queue</div>
         </q-card-section>
@@ -26,7 +26,7 @@
         label-style="font-size: 1.1em"
       />
       </q-card>
-    </q-page>
+    </div>
   </template>
   
   <script>
@@ -45,6 +45,7 @@ export default {
     const token = ref(route.params.token)  // Get token from URL
     const router = useRouter()
     console.log(token.value)
+    const isUsedToken = ref(false)
     const processQrCode = async () => {
       try {
         const response = await $axios.post('/scan-qr', { token: token.value })  //  Correct way to send token
@@ -52,27 +53,34 @@ export default {
         if (response.data.success) {
           $notify('positive', 'check', 'Please Register')
         } else {
-          alert('Invalid or already used QR code.')
-          router.push('/queue-qr')
+          isUsedToken.value = true
+          $notify('negative', 'error', 'Invalid or already used QR code.')
+          
         }
       } catch (error) {
-        alert('Invalid or already used QR code.')
-        router.push('/queue-qr')
+        isUsedToken.value = true
+        $notify('negative', 'error', 'Invalid or already used QR code.')
       }
     }
 
     const joinQueue = async () => {
       isLoading.value = true
       try {
-        const response = await $axios.post('/customer-join', {
+        if(isUsedToken.value === true){
+          $notify('negative', 'error', 'Invalid or already used QR code.')
+
+        }else{
+          const response = await $axios.post('/customer-join', {
           name: name.value,
           mobile: mobile.value
         })
 
-        $notify('positive', 'check', response.message)
-        localStorage.setItem('queue_number', response.data.queue_number)
-        localStorage.setItem('customer_token', token.value)
-        window.location.href = '/customer-dashboard'
+          $notify('positive', 'check', response.message)
+          localStorage.setItem('queue_number', response.data.queue_number)
+          localStorage.setItem('customer_token', token.value)
+          window.location.href = '/customer-dashboard'
+        }
+        
       } catch (error) {
         if (error.response.status === 422) {
           formError.value = error.response.data

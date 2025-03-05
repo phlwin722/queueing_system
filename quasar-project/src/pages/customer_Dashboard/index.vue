@@ -1,5 +1,5 @@
 <template>
-    <q-page class="q-pa-md">
+    <div class="q-pa-md">
       <q-card class="q-pa-md shadow-2">
         <q-card-section>
           <div class="text-h6 text-center">
@@ -62,7 +62,7 @@
           />
         </q-card-section>
       </q-card>
-    </q-page>
+    </div>
   </template>
   
   <script>
