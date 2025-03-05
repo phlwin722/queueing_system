@@ -1,15 +1,12 @@
 <template>
-  <div class="flex flex-center q-pa-md full-height">
-    <q-card class="q-pa-lg q-mt-md shadow-3 login-card">
+  <div class="flex flex-center q-mt-md q-pa-lg full-height">
+    <q-card class="q-pa-lg q-mt-sm shadow-3 login-card">
       <q-card-section class="text-center">
-        <!-- <q-avatar size="72px" class="q-mb-md">
-          <q-img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg" />
-        </q-avatar> -->
-        <h2 class="text-primary">Welcome Admin</h2>
+        <h2 class="text-primary welcome-heading">Welcome</h2>
         <p class="text-grey-7">Login to your account</p>
       </q-card-section>
       <q-card-section>
-        <q-form class="q-gutter-md" @submit.prevent="goAdminValidation">
+        <q-form class="q-gutter-lg form-container" @submit.prevent="goAdminValidation">
           <q-input
             filled
             v-model="formData.Username"
@@ -18,6 +15,7 @@
             hint="Enter your username"
             :error="formError.hasOwnProperty('Username')"
             :error-message="formError.Username"
+            class="none"
           />
 
           <q-input 
@@ -28,6 +26,7 @@
             label="Password"
             :error="formError.hasOwnProperty('Password')"
             :error-message="formError.Password"
+            class="none"
           >
             <template v-slot:append>
               <q-icon
@@ -42,9 +41,10 @@
             label="Login" 
             type="submit"
             color="primary"
-            class="full-width"
+            style="width: 350px;"
           />
-        </q-form>
+</q-form>
+
       </q-card-section>
       
       <q-inner-loading
@@ -122,18 +122,3 @@ export default {
 }
 </script>
 
-<style scoped>
-.full-height {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.login-card {
-  max-width: 500px;
-  width: 100%;
-  border-radius: 12px;
-  text-align: center;
-}
-</style>

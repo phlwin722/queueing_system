@@ -1,1 +1,46 @@
-// app global css in SCSS form
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Poiret+One&family=Poppins:wght@300;400;500;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .outfit {
+    font-family: 'Outfit', sans-serif;
+  }
+  
+  .poiret {
+    font-family: 'Poiret One', cursive;
+  }
+  
+  .welcome-heading {
+    margin-top: 0; // Removes default margin
+    margin-bottom: 25px; // Adjust as needed
+    font-size: 4rem; // Adjust font size for better spacing
+  }
+  
+  .text-center p {
+    margin-bottom: 20px; // Adjusts space below the paragraph
+  }
+
+.full-height {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  max-width: 500px;
+  width: 100%;
+  border-radius: 12px;
+  text-align: center;
+}
+  
+  // Ensure proper spacing on mobile
+  @media (max-width: 500px) {
+    .welcome-heading {
+      font-size: 1.6rem;
+      margin-bottom: 6px;
+    }
+  }
+  

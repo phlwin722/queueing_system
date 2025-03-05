@@ -15,7 +15,7 @@
       :width="250"
       :breakpoint="500"
       bordered
-      :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3'"
+      :class="$q.dark.isActive ? 'bg-info' : ''"
     >
     <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: 0 }">
         <q-list padding>
@@ -66,24 +66,24 @@
       </div>
 
      <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
-      <div class="q-pa-md bg-grey-3 absolute-bottom full-width">
+      <div class="q-pa-md absolute-bottom full-width q-mt-md" style="border-top: 1px solid #ccc;">
         <q-btn-dropdown class="full-width" flat no-caps>
           <template v-slot:label>
-            <q-item clickable>
+            <q-item class="full-width flex items-center">
               <q-item-section avatar>
-                <q-avatar size="40px">
-                  <img src="https://cdn.quasar.dev/img/avatar.png" alt="Admin" />
-                </q-avatar>
+                <q-icon name="account_circle" size="30px" color="primary" />
               </q-item-section>
-            <q-item-section>
-            <q-item-label> Rafael </q-item-label>
-          </q-item-section>
-        </q-item>
-      </template>
+              <q-item-section>
+                <q-item-label>Admin</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
 
-        <q-list>
+          <q-list>
             <q-item clickable v-ripple @click="logout">
-              <q-item-section avatar><q-icon name="logout" color="red" /></q-item-section>
+              <q-item-section avatar>
+                <q-icon name="logout" color="red" />
+              </q-item-section>
               <q-item-section class="text-red">Logout</q-item-section>
             </q-item>
           </q-list>
@@ -156,7 +156,7 @@ export default defineComponent({
       linksList: [
       {
         title: "Dashboard",
-        icon: "home",
+        icon: "dashboard",
         link: "/admin/dashboard",
         },
         {
