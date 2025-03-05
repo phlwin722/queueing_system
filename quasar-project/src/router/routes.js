@@ -36,6 +36,22 @@ const routes = [
         path: "/admin/archive", // Path for the QR Code management page
         component: () => import("pages/admin_Archieve/index.vue"), // Load the QR code page
       },
+      {
+        path: "/admin/admin_Queue", // Path for the QR Code management page
+        component: () => import("pages/admin_Queue/index.vue"), // Load the QR code page
+      },
+      {
+        path: "/customer-dashboard", // Path for the QR Code management page
+        component: () => import("pages/customer_Dashboard/index.vue"), // Load the QR code page
+      },
+      {
+        path: '/customer-register/:token' ,
+        component: () => import('pages/customer_Register/index.vue')
+      },
+      {
+        path: '/queue-qr', 
+        component: () => import('pages/generated_Qr/index.vue') 
+      },
     ],
 
     meta: { requiresAuth: true }, // Protect this route (Navigation Guard will check for authentication)

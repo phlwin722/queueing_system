@@ -178,6 +178,11 @@ export default defineComponent({
           icon: "archive", 
           link: "/admin/archive",
         },
+        {
+          title: "Admin Queue",
+          icon: "admin_panel_settings", 
+          link: "/admin/admin_Queue",
+        },
       ],
 
       toggleLeftDrawer() {
