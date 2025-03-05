@@ -1,5 +1,4 @@
 <template>
-    <q-page-container>
       <q-page class="flex flex-center">
         <q-card class="q-pa-md shadow-2" style="width: 350px; text-align: center; margin-bottom: auto;">
           <q-card-section>
@@ -12,7 +11,6 @@
           </q-card-section>
         </q-card>
       </q-page>
-    </q-page-container>
   </template>
   
   <script>
@@ -32,7 +30,7 @@
           const response = await $axios.post('/generate-qr')
           
           const fullUrl = response.data.qr_code_url // Example: "http://192.168.1.164:8000/scan-qr/abcd1234"
-          const token = fullUrl.slice(26) // Extract token from URL
+          const token = fullUrl.slice(22) // Extract token from URL
           
           localStorage.setItem('token', token)
           registrationLink.value = '192.168.0.164:8080/customer-register/' + token

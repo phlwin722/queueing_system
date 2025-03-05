@@ -1,6 +1,4 @@
 <template>
-    <q-layout>
-      <q-page-container>
         <q-page class="q-pa-md">
   
           <!-- Current Serving Section -->
@@ -75,8 +73,6 @@
             </q-card-actions>
           </q-card>
         </q-page>
-      </q-page-container>
-    </q-layout>
   </template>
   
   <script>
