@@ -9,15 +9,15 @@ const routes = [
   },
   {
     path: "/customer/customer_QrCode", // The login page path
-    component: () => import("pages/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
+    component: () => import("pages/customer/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
   },
   {
     path: "/customer-dashboard", // Path for the QR Code management page
-    component: () => import("pages/customer_Dashboard/index.vue"), // Load the QR code page
+    component: () => import("pages/customer/customer_Dashboard/index.vue"), // Load the QR code page
   },
   {
     path: '/customer-register/:token' ,
-    component: () => import('pages/customer_Register/index.vue')
+    component: () => import('pages/customer/customer_Register/index.vue')
   },
   {
     path: "/teller/Interface", // The login page path
@@ -30,23 +30,23 @@ const routes = [
     children: [
       {
         path: "/admin/dashboard", // Path for the admin dashboard content
-        component: () => import("pages/admin_Dashboard/index.vue"), // Load the dashboard page
+        component: () => import("pages/admin/admin_Dashboard/index.vue"), // Load the dashboard page
       },
       {
         path: "/admin/teller/manage", // Path for the QR Code management page
-        component: () => import("pages/admin_TellerManage/index.vue"), // Load the QR code page
+        component: () => import("pages/admin/admin_TellerManage/index.vue"), // Load the QR code page
       },
       {
         path: "/admin/teller/servicetype", // Path for the QR Code management page
-        component: () => import("pages/admin_TellerServicetype/index.vue"), // Load the QR code page
+        component: () => import("pages/admin/admin_TellerServicetype/index.vue"), // Load the QR code page
       },
       {
         path: "/admin/archive", // Path for the QR Code management page
-        component: () => import("pages/admin_Archieve/index.vue"), // Load the QR code page
+        component: () => import("pages/admin/admin_Archieve/index.vue"), // Load the QR code page
       },
       {
         path: "/admin/admin_Queue", // Path for the QR Code management page
-        component: () => import("pages/admin_Queue/index.vue"), // Load the QR code page
+        component: () => import("pages/admin/admin_Queue/index.vue"), // Load the QR code page
       },
       {
         path: '/queue-qr', 
