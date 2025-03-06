@@ -74,7 +74,7 @@
                 <q-icon name="account_circle" size="30px" color="primary" />
               </q-item-section>
               <q-item-section>
-                <q-item-label>Admin</q-item-label>
+                <q-item-label>{{ adminInformation?.Firstname + ' ' +  adminInformation?.Lastname }}</q-item-label>
               </q-item-section>
             </q-item>
           </template>
@@ -111,6 +111,7 @@ export default defineComponent({
     const formattedString = ref();
     const drawer = ref(false);
     const miniState = ref(false);
+    const adminInformation = ref(null)
 
     // Function to update the time
     const updateFormattedTime = () => {
@@ -131,8 +132,11 @@ export default defineComponent({
 
     // Set an interval to update the time every second
     onMounted(() => {
+      console.log(sessionStorage.getItem('adminInformation'));
+
       updateFormattedTime(); // Call it once on mount
       setInterval(updateFormattedTime, 1000); // Update every second
+      adminInformation.value = JSON.parse(sessionStorage.getItem('adminInformation'))
     });
 
     // Logout function
@@ -149,6 +153,7 @@ export default defineComponent({
       formattedString,
       drawer,
       miniState,
+      adminInformation,
       toggleMiniState,
       drawerClick,
       logout, // Make logout function available in the template

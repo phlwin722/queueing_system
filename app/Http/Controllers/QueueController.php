@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 class QueueController extends Controller
 {
     public function joinQueue(QueueRequest $request)
+
 {
     // Check if there are active (not finished) queue entries
     $lastQueue = Queue::where('status', '!=', 'finished')
@@ -36,7 +37,6 @@ class QueueController extends Controller
         'queue_number' => $queue->queue_number
     ]);
 }
-
 
 
     // public function startWait(Request $request)
@@ -123,6 +123,31 @@ class QueueController extends Controller
         ]);
     }
 
+    // fetch the specific data on queuenumber
+    public function fetchData(Request $request) {
+        try {
+            // Get queue number from request
+            $queueNumber = $request->input('queue_number');
+    
+            // Find the queue by queue_number (exact match)
+            $queue = Queue::where('queue_number', $queueNumber)->first();
+    
+            if (!$queue) {
+                return response()->json(['message' => 'Queue not found'], 404);
+            }
+    
+            // Return user data as JSON
+            return response()->json([
+                'Information' => $queue
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
+            ], 500);
+        }
+    }
+ }
     public function queueLogs(Request $request)
     { 
         try {
@@ -156,3 +181,4 @@ class QueueController extends Controller
     }
 
 }
+

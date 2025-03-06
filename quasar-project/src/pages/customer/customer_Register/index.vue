@@ -10,7 +10,7 @@
           :error="formError.hasOwnProperty('name')"
           :error-message="formError.name"
           outlined dense />
-          <q-input v-model="email" label="email address" 
+          <q-input v-model="email" label="Email address"
           :error="formError.hasOwnProperty('email')"
           :error-message="formError.email"
           outlined dense class="q-mt-md" />
