@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('queues', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('mobile');
-            $table->integer('queue_number')->unique();
+            $table->string('email');
+            $table->integer('queue_number');
             $table->enum('status', ['waiting', 'serving', 'cancelled','finished'])->default('waiting');
             $table->string('waiting_customer')->nullable();
             $table->timestamps();

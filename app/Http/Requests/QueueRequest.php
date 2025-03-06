@@ -24,8 +24,16 @@ class QueueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => ["required","max:255"],
-            "mobile" => ["required"],
+
+            "name" => [
+                "required",
+                "max:255"
+            ],
+            "email" =>  [
+                'required',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'
+            ],
+
         ];
     }
     // "regex:/^(09|\+639)\d{9}$/"

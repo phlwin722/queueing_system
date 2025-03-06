@@ -6,6 +6,8 @@ use App\Http\Requests\AdminRequest;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
 
 
 class AdminController extends Controller
@@ -24,10 +26,15 @@ class AdminController extends Controller
                         'error' => 'Invalid credentials'
                     ], 401);
                 }
-            
+
+                // Generate a simple authentication token (or use Laravel Sanctum for better security)
+                $token = base64_encode(Str::random(40));
+
                 // If authentication is successful, return a success response
                 return response()->json([
                     // 'result' => $admin,
+                    'adminInformation' => $admin,
+                    'token' => $token,
                     'result' => "admin",
                     'message' => 'Login successful'
                 ]);
@@ -55,6 +62,8 @@ class AdminController extends Controller
      */
           // Insert admin into database
             $admin = Admin::create([
+                'Firstname' => $request->Firstname,
+                'Lastname' => $request->Lastname,
                 'Username' => $request->Username,
                 'Password' => Hash::make($request->Password) // Hash password before storing
             ]);

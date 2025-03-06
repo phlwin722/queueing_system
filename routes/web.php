@@ -4,6 +4,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\QueueController;
 use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MailController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +30,12 @@ Route::post('/admin/cater', [QueueController::class, 'caterCustomer']);
 Route::post('/admin/cancel', [QueueController::class, 'cancelCustomer']);
 Route::post('/admin/finish', [QueueController::class, 'finishCustomer']);
 Route::post('/admin/start-wait', [QueueController::class, 'startWait']);
+Route::post('/send-fetchInfo',[QueueController::class,'fetchData']);
+Route::post('/admin/queue-logs', [QueueController::class, 'queueLogs']);
+Route::post('/resetQueue', [QueueController::class, 'resetTodayQueueNumbers']);
+
 
 Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
 Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
+
+Route::post('/send-email', [MailController::class, 'sendEmail']);
