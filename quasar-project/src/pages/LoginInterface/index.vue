@@ -2,8 +2,13 @@
   <div class="flex flex-center q-mt-md q-pa-lg full-height">
     <q-card class="q-pa-lg q-mt-sm shadow-3 login-card">
       <q-card-section class="text-center">
+        <q-img 
+          src="~assets/vrtlogoblack.webp" 
+          alt="Logo" 
+          fit="contain" 
+          style="max-width: 120px; margin: 0 auto;"/>
         <h2 class="text-primary welcome-heading">Welcome</h2>
-        <p class="text-grey-7">Login to your account</p>
+
       </q-card-section>
       <q-card-section>
         <q-form class="q-gutter-lg form-container" @submit.prevent="goAdminValidation">
@@ -12,7 +17,6 @@
             v-model="formData.Username"
             label="Username"
             type="text"
-            hint="Enter your username"
             :error="formError.hasOwnProperty('Username')"
             :error-message="formError.Username"
             class="none"
@@ -22,7 +26,6 @@
             v-model="formData.Password" 
             filled 
             :type="isPwd ? 'password' : 'text'" 
-            hint="Enter your password"
             label="Password"
             :error="formError.hasOwnProperty('Password')"
             :error-message="formError.Password"
@@ -41,7 +44,7 @@
             label="Login" 
             type="submit"
             color="primary"
-            style="width: 350px;"
+            style="width: 250px;"
           />
 </q-form>
 
@@ -112,13 +115,13 @@ export default {
       window.onpopstate = () => history.pushState(null, null, location.href);
     });
 
-     return {
-       isPwd,
-       goAdminValidation,
-       formData,
-       formError,
+    return {
+      isPwd,
+      goAdminValidation,
+      formData,
+      formError,
       isLoading,
-     }
+    }
   }
 }
 </script>
