@@ -1,7 +1,13 @@
 <template>
   <q-layout class="shadow-2 rounded-borders">
-    <q-header elevated>
+    <q-header>
       <q-toolbar>
+          <!-- <q-img 
+        src="~assets/vrtlogowhitew.png" 
+        alt="Logo" 
+        fit="contain" 
+        style="max-width: 125px; height:40px; margin-left: -40px;"
+      /> -->
         <q-toolbar-title>Queueing</q-toolbar-title>
         <div>{{ formattedString }}</div>
       </q-toolbar>
@@ -34,7 +40,7 @@
                 v-ripple
                 :to="child.link"
               >
-                <q-item-section class="text-center">{{ child.title }}</q-item-section>
+                <q-item-section class="text-left">{{ child.title }}</q-item-section>
               </q-item>
             </q-expansion-item>
 
@@ -43,7 +49,7 @@
             -->
             <q-item v-else clickable v-ripple :to="item.link" exact>
               <q-item-section avatar>
-                <q-icon :name="item.icon" :color="item.link === $route.path ? 'secondary' : 'secondary'" />
+                <q-icon :name="item.icon" :color="item.link === $route.path ? 'primary' : 'secondary'" />
               </q-item-section>
               <q-item-section v-if="!miniState">{{
                 item.title
@@ -65,11 +71,11 @@
         />
       </div>
 
-     <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
-      <div class="q-pa-md absolute-bottom full-width q-mt-md" style="border-top: 1px solid #ccc;">
-        <q-btn-dropdown class="full-width" flat no-caps>
+    <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
+      <div class="q-pa-xs absolute-bottom full-width q-mt-md" style="border-top: 1px solid #ccc;">
+        <q-btn-dropdown class="full-width" flat no-caps dropdown-icon="none">
           <template v-slot:label>
-            <q-item class="full-width flex items-center">
+            <q-item class="none flex items-center">
               <q-item-section avatar>
                 <q-icon name="account_circle" size="30px" color="primary" />
               </q-item-section>
