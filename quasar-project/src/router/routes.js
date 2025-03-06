@@ -12,6 +12,14 @@ const routes = [
     component: () => import("pages/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
   },
   {
+    path: "/teller/Layout", // The login page path
+    component: () => import("pages/Teller/index.vue"), // Dynamically load the login component
+  },
+  {
+    path: "/user/Layout", // The login page path
+    component: () => import("pages/User/index.vue"), // Dynamically load the login component
+  },
+  {
     path: "/teller/Interface", // The login page path
     component: () => import("pages/teller_Interface/index.vue"), // Dynamically load the login component
   },
@@ -35,6 +43,10 @@ const routes = [
       {
         path: "/admin/archive", // Path for the QR Code management page
         component: () => import("pages/admin_Archieve/index.vue"), // Load the QR code page
+      },
+      {
+        path: "/admin/tellers", // Path for the QR Code management page
+        component: () => import("pages/teller_Interface/index.vue"), // Load the QR code page
       },
     ],
 
