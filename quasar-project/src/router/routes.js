@@ -16,7 +16,7 @@ const routes = [
     component: () => import("pages/customer/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
   },
   {
-    path: "/customer-dashboard", // Path for the QR Code management page
+    path: "/customer-dashboard/:token", // Path for the QR Code management page
     component: () => import("pages/customer/customer_Dashboard/index.vue"), // Load the QR code page
   },
   {
@@ -51,6 +51,10 @@ const routes = [
       {
         path: "/admin/admin_Queue", // Path for the QR Code management page
         component: () => import("pages/admin/admin_Queue/index.vue"), // Load the QR code page
+      },
+      {
+        path: "/admin/customer-logs", // Path for the QR Code management page
+        component: () => import("pages/admin/customer_Logs/index.vue"), // Load the QR code page
       },
     ],
 

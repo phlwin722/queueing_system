@@ -1,6 +1,13 @@
 <template>
         <q-page class="q-pa-md">
-  
+          <q-card-actions align="center">
+              <q-btn
+                :disable="(!isQueuelistEmpty || currentServing != null)"
+                color="green"
+                label="Reset Queue Number"
+                @click="resetQueue()"
+              />
+            </q-card-actions>
           <!-- Current Serving Section -->
           <q-card class="q-mb-md q-pa-md" bordered>
             <q-card-section class="text-center">
@@ -85,6 +92,7 @@
       const currentServing = ref(null)
       const waiting = ref(false)
       const waitTime = ref(63)
+      const isQueuelistEmpty = ref(false)
       let waitTimer = null
       let refreshInterval = null
   
@@ -98,7 +106,8 @@
           const response = await $axios.post('/admin/queue-list')
           queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
           currentServing.value = response.data.current_serving
-          
+          console.log(currentServing.value) 
+          isQueuelistEmpty.value = queueList.value.length == 0
         } catch (error) {
           console.error(error)
         }
@@ -185,6 +194,22 @@
           $notify('negative', 'error', 'Failed to set waiting customer.')
         }
       }
+
+      // Reset Queue Number
+      const resetQueue = async () => {
+          try { 
+           
+         
+            const response = await $axios.post('/resetQueue')
+            $notify('positive', 'check', response.data.message)
+            console.log(response.data.message)
+         
+          
+        } catch (error) {
+          console.error(error)
+          $notify('negative', 'error', 'Failed to set waiting customer.')
+        }
+      }
   
   
       
@@ -224,6 +249,8 @@
         waiting,
         waitTime,
         beforeCancel,
+        resetQueue,
+        isQueuelistEmpty,
   
         // Pagination
         currentPage,

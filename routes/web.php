@@ -28,6 +28,8 @@ Route::post('/admin/cater', [QueueController::class, 'caterCustomer']);
 Route::post('/admin/cancel', [QueueController::class, 'cancelCustomer']);
 Route::post('/admin/finish', [QueueController::class, 'finishCustomer']);
 Route::post('/admin/start-wait', [QueueController::class, 'startWait']);
+Route::post('/admin/queue-logs', [QueueController::class, 'queueLogs']);
+Route::post('/resetQueue', [QueueController::class, 'resetTodayQueueNumbers']);
 
 Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
 Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
