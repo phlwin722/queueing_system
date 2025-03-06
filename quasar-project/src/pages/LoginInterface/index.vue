@@ -79,7 +79,8 @@ export default {
 
         if (data.result == 'admin') {
           // Store token in sessionStorage instead of localStorage
-         sessionStorage.setItem('authToken', data.token); 
+          sessionStorage.setItem('authToken', data.token); 
+          sessionStorage.setItem('adminInformation', JSON.stringify(data.adminInformation));
 
           // If login is successful, redirect to the admin dashboard
           $notify('positive','done',data.message)

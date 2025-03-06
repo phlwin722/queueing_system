@@ -21,7 +21,7 @@
           <div class="text-h6">Queue List</div>
   
           <!-- Show "You are being served" if the customer is being served -->
-          <div v-if="isBeingServed" class="text-center text-bold text-positive q-mb-md">
+          <div @click="" v-if="isBeingServed" class="text-center text-bold text-positive q-mb-md">
             You are being served. Enjoy!
           </div>
   
@@ -88,6 +88,14 @@
       const countdown = ref(60) // 60 seconds countdown
       let refreshInterval = null
       let countdownInterval = null
+    
+      const emailSended = ref ('')
+      const emailData = ref({ // Email data list
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
   
       const currentPage = ref(1)
       const itemsPerPage = 5 // Number of items per page
@@ -132,7 +140,8 @@
             $notify('negative', 'error', 'The Admin cancelled your queueing number.')
             setTimeout(() => router.push('/customer-register/FZDXRGKf4c'), 2000)
           }
-  
+
+          checkingQueueNumber()  // Call the function to check queue number after updating data
         } catch (error) {
           console.error(error)
         }
@@ -172,6 +181,38 @@
         const start = (currentPage.value - 1) * itemsPerPage
         return queueList.value.slice(start, start + itemsPerPage)
       })
+
+
+     // Function to check if the user's queue number is 5, then send an email notification
+    const checkingQueueNumber = async () => {
+        try {
+          if (queuePosition.value === 5 && emailSended.value === "") {
+             emailSended.value = "Already sent";
+             const { data } = await $axios.post('/send-fetchInfo', {
+                  queue_number: customerQueueNumber.value
+              });
+
+            // Assign email data with the recipient's details and email content
+            emailData.value = {
+                name: data.Information.name,      // Recipient's name
+                email: data.Information.email, // Recipient's email address
+                subject: "Queue Alert",      // Email subject
+                message: "You are near from being served. Please standby!"     // Email message body
+            };
+
+            // Send a POST request to the '/send-email' endpoint with emailData as payload
+            const { emailContent } = await $axios.post('/send-email', emailData.value);
+
+            // Show an alert to confirm that the email was sent successfully
+            alert("Email sent successfully!", emailContent);
+
+          }
+        } catch (error) {
+            // Log the error in the console if the request fails
+            console.log(error);
+        }
+    };
+
   
       onMounted(() => {
         fetchQueueData()
@@ -192,6 +233,8 @@
         isWaiting, 
         countdown, 
         leaveQueue,
+        checkingQueueNumber,
+        emailData,
   
         // Pagination
         currentPage,

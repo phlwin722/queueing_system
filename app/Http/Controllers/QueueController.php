@@ -19,7 +19,7 @@ class QueueController extends Controller
         // Create queue entry
         $queue = Queue::create([
             'name' => $request->name,
-            'mobile' => $request->mobile,
+            'email' => $request->email,
             'queue_number' => $nextQueueNumber,
             'status' => 'waiting',
             'waiting_customer' => null
@@ -112,4 +112,29 @@ class QueueController extends Controller
             'message' => 'Customer marked as finished.'
         ]);
     }
-}
+
+    // fetch the specific data on queuenumber
+    public function fetchData(Request $request) {
+        try {
+            // Get queue number from request
+            $queueNumber = $request->input('queue_number');
+    
+            // Find the queue by queue_number (exact match)
+            $queue = Queue::where('queue_number', $queueNumber)->first();
+    
+            if (!$queue) {
+                return response()->json(['message' => 'Queue not found'], 404);
+            }
+    
+            // Return user data as JSON
+            return response()->json([
+                'Information' => $queue
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
+            ], 500);
+        }
+    }
+ }

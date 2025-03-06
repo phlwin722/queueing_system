@@ -10,9 +10,9 @@
           :error="formError.hasOwnProperty('name')"
           :error-message="formError.name"
           outlined dense />
-          <q-input v-model="mobile" label="Mobile Number" type="tel" 
-          :error="formError.hasOwnProperty('mobile')"
-          :error-message="formError.mobile"
+          <q-input v-model="email" label="Email address" type="tel" 
+          :error="formError.hasOwnProperty('email')"
+          :error-message="formError.email"
           outlined dense class="q-mt-md" />
         </q-card-section>
   
@@ -37,7 +37,7 @@ import { $axios, $notify } from 'boot/app'
 export default {
   setup() {
     const name = ref('')
-    const mobile = ref('')
+    const email = ref('')
     const isLoading = ref(false)
     const formError = ref({})
     
@@ -72,7 +72,7 @@ export default {
         }else{
           const response = await $axios.post('/customer-join', {
           name: name.value,
-          mobile: mobile.value
+          email: email.value
         })
 
           $notify('positive', 'check', response.message)
@@ -96,7 +96,7 @@ export default {
 
     return {
       name,
-      mobile,
+      email,
       joinQueue,
       formError,
       isLoading,
