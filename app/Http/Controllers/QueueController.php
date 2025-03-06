@@ -11,25 +11,33 @@ use Illuminate\Support\Facades\DB;
 class QueueController extends Controller
 {
     public function joinQueue(QueueRequest $request)
-    {
-        // Get the next queue number
-        $lastQueue = Queue::orderBy('queue_number', 'desc')->first();
-        $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
-        // Create queue entry
-        $queue = Queue::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'queue_number' => $nextQueueNumber,
-            'status' => 'waiting',
-            'waiting_customer' => null
-        ]);
+{
+    // Check if there are active (not finished) queue entries
+    $lastQueue = Queue::where('status', '!=', 'finished')
+                    ->orderBy('queue_number', 'desc')
+                    ->first();
 
-        return response()->json([
-            'message' => 'Successfully joined queue',
-            'queue_number' => $queue->queue_number
-        ]);
-    }
+    // If there's no active queue, start from 1
+    $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+    
+    // Create queue entry
+    $queue = Queue::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'queue_number' => $nextQueueNumber,
+        'status' => 'waiting',
+        'waiting_customer' => null
+    ]);
+    
+    // Return response with queue ID and queue number
+    return response()->json([
+        'message' => 'Successfully joined queue',
+        'id' => $queue->id, // ✅ Include the queue ID
+        'queue_number' => $queue->queue_number
+    ]);
+}
+
 
     // public function startWait(Request $request)
     // {
@@ -51,17 +59,19 @@ class QueueController extends Controller
     public function getQueueList()
     {
         $waitingCustomer = DB::table('queues')->value('waiting_customer');
+        $id = DB::table('queues')->where('queue_number', $waitingCustomer)->value('id');
         return response()->json([
+            'id' => $id,
             'queue' => Queue::orderBy('queue_number')->get(),
             'current_serving' => Queue::where('status', 'serving')
                               ->first()?->queue_number ?? 'N/A',
-            'waiting_customer' => $waitingCustomer, // Send waiting customer
+            'waiting_customer' => $waitingCustomer,
         ]);
     }
 
     public function leaveQueue(Request $request)
     {
-        Queue::where('queue_number', $request->queue_number)
+        Queue::where('id', $request->id)
             ->update(['status' => 'cancelled']);
         return response()->json([
             'message' => 'Queue left successfully'
@@ -138,3 +148,37 @@ class QueueController extends Controller
         }
     }
  }
+    public function queueLogs(Request $request)
+    { 
+        try {
+            // Fetch queue records where status is NOT 'waiting'
+            $rows = DB::table('queues')
+                ->where('status', '=', 'finished')
+                ->get();
+
+            return response()->json([
+                'rows' => $rows
+            ]);
+
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $message : "Something went wrong!"
+            ]);
+        }
+    }
+
+    public function resetTodayQueueNumbers()
+    {
+        DB::table('queues')->update(['status' => 'finished']);
+
+        // Reset queue numbering for the next customer (MySQL ONLY)
+        DB::statement('ALTER TABLE queues AUTO_INCREMENT = 1');
+
+        return response()->json([
+            'message' => 'Queue has been reset. The next customer will start at queue number 1.'
+        ]);
+    }
+
+}
+

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email');
-            $table->integer('queue_number')->unique();
+            $table->integer('queue_number');
             $table->enum('status', ['waiting', 'serving', 'cancelled','finished'])->default('waiting');
             $table->string('waiting_customer')->nullable();
             $table->timestamps();

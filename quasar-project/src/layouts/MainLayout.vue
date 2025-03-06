@@ -188,6 +188,11 @@ export default defineComponent({
           icon: "admin_panel_settings", 
           link: "/admin/admin_Queue",
         },
+        {
+          title: "Customer Logs",
+          icon: "description", 
+          link: "/admin/customer-logs",
+        },
       ],
 
       toggleLeftDrawer() {
