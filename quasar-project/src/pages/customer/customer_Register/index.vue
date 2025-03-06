@@ -10,9 +10,9 @@
           :error="formError.hasOwnProperty('name')"
           :error-message="formError.name"
           outlined dense />
-          <q-input v-model="mobile" label="Mobile Number" type="tel" 
-          :error="formError.hasOwnProperty('mobile')"
-          :error-message="formError.mobile"
+          <q-input v-model="email" label="email address" 
+          :error="formError.hasOwnProperty('email')"
+          :error-message="formError.email"
           outlined dense class="q-mt-md" />
         </q-card-section>
   
@@ -37,7 +37,7 @@ import { $axios, $notify } from 'boot/app'
 export default {
   setup() {
     const name = ref('')
-    const mobile = ref('')
+    const email = ref('')
     const isLoading = ref(false)
     const formError = ref({})
     
@@ -52,6 +52,7 @@ export default {
         
         if (response.data.success) {
           $notify('positive', 'check', 'Please Register')
+          console.log(isUsedToken.value)
         } else {
           isUsedToken.value = true
           $notify('negative', 'error', 'Invalid or already used QR code.')
@@ -67,18 +68,21 @@ export default {
       isLoading.value = true
       try {
         if(isUsedToken.value === true){
+          console.log(isUsedToken.value)
           $notify('negative', 'error', 'Invalid or already used QR code.')
 
         }else{
+          console.log(email.value)
           const response = await $axios.post('/customer-join', {
           name: name.value,
-          mobile: mobile.value
+          email: email.value
         })
-
+          console.log(isUsedToken.value)
           $notify('positive', 'check', response.message)
-          localStorage.setItem('queue_number', response.data.queue_number)
-          localStorage.setItem('customer_token', token.value)
-          window.location.href = '/customer-dashboard'
+          localStorage.setItem('customer_id'+token.value, response.data.id)
+          localStorage.setItem('queue_number'+token.value, response.data.queue_number)
+          localStorage.setItem('customer_token'+token.value, token.value)
+          window.location.href = '/customer-dashboard/'+token.value
         }
         
       } catch (error) {
@@ -96,7 +100,7 @@ export default {
 
     return {
       name,
-      mobile,
+      email,
       joinQueue,
       formError,
       isLoading,

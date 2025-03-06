@@ -25,7 +25,7 @@ class QueueRequest extends FormRequest
     {
         return [
             "name" => ["required","max:255"],
-            "mobile" => ["required"],
+            "email" => ["required"],
         ];
     }
     // "regex:/^(09|\+639)\d{9}$/"
