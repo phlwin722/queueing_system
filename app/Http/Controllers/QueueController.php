@@ -23,8 +23,10 @@ class QueueController extends Controller
     
     // Create queue entry
     $queue = Queue::create([
+        'token' => $request->token,
         'name' => $request->name,
         'email' => $request->email,
+        'email_status' => $request->email_status,
         'queue_number' => $nextQueueNumber,
         'status' => 'waiting',
         'waiting_customer' => null
@@ -147,7 +149,7 @@ class QueueController extends Controller
             ], 500);
         }
     }
- }
+
     public function queueLogs(Request $request)
     { 
         try {
@@ -160,7 +162,7 @@ class QueueController extends Controller
                 'rows' => $rows
             ]);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json([
                 "message" => env('APP_DEBUG') ? $message : "Something went wrong!"

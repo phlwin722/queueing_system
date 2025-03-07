@@ -38,12 +38,12 @@ export default {
   setup() {
     const name = ref('')
     const email = ref('')
+    const email_status = ref('pending')
     const isLoading = ref(false)
     const formError = ref({})
     
     const route = useRoute()  // Use useRoute() correctly
     const token = ref(route.params.token)  // Get token from URL
-    const router = useRouter()
     console.log(token.value)
     const isUsedToken = ref(false)
     const processQrCode = async () => {
@@ -51,7 +51,7 @@ export default {
         const response = await $axios.post('/scan-qr', { token: token.value })  //  Correct way to send token
         
         if (response.data.success) {
-          $notify('positive', 'check', 'Please Register')
+          $notify('positive', 'check', 'Kindly complete the input field before entering your number.')
           console.log(isUsedToken.value)
         } else {
           isUsedToken.value = true
@@ -74,11 +74,12 @@ export default {
         }else{
           console.log(email.value)
           const response = await $axios.post('/customer-join', {
-          name: name.value,
-          email: email.value
+            token: token.value,
+            name: name.value,
+            email: email.value,
+            email_status: email_status.value
         })
-          console.log(isUsedToken.value)
-          $notify('positive', 'check', response.message)
+        
           localStorage.setItem('customer_id'+token.value, response.data.id)
           localStorage.setItem('queue_number'+token.value, response.data.queue_number)
           localStorage.setItem('customer_token'+token.value, token.value)
@@ -101,6 +102,7 @@ export default {
     return {
       name,
       email,
+      email_status,
       joinQueue,
       formError,
       isLoading,
