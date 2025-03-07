@@ -83,7 +83,7 @@ export default {
           localStorage.setItem('customer_id'+token.value, response.data.id)
           localStorage.setItem('queue_number'+token.value, response.data.queue_number)
           localStorage.setItem('customer_token'+token.value, token.value)
-          window.location.href = '/customer-dashboard/'+token.value
+          window.location.href = '/user/Layout/'+token.value
         }
         
       } catch (error) {
