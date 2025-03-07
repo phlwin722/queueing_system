@@ -2,13 +2,14 @@
   <q-layout class="shadow-2 rounded-borders">
     <q-header>
       <q-toolbar>
-          <!-- <q-img 
-        src="~assets/vrtlogowhitew.png" 
+          <q-img 
+        src="~assets/vrtlogowhite1.png" 
         alt="Logo" 
-        fit="contain" 
-        style="max-width: 125px; height:40px; margin-left: -40px;"
-      /> -->
-        <q-toolbar-title>Queueing</q-toolbar-title>
+        fit="full" 
+        :style="{ maxWidth: $q.screen.lt.sm ? '100px' : '160px' }"
+        class="q-ml-sm"
+      />
+        <q-toolbar-title class="text-center">Queuing System</q-toolbar-title>
         <div>{{ formattedString }}</div>
       </q-toolbar>
     </q-header>
@@ -21,18 +22,19 @@
       :width="250"
       :breakpoint="500"
       bordered
-      :class="$q.dark.isActive ? 'bg-info' : ''"
+      :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
     >
     <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: 0 }">
-        <q-list padding>
-          <template v-for="(item, index) in linksList" :key="index">
-            <!-- Check if the item has children (Dropdown) -->
-            <q-expansion-item
-              v-if="item.children"
-              expand-separator
-              :icon="item.icon"
-              :label="item.title"
-            >
+      <q-list padding>
+        <template v-for="(item, index) in linksList" :key="index">
+          <!-- Parent with children (Dropdown) -->
+          <q-expansion-item
+            v-if="item.children"
+            expand-separator
+            :icon="item.icon"
+            :label="item.title"
+          >
+            <q-list>
               <q-item
                 v-for="(child, childIndex) in item.children"
                 :key="childIndex"
@@ -40,23 +42,24 @@
                 v-ripple
                 :to="child.link"
               >
-                <q-item-section class="text-left">{{ child.title }}</q-item-section>
+                <q-item-section avatar class="q-pl-xl">
+                  <q-icon :name="child.icon" :color="child.link === $route.path ? 'primary' : 'secondary'"/>
+                </q-item-section>
+                <q-item-section class="text-left ">{{ child.title }}</q-item-section>
               </q-item>
-            </q-expansion-item>
+            </q-list>
+          </q-expansion-item>
 
-            <!-- Normal Menu Item
-              icon: server_person
-            -->
-            <q-item v-else clickable v-ripple :to="item.link" exact>
-              <q-item-section avatar>
-                <q-icon :name="item.icon" :color="item.link === $route.path ? 'primary' : 'secondary'" />
-              </q-item-section>
-              <q-item-section v-if="!miniState">{{
-                item.title
-              }}</q-item-section>
-            </q-item>
-          </template>
-        </q-list>
+          <!-- Normal Menu Item -->
+          <q-item v-else clickable v-ripple :to="item.link" exact>
+            <q-item-section avatar>
+              <q-icon :name="item.icon" :color="item.link === $route.path ? 'primary' : 'secondary'" />
+            </q-item-section>
+            <q-item-section v-if="!miniState">{{ item.title }}</q-item-section>
+          </q-item>
+        </template>
+      </q-list>
+
       </q-scroll-area>
       
       <!-- Mini Drawer Toggle Button -->
@@ -72,7 +75,7 @@
       </div>
 
     <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
-      <div class="q-pa-xs absolute-bottom full-width q-mt-md" style="border-top: 1px solid #ccc;">
+      <div class="q-pa-xs absolute-bottom full-width q-mt-md bg-accent" style="border-top: 1px solid #ccc;">
         <q-btn-dropdown class="full-width" flat no-caps dropdown-icon="none">
           <template v-slot:label>
             <q-item class="none flex items-center">
@@ -176,10 +179,12 @@ export default defineComponent({
           children: [
             { 
               title: "Manage Tellers", 
+              icon: "supervisor_account", 
               link: "/admin/teller/manage",  
             },
             { 
               title: "Service Types", 
+              icon: "category", 
               link: "/admin/teller/servicetype" 
             },
           ],
@@ -204,7 +209,7 @@ export default defineComponent({
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },
-     };
+    };
   },
 });
 </script>

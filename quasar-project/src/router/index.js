@@ -8,7 +8,7 @@ export default route(function () {
     routes, // Ensure routes is passed correctly as an array
   });
 
-  // 🔹 Navigation Guard: Redirect if not logged in
+/*   // 🔹 Navigation Guard: Redirect if not logged in
   Router.beforeEach((to, from, next) => {
     const isAuthenticated = sessionStorage.getItem("authToken"); // Check session
     if (to.matched.some((record) => record.meta.requiresAuth) && !isAuthenticated) {
@@ -17,7 +17,7 @@ export default route(function () {
     } else {
       next();
     }
-  });
+  }); */
 
   return Router;
 });
