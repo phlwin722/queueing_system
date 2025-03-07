@@ -24,16 +24,21 @@
     </q-header>
 
     <q-page-container>
-      <q-page>
+      <q-page class="scrollable-container">
         <div
           class="row q-col-gutter-md items-center justify-center q-mx-auto"
-          style="min-height: 80vh; max-width: 1200px"
+          style="min-height: 80vh; max-width: 1200px; padding-bottom: 80px"
         >
           <!-- Queue List Section -->
           <div class="col-12 col-md-6 flex justify-center q-px-sm">
             <q-card
-              class="rounded-borders full-height"
-              style="min-height: 400px; width: 100%; max-width: 550px"
+              class="rounded-borders full-height scroll-area"
+              style="
+                min-height: 400px;
+                width: 100%;
+                max-width: 550px;
+                overflow-y: auto;
+              "
             >
               <q-card-section class="text-center">
                 <p class="text-bold text-primary text-h5">WAITING QUEUE</p>
@@ -41,7 +46,7 @@
               <q-separator />
               <q-card-section
                 class="scroll-area custom-scrollbar"
-                style="max-height: 50vh"
+                style="max-height: 50vh; overflow-y: auto; padding-bottom: 80px"
               >
                 <q-chip
                   v-for="(queue, index) in queueList"
@@ -59,7 +64,7 @@
                     }}</span>
                   </div>
                   <q-space />
-                  <q-btn-group spread>
+                  <q-btn-group spread class="btn-group-responsive">
                     <q-btn
                       unelevated
                       dense
@@ -110,8 +115,14 @@
           <!-- Now Serving Section -->
           <div class="col-12 col-md-6 flex justify-center q-px-sm">
             <q-card
-              class="rounded-borders full-height"
-              style="min-height: 400px; width: 100%; max-width: 550px"
+              class="rounded-borders full-height scroll-area"
+              style="
+                min-height: 400px;
+                width: 100%;
+                max-width: 550px;
+                overflow-y: auto;
+                padding-bottom: 80px;
+              "
             >
               <q-card-section
                 class="flex flex-center"
@@ -143,13 +154,13 @@
                   <span v-else>No Queue in Progress</span>
                 </div>
               </q-card-section>
-              <q-card-section class="text-center">
+              <q-card-section class="text-center q-pa-md">
                 <q-btn
                   color="indigo-10"
                   label="Finish"
                   size="lg"
                   unelevated
-                  class="rounded-borders"
+                  class="rounded-borders finish-btn"
                   :disable="!beingCatered"
                   @click="finishQueue"
                 />
@@ -287,6 +298,29 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.scrollable-container {
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+.btn-group-responsive {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.finish-btn {
+  width: 100%;
+  max-width: 200px;
+  margin-top: 16px;
+}
+
+.scroll-area {
+  overflow-y: auto;
+  max-height: 100%;
+  padding-bottom: 80px;
+}
 /* Modern button styling */
 .modern-btn {
   font-size: 16px;
