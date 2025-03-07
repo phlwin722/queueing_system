@@ -1,10 +1,15 @@
 <template>
   
-    <q-input standout="bg-teal text-white" v-model="text" label="Search" :dense="dense" />
+    <q-input standout="bg-accent text-white" 
+    v-model="text" 
+    label="Search"
+    :dense="dense"
+    class="q-mx-lg q-mt-lg"
+    />
     
     
     <q-page>
-      <div class="q-pa-md">
+      <div class="q-pa-lg">
         <q-table
         title="Customer Logs"
         :rows="filteredRows"
@@ -43,7 +48,7 @@
   
   export default defineComponent({
     name: 'IndexPage',
- 
+
     setup(){
       const text = ref("");
       const rows = ref([]);

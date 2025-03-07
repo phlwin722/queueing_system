@@ -5,8 +5,8 @@
         <q-img 
           src="~assets/vrtlogoblack.webp" 
           alt="Logo" 
-          fit="contain" 
-          style="max-width: 120px; margin: 0 auto;"/>
+          fit="full" 
+          style="max-width: 180px; margin: 0 auto;"/>
         <h2 class="text-primary welcome-heading">Welcome</h2>
 
       </q-card-section>
@@ -40,12 +40,14 @@
             </template>
           </q-input>
 
-          <q-btn 
-            label="Login" 
-            type="submit"
-            color="primary"
-            style="width: 250px;"
-          />
+          <div class="flex justify-center">
+            <q-btn 
+              label="Login" 
+              type="submit"
+              color="primary"
+              class="q-mx-auto full-width"
+            />
+          </div>
 </q-form>
 
       </q-card-section>

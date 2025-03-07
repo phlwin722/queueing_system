@@ -35,12 +35,23 @@ body {
   border-radius: 12px;
   text-align: center;
 }
+
+.q-btn {
+  width: 100%; // Default to full width
+  max-width: 250px; // Limit max width
+  margin: 0 auto; // Center the button
+}
+
   
   // Ensure proper spacing on mobile
   @media (max-width: 500px) {
     .welcome-heading {
       font-size: 1.6rem;
       margin-bottom: 6px;
+    }
+
+    .q-btn{
+      max-width: 100%;
     }
   }
   
