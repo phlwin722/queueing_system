@@ -2,7 +2,8 @@
   <q-layout view="lHh lpr lFf" class="shadow-2 rounded-borders">
     <q-header elevated style="height: 60px">
       <q-toolbar class="justify-center">
-        <q-toolbar-title>Teller</q-toolbar-title>     
+        <q-toolbar-title>Teller</q-toolbar-title>
+        
 
         <q-btn-dropdown v-model="menu" flat dense>
           <template v-slot:label>
@@ -10,6 +11,7 @@
               <img src="https://cdn.quasar.dev/img/avatar.png" />
             </q-avatar>
           </template>
+
           <q-list>
             <q-item clickable v-close-popup @click="onItemClick">
               <q-item-section avatar>
@@ -68,45 +70,7 @@
                   </div>
                   <div class="col">
                     <span class="text-bold">Queue: {{ customer.queue_number }}</span>
-
                   </div>
-                  <div class="row q-gutter-sm q-ml-auto">
-                    <q-btn
-                      unelevated
-                      dense
-                      color="red-5"
-                      label="Cancel"
-                      class="modern-btn"
-                      @click="cancelQueue(queue)"
-                    />
-                    <q-btn
-                      v-if="index === 0"
-                      unelevated
-                      dense
-                      color="orange-5"
-                      class="modern-btn"
-                      :label="
-                        waitTimes[queue] > 0
-                          ? `Wait (${formatTime(waitTimes[queue])})`
-                          : 'Wait'
-                      "
-                      @click="waitQueue(queue)"
-                    />
-                    <q-btn
-                      unelevated
-                      dense
-                      color="green-5"
-                      label="Cater"
-                      class="modern-btn"
-                      @click="caterQueue(queue)"
-                    />
-                  </div>
-                </q-chip>
-                <div
-                  v-if="queueList.length === 0"
-                  class="text-grey text-center q-mt-md"
-                >
-                  No more customers
                 </div>
 
                 <div class="row q-gutter-sm q-ml-auto">
@@ -192,10 +156,9 @@
               />
             </q-card-section>
           </q-card>
-
         </div>
-      </q-page>
-    </q-page-container>
+      </div>
+    </div>
   </q-layout>
 </template>
 
@@ -228,8 +191,6 @@
         } catch (error) {
           console.error(error)
         }
-
-
       }
   
       // Cater customer
@@ -406,6 +367,12 @@
 .fade-scale-leave-to {
   opacity: 0;
   transform: scale(1.1);
+}
+
+/* Bigger Queue Numbers */
+.queue-chip {
+  font-size: 20px;
+  padding: 12px;
 }
 
 /* Now Serving Box */
