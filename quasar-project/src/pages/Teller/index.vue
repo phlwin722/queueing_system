@@ -1,16 +1,14 @@
 <template>
   <q-layout view="lHh lpr lFf" class="shadow-2 rounded-borders">
     <q-header elevated style="height: 60px">
-      <q-toolbar class="justify-center">
-        <q-toolbar-title>Teller</q-toolbar-title>
-
+      <q-toolbar class="justify-between">
+        <q-toolbar-title class="text-center">Teller</q-toolbar-title>
         <q-btn-dropdown v-model="menu" flat dense>
           <template v-slot:label>
             <q-avatar>
               <img src="https://cdn.quasar.dev/img/avatar.png" />
             </q-avatar>
           </template>
-
           <q-list>
             <q-item clickable v-close-popup @click="onItemClick">
               <q-item-section avatar>
@@ -25,131 +23,131 @@
       </q-toolbar>
     </q-header>
 
-    <div class="absolute-center full-width full-height bg-grey-2">
-      <div class="fit row wrap items-start content-center q-gutter-md q-pt-xl">
-        <!-- Queue List Section -->
-        <div class="col-12 col-md-5 q-pl-md" style="height: 450px">
-          <q-card class="q-pa-md full-height shadow-2 bg-white rounded-borders">
-            <q-card-section class="text-center">
-              <p class="text-bold" style="color: #1c5d99; font-size: 30px">
-                WAITING QUEUE
-              </p>
-            </q-card-section>
-            <q-separator />
-            <q-card-section class="col scroll-area custom-scrollbar">
-              <q-chip
-                v-for="(queue, index) in queueList"
-                :key="index"
-                :style="{
-                  backgroundColor:
-                    beingCatered === queue ? '#f39c12' : '#1c5d99',
-                  color: 'white',
-                  fontSize: '22px', // Larger font for better visibility
-                  padding: '16px 24px', // More spacing for readability
-                  height: '60px', // Increase chip height
-                }"
-                class="full-width q-mb-sm queue-chip row justify-between items-center"
-                square
+    <q-page-container>
+      <q-page class="flex flex-center bg-grey-2">
+        <div class="q-pa-md full-width row wrap justify-center q-gutter-lg">
+          <!-- Queue List Section -->
+          <div class="col-12 col-md-5">
+            <q-card
+              class="full-height shadow-2 bg-white rounded-borders"
+              style="height: 100%"
+            >
+              <q-card-section class="text-center">
+                <p class="text-bold text-primary text-h5">WAITING QUEUE</p>
+              </q-card-section>
+              <q-separator />
+              <q-card-section
+                class="scroll-area custom-scrollbar"
+                style="max-height: 50vh"
               >
-                <div class="column">
-                  <div class="col">
+                <q-chip
+                  v-for="(queue, index) in queueList"
+                  :key="index"
+                  class="full-width q-mb-sm q-py-xl row justify-between items-center"
+                  :class="{
+                    'bg-warning text-white': beingCatered === queue,
+                    'bg-primary text-white': beingCatered !== queue,
+                  }"
+                >
+                  <div class="column">
                     <span class="text-bold">Name: {{ queue.name }}</span>
-                  </div>
-                  <div class="col">
                     <span class="text-bold">Queue: {{ queue.qnumber }}</span>
                   </div>
-                </div>
-
-                <div class="row q-gutter-sm q-ml-auto">
-                  <q-btn
-                    unelevated
-                    dense
-                    color="red-5"
-                    label="Cancel"
-                    class="modern-btn"
-                    @click="cancelQueue(queue)"
-                  />
-                  <q-btn
-                    v-if="index === 0"
-                    unelevated
-                    dense
-                    color="orange-5"
-                    class="modern-btn"
-                    :label="
-                      waitTimes[queue] > 0
-                        ? `Wait (${formatTime(waitTimes[queue])})`
-                        : 'Wait'
-                    "
-                    @click="waitQueue(queue)"
-                  />
-
-                  <q-btn
-                    unelevated
-                    dense
-                    color="green-5"
-                    label="Cater"
-                    class="modern-btn"
-                    @click="caterQueue(queue)"
-                  />
-                </div>
-              </q-chip>
-
-              <div
-                v-if="queueList.length === 0"
-                class="text-grey text-center q-mt-md"
-              >
-                No more customers
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Now Serving Section -->
-        <div class="col-grow q-pa-md q-ml-none q-mt-none">
-          <q-card class="full-height shadow-2 bg-white rounded-borders">
-            <q-card-section class="text-center">
-              <transition name="fade-scale" mode="out-in">
-                <h5
-                  v-if="beingCatered"
-                  key="serving"
-                  class="text-bold text-orange-10"
+                  <div class="row q-gutter-sm q-ml-auto">
+                    <q-btn
+                      unelevated
+                      dense
+                      color="red-5"
+                      label="Cancel"
+                      class="modern-btn"
+                      @click="cancelQueue(queue)"
+                    />
+                    <q-btn
+                      v-if="index === 0"
+                      unelevated
+                      dense
+                      color="orange-5"
+                      class="modern-btn"
+                      :label="
+                        waitTimes[queue] > 0
+                          ? `Wait (${formatTime(waitTimes[queue])})`
+                          : 'Wait'
+                      "
+                      @click="waitQueue(queue)"
+                    />
+                    <q-btn
+                      unelevated
+                      dense
+                      color="green-5"
+                      label="Cater"
+                      class="modern-btn"
+                      @click="caterQueue(queue)"
+                    />
+                  </div>
+                </q-chip>
+                <div
+                  v-if="queueList.length === 0"
+                  class="text-grey text-center q-mt-md"
                 >
-                  NOW SERVING
-                </h5>
-                <h5 v-else key="current" class="text-bold text-grey-8">
-                  QUEUE IN PROGRESS
-                </h5>
-              </transition>
-            </q-card-section>
-            <q-separator />
-            <q-card-section class="flex flex-center">
-              <div
-                class="q-pa-md flex flex-center text-bold text-white now-serving-box"
-                :class="beingCatered ? 'bg-amber-9' : 'bg-grey-7'"
-              >
-                <div v-if="beingCatered">
-                  <div class="text-h4">{{ beingCatered.qnumber }}</div>
-                  <div class="text-h6">{{ beingCatered.name }}</div>
+                  No more customers
                 </div>
-                <span v-else>No Queue in Progress</span>
-              </div>
-            </q-card-section>
+              </q-card-section>
+              <q-card-section class="q-py-sm"> </q-card-section>
+            </q-card>
+          </div>
 
-            <q-card-section class="text-center">
-              <q-btn
-                color="indigo-10"
-                label="Finish"
-                size="lg"
-                unelevated
-                class="rounded-borders"
-                :disable="!beingCatered"
-                @click="finishQueue"
-              />
-            </q-card-section>
-          </q-card>
+          <!-- Now Serving Section -->
+          <div class="col-12 col-md-6">
+            <q-card
+              class="full-height shadow-2 bg-white rounded-borders"
+              style="height: 100%"
+            >
+              <q-card-section
+                class="flex flex-center"
+                style="min-height: 200px"
+              >
+                <transition name="fade-scale" mode="out-in">
+                  <h5
+                    v-if="beingCatered"
+                    key="serving"
+                    class="text-bold text-orange-10"
+                  >
+                    NOW SERVING
+                  </h5>
+                  <h5 v-else key="current" class="text-bold text-grey-8">
+                    QUEUE IN PROGRESS
+                  </h5>
+                </transition>
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="flex flex-center">
+                <div
+                  class="q-pa-md flex flex-center text-bold text-white now-serving-box"
+                  :class="beingCatered ? 'bg-amber-9' : 'bg-grey-7'"
+                >
+                  <div v-if="beingCatered">
+                    <div class="text-h4">{{ beingCatered.qnumber }}</div>
+                    <div class="text-h6">{{ beingCatered.name }}</div>
+                  </div>
+                  <span v-else>No Queue in Progress</span>
+                </div>
+              </q-card-section>
+              <q-card-section class="text-center">
+                <q-btn
+                  color="indigo-10"
+                  label="Finish"
+                  size="lg"
+                  unelevated
+                  class="rounded-borders"
+                  :disable="!beingCatered"
+                  @click="finishQueue"
+                />
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
-      </div>
-    </div>
+      </q-page>
+    </q-page-container>
   </q-layout>
 </template>
 
@@ -179,6 +177,18 @@ export default defineComponent({
       {
         name: "Chopper",
         qnumber: "A005",
+      },
+      {
+        name: "Mikasa",
+        qnumber: "A006",
+      },
+      {
+        name: "Nami",
+        qnumber: "A007",
+      },
+      {
+        name: "Kaido",
+        qnumber: "A007",
       },
     ]);
     const finishedQueueList = ref([]);
@@ -286,12 +296,6 @@ export default defineComponent({
 .fade-scale-leave-to {
   opacity: 0;
   transform: scale(1.1);
-}
-
-/* Bigger Queue Numbers */
-.queue-chip {
-  font-size: 20px;
-  padding: 12px;
 }
 
 /* Now Serving Box */
