@@ -30,7 +30,7 @@
           const response = await $axios.post('/generate-qr')
           
           const fullUrl = response.data.qr_code_url // Example: "http://192.168.1.164:8000/scan-qr/abcd1234"
-          const token = fullUrl.slice(26) // Extract token from URL
+          const token = fullUrl.slice(22) // Extract token from URL
           
           localStorage.setItem('token', token)
           registrationLink.value = '192.168.0.165:8080/customer-register/' + token

@@ -39,7 +39,9 @@ class AdminController extends Controller
                     'message' => 'Login successful'
                 ]);
             }else {
-
+                return response()->json([
+                    'error' => 'Invalid credentials'
+                ], 401);
             }
         } catch (\Exception $e) {
             $message = $e->getMessage();

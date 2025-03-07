@@ -11,15 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('queues', function (Blueprint $table) {
+        Schema::create('queue_numbers', function (Blueprint $table) {
             $table->id();
-            $table->string('token');
-            $table->string('name');
-            $table->string('email');
-            $table->string('email_status');
+            $table->string('status') // Update the column name
+                ->default('waiting'); // Add a default value
             $table->integer('queue_number');
-            $table->enum('status', ['waiting', 'serving', 'cancelled','finished'])->default('waiting');
-            $table->string('waiting_customer')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('queues'); 
+        //
     }
 };
