@@ -119,6 +119,8 @@ class MyMail extends Mailable
                         <p>We appreciate your time!</p>
                     </div>
 
+                    <a href='http://localhost:8081/customer-dashboard/{$this->data['token']}' class='button'>Visit Our Website</a>
+
                     <!-- Email Footer -->
                     <div class='footer'>
                         &copy; " . date('Y') . " VRTSYSTEMS TECHNOLOGIES CORPORATION. All rights reserved.

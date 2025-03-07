@@ -9,8 +9,10 @@ class Queue extends Model
 {
 
     protected $fillable = [
+        'token',
         'name', 
         'email', 
+        'email_status',
         'queue_number', 
         'status',
         'waiting_customer'
