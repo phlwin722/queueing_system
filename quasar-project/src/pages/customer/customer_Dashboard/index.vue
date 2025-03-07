@@ -91,8 +91,8 @@
       let refreshInterval = null
       let countdownInterval = null
     
-      const emailSended = ref ('')
       const emailData = ref({ // Email data list
+        id: "",
         name: "",
         email: "",
         subject: "",
@@ -190,26 +190,28 @@
      // Function to check if the user's queue number is 5, then send an email notification
     const checkingQueueNumber = async () => {
         try {
-          if (queuePosition.value === 5 && emailSended.value === "") {
-             emailSended.value = "Already sent";
+          if (queuePosition.value === 1) {
              const { data } = await $axios.post('/send-fetchInfo', {
                   queue_number: customerQueueNumber.value
               });
 
-            // Assign email data with the recipient's details and email content
-            emailData.value = {
-                name: data.Information.name,      // Recipient's name
-                email: data.Information.email, // Recipient's email address
-                subject: "Queue Alert",      // Email subject
-                message: "You are near from being served. Please standby!"     // Email message body
-            };
+             if (data.Information.email_status === 'pending'){
+              // Assign email data with the recipient's details and email content
+              emailData.value = {
+                  id: data.Information.id, // Recipient's id
+                  token: data.Information.token, // Recipient's token
+                  name: data.Information.name,      // Recipient's name
+                  email: data.Information.email, // Recipient's email address
+                  subject: "Queue Alert",      // Email subject
+                  message: "You are near from being served. Please standby!"     // Email message body
+              };
 
-            // Send a POST request to the '/send-email' endpoint with emailData as payload
-            const { emailContent } = await $axios.post('/send-email', emailData.value);
+              // Send a POST request to the '/send-email' endpoint with emailData as payload
+              const { emailContent } = await $axios.post('/send-email', emailData.value);
 
-            // Show an alert to confirm that the email was sent successfully
-            alert("Email sent successfully!", emailContent);
-
+              // Show an alert to confirm that the email was sent successfully
+              console.log('Message succesuf', emailContent)
+             }
           }
         } catch (error) {
             // Log the error in the console if the request fails

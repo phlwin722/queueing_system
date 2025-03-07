@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('queues', function (Blueprint $table) {
             $table->id();
+            $table->string('token');
             $table->string('name');
             $table->string('email');
+            $table->string('email_status');
             $table->integer('queue_number');
             $table->enum('status', ['waiting', 'serving', 'cancelled','finished'])->default('waiting');
             $table->string('waiting_customer')->nullable();
