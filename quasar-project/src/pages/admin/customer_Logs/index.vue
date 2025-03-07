@@ -1,12 +1,10 @@
 <template>
   
-    <q-input standout="bg-accent text-white" 
+    <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
     v-model="text" 
     label="Search"
     :dense="dense"
-    class="q-mx-lg q-mt-lg"
     />
-    
     
     <q-page>
       <div class="q-pa-lg">
