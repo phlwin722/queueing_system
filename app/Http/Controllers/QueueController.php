@@ -14,7 +14,10 @@ class QueueController extends Controller
 
 {
     // Check if there are active (not finished) queue entries
-    $lastQueue = Queue::where('status', '!=', 'finished')
+    
+
+    $lastQueue = DB::table('queue_numbers')
+                    ->where('status', '!=', 'finished')
                     ->orderBy('queue_number', 'desc')
                     ->first();
 
@@ -28,6 +31,11 @@ class QueueController extends Controller
         'queue_number' => $nextQueueNumber,
         'status' => 'waiting',
         'waiting_customer' => null
+    ]);
+
+    DB::table('queue_numbers')->insert([
+        'status' => 'waiting',
+        'queue_number' => $nextQueueNumber
     ]);
     
     // Return response with queue ID and queue number
@@ -147,13 +155,13 @@ class QueueController extends Controller
             ], 500);
         }
     }
- }
+ 
     public function queueLogs(Request $request)
     { 
         try {
             // Fetch queue records where status is NOT 'waiting'
             $rows = DB::table('queues')
-                ->where('status', '=', 'finished')
+                ->whereNotIn('status', ['serving', 'waiting'])
                 ->get();
 
             return response()->json([
@@ -170,7 +178,7 @@ class QueueController extends Controller
 
     public function resetTodayQueueNumbers()
     {
-        DB::table('queues')->update(['status' => 'finished']);
+        DB::table('queue_numbers')->update(['status' => 'finished']);
 
         // Reset queue numbering for the next customer (MySQL ONLY)
         DB::statement('ALTER TABLE queues AUTO_INCREMENT = 1');

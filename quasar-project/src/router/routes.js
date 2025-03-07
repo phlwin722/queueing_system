@@ -28,12 +28,8 @@ const routes = [
     component: () => import("pages/Teller/index.vue"), // Dynamically load the login component
   },
   {
-    path: "/user/Layout", // The login page path
+    path: "/user/Layout/:token", // The login page path
     component: () => import("pages/User/index.vue"), // Dynamically load the login component
-  },
-  {
-    path: "/teller/Interface", // The login page path
-    component: () => import("pages/teller_Interface/index.vue"), // Dynamically load the login component
   },
   {
     path: "/admin/dashboard", // The main path for the admin dashboard
