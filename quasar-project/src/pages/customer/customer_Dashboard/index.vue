@@ -1,71 +1,114 @@
 <template>
-    <div class="q-pa-md">
-      <q-card class="q-pa-md shadow-2">
-        <q-card-section>
-          <div class="text-h6 text-center">
-            Your Queue Number: <strong>{{ customerQueueNumber || 'N/A' }}</strong>
-          </div>
-          <div class="text-subtitle1 text-center">
-            Currently Serving: <strong>{{ currentQueue || 'None' }}</strong>
-          </div>
-          <div class="text-subtitle1 text-center">
-            Your Position: <strong>{{ queuePosition || 'Calculating...' }}</strong>
-          </div>
-        </q-card-section>
-  
-        <q-separator />
-        <q-card-actions v-if="!isBeingServed && !isWaiting" align="center">
-          <q-btn label="CANCEL" color="negative" @click="leaveQueue" />
-        </q-card-actions>
-        <q-card-section>
-          <div class="text-h6">Queue List</div>
-  
+  <q-layout view="lHh lpr lFf" class="shadow-2 rounded-borders">
+    <div class="absolute-center full-width full-height bg-grey-2">
+      <div
+        class="row wrap justify-center q-gutter-md q-pt-md"
+        style="max-width: 600px; margin: auto"
+      >
+        <!-- User Queue Status -->
+        <q-card
+          class="col-12 full-width shadow-3 bg-white rounded-borders q-pa-md"
+        >
+          <q-card-section class="text-center">
+            <div class="column items-center">
+              <div class="text-bold text-grey-7 text-caption">
+                Your Queue Number
+              </div>
+              <div class="text-h2 text-deep-orange-10 text-bold">
+                {{ customerQueueNumber || 'N/A' }}
+              </div>
+            </div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="row justify-around q-pa-md">
+            <div class="column items-center">
+              <div class="text-bold text-grey-7 text-caption">
+                Currently Serving
+              </div>
+              <div class="text-h5 text-blue-10 text-bold">
+                {{ currentQueue || 'None' }}
+              </div>
+            </div>
+            <div class="column items-center">
+              <div class="text-bold text-grey-7 text-caption">
+                Your Position
+              </div>
+              <div class="text-h5 text-indigo-10 text-bold">
+                {{ queuePosition || 'N/A' }}
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="text-center q-mt-md">
+            <q-card-actions v-if="!isBeingServed && !isWaiting" align="center">
+              <q-btn
+              color="red-10"
+              label="Cancel Queue"
+              size="lg"
+              unelevated
+              class="rounded-borders full-width text-bold"
+              @click="leaveQueue"
+            />
+            </q-card-actions>
+            
+          </q-card-section>
+        </q-card>
+
+        <!-- Queue List -->
+        <q-card
+          class="col-12 full-width shadow-3 bg-white rounded-borders q-pa-md"
+        >
           <!-- Show "You are being served" if the customer is being served -->
           <div v-if="isBeingServed" class="text-center text-bold text-positive q-mb-md">
             You are being served !
           </div>
-  
+
           <!-- Show warning when customer position is <= 5 -->
           <div v-if="queuePosition && queuePosition <= 5 && !isBeingServed" class="text-center text-warning q-mb-md">
             <q-icon name="warning" size="sm" />
             You are near from being served. Please standby!
           </div>
-  
+
           <!-- Show countdown if admin pressed "Wait" -->
           <div v-if="isWaiting && queuePosition === 1 && !isBeingServed" class="text-center text-negative q-mb-md">
             <q-icon name="hourglass_empty" size="sm" />
             The admin is waiting. Please proceed. If not, your queueing number will be cancelled in 
             <strong>{{ countdown }}</strong> seconds.
           </div>
-  
-          <!-- Show queue list only if the customer is not being served -->
-          <q-list v-else bordered separator>
-            <!-- Use paginatedQueueList instead of queueList -->
-            <q-item v-for="(customer, index) in paginatedQueueList" :key="index">
-              <q-item-section>
-                <q-item-label class="text-bold">Queue No: {{ customer.queue_number }}</q-item-label>
-  
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-  
-        <q-separator />
-        <!-- Pagination Controls -->
-        <q-card-section class="row justify-center">
-          <q-pagination
-            v-model="currentPage"
-            :max="totalPages"
-            :max-pages="5"
-            boundary-numbers
-            color="primary"
-          />
-        </q-card-section>
-      </q-card>
+          <q-separator />
+          <q-card-section class="text-center">
+            <p class="text-bold text-primary text-h6">Queue List</p>
+          </q-card-section>
+          
+          <q-card-section
+            class="q-pa-md"
+            style="max-height: 300px; overflow-y: auto"
+          >
+            <q-list bordered separator>
+              <q-item v-for="(customer, index) in queueList" :key="index">
+                <q-item-section>
+                  <q-item-label class="text-bold text-grey-8"
+                    >Queue: {{ customer.queue_number }}</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+            </q-list>
+            <div
+              v-if="queueList.length === 0"
+              class="text-grey text-center q-mt-md"
+            >
+              No more customers
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
     </div>
-  </template>
-  
-  <script>
+  </q-layout>
+</template>
+
+<script>
   import { ref, onMounted, onUnmounted, computed } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { $axios, $notify } from 'boot/app'
@@ -91,8 +134,8 @@
       let refreshInterval = null
       let countdownInterval = null
     
+      const emailSended = ref ('')
       const emailData = ref({ // Email data list
-        id: "",
         name: "",
         email: "",
         subject: "",
@@ -108,15 +151,21 @@
       const fetchQueueData = async () => {
         try {
           const response = await $axios.post('/customer-list');
-          queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status));
+          queueList.value = response.data.queue.filter(q => !['finished', 'cancelled','serving'].includes(q.status));
 
           currentQueue.value = response.data.current_serving;
-
-          // Determine customer position in queue
-          queuePosition.value = queueList.value.findIndex(q => q.queue_number == customerQueueNumber.value) + 1;
+        
 
           // Check if the customer is currently being served
           isBeingServed.value = currentQueue.value == customerQueueNumber.value;
+          let count = 0
+          if(currentQueue == null){
+            count =1
+          }else{
+            count = 0
+          }
+          // Determine customer position in queue
+          queuePosition.value = queueList.value.findIndex(q => q.queue_number == customerQueueNumber.value) + 1+count
 
           // If admin pressed "Wait" for the first in queue, start countdown
           if (response.data.waiting_customer === customerQueueNumber.value && queuePosition.value === 1) {
@@ -188,7 +237,7 @@
 
 
      // Function to check if the user's queue number is 5, then send an email notification
-    const checkingQueueNumber = async () => {
+     const checkingQueueNumber = async () => {
         try {
           if (queuePosition.value === 1) {
              const { data } = await $axios.post('/send-fetchInfo', {
@@ -244,11 +293,16 @@
         customerId,
   
         // Pagination
-        currentPage,
-        itemsPerPage,
-        paginatedQueueList,
-        totalPages
       }
     }
   }
   </script>
+
+<style scoped>
+.rounded-borders {
+  border-radius: 16px;
+}
+.shadow-3 {
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+</style>
