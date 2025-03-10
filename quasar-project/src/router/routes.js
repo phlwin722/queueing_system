@@ -60,6 +60,10 @@ const routes = [
         path: "/admin/customer-logs", // Path for the QR Code management page
         component: () => import("pages/admin/customer_Logs/index.vue"), // Load the QR code page
       },
+      {
+        path: "/admin/settings", // Path for the QR Code management page
+        component: () => import("pages/admin/admin_Settings/index.vue"), // Load the QR code page
+      },
     ],
 
     meta: { requiresAuth: true }, // Protect this route (Navigation Guard will check for authentication)

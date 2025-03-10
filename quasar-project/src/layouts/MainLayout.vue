@@ -1,5 +1,5 @@
 <template>
-  <q-layout class="shadow-2 rounded-borders">
+  <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
     <q-header>
       <q-toolbar>
           <q-img 
@@ -89,6 +89,13 @@
           </template>
 
           <q-list>
+            <q-item clickable v-ripple :to="'/admin/settings'">
+              <q-item-section avatar>
+                <q-icon name="settings" color="primary" />
+              </q-item-section>
+              <q-item-section>Account Settings</q-item-section>
+            </q-item>
+
             <q-item clickable v-ripple @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout" color="red" />
