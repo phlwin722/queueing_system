@@ -85,7 +85,8 @@
   <script>
   import { ref, computed, onMounted, onUnmounted } from 'vue'
   import { $axios, $notify,Dialog } from 'boot/app'
-  
+  import { useQuasar  } from 'quasar'
+
   export default {
     setup() {
       const queueList = ref([])
@@ -95,6 +96,7 @@
       const isQueuelistEmpty = ref(false)
       let waitTimer = null
       let refreshInterval = null
+      const $dialog = useQuasar();
   
       // Pagination
       const currentPage = ref(1)
@@ -127,15 +129,16 @@
       }
   //cancel dialog
       const beforeCancel = (row) => {
-     
-        const message = 'Are you sure you want to CANCEL this QUEUE?'+'  Name: '+row.name
-          Dialog.create({
-          title: 'Confirm Cancellation',
-          message: message
-        }).onOk(() =>{
-          cancelCustomer(row.id)
-          
-        })
+        $dialog.dialog({
+            title: 'Confirm',
+            message: 'Are you sure do you want cancel this queue?',
+            cancel: true,
+            persistent: true
+          }).onOk(()=> {
+            cancelCustomer(row.id)
+          }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          })
       }
   
       
@@ -197,23 +200,25 @@
 
       // Reset Queue Number
       const resetQueue = async () => {
-          try { 
-           
-         
+        try {            
+            $dialog.dialog({
+            title: 'Confirm',
+            message: 'Are you sure do you want reset queue?',
+            cancel: true,
+            persistent: true
+          }).onOk( async () => {
             const response = await $axios.post('/resetQueue')
             $notify('positive', 'check', response.data.message)
             console.log(response.data.message)
-         
-          
+          }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          })
         } catch (error) {
           console.error(error)
           $notify('negative', 'error', 'Failed to set waiting customer.')
         }
       }
-  
-  
       
-  
       // Stop waiting process
       const stopWait = () => {
         waiting.value = false
