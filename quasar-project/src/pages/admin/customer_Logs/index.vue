@@ -1,28 +1,39 @@
 <template>
   
-    <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
-    v-model="text" 
-    label="Search"
-    :dense="dense"
-    />
-    
-    <q-page>
-      <div class="q-pa-lg">
-        <q-table
-        title="Customer Logs"
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="index"
-        >
+  <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
+  v-model="text" 
+  label="Search"
+  :dense="dense"
+  />
   
-        <template v-slot:body-cell-actions="props">
-          <q-td :props="props">
-          </q-td>
-        </template>
-        </q-table>
-      </div>
-    </q-page>
-  </template>
+  <q-page>
+    <div class="q-pa-lg">
+      <q-table
+      title="Customer Logs"
+      :rows="filteredRows"
+      :columns="columns"
+      row-key="index"
+      >
+
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props">
+          <q-chip
+            :class="
+              props.row.status === 'cancelled'
+                ? 'bg-negative text-white'
+                : props.row.status === 'finished'
+                ? 'bg-positive text-white'
+                : 'bg-grey-3 text-black'
+            "
+            :label="props.row.status"
+            dense
+          />
+        </q-td>
+      </template>
+      </q-table>
+    </div>
+  </q-page>
+</template>
   
   <script>
   import { 
