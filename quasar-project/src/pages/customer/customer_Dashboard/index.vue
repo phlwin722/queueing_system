@@ -199,20 +199,35 @@
   
       // Start countdown timer
       const startCountdown = () => {
-        if (!countdownInterval) {
-          countdown.value = 60
-          $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed.')
-  
+        const storedStartTime = localStorage.getItem('countdown_start_time');
+
+        if (!storedStartTime) {
+          // If no stored time, set the countdown start time
+          const newStartTime = Math.floor(Date.now() / 1000);
+          localStorage.setItem('countdown_start_time', newStartTime);
+        }
+
+        // Get the correct countdown start time
+        const countdownStartTime = parseInt(localStorage.getItem('countdown_start_time'), 10);
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        // Calculate remaining time
+        countdown.value = Math.max(60 - (currentTime - countdownStartTime), 0);
+
+        if (!countdownInterval && countdown.value > 0) {
           countdownInterval = setInterval(() => {
             if (countdown.value > 0) {
-              countdown.value--
+              countdown.value--;
             } else {
-              clearInterval(countdownInterval)
-              isWaiting.value = false
+              clearInterval(countdownInterval);
+              isWaiting.value = false;
+              localStorage.removeItem('countdown_start_time'); // Clear storage when countdown ends
             }
-          }, 1000)
+          }, 1000);
         }
-      }
+      };
+
+
   
       // Leave the queue
       const leaveQueue = async () => {
@@ -272,6 +287,14 @@
       onMounted(() => {
         fetchQueueData()
         refreshInterval = setInterval(fetchQueueData, 5000) // Auto-refresh every 5 seconds
+        
+      })
+
+      onMounted(() => {
+        const startTime = localStorage.getItem('countdown_start_time')
+          if (startTime) {
+            startCountdown() // Resume countdown
+          }
       })
   
       onUnmounted(() => {
