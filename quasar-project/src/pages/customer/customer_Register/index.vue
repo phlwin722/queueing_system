@@ -73,6 +73,7 @@ export default {
 
         }else{
           console.log(email.value)
+          name.value = name.value.charAt(0).toUpperCase() + name.value.slice(1);
           const response = await $axios.post('/customer-join', {
             token: token.value,
             name: name.value,
