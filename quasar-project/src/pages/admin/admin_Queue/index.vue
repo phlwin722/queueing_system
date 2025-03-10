@@ -55,7 +55,7 @@
                   <q-btn
                     v-if="index === 0 && !waiting"
                     color="orange"
-                    label="Wait"
+                    label="Wait"z
                     class="q-ml-sm"
                     @click="startWait(customer.id, customer.queue_number)"
                   />

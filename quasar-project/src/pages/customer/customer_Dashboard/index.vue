@@ -198,35 +198,48 @@
         }
 }
   
-      // Start countdown timer
-      const startCountdown = () => {
-        const storedStartTime = localStorage.getItem('countdown_start_time');
+const startCountdown = () => {
+  const storedStartTime = localStorage.getItem('countdown_start_time');
+  console.log('Stored start time:', storedStartTime); // Check if stored start time exists
 
-        if (!storedStartTime) {
-          // If no stored time, set the countdown start time
-          const newStartTime = Math.floor(Date.now() / 1000);
-          localStorage.setItem('countdown_start_time', newStartTime);
-        }
+  // If there's no stored start time or the stored time has expired (more than 63 seconds), reset and start countdown from 63 seconds
+  if (!storedStartTime || Math.floor(Date.now() / 1000) - parseInt(storedStartTime, 10) > 63) {
+    const newStartTime = Math.floor(Date.now() / 1000); // Get the current time in seconds
+    localStorage.setItem('countdown_start_time', newStartTime); // Store the new start time
+    countdown.value = 63; // Start countdown from 63 seconds
+    console.log('No stored time or time expired. Starting countdown from 63 seconds.');
+  } else {
+    // If the countdown has already started, calculate remaining time
+    const countdownStartTime = parseInt(storedStartTime, 10);
+    const currentTime = Math.floor(Date.now() / 1000); // Get the current time in seconds
 
-        // Get the correct countdown start time
-        const countdownStartTime = parseInt(localStorage.getItem('countdown_start_time'), 10);
-        const currentTime = Math.floor(Date.now() / 1000);
+    console.log('Current time:', currentTime);
+    console.log('Time difference:', currentTime - countdownStartTime); // Debugging
 
-        // Calculate remaining time
-        countdown.value = Math.max(60 - (currentTime - countdownStartTime), 0);
+    // Subtract the time difference from 63 to get the remaining time
+    countdown.value = Math.max(63 - (currentTime - countdownStartTime), 0);
 
-        if (!countdownInterval && countdown.value > 0) {
-          countdownInterval = setInterval(() => {
-            if (countdown.value > 0) {
-              countdown.value--;
-            } else {
-              clearInterval(countdownInterval);
-              isWaiting.value = false;
-              localStorage.removeItem('countdown_start_time'); // Clear storage when countdown ends
-            }
-          }, 1000);
-        }
-      };
+    console.log('Remaining countdown:', countdown.value); // Debugging
+  }
+
+  // If countdown is not running and the countdown value is greater than 0, start the countdown timer
+  if (!countdownInterval && countdown.value > 0) {
+    countdownInterval = setInterval(() => {
+      if (countdown.value > 0) {
+        countdown.value--; // Decrease countdown each second
+      } else {
+        clearInterval(countdownInterval); // Stop countdown when it reaches zero
+        isWaiting.value = false; // Stop the waiting state
+        localStorage.removeItem('countdown_start_time'); // Remove the countdown start time from localStorage
+        cancelQueue(); // Handle cancellation when countdown ends
+        console.log('Countdown finished, queue cancelled');
+      }
+    }, 1000); // Update every second
+  }
+};
+
+
+
 
 
   
@@ -285,18 +298,29 @@
     };
 
   
-      onMounted(() => {
-        fetchQueueData()
-        refreshInterval = setInterval(fetchQueueData, 5000) // Auto-refresh every 5 seconds
-        
-      })
+    onMounted(() => {
+  fetchQueueData(); // Initial data fetch
+  refreshInterval = setInterval(fetchQueueData, 1000); // Refresh every 5 seconds
 
-      onMounted(() => {
-        const startTime = localStorage.getItem('countdown_start_time')
-          if (startTime) {
-            startCountdown() // Resume countdown
-          }
-      })
+  // Start the countdown if the stored start time exists
+  const startTime = localStorage.getItem('countdown_start_time');
+  if (startTime) {
+    startCountdown(); // Resume countdown if there's a stored start time
+  }
+
+  // Start countdown interval independently from fetchQueueData
+  countdownInterval = setInterval(() => {
+    if (isWaiting.value && countdown.value > 0) {
+      countdown.value--; // Decrease the countdown every second
+    } else if (countdown.value === 0) {
+      clearInterval(countdownInterval); // Stop countdown when it hits zero
+      isWaiting.value = false; // Stop the waiting state
+      cancelQueue(); // Cancel the queue when countdown ends
+      console.log('Countdown finished, queue cancelled');
+    }
+  }, 1000); // Update countdown every second
+});
+
   
       onUnmounted(() => {
         clearInterval(refreshInterval) // Stop auto-refresh
