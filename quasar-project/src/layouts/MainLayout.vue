@@ -211,6 +211,11 @@ export default defineComponent({
           icon: "description", 
           link: "/admin/customer-logs",
         },
+        {
+          title: "Waiting Time",
+          icon: "hourglass_top", 
+          link: "/admin/waiting-time",
+        },
       ],
 
       toggleLeftDrawer() {
