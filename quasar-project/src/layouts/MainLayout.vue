@@ -102,6 +102,12 @@
               </q-item-section>
               <q-item-section class="text-red">Logout</q-item-section>
             </q-item>
+            <q-item clickable v-ripple @click="logout">
+              <q-item-section avatar>
+                <q-icon name="logout" color="red" />
+              </q-item-section>
+              <q-item-section class="text-red">Settings</q-item-section>
+            </q-item>
           </q-list>
         </q-btn-dropdown>
       </div>
