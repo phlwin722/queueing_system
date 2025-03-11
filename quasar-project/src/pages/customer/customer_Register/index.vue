@@ -51,7 +51,7 @@ export default {
         const response = await $axios.post('/scan-qr', { token: token.value })  //  Correct way to send token
         
         if (response.data.success) {
-          $notify('positive', 'check', 'Kindly complete the input field before entering your number.')
+          $notify('positive', 'check', 'Please register to join the queue.')
           console.log(isUsedToken.value)
         } else {
           isUsedToken.value = true
@@ -73,6 +73,7 @@ export default {
 
         }else{
           console.log(email.value)
+          name.value = name.value.charAt(0).toUpperCase() + name.value.slice(1);
           const response = await $axios.post('/customer-join', {
             token: token.value,
             name: name.value,
@@ -83,7 +84,7 @@ export default {
           localStorage.setItem('customer_id'+token.value, response.data.id)
           localStorage.setItem('queue_number'+token.value, response.data.queue_number)
           localStorage.setItem('customer_token'+token.value, token.value)
-          window.location.href = '/user/Layout/'+token.value
+          window.location.href = '/customer-dashboard/'+token.value
         }
         
       } catch (error) {

@@ -59,7 +59,6 @@
         </q-menu>
       </q-toolbar>
     </q-header>
-
     <q-page-container>
       <q-page class="flex flex-center bg-accent">
         <div class="q-pa-md full-width">

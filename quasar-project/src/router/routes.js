@@ -28,10 +28,6 @@ const routes = [
     component: () => import("pages/Teller/index.vue"), // Dynamically load the login component
   },
   {
-    path: "/user/Layout/:token", // The login page path
-    component: () => import("pages/User/index.vue"), // Dynamically load the login component
-  },
-  {
     path: "/admin/dashboard", // The main path for the admin dashboard
     component: () => import("layouts/MainLayout.vue"), // Load the MainLayout which contains a sidebar or header
 
@@ -59,6 +55,16 @@ const routes = [
       {
         path: "/admin/customer-logs", // Path for the QR Code management page
         component: () => import("pages/admin/customer_Logs/index.vue"), // Load the QR code page
+      },
+      {
+        path: "/admin/reports", // Path for the QR Code management page
+        component: () => import("pages/admin/reports/index.vue"), // Load the QR code page
+        path: "/admin/waiting-time", // Path for the QR Code management page
+        component: () => import("pages/admin/waiting_Time/index.vue"), // Load the QR code page
+      },
+      {
+        path: "/admin/settings", // Path for the QR Code management page
+        component: () => import("pages/admin/admin_Settings/index.vue"), // Load the QR code page
       },
     ],
 

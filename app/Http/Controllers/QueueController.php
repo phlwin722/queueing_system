@@ -89,13 +89,21 @@ class QueueController extends Controller
     }
 
     public function getCQueueList()
-    {
-        return response()->json([
-            'queue' => Queue::where('status', 'waiting')
-                    ->orderBy('created_at')->get(),
-            'current_serving' => Queue::where('status', 'serving')->first()
-        ]);
-    }
+{
+    $queue = Queue::where('status', 'waiting')
+        ->orderBy('created_at')
+        ->get();
+
+    $currentServing = Queue::where('status', 'serving')->first();
+
+    return response()->json([
+        'queue' => $queue,
+        'current_serving' => $currentServing,
+        'queue_numbers' => $queue->pluck('queue_number') // Extracts all queue numbers
+    ]);
+}
+
+
 
     public function caterCustomer(Request $request)
     {
@@ -137,10 +145,10 @@ class QueueController extends Controller
     public function fetchData(Request $request) {
         try {
             // Get queue number from request
-            $queueNumber = $request->input('queue_number');
+            $id = $request->input('id');
     
             // Find the queue by queue_number (exact match)
-            $queue = Queue::where('queue_number', $queueNumber)->first();
+            $queue = Queue::where('id', $id)->first();
     
             if (!$queue) {
                 return response()->json(['message' => 'Queue not found'], 404);
@@ -161,13 +169,18 @@ class QueueController extends Controller
     public function queueLogs(Request $request)
     { 
         try {
-            // Fetch queue records where status is NOT 'waiting'
-            $rows = DB::table('queues')
+            $query = DB::table('queues')
                 ->whereNotIn('status', ['serving', 'waiting'])
-                ->get();
+                ->orderBy('created_at', 'desc'); // Sort by latest
+
+            // Check if a date filter is provided
+            if ($request->has('date')) {
+                $date = $request->input('date'); 
+                $query->whereDate('created_at', $date); // Filter by date
+            }
 
             return response()->json([
-                'rows' => $rows
+                'rows' => $query->get()
             ]);
 
         } catch (\Exception $e) {
@@ -177,6 +190,40 @@ class QueueController extends Controller
             ]);
         }
     }
+
+    
+
+    public function fetchReports(Request $request)
+    { 
+        try {
+            $query = DB::table('queues')
+                ->whereNotIn('status', ['serving', 'waiting'])
+                ->orderBy('created_at', 'asc'); // Sort by latest
+    
+            // Filter by "From" date
+            if ($request->has('from_date') && !empty($request->input('from_date'))) {
+                $query->whereDate('created_at', '>=', $request->input('from_date'));
+            }
+    
+            // Filter by "To" date
+            if ($request->has('to_date') && !empty($request->input('to_date'))) {
+                $query->whereDate('created_at', '<=', $request->input('to_date'));
+            }
+    
+            return response()->json([
+                'rows' => $query->get()
+            ]);
+    
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $message : "Something went wrong!"
+            ]);
+        }
+    }
+    
+
+
 
     public function resetTodayQueueNumbers()
     {

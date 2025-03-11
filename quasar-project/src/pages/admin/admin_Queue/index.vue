@@ -13,22 +13,45 @@
             <q-card-section class="text-center">
               <div class="text-h5 text-bold">Now Serving</div>
               <div v-if="currentServing" class="text-h4 text-primary q-mt-md">
-                {{ currentServing.name }}
+                Queue number: <br>{{ currentServing.queue_number }}
               </div>
               <div v-if="currentServing" class="text-subtitle1 text-grey">
-                Queue No: <strong>{{ currentServing.queue_number }}</strong>
+                Name: <strong>{{ currentServing.name }}</strong>
               </div>
               <div v-else class="text-grey">No one is being served</div>
             </q-card-section>
   
-            <!-- Finish Button -->
-            <q-card-actions align="center">
-              <q-btn
+            
+            
+            <q-card-actions align="space-between">
+                  <!-- Cancel Button -->
+                  <q-btn 
+                  v-if="currentServing && waitTime == 0"
+                  color="red" 
+                  label="Cancel" 
+                  class="modern-btn"
+                  @click="beforeCancel(currentServing)" 
+                  />
+
+               <!-- Wait Button (Only for the first customer in the queue) -->
+               <q-btn
+                    v-if="currentServing"
+                    color="orange-5"
+                    class="modern-btn"
+                    :label="waiting ? `${waitTime} s` : 'Wait'"
+                    @click="startWait(currentServing.id, currentServing.queue_number)"
+                    :disable="waiting"
+                  />
+
+                <!-- Finish Button -->
+                <q-btn
                 v-if="currentServing"
                 color="blue"
                 label="Finish"
+                class="modern-btn"
                 @click="finishCustomer(currentServing.id)"
               />
+                
             </q-card-actions>
           </q-card>
   
@@ -47,24 +70,6 @@
                   <q-item-label class="text-bold">Queue No: {{ customer.queue_number }}</q-item-label>
                 </q-item-section>
   
-                <q-item-section side>
-                  <q-btn color="green" label="Cater" @click="caterCustomer(customer.id)" />
-                  <q-btn color="red" label="Cancel" class="q-ml-sm" @click="beforeCancel(customer)" />
-  
-                  <!-- Wait Button (Only for the first customer in the queue) -->
-                  <q-btn
-                    v-if="index === 0 && !waiting"
-                    color="orange"
-                    label="Wait"
-                    class="q-ml-sm"
-                    @click="startWait(customer.id, customer.queue_number)"
-                  />
-  
-                  <!-- Countdown Display -->
-                  <div v-if="index === 0 && waiting" class="text-orange q-ml-md">
-                    Waiting... {{ waitTime }}s
-                  </div>
-                </q-item-section>
               </q-item>
             </q-list>
   
@@ -79,6 +84,8 @@
               />
             </q-card-actions>
           </q-card>
+
+          
         </q-page>
   </template>
   
@@ -92,7 +99,8 @@
       const queueList = ref([])
       const currentServing = ref(null)
       const waiting = ref(false)
-      const waitTime = ref(63)
+      const waitTime = ref(60)
+      const queuePosition = ref(null)
       const isQueuelistEmpty = ref(false)
       let waitTimer = null
       let refreshInterval = null
@@ -108,7 +116,13 @@
           const response = await $axios.post('/admin/queue-list')
           queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
           currentServing.value = response.data.current_serving
-          console.log(currentServing.value) 
+          // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
+          // console.log(queuePosition.value)
+          // console.log(response.data.queue_numbers)
+          if (queueList.value.length > 0 && queueList.value[0].status === 'waiting' && currentServing.value == null) {
+              caterCustomer(queueList.value[0].id);
+              startWait(queueList.value[0].id, queueList.value[0].queue_number)
+          }
           isQueuelistEmpty.value = queueList.value.length == 0
         } catch (error) {
           console.error(error)
@@ -120,7 +134,7 @@
         try {
           await $axios.post('/admin/cater', { id: customerId })
           fetchQueue()
-          $notify('positive', 'check', 'Customer is now being served.')
+          // $notify('positive', 'check', 'Customer is now being served.')
           stopWait() // Stop wait if customer is catered
         } catch (error) {
           console.error(error)
@@ -133,7 +147,20 @@
             title: 'Confirm',
             message: 'Are you sure do you want cancel this queue?',
             cancel: true,
-            persistent: true
+            persistent: true,
+            ok: {
+              label: 'Yes',
+              color: 'primary', // Make confirm button red
+              unelevated: true, // Flat button style
+              style:'width: 125px;'
+            },
+            cancel: {
+              label: 'Cancel',
+              color: 'red-8', // Make cancel button grey
+              unelevated: true,
+              style: 'width: 125px;'
+            },
+            style: 'border-radius: 12px; padding: 16px;',
           }).onOk(()=> {
             cancelCustomer(row.id)
           }).onDismiss(() => {
@@ -173,24 +200,19 @@
       // Start waiting process
       const startWait = async (customerId, queueNumber) => {
           try { 
-           
-          if(currentServing.value != null){
-            $notify('negative', 'error', 'Please finish the current customer first.')
-          }else{
+         
             const response = await $axios.post('/admin/start-wait', { queue_number: queueNumber })
           
             waiting.value = true
-            waitTime.value = 63
-            $notify('positive', 'check', response.data.message)
+            waitTime.value = 60
+            $notify('positive', 'check', "Waiting for Queue Number: " + queueNumber)
             waitTimer = setInterval(() => {
               if (waitTime.value > 0) {
                 waitTime.value--
               } else {
-                cancelCustomer(customerId) // Auto-cancel after 1 minute
                 stopWait()
               }
             }, 1000)
-          }
           
         } catch (error) {
           console.error(error)
@@ -205,7 +227,21 @@
             title: 'Confirm',
             message: 'Are you sure do you want reset queue?',
             cancel: true,
-            persistent: true
+            persistent: true,
+            color: 'primary',
+            ok: {
+              label: 'Yes',
+              color: 'primary', // Make confirm button red
+              unelevated: true, // Flat button style
+              style:'width: 125px;'
+            },
+            cancel: {
+              label: 'Cancel',
+              color: 'red-8', // Make cancel button grey
+              unelevated: true,
+              style: 'width: 125px;'
+            },
+            style: 'border-radius: 12px; padding: 16px;',
           }).onOk( async () => {
             const response = await $axios.post('/resetQueue')
             $notify('positive', 'check', response.data.message)
