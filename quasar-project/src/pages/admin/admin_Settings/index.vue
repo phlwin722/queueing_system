@@ -31,13 +31,36 @@
                 <q-tab-panel name="info">
                     <q-form @submit="saveChanges">
                         <div class="row q-col-gutter-md">
-                            <q-input filled v-model="username" placeholder="fetch admin username" hint="Username" :dense="dense" class="col-4"/>
-                            <q-input filled v-model="firstname" placeholder="fetch admin firstname" hint="First Name" :dense="dense" class="col-4"/>
-                            <q-input filled v-model="lastname" placeholder="fetch admin lastname" hint="Last Name" :dense="dense" class="col-4"/>
+                            <q-input 
+                                filled 
+                                v-model="adminInfo.Username" 
+                                placeholder="fetch admin username" 
+                                hint="Username" 
+                                :dense="dense" 
+                                class="col-4"
+                                :error="formError.hasOwnProperty('Username')"
+                                :error-message="formError.Username"/>
+                            <q-input 
+                                filled v-model="adminInfo.Firstname" 
+                                placeholder="fetch admin firstname" 
+                                hint="First Name" 
+                                :dense="dense"
+                                :error="formError.hasOwnProperty('Firstname')"
+                                 :error-message="formError.Firstname"
+                                class="col-4"/>
+                            <q-input 
+                                filled
+                                v-model="adminInfo.Lastname" 
+                                placeholder="fetch admin lastname" 
+                                hint="Last Name" 
+                                :dense="dense" 
+                                :error="formError.hasOwnProperty('Lastname')"
+                                :error-message="formError.Lastname"
+                                class="col-4"/>
                         </div>
 
                         <div class="q-mt-lg">
-                            <q-btn label="Save Changes" type="submit" color="positive" class="q-pa-xs"/>
+                            <q-btn label="Save Changes" type="submit" @click="UpdateAdmin" color="positive" class="q-pa-xs"/>
                             <q-btn label="Cancel" color="negative" class="q-pa-xs" />
                         </div>
                     </q-form>
@@ -79,7 +102,6 @@
             <q-tab-panel name="password">
                 <q-form @submit="changePassword">
                 <div class="row q-col-gutter-md">
-                    <q-input filled v-model="currentPassword" type="password" label="Current Password" class="col-12" />
                     <q-input filled v-model="newPassword" type="password" label="New Password" class="col-12" />
                     <q-input filled v-model="confirmPassword" type="password" label="Re-type New Password" class="col-12" />
                 </div>
@@ -98,11 +120,49 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue'
+import { $axios, $notify } from 'src/boot/app'
+
 export default {
-data() {
+  setup () {
+    const tab = ref ('info')
+    const adminInfo = ref ({
+        id: "",
+        Username: "",
+        Firstname: "",
+        Lastname: "",
+    })
+    const formError = ref ({})
+
+    const UpdateAdmin = async () => {
+
+    }
+    
+    const fetchAdminInfo = async () => {
+        try {
+            const { data } = await $axios.post("/admin/Information")
+            // Ensure that data.dataValue is available before trying to assign it to formData
+            if (data && data.dataValue && data.dataValue.length > 0) {
+                adminInfo.value = data.dataValue[0] ; // Assign the first object in dataValue to formData
+                console.log(adminInfo.Username)
+                console.log(adminInfo.value); // Log the whole object
+                console.log(adminInfo.value.Waiting_time); // Log Waiting_time field specifically
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    // Fetch the data when the component is mounted
+    onMounted (() => {
+        fetchAdminInfo();
+    })
+
     return {
-      tab: "info", // Default selected tab
-    };
-},
-};
+      tab,
+      adminInfo,
+      fetchAdminInfo,
+      formError,
+    }
+  }
+}
 </script>
