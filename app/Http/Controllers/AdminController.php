@@ -7,6 +7,7 @@ use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 
 
@@ -80,6 +81,34 @@ class AdminController extends Controller
                 [
                     "message"=> env('APP_DEBUG')? $message : 'Something went wrong'
                 ]);
+        }
+      }
+
+      public function index (Request $request) {
+        try {
+            // Fetch all waiting times from the database
+            $adminInfo = DB::table('admins')->get();
+
+            return response()->json([
+                'dataValue' => $adminInfo
+            ]);
+
+        } catch (\Exception $e) {
+            $message =$e->getMessage();
+            return response()->json([
+                "message" => env ('APP_DEBUG') ? $message : $message
+            ]);
+        }
+      }
+
+      public function updateqInformation () {
+        try {
+
+        } catch (\Exception $e) {
+            $message =$e->getMessage();
+            return response()->json([
+                "message" => env ('APP_DEBUG') ? $message : $message
+            ]);
         }
       }
 }

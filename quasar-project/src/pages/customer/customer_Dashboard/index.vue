@@ -136,7 +136,7 @@
       let refreshInterval = null
       let countdownInterval = null
     
-      const emailSended = ref ('')
+
       const emailData = ref({ // Email data list
         name: "",
         email: "",
