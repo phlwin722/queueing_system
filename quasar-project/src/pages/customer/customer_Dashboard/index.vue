@@ -63,7 +63,9 @@
         >
           <!-- Show "You are being served" if the customer is being served -->
           <div v-if="isBeingServed" class="text-center text-bold text-positive q-mb-md">
-            You are being served !
+            Your queue number is now being served ! <br>
+            Please proceed to your designated window. <br>
+            If not your queueing number will be cancelled. Thank you!
           </div>
 
           <!-- Show warning when customer position is <= 5 -->
@@ -72,12 +74,12 @@
             You are near from being served. Please standby!
           </div>
 
-          <!-- Show countdown if admin pressed "Wait" -->
+          <!-- Show countdown if admin pressed "Wait"
           <div v-if="isWaiting && queuePosition === 1 && !isBeingServed" class="text-center text-negative q-mb-md">
             <q-icon name="hourglass_empty" size="sm" />
             The admin is waiting. Please proceed. If not, your queueing number will be cancelled in 
             <strong>{{ countdown }}</strong> seconds.
-          </div>
+          </div> -->
           <q-separator />
           <q-card-section class="text-center">
             <p class="text-bold text-primary text-h6">Queue List</p>
@@ -123,7 +125,6 @@
       const customerQueueNumber = ref(localStorage.getItem('queue_number'+tokenurl.value) || null)
       const customerId = ref(localStorage.getItem('customer_id'+tokenurl.value) || null)
       const token = ref(localStorage.getItem('customer_token'+tokenurl.value) || null)
-      console.log('Token:', token.value) // Check
       
       const queueList = ref([])
       const currentQueue = ref(null)
@@ -131,7 +132,7 @@
       const isBeingServed = ref(false)
       const isWaiting = ref(false)
       const hasNotified = ref(false) // Prevents repeat notifications
-      const countdown = ref(60) // 60 seconds countdown
+      const countdown = ref() // 60 seconds countdown
       let refreshInterval = null
       let countdownInterval = null
     
@@ -159,14 +160,8 @@
 
           // Check if the customer is currently being served
           isBeingServed.value = currentQueue.value == customerQueueNumber.value;
-          let count = 0
-          if(currentQueue == null){
-            count =1
-          }else{
-            count = 0
-          }
           // Determine customer position in queue
-          queuePosition.value = queueList.value.findIndex(q => q.queue_number == customerQueueNumber.value) + 1+count
+          queuePosition.value = queueList.value.findIndex(q => q.queue_number == customerQueueNumber.value) + 1
 
           // If admin pressed "Wait" for the first in queue, start countdown
           if (response.data.waiting_customer === customerQueueNumber.value && queuePosition.value === 1) {
@@ -186,11 +181,11 @@
           if (customer.status === 'finished' && !hasNotified.value) {
             hasNotified.value = true; // Mark as notified
             $notify('positive', 'check', 'Your turn is finished. Thank you!');
-            setTimeout(() => router.push('/customer-register/J5OoCi9vI3'), 2000); // Delay redirect for a smooth transition
+            setTimeout(() => router.push('/customer-register/'+token.value), 2000); // Delay redirect for a smooth transition
           }
           if (customer && customer.status === 'cancelled') {
             $notify('negative', 'error', 'The Admin cancelled your queueing number.');
-            setTimeout(() => router.push('/customer-register/FZDXRGKf4c'), 2000);
+            setTimeout(() => router.push('/customer-register/'+token.value), 2000);
           }
           checkingQueueNumber()  // Call the function to check queue number after updating data
         } catch (error) {
@@ -199,34 +194,27 @@
 }
   
       // Start countdown timer
-      const startCountdown = () => {
-        const storedStartTime = localStorage.getItem('countdown_start_time');
-
-        if (!storedStartTime) {
-          // If no stored time, set the countdown start time
-          const newStartTime = Math.floor(Date.now() / 1000);
-          localStorage.setItem('countdown_start_time', newStartTime);
-        }
-
-        // Get the correct countdown start time
-        const countdownStartTime = parseInt(localStorage.getItem('countdown_start_time'), 10);
-        const currentTime = Math.floor(Date.now() / 1000);
-
-        // Calculate remaining time
-        countdown.value = Math.max(60 - (currentTime - countdownStartTime), 0);
-
-        if (!countdownInterval && countdown.value > 0) {
-          countdownInterval = setInterval(() => {
-            if (countdown.value > 0) {
-              countdown.value--;
-            } else {
-              clearInterval(countdownInterval);
-              isWaiting.value = false;
-              localStorage.removeItem('countdown_start_time'); // Clear storage when countdown ends
-            }
-          }, 1000);
-        }
-      };
+      // const startCountdown = () => {
+      //   if (!countdownInterval) {
+      //     countdown.value = 60
+      //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed.')
+  
+      //     countdownInterval = setInterval(() => {
+      //       if (countdown.value > 0) {
+      //         countdown.value--
+      //       } else {
+      //         clearInterval(countdownInterval)
+      //         isWaiting.value = false
+      //       }
+      //     }, 1000)
+      //   }
+      // }
+    //resets countdown
+    // const resetCountdown = () => {
+    //   const newStartTime = Math.floor(Date.now() / 1000);
+    //   localStorage.setItem('countdown_start_time', newStartTime);
+    //   countdown.value = 60; // Reset to 60 seconds
+    // };
 
 
   
@@ -245,22 +233,27 @@
         }
       }
   
-      // Paginated queue list
-      const paginatedQueueList = computed(() => {
-        const start = (currentPage.value - 1) * itemsPerPage
-        return queueList.value.slice(start, start + itemsPerPage)
-      })
 
+      
 
      // Function to check if the user's queue number is 5, then send an email notification
      const checkingQueueNumber = async () => {
         try {
-          if (queuePosition.value === 1) {
-             const { data } = await $axios.post('/send-fetchInfo', {
-                  queue_number: customerQueueNumber.value
-              });
+          const response = await $axios.post('/customer-list');
+          queueList.value = response.data.queue.filter(q => !['finished', 'cancelled','serving'].includes(q.status));
 
+          
+          if (queuePosition.value === 1) {
+            if(queueList.value.length > 0){
+              console.log(queueList.value[0].id)
+              const { data } = await $axios.post('/send-fetchInfo', {
+                  id: queueList.value[0].id
+              });
+              console.log(data.Information.email_status)
+              console.log(data.Information.name)
+              console.log(data.Information.token)
              if (data.Information.email_status === 'pending'){
+              
               // Assign email data with the recipient's details and email content
               emailData.value = {
                   id: data.Information.id, // Recipient's id
@@ -275,8 +268,10 @@
               const { emailContent } = await $axios.post('/send-email', emailData.value);
 
               // Show an alert to confirm that the email was sent successfully
-              console.log('Message succesuf', emailContent)
+              console.log('Message success', emailContent)
              }
+            }
+             
           }
         } catch (error) {
             // Log the error in the console if the request fails
@@ -291,12 +286,6 @@
         
       })
 
-      onMounted(() => {
-        const startTime = localStorage.getItem('countdown_start_time')
-          if (startTime) {
-            startCountdown() // Resume countdown
-          }
-      })
   
       onUnmounted(() => {
         clearInterval(refreshInterval) // Stop auto-refresh
@@ -316,7 +305,7 @@
         emailData,
         customerId,
   
-        // Pagination
+        
       }
     }
   }

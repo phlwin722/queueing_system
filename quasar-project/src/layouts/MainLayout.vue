@@ -212,6 +212,11 @@ export default defineComponent({
           link: "/admin/customer-logs",
         },
         {
+          title: "Reports",
+          icon: "bar_chart", 
+          link: "/admin/reports",
+         },
+         {
           title: "Waiting Time",
           icon: "hourglass_top", 
           link: "/admin/waiting-time",
