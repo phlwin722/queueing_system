@@ -210,6 +210,11 @@ export default defineComponent({
           icon: "description", 
           link: "/admin/customer-logs",
         },
+        {
+          title: "Reports",
+          icon: "bar_chart", 
+          link: "/admin/reports",
+        },
       ],
 
       toggleLeftDrawer() {

@@ -51,7 +51,7 @@ export default {
         const response = await $axios.post('/scan-qr', { token: token.value })  //  Correct way to send token
         
         if (response.data.success) {
-          $notify('positive', 'check', 'Kindly complete the input field before entering your number.')
+          $notify('positive', 'check', 'Please register to join the queue.')
           console.log(isUsedToken.value)
         } else {
           isUsedToken.value = true

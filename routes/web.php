@@ -32,6 +32,7 @@ Route::post('/admin/finish', [QueueController::class, 'finishCustomer']);
 Route::post('/admin/start-wait', [QueueController::class, 'startWait']);
 Route::post('/send-fetchInfo',[QueueController::class,'fetchData']);
 Route::post('/admin/queue-logs', [QueueController::class, 'queueLogs']);
+Route::post('/admin/reports', [QueueController::class, 'fetchReports']);
 Route::post('/resetQueue', [QueueController::class, 'resetTodayQueueNumbers']);
 
 

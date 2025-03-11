@@ -1,10 +1,27 @@
 <template>
   
-    <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
+   <!-- Search Input -->
+   <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
     v-model="text" 
     label="Search"
     :dense="dense"
     />
+  <div class="row q-gutter-x-md q-mx-lg q-mt-lg">
+
+    <!-- Date Picker Input -->
+    <q-input 
+      filled
+      class="bg-accent text-black q-pl-sm" 
+      v-model="selectedDate" 
+      type="date"
+      label="Select Date"
+      @update:model-value="getTableData"
+    />
+</div>
+
+ 
+    
+
     
     <q-page>
       <div class="q-pa-lg">
@@ -21,6 +38,7 @@
         </template>
         </q-table>
       </div>
+
     </q-page>
   </template>
   
@@ -96,9 +114,13 @@
       )
     );
   });
+      const selectedDate = ref(""); // Holds the selected date
+
       const getTableData = async () => {
         try{
-          const { data } = await $axios.post('/admin/queue-logs')
+         
+          const payload = selectedDate.value ? { date: selectedDate.value } : {}
+          const { data } = await $axios.post('/admin/queue-logs',payload)
           rows.value.splice(
             0,
             rows.value.length,
@@ -119,7 +141,9 @@
         rows,
         columns,
         filteredRows,
-        text
+        text,
+        selectedDate,
+        
       }
     }
   
