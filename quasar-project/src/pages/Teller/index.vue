@@ -3,16 +3,6 @@
     <q-header class="q-px-md">
       <q-toolbar>
         <!-- Fullscreen Toggle Button -->
-        <q-btn
-          flat
-          round
-          dense
-          class="q-mr-sm"
-          color="white"
-          style="min-width: 32px; width: 32px; height: 32px"
-          @click="$q.fullscreen.toggle()"
-          :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
-        />
 
         <q-space />
         <q-img
@@ -59,6 +49,7 @@
         </q-menu>
       </q-toolbar>
     </q-header>
+
     <q-page-container>
       <q-page class="flex flex-center bg-accent">
         <div class="q-pa-md full-width">
@@ -313,13 +304,7 @@ export default defineComponent({
     const toggleFullscreen = () => {
       $q.fullscreen.toggle();
     };
-    // Close dropdown when fullscreen is toggled (both enter and exit)
-    watch(
-      () => $q.fullscreen.isActive,
-      () => {
-        menuOpen.value = false;
-      }
-    );
+
 
     // Pagination
     const currentPage = ref(1);
