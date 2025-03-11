@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminRequest;
+use App\Http\Requests\AdminpasswordRequest;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -101,14 +102,47 @@ class AdminController extends Controller
         }
       }
 
-      public function updateqInformation () {
+      public function updateqInformation (AdminRequest $request) {
         try {
+            DB:: table('admins')
+                ->where('id',$request->id)
+                ->update([
+                    'Username' => $request->Username,
+                    'Firstname' => $request->Firstname,
+                    'Lastname' => $request->Lastname,
+                    'updated_at' => now(),
+                ]);
 
+                return response()->json([
+                    'message' => 'Admin Information updated successfully'
+                ]);
+            
         } catch (\Exception $e) {
             $message =$e->getMessage();
             return response()->json([
                 "message" => env ('APP_DEBUG') ? $message : $message
             ]);
         }
+      }
+
+      public function updatePassword (AdminpasswordRequest $request) {
+           try {
+                DB::table('admins')
+                    ->where('id', $request->id)
+                    ->update([
+                        "Password" => Hash::make($request->newPassword)
+                    ]);
+                    
+                    $message = 'Admin password updated successfully';
+
+                return response()->json([
+                    "message"=> $message
+                ]);
+           } catch (\Exception $e) {
+            $message =$e->getMessage();
+                return response()->json([
+                    "message" => env ('APP_DEBUG') ? $message : $message
+                ]);
+           }
       }
 }
