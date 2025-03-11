@@ -1,9 +1,9 @@
 <template>
-  <q-layout view="lHh lpr lFf" class="shadow-2 rounded-borders">
-    <div class="absolute-center full-width full-height bg-grey-2">
+  <q-layout view="lHh lpr lFf" class="shadow-2 rounded-borders absolute-center bg-grey-2" style="padding-top: 120px;">
       <div
         class="row wrap justify-center q-gutter-md q-pt-md"
-        style="max-width: 600px; margin: auto"
+        style="max-width: 600px; margin: auto;"
+
       >
         <!-- User Queue Status -->
         <q-card
@@ -59,6 +59,7 @@
         <!-- Queue List -->
         <q-card
           class="col-12 full-width shadow-3 bg-white rounded-borders q-pa-md"
+           style="margin-bottom: 20px;"
         >
           <!-- Show "You are being served" if the customer is being served -->
           <div v-if="isBeingServed" class="text-center text-bold text-positive q-mb-md">
@@ -106,9 +107,9 @@
           </q-card-section>
         </q-card>
       </div>
-    </div>
   </q-layout>
 </template>
+
 
 <script>
   import { ref, onMounted, onUnmounted, computed } from 'vue'

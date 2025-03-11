@@ -1,5 +1,5 @@
 <template>
-  <q-layout class="shadow-2 rounded-borders">
+  <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
     <q-header>
       <q-toolbar>
           <q-img 
@@ -89,17 +89,18 @@
           </template>
 
           <q-list>
+            <q-item clickable v-ripple :to="'/admin/settings'">
+              <q-item-section avatar>
+                <q-icon name="settings" color="primary" />
+              </q-item-section>
+              <q-item-section>Account Settings</q-item-section>
+            </q-item>
+
             <q-item clickable v-ripple @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout" color="red" />
               </q-item-section>
               <q-item-section class="text-red">Logout</q-item-section>
-            </q-item>
-            <q-item clickable v-ripple @click="logout">
-              <q-item-section avatar>
-                <q-icon name="logout" color="red" />
-              </q-item-section>
-              <q-item-section class="text-red">Settings</q-item-section>
             </q-item>
           </q-list>
         </q-btn-dropdown>
@@ -214,6 +215,11 @@ export default defineComponent({
           title: "Reports",
           icon: "bar_chart", 
           link: "/admin/reports",
+         },
+         {
+          title: "Waiting Time",
+          icon: "hourglass_top", 
+          link: "/admin/waiting-time",
         },
       ],
 

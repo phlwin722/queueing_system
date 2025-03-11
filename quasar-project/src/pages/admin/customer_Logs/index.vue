@@ -1,5 +1,4 @@
 <template>
-  
    <!-- Search Input -->
    <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
     v-model="text" 
@@ -41,6 +40,7 @@
 
     </q-page>
   </template>
+
   
   <script>
   import { 

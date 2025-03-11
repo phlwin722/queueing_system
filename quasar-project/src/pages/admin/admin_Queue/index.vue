@@ -84,6 +84,8 @@
               />
             </q-card-actions>
           </q-card>
+
+          
         </q-page>
   </template>
   
@@ -145,7 +147,20 @@
             title: 'Confirm',
             message: 'Are you sure do you want cancel this queue?',
             cancel: true,
-            persistent: true
+            persistent: true,
+            ok: {
+              label: 'Yes',
+              color: 'primary', // Make confirm button red
+              unelevated: true, // Flat button style
+              style:'width: 125px;'
+            },
+            cancel: {
+              label: 'Cancel',
+              color: 'red-8', // Make cancel button grey
+              unelevated: true,
+              style: 'width: 125px;'
+            },
+            style: 'border-radius: 12px; padding: 16px;',
           }).onOk(()=> {
             cancelCustomer(row.id)
           }).onDismiss(() => {
@@ -185,7 +200,7 @@
       // Start waiting process
       const startWait = async (customerId, queueNumber) => {
           try { 
-          
+         
             const response = await $axios.post('/admin/start-wait', { queue_number: queueNumber })
           
             waiting.value = true
@@ -212,7 +227,21 @@
             title: 'Confirm',
             message: 'Are you sure do you want reset queue?',
             cancel: true,
-            persistent: true
+            persistent: true,
+            color: 'primary',
+            ok: {
+              label: 'Yes',
+              color: 'primary', // Make confirm button red
+              unelevated: true, // Flat button style
+              style:'width: 125px;'
+            },
+            cancel: {
+              label: 'Cancel',
+              color: 'red-8', // Make cancel button grey
+              unelevated: true,
+              style: 'width: 125px;'
+            },
+            style: 'border-radius: 12px; padding: 16px;',
           }).onOk( async () => {
             const response = await $axios.post('/resetQueue')
             $notify('positive', 'check', response.data.message)
