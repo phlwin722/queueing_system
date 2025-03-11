@@ -21,6 +21,7 @@ use App\Http\Controllers\Waiting_timeController;
 Route::post('/admin/validate',[AdminController::class,'adminValidate'] );
 Route::post('/admin/Information',[AdminController::class,"index"]);
 Route::post('/admin/updateInformation',[AdminController::class,"updateqInformation"]);
+Route::post('/admin/updatePassword',[AdminController::class,"updatePassword"]);
 Route::post('/createAdmin',[AdminController::class,'createAdmin'] );
 
 Route::post('/customer-join',[QueueController::class, 'joinQueue']);
