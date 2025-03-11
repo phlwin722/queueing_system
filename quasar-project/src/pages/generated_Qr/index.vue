@@ -1,17 +1,37 @@
 <template>
-      <div class="flex flex-center">
-        <q-card class="q-pa-md shadow-2" style="width: 350px; margin-top: 6%; text-align: center; margin-bottom: auto;">
-          <q-card-section>
-            <div class="text-h6">Scan to Join the Queue</div>
-          </q-card-section>
-  
-          <q-card-section>
-            <qrcode-vue v-if="registrationLink" :value="registrationLink" :size="200" level="M" />
-            <div v-else>Generating QR Code...</div>
-          </q-card-section>
-        </q-card>
-      </div>
-  </template>
+  <div class="flex flex-center column">
+    <!-- Logo Image -->
+    <q-img 
+      src="~assets/vrtlogoblack.webp" 
+      alt="Logo" 
+      fit="contain" 
+      class="q-mx-auto q-ma-lg"
+      style="max-width: 225px;"
+    />
+
+    <!-- QR Code Card -->
+    <q-card
+      class="q-pa-md shadow-2"
+      style="width: 350px; text-align: center;"
+    >
+      <q-card-section>
+        <div class="text-h6">Scan to Join the Queue</div>
+      </q-card-section>
+
+      <q-card-section>
+        <qrcode-vue
+          v-if="registrationLink"
+          :value="registrationLink"
+          :size="200"
+          level="M"
+        />
+        <div v-else>Generating QR Code...</div>
+      </q-card-section>
+    </q-card>
+  </div>
+</template>
+
+
   
   <script>
   import { ref, onMounted, onUnmounted } from 'vue'
@@ -57,4 +77,9 @@
   }
   </script>
   
-  
+  <style>
+html, body, .q-layout {
+  height: 100%;
+  overflow: hidden;
+}
+</style>
