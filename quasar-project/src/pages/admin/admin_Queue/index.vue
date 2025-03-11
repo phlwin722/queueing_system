@@ -38,7 +38,7 @@
                     v-if="currentServing"
                     color="orange-5"
                     class="modern-btn"
-                    :label="waiting ? `${waitTime} s` : 'Wait'"
+                    :label="waiting ? formatTime(waitTime) : 'Wait'"
                     @click="startWait(currentServing.id, currentServing.queue_number)"
                     :disable="waiting"
                   />
@@ -99,8 +99,8 @@
       const queueList = ref([])
       const currentServing = ref(null)
       const waiting = ref(false)
-      const waitTime = ref(60)
-      const queuePosition = ref(null)
+      const waitTime = ref()
+      const prepared = ref()
       const isQueuelistEmpty = ref(false)
       let waitTimer = null
       let refreshInterval = null
@@ -200,25 +200,64 @@
       // Start waiting process
       const startWait = async (customerId, queueNumber) => {
           try { 
-         
             const response = await $axios.post('/admin/start-wait', { queue_number: queueNumber })
-          
-            waiting.value = true
-            waitTime.value = 60
-            $notify('positive', 'check', "Waiting for Queue Number: " + queueNumber)
-            waitTimer = setInterval(() => {
-              if (waitTime.value > 0) {
-                waitTime.value--
-              } else {
-                stopWait()
-              }
-            }, 1000)
+            if(prepared.value == "Seconds"){
+              waiting.value = true
+              $notify('positive', 'check', "Waiting for Queue Number: " + queueNumber)
+              waitTimer = setInterval(() => {
+                if (waitTime.value > 0) {
+                  waitTime.value--
+                } else {
+                  stopWait()
+                }
+              }, 1000)
+            }else if(prepared.value == "Minutes"){
+              waiting.value = true
+              waitTime.value = waitTime.value * 60
+              $notify('positive', 'check', "Waiting for Queue Number: " + queueNumber)
+              waitTimer = setInterval(() => {
+                if (waitTime.value > 0) {
+                  waitTime.value--
+                } else {
+                  stopWait()
+                }
+              }, 1000)
+            }
+            
           
         } catch (error) {
           console.error(error)
           $notify('negative', 'error', 'Failed to set waiting customer.')
         }
       }
+
+      // Fetch the data from the backend when the component is mounted
+    const fetchWaitingtime = async () => {
+      try {
+        const { data } = await $axios.post('/admin/waiting_Time-fetch');
+        // Ensure that data.dataValue is available before trying to assign it to formData
+        if (data && data.dataValue && data.dataValue.length > 0) {
+          waitTime.value = data.dataValue[0].Waiting_time; // Assign the first object in dataValue to formData
+          prepared.value = data.dataValue[0].Prepared;
+          console.log(data.dataValue[0].Waiting_time)
+          console.log(data.dataValue[0].Prepared)
+        } else {
+          console.log('No data available');
+        }
+      } catch (error) {
+        console.log('Error fetching data:', error);
+      }
+    };
+
+    const formatTime = (seconds) => {
+      if (seconds >= 60) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes} m ${remainingSeconds} s`;
+      }
+      return `${seconds} s`;
+    };
+
 
       // Reset Queue Number
       const resetQueue = async () => {
@@ -273,6 +312,7 @@
       onMounted(() => {
         fetchQueue()
         refreshInterval = setInterval(fetchQueue, 5000) // Auto-refresh every 5 seconds
+        fetchWaitingtime()
       })
   
       onUnmounted(() => {
@@ -292,6 +332,8 @@
         beforeCancel,
         resetQueue,
         isQueuelistEmpty,
+        prepared,
+        formatTime,
   
         // Pagination
         currentPage,

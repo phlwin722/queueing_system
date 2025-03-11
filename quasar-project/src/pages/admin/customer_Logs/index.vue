@@ -1,25 +1,25 @@
 <template>
+
+<div class="row q-gutter-x-md q-mx-lg q-mt-lg">
+
+<!-- Date Picker Input -->
+<q-input 
+  filled
+  class="bg-accent text-black q-pl-sm" 
+  v-model="selectedDate" 
+  type="date"
+  label="Select Date"
+  @update:model-value="getTableData"
+/>
+</div>
+
    <!-- Search Input -->
    <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
     v-model="text" 
     label="Search"
     :dense="dense"
     />
-  <div class="row q-gutter-x-md q-mx-lg q-mt-lg">
-
-    <!-- Date Picker Input -->
-    <q-input 
-      filled
-      class="bg-accent text-black q-pl-sm" 
-      v-model="selectedDate" 
-      type="date"
-      label="Select Date"
-      @update:model-value="getTableData"
-    />
-</div>
-
- 
-    
+  
 
     
     <q-page>
