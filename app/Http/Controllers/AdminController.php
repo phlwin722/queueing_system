@@ -142,7 +142,7 @@ class AdminController extends Controller
             $message =$e->getMessage();
                 return response()->json([
                     "message" => env ('APP_DEBUG') ? $message : $message
-                ]);
+                ],500);
            }
       }
 }

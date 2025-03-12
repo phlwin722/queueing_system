@@ -89,13 +89,6 @@
           </template>
 
           <q-list>
-            <q-item clickable v-ripple :to="'/admin/settings'">
-              <q-item-section avatar>
-                <q-icon name="settings" color="primary" />
-              </q-item-section>
-              <q-item-section>Account Settings</q-item-section>
-            </q-item>
-
             <q-item clickable v-ripple @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout" color="red" />
@@ -164,17 +157,7 @@ export default defineComponent({
       }, 100);
     };
 
-    return {
-      leftDrawerOpen,
-      formattedString,
-      drawer,
-      miniState,
-      adminInformation,
-      toggleMiniState,
-      drawerClick,
-      logout, // Make logout function available in the template
-
-      linksList: [
+    const linksList = [
       {
         title: "Dashboard",
         icon: "dashboard",
@@ -185,14 +168,19 @@ export default defineComponent({
           icon: "person",
           children: [
             { 
-              title: "Manage Tellers", 
-              icon: "supervisor_account", 
-              link: "/admin/teller/manage",  
+              title: "Window", 
+              icon: "computer", 
+              link: "/admin/teller/window" 
+            },
+            { 
+              title: "Personel", 
+              icon: "groups", 
+              link: "/admin/teller/tellers" 
             },
             { 
               title: "Service Types", 
               icon: "category", 
-              link: "/admin/teller/servicetype" 
+              link: "/admin/teller/types" 
             },
           ],
         },
@@ -217,11 +205,33 @@ export default defineComponent({
           link: "/admin/reports",
          },
          {
-          title: "Waiting Time",
-          icon: "hourglass_top", 
-          link: "/admin/waiting-time",
-        },
-      ],
+          title: "Settings",
+          icon: "settings",
+            children: [
+              { 
+                title: "Personal Info", 
+                icon: "computer", 
+                link: "/admin/settings" 
+              },
+              { 
+                title: "Waiting Time",
+                icon: "hourglass_top", 
+                link: "/admin/waiting-time",
+              },
+            ],
+          },
+      ];
+
+    return {
+      leftDrawerOpen,
+      formattedString,
+      drawer,
+      miniState,
+      adminInformation,
+      toggleMiniState,
+      drawerClick,
+      logout, // Make logout function available in the template
+      linksList,
 
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
