@@ -26,7 +26,7 @@
             <q-card-actions align="space-between">
                   <!-- Cancel Button -->
                   <q-btn 
-                  v-if="currentServing && waitTime == 0"
+                  v-if="currentServing && a == 0"
                   color="red" 
                   label="Cancel" 
                   class="modern-btn"
@@ -38,14 +38,14 @@
                     v-if="currentServing"
                     color="orange-5"
                     class="modern-btn"
-                    :label="waiting ? formatTime(waitTime) : 'Wait'"
+                    :label="waiting ? formatTime(a) : 'Wait'"
                     @click="startWait(currentServing.id, currentServing.queue_number)"
                     :disable="waiting"
                   />
 
                 <!-- Finish Button -->
                 <q-btn
-                v-if="currentServing"
+                v-if="currentServing && a == 0"
                 color="blue"
                 label="Finish"
                 class="modern-btn"
@@ -101,6 +101,7 @@
       const waiting = ref(false)
       const waitTime = ref()
       const prepared = ref()
+      const originalWaitTime = ref(0); // Store the original wait time
       const isQueuelistEmpty = ref(false)
       let waitTimer = null
       let refreshInterval = null
@@ -134,8 +135,6 @@
         try {
           await $axios.post('/admin/cater', { id: customerId })
           fetchQueue()
-          // $notify('positive', 'check', 'Customer is now being served.')
-          stopWait() // Stop wait if customer is catered
         } catch (error) {
           console.error(error)
           $notify('negative', 'error', 'You are currently serving a customer. Please finish it first!.')
@@ -196,40 +195,46 @@
         }
       }
       
-  
+      const a = ref()
       // Start waiting process
       const startWait = async (customerId, queueNumber) => {
-          try { 
-            const response = await $axios.post('/admin/start-wait', { queue_number: queueNumber })
-            if(prepared.value == "Seconds"){
-              waiting.value = true
-              $notify('positive', 'check', "Waiting for Queue Number: " + queueNumber)
-              waitTimer = setInterval(() => {
-                if (waitTime.value > 0) {
-                  waitTime.value--
-                } else {
-                  stopWait()
-                }
-              }, 1000)
-            }else if(prepared.value == "Minutes"){
-              waiting.value = true
-              waitTime.value = waitTime.value * 60
-              $notify('positive', 'check', "Waiting for Queue Number: " + queueNumber)
-              waitTimer = setInterval(() => {
-                if (waitTime.value > 0) {
-                  waitTime.value--
-                } else {
-                  stopWait()
-                }
-              }, 1000)
-            }
-            
-          
-        } catch (error) {
-          console.error(error)
-          $notify('negative', 'error', 'Failed to set waiting customer.')
+      try {
+        console.log()
+        if (waiting.value) return; // Prevent multiple clicks while waiting
+
+        waiting.value = true;
+        console.log("original time: "+originalWaitTime.value)
+        a.value = waitTime.value
+        // If first time clicking, store the original time
+        if (originalWaitTime.value === 0) {
+          originalWaitTime.value = prepared.value === "Minutes" ? a.value * 60 : a.value;
         }
+        console.log("original time: "+originalWaitTime.value)
+        // Reset the wait time from stored value
+        a.value = originalWaitTime.value;
+
+        $notify("positive", "check", "Waiting for Queue Number: " + queueNumber);
+
+        // Clear any existing timer to prevent duplicates
+        if (waitTimer) clearInterval(waitTimer);
+
+        waitTimer = setInterval(() => {
+          if (a.value > 0) {
+            a.value--;
+          } else if(a.value == 0) {
+            stopWait();
+            originalWaitTime.value = 0;
+            console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
+          }
+        }, 1000);
+      } catch (error) {
+        console.error(error);
+        $notify("negative", "error", "Failed to set waiting customer.");
       }
+    };
+
+
+
 
       // Fetch the data from the backend when the component is mounted
     const fetchWaitingtime = async () => {
@@ -329,6 +334,7 @@
         startWait,
         waiting,
         waitTime,
+        a,
         beforeCancel,
         resetQueue,
         isQueuelistEmpty,
