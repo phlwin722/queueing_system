@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('waiting_times', function (Blueprint $table) {
+        Schema::create('windows', function (Blueprint $table) {
             $table->id();
-            $table->integer('Waiting_time');
-            $table->string('Prepared');
+            $table->string('window_name');
+            $table->foreignId('type_id')->constrained('types')->onDelete('cascade'); 
+            $table->foreignId('teller_id')->nullable()->constrained('tellers')->onDelete('set null'); 
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('waiting_times');
+        Schema::dropIfExists('windows');
     }
 };

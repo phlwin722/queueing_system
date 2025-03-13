@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('waiting_times', function (Blueprint $table) {
+        Schema::create('tellers', function (Blueprint $table) {
             $table->id();
-            $table->integer('Waiting_time');
-            $table->string('Prepared');
+            $table->string('teller_firstname');
+            $table->string('teller_lastname');
+            $table->string('teller_username')->unique();
+            $table->string('teller_password');
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('waiting_times');
+        Schema::dropIfExists('tellers');
     }
 };
