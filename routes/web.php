@@ -43,6 +43,7 @@ Route::post('/resetQueue', [QueueController::class, 'resetTodayQueueNumbers']);
 Route::post('/admin/waiting_Time',[Waiting_timeController::class,'store']);
 Route::post('/admin/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/admin/waiting_Time-update',[Waiting_timeController::class,'update']);
+Route::post('/upload-image', [AdminController::class, 'uploadImage']);
 
 // adminside
 // Teller Routes

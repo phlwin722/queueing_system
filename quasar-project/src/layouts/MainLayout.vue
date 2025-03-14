@@ -3,12 +3,17 @@
     <q-header>
       <q-toolbar>
           <q-img 
-        src="~assets/vrtlogowhite1.png" 
-        alt="Logo" 
-        fit="full" 
-        :style="{ maxWidth: $q.screen.lt.sm ? '100px' : '160px' }"
-        class="q-ml-sm"
-      />
+            src="~assets/vrtlogowhite1.png" 
+            alt="Logo" 
+            fit="full" 
+            :style="{ 
+              maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+              cursor: 'pointer',  // Fix cursor property
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+            }"
+            @click="goonDashboard"
+            class="q-ml-sm"
+          />
         <q-toolbar-title class="text-center">Queuing System</q-toolbar-title>
         <div>{{ formattedString }}</div>
       </q-toolbar>
@@ -80,10 +85,17 @@
           <template v-slot:label>
             <q-item class="none flex items-center">
               <q-item-section avatar>
-                <q-icon name="account_circle" size="30px" color="primary" />
+                <q-img 
+                   size="30px" 
+                   color="primary" 
+                   :src="previewAdminImage"
+                   />
               </q-item-section>
               <q-item-section>
-                <q-item-label>{{ adminInformation?.Firstname + ' ' +  adminInformation?.Lastname }}</q-item-label>
+                <q-item-label>
+                {{ adminInformationContent && adminInformationContent.Firstname ? adminInformationContent.Firstname + " " + adminInformationContent.Lastname : "Loading..." }}
+              </q-item-label>
+
               </q-item-section>
             </q-item>
           </template>
@@ -110,6 +122,7 @@
 import { defineComponent, ref, onMounted } from "vue";
 import { date } from "quasar";
 import { useRouter } from "vue-router";
+import { $axios } from "src/boot/app";
 
 export default defineComponent({
   name: "MainLayout",
@@ -121,6 +134,14 @@ export default defineComponent({
     const drawer = ref(false);
     const miniState = ref(false);
     const adminInformation = ref(null)
+    const previewAdminImage = ref(null)
+
+    const adminInformationContent = ref({
+      id: '',
+      Firstname: '',
+      Lastname: '',
+      Image: '',
+    })
 
     // Function to update the time
     const updateFormattedTime = () => {
@@ -139,13 +160,52 @@ export default defineComponent({
       }
     };
 
+    const fetchAdminInformation = async () => {
+      try {
+        const { data } = await $axios.post('/admin/Information', {
+          id: adminInformation.value.id
+        });
+
+        if (data.dataValue) {
+          adminInformationContent.value = data.dataValue; // Use the object directly, no need for 
+          previewAdminImage.value = data.dataValue.Image
+        } else {
+          console.error('No data found or invalid structure', data);
+          adminInformationContent.value = {
+            Firstname: 'N/A',
+            Lastname: 'N/A'
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching admin info', error);
+        adminInformationContent.value = {
+          Firstname: 'Error',
+          Lastname: 'Error'
+        };
+      }
+    };
+
+    const goonDashboard = async () => {
+      try {
+        router.push("/admin/dashboard"); // Redirect to login page
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+
     // Set an interval to update the time every second
     onMounted(() => {
-      console.log(sessionStorage.getItem('adminInformation'));
-
-      updateFormattedTime(); // Call it once on mount
-      setInterval(updateFormattedTime, 1000); // Update every second
-      adminInformation.value = JSON.parse(sessionStorage.getItem('adminInformation'))
+      const storedAdminInfo = sessionStorage.getItem('adminInformation');
+      if (storedAdminInfo) {
+        adminInformation.value = JSON.parse(storedAdminInfo);
+        fetchAdminInformation()
+        updateFormattedTime(); // Call it once on mount
+        setInterval(fetchAdminInformation,1000);
+        setInterval(updateFormattedTime, 1000); // Update every second
+      } else {
+        console.error("No admin information found in sessionStorage");
+      }
     });
 
     // Logout function
@@ -230,6 +290,10 @@ export default defineComponent({
       adminInformation,
       toggleMiniState,
       drawerClick,
+      adminInformationContent,
+      fetchAdminInformation,
+      previewAdminImage,
+      goonDashboard,
       logout, // Make logout function available in the template
       linksList,
 

@@ -25,6 +25,10 @@ class AdminpasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
+            "id" => [
+                'required',
+                'exists:admins,id'
+            ],
             "newPassword" => [
                 'required'
             ],

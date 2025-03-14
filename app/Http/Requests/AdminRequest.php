@@ -29,7 +29,7 @@ class AdminRequest extends FormRequest
             ],
             'Password' => [
                 'required'
-            ]
+            ],
         ];
     }
 
