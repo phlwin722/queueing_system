@@ -27,10 +27,11 @@
       :width="250"
       :breakpoint="500"
       bordered
+      content-class="fit"
       :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
     >
-    <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: 0 }">
-      <q-list padding>
+    <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: 0 }" style="height: 100%;">
+      <q-list padding class="q-pb-xl q-mb-xl">
         <template v-for="(item, index) in linksList" :key="index">
           <!-- Parent with children (Dropdown) -->
           <q-expansion-item
@@ -86,10 +87,9 @@
             <q-item class="none flex items-center">
               <q-item-section avatar>
                 <q-img 
-                   size="30px" 
-                   color="primary" 
-                   :src="previewAdminImage"
-                   />
+                  :src="previewAdminImage"
+                  style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid  #1c5d99;" 
+                  fit="cover" />
               </q-item-section>
               <q-item-section>
                 <q-item-label>
@@ -233,7 +233,7 @@ export default defineComponent({
               link: "/admin/teller/window" 
             },
             { 
-              title: "Personel", 
+              title: "Personnel", 
               icon: "groups", 
               link: "/admin/teller/tellers" 
             },
@@ -263,8 +263,8 @@ export default defineComponent({
           title: "Reports",
           icon: "bar_chart", 
           link: "/admin/reports",
-         },
-         {
+        },
+        {
           title: "Settings",
           icon: "settings",
             children: [
