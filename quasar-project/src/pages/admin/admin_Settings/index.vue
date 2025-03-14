@@ -5,14 +5,32 @@
       <q-card class="col-12 col-sm-4 col-md-3 q-pa-md flex flex-center">
       <div class="column items-center q-ma-lg">
               <q-avatar size="150px">
-                <q-img 
-                  src="~assets/vrtlogoblack.webp" 
-                  class="full-width full-height"
-        style="border-radius: 50%; border: 2px solid #1c5d99;" 
-        fit="cover" />
-              </q-avatar> 
+                <template v-if="!previewAdminImage.Image">
+                  <q-img
+                    :src="require('assets/no-image-user.png')"
+                     class="full-width full-height"
+                     style="border-radius: 50%; border: 2px solid #1c5d99;" 
+                     fit="cover" 
+                  />
+                </template>
+                <template v-else>
+                  <q-img
+                    :src="previewAdminImage.Image"
+                     class="full-width full-height"
+                      style="border-radius: 50%; border: 2px solid #1c5d99;" 
+                      fit="cover" 
+                  />
+                </template>
+              </q-avatar>
       <div class="text-center q-mt-md">
-          <div class="text-h6">{{ adminInfo.Firstname + " " + adminInfo.Lastname }}</div>
+          <div class="text-h6">
+              <template v-if="!previewAdminImage?.Firstname">
+                Loading...
+              </template>
+              <template v-else>
+                {{ previewAdminImage?.Firstname + " " + previewAdminImage?.Lastname }}
+              </template>
+          </div>
       </div>
       </div>
       </q-card>
@@ -38,31 +56,31 @@
                           <q-input 
                             filled 
                             v-model="adminInfo.Username"
-                            placeholder="fetch admin username" 
+                            placeholder="Username" 
                             hint="Username" 
                             :dense="dense" 
                             :error="formError.hasOwnProperty('Username')"
-                            :error-message="formError.Username"
+                            :error-message="formError.Username ? formError.Username[0] : ''" 
                             class="col-12 col-md-4"/>
                           
                             <q-input 
                               filled 
                               v-model="adminInfo.Firstname" 
-                              placeholder="fetch admin firstname" 
+                              placeholder="Firstname" 
                               hint="First Name" 
                               :dense="dense" 
                               :error="formError.hasOwnProperty('Firstname')"
-                              :error-message="formError.Firstname"
+                              :error-message="formError.Firstname ? formError.Firstname[0] : ''" 
                               class="col-12 col-md-4"/>
                         
                             <q-input 
                               filled 
                               v-model="adminInfo.Lastname"
-                              placeholder="fetch admin lastname" 
+                              placeholder="Lastname" 
                               hint="Last Name" 
                               :dense="dense" 
                               :error="formError.hasOwnProperty('Lastname')"
-                              :error-message="formError.Lastname"
+                              :error-message="formError.Lastname ? formError.Lastname[0] : ''" 
                               class="col-12 col-md-4"/>
                       </div>
 
@@ -85,8 +103,8 @@
           <div class="row q-col-gutter-md">
               <!-- Image Preview -->
               <div class="col-12 col-sm-4 col-md-3">
-              <q-img
-                  :src="previewImage || 'no-image.png'"
+                <q-img
+                  :src="previewImage || require('assets/no-image.png')" 
                   spinner-color="primary"
                   class="shadow-2 rounded-borders q-ml-lg"
                   style="width: 100%; max-width: 150px; height: 150px; object-fit: cover;"
@@ -95,9 +113,15 @@
 
               <!-- Upload Section -->
               <div class="col">
-              <q-file v-model="selectedImage" label="Select image" accept="image/*" @change="previewFile" filled>
-                  <q-icon name="attach_file" />
-              </q-file>
+                <q-file
+                    v-model="selectedImage"
+                    label="Select image"
+                    accept="image/*"
+                    filled
+                  >
+                    <q-icon name="attach_file" />
+                  </q-file>
+
 
               <q-banner class="text-warning q-mt-md">
                   <q-icon name="warning" />
@@ -109,7 +133,7 @@
               <div class="q-mt-sm text-right">
                     <q-btn 
                       label="Save Changes" 
-                      type="submit" 
+                      @click="uploadImage"
                       color="positive" 
                       class="q-pa-xs" 
                       style="width: 125px; 
@@ -161,7 +185,7 @@
 </template>
   
   <script>
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, watch  } from 'vue';
   import { $axios, $notify } from 'src/boot/app';
   import { useQuasar } from 'quasar';
   
@@ -169,6 +193,13 @@
     setup() {
       const $dialog = useQuasar();
       const tab = ref('info');
+      const idAdmin = ref ('');
+      const formError = ref({});
+      const selectedImage = ref(null); // Holds the selected image file
+      const previewImage = ref(null); // Holds the image preview
+      const previewAdminImage = ref({})
+
+
       const adminInfo = ref({
         id: '',
         Username: '',
@@ -181,9 +212,6 @@
         newPassword: '',   // Initialized with empty string
         confirmPassword: '',  // Initialized with empty string
         });
-
-  
-      const formError = ref({});
   
       const UpdateAdmin = async () => {
           $dialog.dialog({
@@ -213,7 +241,7 @@
               }
             } catch (error) {
               if (error.response.status === 422) {
-                formError.value = error.response.data; // Map errors to the formError objec
+                formError.value = error.response.data.errors; // Map errors to the formError objec
               }else {
                 console.log(error)
               }
@@ -243,16 +271,17 @@
             },
             style: 'border-radius: 12px; padding: 16px;',
             }).onOk(async () => {
+                // Ensure the admin ID is set correctly in adminPassword before making the request
+                adminPassword.value.id = adminInfo.value.id;
               try {
+                formError.value = {}; // Reset form errors after successful submission
                 // Check if both password fields are filled
                 if (adminPassword.value.newPassword != adminPassword.value.confirmPassword ) {
                     $notify('negative', 'error', 'Passwords do not match. Please check your input data.');
                     return;
                 }
-
                 // Proceed to update password
                 const { data } = await $axios.post('/admin/updatePassword', adminPassword.value);
-                formError.value = {}; // Reset form errors after successful submission
                 if (data) {
                     $notify('positive', 'done', data.message); // Notify success
                 }
@@ -271,19 +300,111 @@
 
       const fetchAdminInfo = async () => {
         try {
-          const { data } = await $axios.post('/admin/Information');
-          if (data && data.dataValue && data.dataValue.length > 0) {
-            adminInfo.value = data.dataValue[0];
-            console.log(adminInfo.value); // Log the fetched admin info
+          const { data } = await $axios.post('/admin/Information',{
+            id: idAdmin.value
+          });
+          
+          if (data.dataValue) { 
+            adminInfo.value = data.dataValue
           }
         } catch (error) {
           console.log(error);
         }
       };
+
+      const fetchingImage = async () => {
+        try {
+          const { data } = await $axios.post('/admin/Information',{
+            id: idAdmin.value
+          });
+          if (data.dataValue) { 
+            previewAdminImage.value = data.dataValue
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      // Preview image before upload
+      // Watch the selectedImage variable for changes
+      watch(selectedImage, (newVal) => {
+        console.log("selectedImage changed:", newVal);
+        // Check if newVal is an array (if multiple is enabled) or a single file
+        const file = Array.isArray(newVal) ? newVal[0] : newVal;
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previewImage.value = e.target.result; // Set previewImage to the generated data URL
+            console.log("Preview updated:", e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      
+      // Upload image to the server
+       const uploadImage = async () => {
+        if (!selectedImage.value) {
+          $notify('negative', 'error', 'Please select an image');
+          return;
+        }
+
+        $dialog.dialog({
+            title: 'Confirm',
+            message: 'Are you sure you want to update your profile picture?',
+            cancel: true,
+            persistent: true,
+            ok: {
+                label: 'Yes',
+                color: 'primary',
+                unelevated: true,
+                style: 'width: 125px;',
+            },
+            cancel: {
+                label: 'Cancel',
+                color: 'red-8',
+                unelevated: true,
+                style: 'width: 125px;',
+            },
+            style: 'border-radius: 12px; padding: 16px;',
+            }).onOk(async () => {
+
+              let formData = new FormData();
+              formData.append('id', idAdmin.value); // Ensure the ID is passed
+              formData.append('Image', selectedImage.value);
+
+              try {
+                const { data } = await $axios.post('/upload-image', formData, {
+                  headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                // ✅ Correct way to update preview image
+                previewImage.value = data.Image;
+                
+                $notify('positive', 'check', data.message); // ✅ Correct way to access message
+
+              } catch (error) {
+                console.error("Upload Error:", error);
+                $notify('negative', 'error', error.response?.data?.message || 'Upload failed!');
+              }
+            }).onDismiss(() => {
+            // Optional: Handle dismiss action
+            })
+      }; 
+
   
       // Fetch the data when the component is mounted
       onMounted(() => {
-        fetchAdminInfo();
+        // check if have sessionStorage 
+        const storedAdminfo = sessionStorage.getItem('adminInformation')
+        if (storedAdminfo) {
+          const adminData = JSON.parse(storedAdminfo);
+          idAdmin.value = adminData.id;  // Make sure you're only storing the ID here
+          fetchAdminInfo()
+          setInterval(fetchingImage, 1000);
+        } else {
+          console.error("No admin information found in sessionStorage");
+        }
       });
   
       return {
@@ -294,6 +415,12 @@
         UpdateAdmin,
         updatePassword,
         adminPassword,
+        idAdmin,
+        selectedImage,
+        previewImage,
+        uploadImage,
+        previewAdminImage,
+        fetchingImage,
       };
     },
   };
