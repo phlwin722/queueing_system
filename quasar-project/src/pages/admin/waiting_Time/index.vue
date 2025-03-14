@@ -1,49 +1,59 @@
 <template>
   <div class="q-pa-md example-row-equal-width">
-    <div class="row">
-      <q-form class="q-gutter-lg form-container" @submit.prevent="process">
-        <div class="col">
-        <div>
-          <q-input
-            v-model="formData.Waiting_time"
-            type="number"
-            filled
-            label="Time"
-            style="max-width: 200px"
-            :error="formError.hasOwnProperty('Waiting_time')"
-            :error-message="formError.Waiting_time"
-            :min="1"
-            :max="60"
-          />
+    <q-container class="flex flex-center">
+      <q-card class="q-pa-md" style="max-width: 500px; width: 100%;">
+        <q-form class="q-gutter-lg form-container" @submit.prevent="process">
+          <div class="row q-col-gutter-sm">
+            <!-- Time Input -->
+            <div class="col-6">
+              <q-input
+                v-model="formData.Waiting_time"
+                type="number"
+                filled
+                label="Time"
+                style="min-width: 200px"
+                :error="formError.hasOwnProperty('Waiting_time')"
+                :error-message="formError.Waiting_time"
+                :min="1"
+                :max="60"
+              />
+            </div>
+
+            <!-- Time Select -->
+            <div class="col-6">
+              <q-select
+                filled
+                v-model="formData.Prepared"
+                :options="listChoices"
+                label="Time"
+                :error="formError.hasOwnProperty('Prepared')"
+                :error-message="formError.Prepared"
+                style="max-width: 200px"
+              />
+            </div>
+          </div>
+        </q-form>
+
+        <div class="row q-mt-md justify-end">
+          <div class="col-auto">
+            <q-btn color="positive" icon="save" label="Save" @click="process" style="width: 120px;" />
+          </div>
         </div>
-      </div>
-      <div class="col">
-        <div>
-          <q-select
-            filled
-            v-model="formData.Prepared"
-            :options="listChoices"
-            label="Time"
-            :error="formError.hasOwnProperty('Prepared')"
-            :error-message="formError.Prepared"
-          />
-        </div>
-      </div>
-      </q-form>
-    </div>
-    <div class="row" style="margin-top: 10px; justify-content: end;">
-      <div class="col">
-        <q-btn color="primary" icon="save" label="Save" @click="process" />
-      </div>
-    </div>
-    <q-inner-loading
-      :showing="isLoading"
-      label="Please wait..."
-      label-class="text-teal"
-      label-style="font-size: 1.1em"
-    />
+
+
+
+        <q-inner-loading
+          :showing="isLoading"
+          label="Please wait..."
+          label-class="text-teal"
+          label-style="font-size: 1.1em"
+        />
+      </q-card>
+    </q-container>
   </div>
 </template>
+
+
 
 <script>
 import { ref, onMounted } from 'vue';

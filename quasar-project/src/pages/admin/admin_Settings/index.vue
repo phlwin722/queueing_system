@@ -2,11 +2,15 @@
   <q-page class="q-pa-lg">
   <div class="row q-col-gutter-xs">
       <!-- Profile Section -->
-      <q-card class="col-12 col-sm-4 col-md-3 q-pa-md">
+      <q-card class="col-12 col-sm-4 col-md-3 q-pa-md flex flex-center">
       <div class="column items-center q-ma-lg">
-              <q-avatar size="120px" color="grey-3" text-color="black">
-                  <q-icon name="person" size="64px" />
-              </q-avatar>
+              <q-avatar size="150px">
+                <q-img 
+                  src="~assets/vrtlogoblack.webp" 
+                  class="full-width full-height"
+        style="border-radius: 50%; border: 2px solid #1c5d99;" 
+        fit="cover" />
+              </q-avatar> 
       <div class="text-center q-mt-md">
           <div class="text-h6">{{ adminInfo.Firstname + " " + adminInfo.Lastname }}</div>
       </div>
@@ -50,7 +54,7 @@
                               :error="formError.hasOwnProperty('Firstname')"
                               :error-message="formError.Firstname"
                               class="col-12 col-md-4"/>
-                         
+                        
                             <q-input 
                               filled 
                               v-model="adminInfo.Lastname"
@@ -62,7 +66,9 @@
                               class="col-12 col-md-4"/>
                       </div>
 
-                      <div class="q-mt-xl text-right">
+                      <q-separator class="q-my-md" />
+
+                      <div class="q-mt-sm text-right">
                           <q-btn 
                             label="Save Changes" 
                             color="positive" 
@@ -82,8 +88,8 @@
               <q-img
                   :src="previewImage || 'no-image.png'"
                   spinner-color="primary"
-                  class="shadow-2 rounded-borders"
-                  style="width: 100%; max-width: 150px; height: auto; object-fit: cover;"
+                  class="shadow-2 rounded-borders q-ml-lg"
+                  style="width: 100%; max-width: 150px; height: 150px; object-fit: cover;"
               />
               </div>
 
@@ -98,7 +104,9 @@
                   <strong>NOTE!</strong> Attached image thumbnail must
               </q-banner>
 
-              <div class="q-mt-xl text-right">
+              <q-separator class="q-my-md" />
+
+              <div class="q-mt-sm text-right">
                     <q-btn 
                       label="Save Changes" 
                       type="submit" 
@@ -134,7 +142,7 @@
                       class="col-12" />
               </div>
 
-              <div class="q-mt-xl text-right">
+              <div class="q-mt-sm text-right">
                   <q-btn 
                       label="Save Changes"  
                       color="positive"

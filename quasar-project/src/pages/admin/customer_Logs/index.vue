@@ -1,44 +1,47 @@
 <template>
-  <div class="row q-gutter-x-md q-mx-lg q-mt-lg">
-  
-  <!-- Date Picker Input -->
-  <q-input 
-    filled
-    class="bg-accent text-black q-pl-sm" 
-    v-model="selectedDate" 
-    type="date"
-    label="Select Date"
-    @update:model-value="getTableData"
-  />
-  </div>
-  
-     <!-- Search Input -->
-     <q-input class="bg-accent text-black q-mx-lg q-mt-lg q-pl-sm" 
-      v-model="text" 
+  <div class="row q-mx-lg q-mt-md items-center">
+    
+    <!-- Search Input -->
+    <q-input
+      filled
+      class="bg-accent text-black col q-mr-sm"
+      v-model="text"
       label="Search"
       :dense="dense"
-      />
+      dense
+      outlined
+    />
     
-  
+
+        <!-- Date Picker Input -->
+        <q-input
+      filled
+      class="bg-accent text-black"
+      v-model="selectedDate"
+      type="date"
+      label="Select Date"
+      @update:model-value="getTableData"
       
-      <q-page>
-        <div class="q-pa-lg">
-          <q-table
-          title="Customer Logs"
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="index"
-          >
-    
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props">
-            </q-td>
-          </template>
-          </q-table>
-        </div>
-  
-      </q-page>
-    </template>
+      outlined
+    />
+  </div>
+
+  <q-page>
+    <div class="q-px-lg q-mt-md">
+      <q-table
+        title="Customer Logs"
+        :rows="filteredRows"
+        :columns="columns"
+        row-key="index"
+      >
+        <template v-slot:body-cell-actions="props">
+          <q-td :props="props"></q-td>
+        </template>
+      </q-table>
+    </div>
+  </q-page>
+</template>
+
   
     
     <script>
@@ -117,7 +120,7 @@
   
         const getTableData = async () => {
           try{
-           
+          
             const payload = selectedDate.value ? { date: selectedDate.value } : {}
             const { data } = await $axios.post('/admin/queue-logs',payload)
             rows.value.splice(
