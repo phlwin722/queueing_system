@@ -5,6 +5,19 @@
       class="bg-primary"
     ></div>
 
+    <div class="q-pa-md">
+      <q-btn
+        flat
+        round
+        dense
+        class="q-mr-sm"
+        color="white"
+        style="min-width: 32px; width: 32px; height: 32px; position: absolute"
+        @click="$q.fullscreen.toggle()"
+        :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
+      />
+    </div>
+
     <!-- Main Row Container -->
     <div
       class="column items-center justify-center"
@@ -78,6 +91,8 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import QrcodeVue from "qrcode.vue";
 import { $axios } from "boot/app";
+import { useQuasar } from "quasar";
+import { watch } from "vue";
 
 export default {
   components: { QrcodeVue },
@@ -110,6 +125,7 @@ export default {
         description: "It will notify you when its your turn",
       },
     ]);
+    const $q = useQuasar();
 
     // Fetch a new QR code link from the backend
     const fetchQrCode = async () => {
@@ -128,6 +144,13 @@ export default {
         console.error("Error fetching QR code:", error);
       }
     };
+
+    watch(
+      () => $q.fullscreen.isActive,
+      (val) => {
+        console.log(val ? "In fullscreen now" : "Exited fullscreen");
+      }
+    );
 
     onMounted(() => {
       fetchQrCode(); // Fetch QR code immediately on mount
