@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Validator;
 
 
 class AdminController extends Controller
@@ -58,12 +58,6 @@ class AdminController extends Controller
       public function createAdmin(Request $request)
       {
         try {
-            /*  // Validate request
-            $request->validate([
-                'Username' => 'required|unique:admins,Username',
-                'Password' => 'required|min:6'
-            ]);
-     */
           // Insert admin into database
             $admin = Admin::create([
                 'Firstname' => $request->Firstname,
@@ -85,25 +79,81 @@ class AdminController extends Controller
         }
       }
 
-      public function index (Request $request) {
-        try {
-            // Fetch all waiting times from the database
-            $adminInfo = DB::table('admins')->get();
-
-            return response()->json([
-                'dataValue' => $adminInfo
-            ]);
-
-        } catch (\Exception $e) {
-            $message =$e->getMessage();
-            return response()->json([
-                "message" => env ('APP_DEBUG') ? $message : $message
-            ]);
+        public function index(Request $request) {
+            try {
+                // Get the ID from the request
+                $id = $request->input('id');
+        
+                // Validate the ID (Ensure it's required and exists in the admins table)
+                $validator = Validator::make(['id' => $id], [
+                    'id' => 'required|exists:admins,id'  // Ensure it's an integer and exists in the database
+                ]);
+        
+                // Check if validation fails
+                if ($validator->fails()) {
+                    return response()->json([
+                        'message' => 'Validation failed',
+                        'errors' => $validator->errors()
+                    ], 422);  // Return 422 for validation errors
+                }
+        
+                // Fetch the admin data based on the ID
+                $adminInfo = DB::table('admins')
+                            ->where('id', $id)
+                            ->first();
+        
+                // Return the admin data if found
+                return response()->json([
+                    'dataValue' => [
+                        'id' => $adminInfo->id,
+                        'Firstname' => $adminInfo->Firstname,
+                        'Lastname' => $adminInfo->Lastname,
+                        'Username' => $adminInfo->Username,
+                        'Image' => $adminInfo->Image ? asset($adminInfo->Image) 
+                                                     : asset('assets/no-image-user.png')
+                    ]
+                ]);
+        
+            } catch (\Exception $e) {
+                // Return any exception that occurs during processing
+                $message = $e->getMessage();
+                return response()->json([
+                    "message" => env('APP_DEBUG') ? $message : 'An error occurred'
+                ], 500);  // Return 500 for server errors
+            }
         }
-      }
-
-      public function updateqInformation (AdminRequest $request) {
+    
+      public function updateqInformation (Request $request) {
         try {
+
+            // Validate Firstname and Lastname fields
+            $validator = Validator::make($request->all(), [
+                'Firstname' => [
+                    'required',
+                    'string', 
+                    'max:255'
+                ],
+                "Username" => [
+                    'required',
+                    'regex:/^[a-zA-Z\s]+$/'
+                ],
+
+                'Lastname' => [
+                    'required',
+                    'string', 
+                    'max:255'
+                ],
+            ]);
+
+            // Check if validation fails
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // update information
             DB:: table('admins')
                 ->where('id',$request->id)
                 ->update([
@@ -126,23 +176,106 @@ class AdminController extends Controller
       }
 
       public function updatePassword (AdminpasswordRequest $request) {
-           try {
-                DB::table('admins')
-                    ->where('id', $request->id)
-                    ->update([
-                        "Password" => Hash::make($request->newPassword)
-                    ]);
-                    
-                    $message = 'Admin password updated successfully';
-
+        try {
+            // Ensure the admin exists before updating
+            $admin = DB::table('admins')->where('id', $request->id)->first();
+            
+            if (!$admin) {
                 return response()->json([
-                    "message"=> $message
+                    "message" => "Admin with the given ID not found."
+                ], 404);
+            }
+    
+            // Proceed to update the password
+            $affectedRows = DB::table('admins')
+                ->where('id', $request->id)
+                ->update([
+                    "Password" => Hash::make($request->newPassword),
+                    "updated_at" => now()
                 ]);
-           } catch (\Exception $e) {
-            $message =$e->getMessage();
+            
+            // Check if any rows were affected
+            if ($affectedRows === 0) {
                 return response()->json([
-                    "message" => env ('APP_DEBUG') ? $message : $message
-                ],500);
-           }
-      }
+                    "message" => "No rows were updated, possibly incorrect ID."
+                ], 400);
+            }
+    
+            return response()->json([
+                "message" => "Admin password updated successfully"
+            ]);
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $message : 'An error occurred while updating the password.'
+            ], 500);
+        }
+    }
+    
+    public function uploadImage(Request $request)
+    {
+        try {
+            // Validate input
+            $request->validate([
+                'id' => 'required|exists:admins,id',
+                'Image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
+    
+            // Get the admin ID
+            $adminId = $request->id;
+    
+            // Retrieve admin record
+            $admin = DB::table('admins')->where('id', $adminId)->first();
+            
+            if (!$admin) {
+                return response()->json(['message' => 'Admin not found'], 404);
+            }
+
+            // Delete the old image if it exists
+            if ($admin->Image) {
+                $oldImagePath = public_path($admin->Image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath); // Delete the file
+                }
+            }
+    
+            // Process and save the uploaded file
+            if ($request->hasFile('Image')) {
+                $file = $request->file('Image');
+                $filename = time() . '.' . $file->getClientOriginalExtension();
+                
+                // Define the folder path (inside public directory)
+                $folderPath = public_path('assets/admin/' . $adminId);  
+    
+                // Ensure the folder exists
+                if (!file_exists($folderPath)) {
+                    mkdir($folderPath, 0755, true); // Create folder with proper permissions
+                }
+    
+                // Move file to the folder
+                $file->move($folderPath, $filename);
+    
+                // Correct URL for public access
+                $filePath = "assets/admin/{$adminId}/{$filename}";
+    
+                // **FIXED:** Update database using Query Builder (no `save()` method)
+                DB::table('admins')->where('id', $adminId)->update([
+                    'Image' => $filePath
+                ]);
+    
+                return response()->json([
+                    'message' => 'Image uploaded successfully!',
+                    'Image' => asset($filePath) // Convert relative path to full URL
+                ]);
+            }
+    
+            return response()->json(['message' => 'No image uploaded'], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Upload failed!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
 }
