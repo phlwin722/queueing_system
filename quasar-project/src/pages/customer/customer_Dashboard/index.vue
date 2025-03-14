@@ -1,49 +1,49 @@
 <template>
-  <q-layout view="lHh lpr lFf" class="shadow-2 rounded-borders absolute-center bg-grey-2" style="padding-top: 120px;">
-      <div
-        class="row wrap justify-center q-gutter-md q-pt-md"
-        style="max-width: 600px; margin: auto;"
-
+  <q-layout
+    view="lHh lpr lFf"
+    class="shadow-2 rounded-borders absolute-center bg-grey-2"
+  >
+    <div
+      class="row wrap col-md-6 justify-center q-gutter-md q-pt-md"
+      style="width: 100%; max-width: 600px; margin: auto"
+    >
+      <!-- User Queue Status -->
+      <q-card
+        class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md"
       >
-        <!-- User Queue Status -->
-        <q-card
-          class="col-12 full-width shadow-3 bg-white rounded-borders q-pa-md"
-        >
-          <q-card-section class="text-center">
-            <div class="column items-center">
-              <div class="text-bold text-grey-7 text-caption">
-                Your Queue Number
-              </div>
-              <div class="text-h2 text-deep-orange-10 text-bold">
-                {{ customerQueueNumber || 'N/A' }}
-              </div>
+        <q-card-section class="text-center">
+          <div class="column items-center">
+            <div class="text-bold text-grey-7 text-caption">
+              Your Queue Number
             </div>
-          </q-card-section>
-          <q-separator />
-          <q-card-section class="row justify-around q-pa-md">
-            <div class="column items-center">
-              <div class="text-bold text-grey-7 text-caption">
-                Currently Serving
-              </div>
-              <div class="text-h5 text-blue-10 text-bold">
-                {{ currentQueue || 'None' }}
-              </div>
+            <div class="text-h2 text-deep-orange-10 text-bold">
+              {{ customerQueueNumber || "N/A" }}
             </div>
-            <div class="column items-center">
-              <div class="text-bold text-grey-7 text-caption">
-                Your Position
-              </div>
-              <div class="text-h5 text-indigo-10 text-bold">
-                {{ queuePosition || 'N/A' }}
-              </div>
+          </div>
+        </q-card-section>
+        <q-separator />
+        <q-card-section class="row justify-around q-pa-md">
+          <div class="column items-center">
+            <div class="text-bold text-grey-7 text-caption">
+              Currently Serving
             </div>
-          </q-card-section>
+            <div class="text-h5 text-blue-10 text-bold">
+              {{ currentQueue || "None" }}
+            </div>
+          </div>
+          <div class="column items-center">
+            <div class="text-bold text-grey-7 text-caption">Your Position</div>
+            <div class="text-h5 text-indigo-10 text-bold">
+              {{ queuePosition || "N/A" }}
+            </div>
+          </div>
+        </q-card-section>
 
-          <q-separator />
+        <q-separator />
 
-          <q-card-section class="text-center q-mt-md">
-            <q-card-actions v-if="!isBeingServed && !isWaiting" align="center">
-              <q-btn
+        <q-card-section class="text-center q-mt-md">
+          <q-card-actions v-if="!isBeingServed && !isWaiting" align="center">
+            <q-btn
               color="red-10"
               label="Cancel Queue"
               size="lg"
@@ -51,164 +51,196 @@
               class="rounded-borders full-width text-bold"
               @click="leaveQueue"
             />
-            </q-card-actions>
-            
-          </q-card-section>
-        </q-card>
+          </q-card-actions>
+        </q-card-section>
+      </q-card>
 
-        <!-- Queue List -->
-        <q-card
-          class="col-12 full-width shadow-3 bg-white rounded-borders q-pa-md"
-           style="margin-bottom: 20px;"
+      <!-- Queue List -->
+      <q-card
+        class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-pa-md"
+        style="margin-bottom: 20px"
+      >
+        <!-- Show "You are being served" if the customer is being served -->
+        <div
+          v-if="isBeingServed"
+          class="text-center text-bold text-positive q-mb-md"
         >
-          <!-- Show "You are being served" if the customer is being served -->
-          <div v-if="isBeingServed" class="text-center text-bold text-positive q-mb-md">
-            Your queue number is now being served ! <br>
-            Please proceed to your designated window. <br>
-            If not your queueing number will be cancelled. Thank you!
-          </div>
+          Your queue number is now being served ! <br />
+          Please proceed to your designated window. <br />
+          If not your queueing number will be cancelled. Thank you!
+        </div>
 
-          <!-- Show warning when customer position is <= 5 -->
-          <div v-if="queuePosition && queuePosition <= 5 && !isBeingServed" class="text-center text-warning q-mb-md">
-            <q-icon name="warning" size="sm" />
-            You are near from being served. Please standby!
-          </div>
+        <!-- Show warning when customer position is <= 5 -->
+        <div
+          v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
+          class="text-center text-warning q-mb-md"
+        >
+          <q-icon name="warning" size="sm" />
+          You are near from being served. Please standby!
+        </div>
 
-          <!-- Show countdown if admin pressed "Wait"
+        <!-- Show countdown if admin pressed "Wait"
           <div v-if="isWaiting && queuePosition === 1 && !isBeingServed" class="text-center text-negative q-mb-md">
             <q-icon name="hourglass_empty" size="sm" />
             The admin is waiting. Please proceed. If not, your queueing number will be cancelled in 
             <strong>{{ countdown }}</strong> seconds.
           </div> -->
-          <q-separator />
-          <q-card-section class="text-center">
-            <p class="text-bold text-primary text-h6">Queue List</p>
-          </q-card-section>
-          
-          <q-card-section
-            class="q-pa-md"
-            style="max-height: 300px; overflow-y: auto"
+        <q-separator />
+        <q-card-section class="text-center">
+          <p class="text-bold text-primary text-h6">Queue List</p>
+        </q-card-section>
+
+        <q-card-section
+          class="q-pa-md"
+          style="max-height: 300px; overflow-y: auto"
+        >
+          <q-list bordered separator>
+            <q-item v-for="(customer, index) in queueList" :key="index">
+              <q-item-section>
+                <q-item-label class="text-bold text-grey-8"
+                  >Queue: {{ customer.queue_number }}</q-item-label
+                >
+              </q-item-section>
+            </q-item>
+          </q-list>
+          <div
+            v-if="queueList.length === 0"
+            class="text-grey text-center q-mt-md"
           >
-            <q-list bordered separator>
-              <q-item v-for="(customer, index) in queueList" :key="index">
-                <q-item-section>
-                  <q-item-label class="text-bold text-grey-8"
-                    >Queue: {{ customer.queue_number }}</q-item-label
-                  >
-                </q-item-section>
-              </q-item>
-            </q-list>
-            <div
-              v-if="queueList.length === 0"
-              class="text-grey text-center q-mt-md"
-            >
-              No more customers
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+            No more customers
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
   </q-layout>
 </template>
 
-
 <script>
-  import { ref, onMounted, onUnmounted, computed } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
-  import { $axios, $notify } from 'boot/app'
-  
-  export default {
-    setup() {
-      
-      const router = useRouter()
-      const route = useRoute()
-      const tokenurl = ref(route.params.token)
-      const customerQueueNumber = ref(localStorage.getItem('queue_number'+tokenurl.value) || null)
-      const customerId = ref(localStorage.getItem('customer_id'+tokenurl.value) || null)
-      const token = ref(localStorage.getItem('customer_token'+tokenurl.value) || null)
-      
-      const queueList = ref([])
-      const currentQueue = ref(null)
-      const queuePosition = ref(null)
-      const isBeingServed = ref(false)
-      const isWaiting = ref(false)
-      const hasNotified = ref(false) // Prevents repeat notifications
-      const countdown = ref() // 60 seconds countdown
-      let refreshInterval = null
-      let countdownInterval = null
-    
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { $axios, $notify } from "boot/app";
 
-      const emailData = ref({ // Email data list
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
-  
-      const currentPage = ref(1)
-      const itemsPerPage = 5 // Number of items per page
-  
-      const totalPages = computed(() => Math.ceil(queueList.value.length / itemsPerPage))
-  
-      // Fetch queue list and current serving number
-      const fetchQueueData = async () => {
-        try {
-          const response = await $axios.post('/customer-list');
-          queueList.value = response.data.queue.filter(q => !['finished', 'cancelled','serving'].includes(q.status));
+export default {
+  setup() {
+    const router = useRouter();
+    const route = useRoute();
+    const tokenurl = ref(route.params.token);
+    const customerQueueNumber = ref(
+      localStorage.getItem("queue_number" + tokenurl.value) || null
+    );
+    const customerId = ref(
+      localStorage.getItem("customer_id" + tokenurl.value) || null
+    );
+    const token = ref(
+      localStorage.getItem("customer_token" + tokenurl.value) || null
+    );
 
-          currentQueue.value = response.data.current_serving;
-        
+    const queueList = ref([]);
+    const currentQueue = ref(null);
+    const queuePosition = ref(null);
+    const isBeingServed = ref(false);
+    const isWaiting = ref(false);
+    const hasNotified = ref(false); // Prevents repeat notifications
+    const countdown = ref(); // 60 seconds countdown
+    let refreshInterval = null;
+    let countdownInterval = null;
 
-          // Check if the customer is currently being served
-          isBeingServed.value = currentQueue.value == customerQueueNumber.value;
-          // Determine customer position in queue
-          queuePosition.value = queueList.value.findIndex(q => q.queue_number == customerQueueNumber.value) + 1
+    const emailData = ref({
+      // Email data list
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    });
 
-          // If admin pressed "Wait" for the first in queue, start countdown
-          if (response.data.waiting_customer === customerQueueNumber.value && queuePosition.value === 1) {
-            isWaiting.value = true;
-            startCountdown();
-          } else {
-            isWaiting.value = false;
-            clearInterval(countdownInterval); // Stop countdown if not waiting
-          }
+    const currentPage = ref(1);
+    const itemsPerPage = 5; // Number of items per page
 
-          if (isBeingServed.value) {
-            queueList.value = queueList.value.filter(q => q.queue_number !== customerQueueNumber.value);
-          }
+    const totalPages = computed(() =>
+      Math.ceil(queueList.value.length / itemsPerPage)
+    );
 
-          // Notify and redirect when the customer is finished
-          const customer = response.data.queue.find(q => q.id == customerId.value);
-          if (customer.status === 'finished' && !hasNotified.value) {
-            hasNotified.value = true; // Mark as notified
-            $notify('positive', 'check', 'Your turn is finished. Thank you!');
-            setTimeout(() => router.push('/customer-register/'+token.value), 2000); // Delay redirect for a smooth transition
-          }
-          if (customer && customer.status === 'cancelled') {
-            $notify('negative', 'error', 'The Admin cancelled your queueing number.');
-            setTimeout(() => router.push('/customer-register/'+token.value), 2000);
-          }
-          checkingQueueNumber()  // Call the function to check queue number after updating data
-        } catch (error) {
-          console.error(error);
+    // Fetch queue list and current serving number
+    const fetchQueueData = async () => {
+      try {
+        const response = await $axios.post("/customer-list");
+        queueList.value = response.data.queue.filter(
+          (q) => !["finished", "cancelled", "serving"].includes(q.status)
+        );
+
+        currentQueue.value = response.data.current_serving;
+
+        // Check if the customer is currently being served
+        isBeingServed.value = currentQueue.value == customerQueueNumber.value;
+        // Determine customer position in queue
+        queuePosition.value =
+          queueList.value.findIndex(
+            (q) => q.queue_number == customerQueueNumber.value
+          ) + 1;
+
+        // If admin pressed "Wait" for the first in queue, start countdown
+        if (
+          response.data.waiting_customer === customerQueueNumber.value &&
+          queuePosition.value === 1
+        ) {
+          isWaiting.value = true;
+          startCountdown();
+        } else {
+          isWaiting.value = false;
+          clearInterval(countdownInterval); // Stop countdown if not waiting
         }
-}
-  
-      // Start countdown timer
-      // const startCountdown = () => {
-      //   if (!countdownInterval) {
-      //     countdown.value = 60
-      //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed.')
-  
-      //     countdownInterval = setInterval(() => {
-      //       if (countdown.value > 0) {
-      //         countdown.value--
-      //       } else {
-      //         clearInterval(countdownInterval)
-      //         isWaiting.value = false
-      //       }
-      //     }, 1000)
-      //   }
-      // }
+
+        if (isBeingServed.value) {
+          queueList.value = queueList.value.filter(
+            (q) => q.queue_number !== customerQueueNumber.value
+          );
+        }
+
+        // Notify and redirect when the customer is finished
+        const customer = response.data.queue.find(
+          (q) => q.id == customerId.value
+        );
+        if (customer.status === "finished" && !hasNotified.value) {
+          hasNotified.value = true; // Mark as notified
+          $notify("positive", "check", "Your turn is finished. Thank you!");
+          setTimeout(
+            () => router.push("/customer-register/" + token.value),
+            2000
+          ); // Delay redirect for a smooth transition
+        }
+        if (customer && customer.status === "cancelled") {
+          $notify(
+            "negative",
+            "error",
+            "The Admin cancelled your queueing number."
+          );
+          setTimeout(
+            () => router.push("/customer-register/" + token.value),
+            2000
+          );
+        }
+        checkingQueueNumber(); // Call the function to check queue number after updating data
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    // Start countdown timer
+    // const startCountdown = () => {
+    //   if (!countdownInterval) {
+    //     countdown.value = 60
+    //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed.')
+
+    //     countdownInterval = setInterval(() => {
+    //       if (countdown.value > 0) {
+    //         countdown.value--
+    //       } else {
+    //         clearInterval(countdownInterval)
+    //         isWaiting.value = false
+    //       }
+    //     }, 1000)
+    //   }
+    // }
     //resets countdown
     // const resetCountdown = () => {
     //   const newStartTime = Math.floor(Date.now() / 1000);
@@ -216,100 +248,92 @@
     //   countdown.value = 60; // Reset to 60 seconds
     // };
 
-
-  
-      // Leave the queue
-      const leaveQueue = async () => {
-        try {
-          console.log(customerId.value)
-          await $axios.post('/customer-leave', { id: customerId.value })
-          $notify('positive', 'check', 'You have left the queue.')
-          console.log('cancelled')
-          router.push('/customer-register/'+token.value)
-        } catch (error) {
-          console.error(error)
-          console.log('cancelled')
-          $notify('negative', 'error', 'Failed to leave queue.')
-        }
+    // Leave the queue
+    const leaveQueue = async () => {
+      try {
+        console.log(customerId.value);
+        await $axios.post("/customer-leave", { id: customerId.value });
+        $notify("positive", "check", "You have left the queue.");
+        console.log("cancelled");
+        router.push("/customer-register/" + token.value);
+      } catch (error) {
+        console.error(error);
+        console.log("cancelled");
+        $notify("negative", "error", "Failed to leave queue.");
       }
-  
+    };
 
-      
+    // Function to check if the user's queue number is 5, then send an email notification
+    const checkingQueueNumber = async () => {
+      try {
+        const response = await $axios.post("/customer-list");
+        queueList.value = response.data.queue.filter(
+          (q) => !["finished", "cancelled", "serving"].includes(q.status)
+        );
 
-     // Function to check if the user's queue number is 5, then send an email notification
-     const checkingQueueNumber = async () => {
-        try {
-          const response = await $axios.post('/customer-list');
-          queueList.value = response.data.queue.filter(q => !['finished', 'cancelled','serving'].includes(q.status));
-
-          
-          if (queuePosition.value === 1) {
-            if(queueList.value.length > 0){
-              console.log(queueList.value[0].id)
-              const { data } = await $axios.post('/send-fetchInfo', {
-                  id: queueList.value[0].id
-              });
-              console.log(data.Information.email_status)
-              console.log(data.Information.name)
-              console.log(data.Information.token)
-             if (data.Information.email_status === 'pending'){
-              
+        if (queuePosition.value === 1) {
+          if (queueList.value.length > 0) {
+            console.log(queueList.value[0].id);
+            const { data } = await $axios.post("/send-fetchInfo", {
+              id: queueList.value[0].id,
+            });
+            console.log(data.Information.email_status);
+            console.log(data.Information.name);
+            console.log(data.Information.token);
+            if (data.Information.email_status === "pending") {
               // Assign email data with the recipient's details and email content
               emailData.value = {
-                  id: data.Information.id, // Recipient's id
-                  token: data.Information.token, // Recipient's token
-                  name: data.Information.name,      // Recipient's name
-                  email: data.Information.email, // Recipient's email address
-                  subject: "Queue Alert",      // Email subject
-                  message: "You are near from being served. Please standby!"     // Email message body
+                id: data.Information.id, // Recipient's id
+                token: data.Information.token, // Recipient's token
+                name: data.Information.name, // Recipient's name
+                email: data.Information.email, // Recipient's email address
+                subject: "Queue Alert", // Email subject
+                message: "You are near from being served. Please standby!", // Email message body
               };
 
               // Send a POST request to the '/send-email' endpoint with emailData as payload
-              const { emailContent } = await $axios.post('/send-email', emailData.value);
+              const { emailContent } = await $axios.post(
+                "/send-email",
+                emailData.value
+              );
 
               // Show an alert to confirm that the email was sent successfully
-              console.log('Message success', emailContent)
-             }
+              console.log("Message success", emailContent);
             }
-             
           }
-        } catch (error) {
-            // Log the error in the console if the request fails
-            console.log(error);
         }
+      } catch (error) {
+        // Log the error in the console if the request fails
+        console.log(error);
+      }
     };
 
-  
-      onMounted(() => {
-        fetchQueueData()
-        refreshInterval = setInterval(fetchQueueData, 5000) // Auto-refresh every 5 seconds
-        
-      })
+    onMounted(() => {
+      fetchQueueData();
+      refreshInterval = setInterval(fetchQueueData, 5000); // Auto-refresh every 5 seconds
+    });
 
-  
-      onUnmounted(() => {
-        clearInterval(refreshInterval) // Stop auto-refresh
-        clearInterval(countdownInterval) // Stop countdown
-      })
-  
-      return { 
-        customerQueueNumber, 
-        queueList, 
-        currentQueue, 
-        queuePosition, 
-        isBeingServed, 
-        isWaiting, 
-        countdown, 
-        leaveQueue,
-        checkingQueueNumber,
-        emailData,
-        customerId,
-  
-        
-      }
-    }
-  }
-  </script>
+    onUnmounted(() => {
+      clearInterval(refreshInterval); // Stop auto-refresh
+      clearInterval(countdownInterval); // Stop countdown
+    });
+
+    return {
+      customerQueueNumber,
+      queueList,
+      currentQueue,
+      queuePosition,
+      isBeingServed,
+      isWaiting,
+      countdown,
+      leaveQueue,
+      checkingQueueNumber,
+      emailData,
+      customerId,
+    };
+  },
+};
+</script>
 
 <style scoped>
 .rounded-borders {
