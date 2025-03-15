@@ -22,7 +22,22 @@ class TypeController extends Controller
                 : "Something went wrong in index Type!"
             ]);
         }
-    } 
+    }
+    
+    public function viewTypesDropdown(Request $request){
+        try {
+            $rows = \DB::table('types')->select('id', 'name')->get(); // Only fetch necessary fields
+            return response()->json([
+                'rows' => $rows
+            ]);
+            
+        } catch(Exception $e) {
+            $message = $e->getMessage();
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $message : "Something went wrong!"
+            ]);
+        }
+    }
 
     public function create(TypeRequest $request) 
     {

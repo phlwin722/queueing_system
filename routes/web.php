@@ -10,6 +10,13 @@ use App\Http\Controllers\TellerController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\WindowController;
 
+Route::options('{any}', function (Request $request) {
+    return response('', 204)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+})->where('any', '.*');
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,12 +57,14 @@ Route::post('/tellers/index', [TellerController::class, 'index']);
 Route::post('/tellers/create', [TellerController::class, 'create']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
+Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
 Route::post('/types/create', [TypeController::class, 'create']);
 Route::post('/types/update', [TypeController::class, 'update']);
 Route::post('/types/delete', [TypeController::class, 'delete']);
+Route::post('/types/dropdown', [TypeController::class, 'viewTypesDropdown']);
 
 
 // Window Routes
@@ -63,7 +72,7 @@ Route::post('/windows/index', [WindowController::class, 'index']);
 Route::post('/windows/create', [WindowController::class, 'create']);
 Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
-Route::post('/windows/form', [WindowController::class, 'form']);
+Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
 // adminside
 
 Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
