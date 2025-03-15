@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -11,12 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tellers', function (Blueprint $table) {
+        Schema::create('types', function (Blueprint $table) {
             $table->id();
-            $table->string('teller_firstname');
-            $table->string('teller_lastname');
-            $table->string('teller_username')->unique();
-            $table->string('teller_password');
+            $table->string('name')
+            ->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tellers');
+        Schema::dropIfExists('types');
     }
 };

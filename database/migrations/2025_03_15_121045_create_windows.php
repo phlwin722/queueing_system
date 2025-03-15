@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -11,10 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('types', function (Blueprint $table) {
+        Schema::create('windows', function (Blueprint $table) {
             $table->id();
-            $table->string('name')
-            ->nullable();
+            $table->string('window_name');
+            $table->foreignId('type_id')
+            ->nullable()
+            ->constrained('types'); 
+            $table->foreignId('teller_id')
+            ->nullable()->constrained('tellers');
             $table->timestamps();
         });
     }
@@ -24,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('types');
+        Schema::dropIfExists('windows');
     }
 };

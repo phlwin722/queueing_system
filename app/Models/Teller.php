@@ -12,10 +12,10 @@ class Teller extends Model
         'teller_lastname',
         'teller_username',
         'teller_password',
-        'types_id'
+        'type_id'
     ];
     public function types()
     {
-        return $this->belongsTo(Type::class, 'types_id');
+        return $this->belongsTo(Type::class, 'type_id');
     }
 }
