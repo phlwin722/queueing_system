@@ -101,7 +101,8 @@
           </template>
 
           <q-list>
-            <q-item clickable v-ripple @click="logout">
+            <q-item clickable v-ripple 
+              @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout" color="red" />
               </q-item-section>
@@ -210,7 +211,7 @@ export default defineComponent({
 
     // Logout function
     const logout = () => {
-      sessionStorage.removeItem("authToken"); // Remove auth token
+      sessionStorage.removeItem("authTokenAdmin"); // Remove auth token
       router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation

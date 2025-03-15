@@ -20,34 +20,30 @@ class AdminController extends Controller
             // Find an admin record in the database with the provided username
             $admin = Admin::where('Username', $request->Username)->first();
         
-            if ($admin) {
-                // Check if the admin exists and if the provided password matches the stored hashed password
-                if (!$admin || !Hash::check($request->Password, $admin->Password)) {
-                    // If the username doesn't exist or the password is incorrect, return an error response
+                if ($admin) {
+                    // Check if the admin exists and if the provided password matches the stored hashed password
+                    if (!$admin || !Hash::check($request->Password, $admin->Password)) {
+                        // If the username doesn't exist or the password is incorrect, return an error response
+                        return response()->json([
+                            'error' => 'Invalid credentials'
+                        ], 401);
+                    }
+
+                    // Generate a simple authentication token (or use Laravel Sanctum for better security)
+                    $token = base64_encode(Str::random(40));
+
+                    // If authentication is successful, return a success response
                     return response()->json([
-                        'error' => 'Invalid credentials'
-                    ], 401);
+                        // 'result' => $admin,
+                        'adminInformation' => $admin,
+                        'token' => $token,
+                        'result' => "admin",
+                        'message' => 'Login successful'
+                    ]);
                 }
-
-                // Generate a simple authentication token (or use Laravel Sanctum for better security)
-                $token = base64_encode(Str::random(40));
-
-                // If authentication is successful, return a success response
-                return response()->json([
-                    // 'result' => $admin,
-                    'adminInformation' => $admin,
-                    'token' => $token,
-                    'result' => "admin",
-                    'message' => 'Login successful'
-                ]);
-            }else {
-                return response()->json([
-                    'error' => 'Invalid credentials'
-                ], 401);
-            }
-        } catch (\Exception $e) {
-            $message = $e->getMessage();
-            return response()->json(
+            } catch (\Exception $e) {
+                $message = $e->getMessage();
+                return response()->json(
                 [
                     "message"=> env('APP_DEBUG')? $message : 'Something went wrong'
                 ]);

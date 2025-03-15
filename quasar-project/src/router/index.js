@@ -10,7 +10,7 @@ export default route(function () {
 
   // 🔹 Navigation Guard: Redirect if not logged in
   Router.beforeEach((to, from, next) => {
-    const isAuthenticated = sessionStorage.getItem("authToken"); // Check session
+    const isAuthenticated = sessionStorage.getItem("authTokenAdmin"); // Check session
     if (to.matched.some((record) => record.meta.requiresAuth) && !isAuthenticated) {
       sessionStorage.clear();
       next("/login"); // Redirect to login if not authenticated
