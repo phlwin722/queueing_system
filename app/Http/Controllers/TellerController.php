@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AdminRequest;
 use Illuminate\Http\Request;
 use App\Models\Teller;
 use App\Http\Requests\TellerRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class TellerController extends Controller
 {
@@ -105,7 +108,6 @@ class TellerController extends Controller
     }
 }
 
-
     public function getData($id = null)
     {
         $query = Teller::leftJoin('types', 'Teller.types_id', '=', 'types.id')
@@ -115,4 +117,39 @@ class TellerController extends Controller
             ? $query->where('Teller.id', $id)->first() 
             : $query->get();
     }
-}
+
+    public function validationLoginTeller (AdminRequest $request) {
+        $teller = DB::table('tellers')
+            ->where('teller_username', $request->Username)
+            ->first();
+
+            if ($teller) {
+                 // Check if the admin exists and if the provided password matches the stored hashed password
+                 if (!$teller || !Hash::check($request->Password, $teller->teller_password)) {
+                    // If the username doesn't exist or the password is incorrect, return an error response
+                    return response()->json([
+                        'error' => 'Invalid Credentials'
+                    ],401);
+                 }
+                // Generate a simple authentication token (or use Laravel Sanctum for better security)
+                $token = base64_encode(Str::random(40));
+
+                // If authentication is successful, return a success response
+                return response()->json([
+                    'tellerInformation' => [
+                        'id' => $teller->id,
+                        'tellerFirstname' => $teller->teller_firstname,
+                        'tellerLastname' => $teller->teller_lastname,
+                        'tellerUsername' => $teller->teller_username,
+                        'token' => $token
+                    ],
+                    'message' => "Login sucessfull teller",
+                    'result' => 'teller'
+                ]);
+            }else {
+                return response()->json([
+                    'error' => 'Invalid credentials'
+                ]);
+            }
+    }
+} 

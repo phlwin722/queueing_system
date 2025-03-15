@@ -51,6 +51,7 @@ Route::post('/tellers/index', [TellerController::class, 'index']);
 Route::post('/tellers/create', [TellerController::class, 'create']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
+Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
