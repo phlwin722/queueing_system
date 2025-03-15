@@ -56,23 +56,23 @@
                             :error-message="formError.teller_password"
                         />
                     </div>
-                    <!-- <div class="col-12">
+                    <div class="col-12">
                         <q-select
                             outlined
-                            v-model="formData.types_id" 
+                            v-model="formData.type_id" 
                             label="Personel Type"
                             emit-value
                             map-options
                             dense
                             hide-bottom-space
-                            :error="formError.hasOwnProperty('types_id')"
-                            :error-message="formError.types_id"
+                            :error="formError.hasOwnProperty('type_id')"
+                            :error-message="formError.type_id"
                             :options="categoriesList"
                             option-label="name"
                             option-value="id"
                             
                         />    
-                    </div> -->
+                    </div>
                 </div>
             </q-card-section>
 
@@ -90,7 +90,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref,  toRefs } from "vue";
 import { $axios, $notify } from 'boot/app';
 
 export default defineComponent({
@@ -111,7 +111,7 @@ export default defineComponent({
             teller_lastname: '',
             teller_username: '', 
             teller_password: '', 
-          //  types_id: null 
+            type_id: ''
         });
 
         const formData = ref(initFormData());  
@@ -135,63 +135,85 @@ export default defineComponent({
 
         const showDialog = async (mode, row) => {
             formMode.value = mode === 'new' ? 'New' : 'Edit';
-            console.log("Row Data:", row); // Debugging
+         
 
-            if (mode === 'edit') {
-                formData.value = { 
-                    id: row.id, 
-                    teller_firstname: row.teller_firstname, 
-                    teller_lastname: row.teller_lastname, 
-                    teller_username: row.teller_username ?? "", // Fixed: Correct field
-                    teller_password: '', // Prevent sending existing password
-                    types_id: row.types_id ?? null // Fixed: Correct field name
-                };
-            }
+            if(mode === 'edit'){
+            formData.value = Object.assign({},row)
+          }
             
             isShow.value = true;
             fetchCategories();
         };
 
-        const handleSubmitForm = async () => {
+        // const handleSubmitForm = async () => {
             
-    isLoading.value = true;
-    try {
-        const mode = formMode.value === 'New' ? '/create' : '/update';
-        const payload = { ...formData.value };
+        //     isLoading.value = true;
+        //     try {
+        //         const mode = formMode.value === 'New' ? '/create' : '/update';
+        //         const payload = { ...formData.value };
 
-        // Remove password field if empty (for editing mode)
-        if (!payload.teller_password) delete payload.teller_password;
+        //         // Remove password field if empty (for editing mode)
+        //         if (!payload.teller_password) delete payload.teller_password;
 
-        console.log("Submitting Data:", payload); // 🔍 Debugging
+        //         console.log("Submitting Data:", payload); // 🔍 Debugging
 
-        const { data } = await $axios.post(props.url + mode, payload);
-        console.log("Response Data:", data); // 🔍 Check response
+        //         const { data } = await $axios.post(props.url + mode, payload);
+        //         console.log("Response Data:", data); // 🔍 Check response
 
-        if (formMode.value === 'New') {
-            props.rows.unshift(data.tellers);
-        } else {
-            const index = props.rows.findIndex(x => x.id === formData.value.id);
-            if (index > -1) {
-                props.rows[index] = data.tellers;
+        //         if (formMode.value === 'New') {
+        //             props.rows.unshift(data.tellers);
+        //         } else {
+        //             const index = props.rows.findIndex(x => x.id === formData.value.id);
+        //             if (index > -1) {
+        //                 props.rows[index] = data.tellers;
+        //             }
+        //         }
+                
+        //         $notify('positive', 'done', data.message);
+        //         console.log("done")
+        //         closeDialog();
+        //     } catch (error) {
+        //         if (error.response?.status === 422) {
+        //             formError.value = error.response.data;
+        //             if (!formData.value.type_id) {
+        //     // $notify('negative', 'error', 'Please select a Personel Type before saving.');
+        //         return; // Stop submission
+        //     }
+        //         } else {
+        //             console.error('Error:', error);
+        //         }
+        //     } finally {
+        //         isLoading.value = false;
+        //     }
+        // };
+
+
+    const handleSubmitForm = async () =>{
+        const mode = formMode.value === 'New' ? '/create' : '/update'
+        isLoading.value = true
+        try{
+        const {data} = await $axios.post(props.url +mode, formData.value)
+        const rows = toRefs(props).rows
+        if(mode === '/create'){
+            rows.value.unshift(data.row)
+        }else{
+            const index = rows.value.findIndex(x => x.id === data.row.id)
+            if(index > -1){
+            rows.value[index] = Object.assign({}, data.row)
             }
         }
+        $notify('positive', 'check', data.message)
+        closeDialog()
+        }catch(error){
         
-        $notify('positive', 'done', data.message);
-        closeDialog();
-    } catch (error) {
-        if (error.response?.status === 422) {
-            formError.value = error.response.data;
-            if (!formData.value.types_id) {
-       // $notify('negative', 'error', 'Please select a Personel Type before saving.');
-        return; // Stop submission
-    }
-        } else {
-            console.error('Error:', error);
+            console.log('error',error)
+        
+
+        }finally{
+        isLoading.value = false
         }
-    } finally {
-        isLoading.value = false;
     }
-};
+
         return {
             isShow,
             isLoading,
