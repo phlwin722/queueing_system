@@ -1,7 +1,14 @@
 <template>
-  <q-layout>
+  <q-layout
+    :style="{
+      overflow: $q.fullscreen.isActive ? 'hidden' : 'auto',
+      width: '100%',
+      height: '100vh',
+    }"
+    style="overflow-x: hidden"
+  >
     <div
-      style="height: 30vh; width: 100vw; position: absolute; z-index: -1"
+      style="height: 30vh; width: 100%; position: absolute; z-index: -1"
       class="bg-primary"
     ></div>
 
