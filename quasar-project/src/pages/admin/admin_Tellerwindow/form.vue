@@ -5,13 +5,13 @@
     >
         <q-card>
         <q-card-section class="row items-center q-pb-none">
-            <div class="text-h6">{{formMode}} Window</div>
+            <div class="text-h6 text-primary">{{formMode}} Window</div>
         <q-space />
-            <q-btn icon="close" flat round dense v-close-popup />
+            <q-btn icon="close" flat round dense v-close-popup style="width: 24px; height: 24px;"/>
         </q-card-section>
 
         <q-card-section>
-            <div class="row q-col-gutter-sm">
+            <div class="row q-col-gutter-md">
                 <div class="col-12">
                     <q-input 
                     outlined 
@@ -53,14 +53,16 @@
                 </div>
             </div>
         </q-card-section>
-        <q-card-actions align="right">
-            <q-btn 
-            flat
-            label="Save"
-            color="primary"
-            @click="handleSubmitForm"
-            />
-        </q-card-actions>
+
+        <q-card-actions class="flex justify-center">
+                <q-btn 
+                color="positive" 
+                label="Save" 
+                @click="handleSubmitForm" 
+                class="full-width" 
+                style="max-width: 150px;"
+                />
+            </q-card-actions>
 
         <q-inner-loading
         :showing="isLoading"

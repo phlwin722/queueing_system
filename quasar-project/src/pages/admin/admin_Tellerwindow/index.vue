@@ -1,8 +1,6 @@
 <template>
 
-    <q-input standout="bg-teal text-white" v-model="text" label="Search" :dense="dense" />
-
-
+    <!-- <q-input standout="bg-teal text-white" v-model="text" label="Search" :dense="dense" /> -->
     <q-page>
         <div class="q-pa-md">
         <q-table
@@ -10,49 +8,61 @@
             :rows="filteredRows"
             :columns="columns"
             row-key="id"
+            virtual-scroll
+            v-model:pagination="pagination"
             selection="multiple"
             v-model:selected="selected"
+            :rows-per-page-options="[0]"
+            class="q-mx-sm"
         >
-        <template v-slot:top>
-            <div class="q-gutter-x-sm">
-            <q-btn 
-            color="primary" 
-            label="Add Window"
-            icon="add"
-            @click="handleShowForm('new')" 
-            />
-            <q-btn 
-            color="negative" 
-            label="Delete Record(s)"
-            icon="delete"
-            :disable="selected.length === 0"
-            @click="beforeDelete(true)"
-            />
-            </div>
-        
 
-        </template>
+        <template v-slot:top>
+                <div class="row q-col-gutter-sm">
+                    <div class="col-auto">
+                    <q-btn 
+                        color="primary" 
+                        label="Add Window"  
+                        @click="handleShowForm('new')"
+                        class="custom-btn"
+                    />
+                    </div>
+                    <div class="col-auto">
+                    <q-btn 
+                        color="red" 
+                        label="Delete Record(s)"  
+                        :disable="selected.length === 0"
+                        @click="beforeDelete(true)"
+                        class="custom-btn"
+                    />
+                    </div>
+                </div>
+            </template>
 
         <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-            <div class="q-gutter-x-sm">
+                <div class="q-gutter-x-md"> 
                 <q-btn 
                 square 
-                color="green" 
+                color="positive" 
                 icon="edit"
                 dense
+                class="action-btn"
                 @click="handleShowForm('edit', props.row)" 
                 />
+
                 <q-btn 
                 square 
                 color="negative" 
                 icon="delete"
                 dense
+                class="action-btn"
                 @click="beforeDelete(false,props.row)"
                 />
-            </div>
+                </div>
             </q-td>
         </template>
+
+
         </q-table>
         </div>
     </q-page>
@@ -125,8 +135,8 @@
         {
             name: 'actions',
             label: 'Actions',
-            align: 'left'
-        },
+            align: 'left',
+        }
         ]);
         const filteredRows = computed(() => {
         return rows.value.filter((row) =>
@@ -211,3 +221,16 @@
 
     });
 </script>
+
+<style scoped>
+.custom-btn {
+    min-width: 150px;
+    height: 40px;
+    text-align: center;
+    }
+
+    .action-btn {
+    width: 60px; /* Adjust as needed */
+  margin-left: 5px;
+}
+</style>

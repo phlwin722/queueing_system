@@ -11,31 +11,40 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
+                class="q-mx-sm"
             >
-                <template v-slot:top>
-                    <div class="q-gutter-x-sm">
-                        <q-btn 
-                            color="primary" 
-                            label="Add Type"  
-                            @click="handleShowForm('new')"
-                        />
-                        <q-btn 
-                            color="red" 
-                            label="Delete Type(s)"  
-                            :disable="selected.length === 0"
-                            @click="beforeDelete(true)"
-                        />
+
+            <template v-slot:top>
+                <div class="row q-col-gutter-sm">
+                    <div class="col-auto">
+                    <q-btn 
+                        color="primary" 
+                        label="Add Type"  
+                        @click="handleShowForm('new')"
+                        class="custom-btn"
+                    />
                     </div>
-                </template>
+                    <div class="col-auto">
+                    <q-btn 
+                        color="red" 
+                        label="Delete Type(s)"  
+                        :disable="selected.length === 0"
+                        @click="beforeDelete(true)"
+                        class="custom-btn"
+                    />
+                    </div>
+                </div>
+            </template>
                 
                 <template v-slot:body-cell-actions="props">
                     <q-td :props="props">
                         <div class="q-gutter-x-sm"> 
                             <q-btn
                                 square 
-                                color="primary" 
+                                color="positive" 
                                 icon="edit" 
                                 dense
+                                class="custom-btn2"
                                 @click="handleShowForm('edit', props.row)"
                             />
                             <q-btn
@@ -43,11 +52,14 @@
                                 color="red" 
                                 icon="delete" 
                                 dense
+                                class="custom-btn2"
                                 @click="beforeDelete(false, props.row)"
                             />
                         </div>
                     </q-td>
                 </template>
+
+
             </q-table>
         </div>
         <my-form ref="dialogForm" :url="URL" :rows="rows" />
@@ -132,3 +144,16 @@
     }
     });
     </script>
+
+<style scoped>
+.custom-btn {
+    min-width: 150px;
+    height: 40px;
+    text-align: center;
+    }
+
+    .custom-btn2 {
+  width: 50px; /* Adjust as needed */
+  margin-left: 5px;
+}
+</style>
