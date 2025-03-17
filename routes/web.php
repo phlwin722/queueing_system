@@ -5,11 +5,12 @@ use App\Http\Controllers\QueueController;
 use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MailController;
+use App\Http\Controllers\TellercaterController;
 use App\Http\Controllers\Waiting_timeController;
 use App\Http\Controllers\TellerController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\WindowController;
-
+use App\Models\Teller;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,8 +55,11 @@ Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
 Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
 Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
-Route::post('/teller/queue-list', [QueueController::class, 'getTellerQueueList']);
-
+Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
+Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
+Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
+Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
+Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
