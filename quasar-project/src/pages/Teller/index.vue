@@ -185,30 +185,13 @@
                                   v-if="currentServing"
                                   color="orange"
                                   class="q-ml-sm"
+                                  :label="waiting ? formatTime(a) : 'Wait'"
                                   @click="startWait(currentServing.id, currentServing.queue_number)"
                                   :disable="waiting"
-                                  unelevated
-                                >
-                                  <!-- Progress Background -->
-                                  <q-linear-progress
-                                    v-if="waiting"
-                                    :value="waitProgress"
-                                    color="orange-10"
-                                    class="full-progress"
-                                    height="100%"
                                   />
+                                  
 
-                                  <!-- Button Text -->
-                                  <div
-                                    class="row items-center no-wrap absolute-full flex flex-center"
-                                  >
-                                    <span v-if="!waiting">Wait</span>
-                                    <span v-if="waiting" class="q-ml-xs"
-                                      >{{ formatTime(a) }}</span
-                                    >
-                                  </div>
-
-                                </q-btn>
+                                
 
                                 <q-btn
                                   v-if="currentServing && a == 0"
@@ -275,7 +258,7 @@
   const originalWaitTime = ref(0); // Store the original wait time
   const isQueuelistEmpty = ref(false)
   let waitTimer = null
-  const waitProgress = ref(0);
+  // const waitProgress = ref(0);
   let refreshInterval = null
   const $dialog = useQuasar();
   const a = ref()
@@ -382,7 +365,6 @@
     if (waiting.value) return; // Prevent multiple clicks while waiting
 
     waiting.value = true;
-    waitProgress.value = 1;
     console.log("original time: "+originalWaitTime.value)
     a.value = waitTime.value
     // If first time clicking, store the original time
@@ -397,17 +379,13 @@
 
     // Clear any existing timer to prevent duplicates
     if (waitTimer) clearInterval(waitTimer);
-    let divisor = a.value
-    
-    if (a.value >60){
+    // let divisor = a.value
             
 
             waitTimer = setInterval(() => {
-              waitProgress.value = a.value / divisor;
+              
       
             if (a.value > 0) {
-              waitProgress.value =  waitProgress.value
-            
               a.value--;
 
               
@@ -415,29 +393,9 @@
               stopWait();
               originalWaitTime.value = 0;
               console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
-              waitProgress.value = 0;
             }
           }, 1000);
             
-        }else{
-          
-          waitTimer = setInterval(() => {
-            waitProgress.value = a.value / 60;
-      
-          if (a.value > 0) {
-            waitProgress.value =  waitProgress.value
-          
-            a.value--;
-
-            
-          } else if(a.value == 0) {
-            stopWait();
-            originalWaitTime.value = 0;
-            console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
-            waitProgress.value = 0;
-          }
-    }, 1000);
-        } 
     
   } catch (error) {
     console.error(error);
@@ -552,7 +510,7 @@
     isQueuelistEmpty,
     prepared,
     formatTime,
-    waitProgress,
+    // waitProgress,
 
     // Pagination
     currentPage,
