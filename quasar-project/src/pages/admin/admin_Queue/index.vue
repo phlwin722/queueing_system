@@ -112,6 +112,13 @@ const a = ref()
 const currentPage = ref(1)
 const itemsPerPage = 5
 
+// UI Functions
+const $q = useQuasar();
+    const menuOpen = ref(false);
+    const toggleFullscreen = () => {
+      $q.fullscreen.toggle();
+    };
+
 // Fetch queue data
 const fetchQueue = async () => {
   try {
@@ -345,7 +352,10 @@ return {
   currentPage,
   itemsPerPage,
   paginatedQueueList,
-  totalPages
+  totalPages,
+
+  menuOpen,
+  toggleFullscreen,
 }
 }
 }

@@ -84,13 +84,21 @@ export default {
 
         if (data.result == 'admin') {
           // Store token in sessionStorage instead of localStorage
-          sessionStorage.setItem('authToken', data.token); 
+          sessionStorage.setItem('authTokenAdmin', data.token); 
           sessionStorage.setItem('adminInformation', JSON.stringify(data.adminInformation));
 
           // If login is successful, redirect to the admin dashboard
           $notify('positive','done',data.message)
           router.push('/admin/dashboard'); // Change the path to your desired route
-        }
+        } else {
+          const { data } = await $axios.post('/teller/validate',formData.value);
+          if (data.result == 'teller') {
+            // If login is successful, redirect to the admin dashboard
+          $notify('positive','done',data.message)
+          sessionStorage.setItem('authTokenTeller',data.tellerInformation)
+          //router.push('/teller/Layout'); // Change the path to your desired route
+          }
+        } 
 
       } catch (error) {
         if (error.response.status === 422) {

@@ -16,9 +16,9 @@ class WindowRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required',
-            'teller_id' => 'required|exists:tellers,id',
-            'type_id' => 'required|exists:types,id',
+            'window_name' => ['required'],
+            'teller_id' => ['required'],
+            'type_id' => ['required'],
         ];
     }
     protected function failedValidation(Validator $validator){
