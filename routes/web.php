@@ -52,6 +52,11 @@ Route::post('/tellers/create', [TellerController::class, 'create']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
 Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
+<<<<<<< Updated upstream
+=======
+Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
+Route::post('/teller/queue-list', [QueueController::class, 'getTellerQueueList']);
+>>>>>>> Stashed changes
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
