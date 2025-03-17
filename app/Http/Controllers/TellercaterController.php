@@ -8,7 +8,7 @@ use App\Http\Requests\QueueRequest;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
-class QueueController extends Controller
+class TellercaterController extends Controller
 {
     public function joinQueue(QueueRequest $request)
 
@@ -88,14 +88,25 @@ class QueueController extends Controller
             'message' => 'Queue left successfully'
         ]);
     }
-        // this get the admin queue list
-        public function getCQueueList()
+
+    // this get the teller queue list
+    public function getTellerQueueList(Request $request)
     {
-        $queue = Queue::where('status', 'waiting')
+        // validate type_id
+        $request->validate([
+            'type_id' => 'required'
+        ]);
+
+        // teller id        
+        $type_id = $request->type_id;
+
+        $queue = Queue::where('type_id',$type_id)
+            ->where('status', 'waiting')
             ->orderBy('created_at')
             ->get();
 
-        $currentServing = Queue::where('status', 'serving')->first();
+        $currentServing = Queue::where('type_id',$type_id)
+                         ->where('status', 'serving')->first();
 
         return response()->json([
             'queue' => $queue,
@@ -103,13 +114,16 @@ class QueueController extends Controller
             'queue_numbers' => $queue->pluck('queue_number') // Extracts all queue numbers
         ]);
     }
-    public function caterCustomer(Request $request)
+
+    public function caterTellerCustomer(Request $request)
     {
 
-        Queue::where('status', 'serving')
+        Queue::where('type_id', $request->service_id)
+                ->where('status', 'serving')
                 ->update(['status' => 'served']);
 
-        Queue::where('id', $request->id)
+        Queue::where('type_id', $request->service_id)
+                ->where('id', $request->id)
                 ->update(['status' => 'serving']);
 
         return response()->json(['message' => 'Customer is now being served']);
