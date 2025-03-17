@@ -174,6 +174,7 @@
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
                                 
+<<<<<<< HEAD
                                 <q-btn
                                   v-if="currentServing && a == 0"
                                   label="Cancel"
@@ -216,6 +217,37 @@
                                   color="primary"
                                   @click="finishCustomer(currentServing.id)"
                                 />                     
+=======
+                                <q-btn
+                                  v-if="currentServing && a == 0"
+                                  label="Cancel"
+                                  color="red-9"
+                                  @click="beforeCancel(currentServing)" 
+                                />
+
+                                <q-btn
+                                  v-if="currentServing"
+                                  color="orange"
+                                  class="q-ml-sm"
+                                  :label="waiting ? formatTime(a) : 'Wait'"
+                                  @click="startWait(currentServing.id, currentServing.queue_number)"
+                                  :disable="waiting"
+                                  />
+                                  
+
+                                
+
+                                <q-btn
+                                  v-if="currentServing && a == 0"
+                                  label="Finished"
+                                  color="primary"
+                                  @click="finishCustomer(currentServing.id)"
+                                />
+
+                                
+
+                                
+>>>>>>> main
                               </div>
                             </q-item-section>
                           </q-item>
@@ -271,8 +303,10 @@
   const originalWaitTime = ref(0); // Store the original wait time
   const isQueuelistEmpty = ref(false)
   let waitTimer = null
-  const waitProgress = ref(0);
-  let refreshInterval = null
+
+
+  // const waitProgress = ref(0);
+let refreshInterval = null
   const $dialog = useQuasar();
   const a = ref()
 
@@ -286,7 +320,6 @@
       const toggleFullscreen = () => {
         $q.fullscreen.toggle();
       };
-
   // CONTAINTER OF TELLER INFORMATION
   const tellerInformation = ref ({
     id: '',
@@ -301,7 +334,7 @@
       const response = await $axios.post('/teller/queue-list', {
         type_id: tellerInformation.value.type_id
       })
-      
+    
       queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
       currentServing.value = response.data.current_serving
       // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
@@ -316,7 +349,6 @@
       console.error(error)
     }
   }
-
   // Cater customer
   const caterCustomer = async (customerId) => {
     try {
@@ -387,7 +419,6 @@
     if (waiting.value) return; // Prevent multiple clicks while waiting
 
     waiting.value = true;
-    waitProgress.value = 1;
     console.log("original time: "+originalWaitTime.value)
     a.value = waitTime.value
     // If first time clicking, store the original time
@@ -402,37 +433,20 @@
 
     // Clear any existing timer to prevent duplicates
     if (waitTimer) clearInterval(waitTimer);
-    let divisor = a.value
-    
-    if (a.value >60){
+    // let divisor = a.value
+
             waitTimer = setInterval(() => {
-              waitProgress.value = a.value / divisor;
-      
+                
             if (a.value > 0) {
-              waitProgress.value =  waitProgress.value          
-              a.value--;   
+              a.value--;
             } else if(a.value == 0) {
               stopWait();
               originalWaitTime.value = 0;
               console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
-              waitProgress.value = 0;
             }
-          }, 1000);    
-        }else{ 
-          waitTimer = setInterval(() => {
-            waitProgress.value = a.value / 60;
-      
-          if (a.value > 0) {
-            waitProgress.value =  waitProgress.value
-            a.value--;  
-          } else if(a.value == 0) {
-            stopWait();
-            originalWaitTime.value = 0;
-            console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
-            waitProgress.value = 0;
-          }
-    }, 1000);
-        } 
+          }, 1000);
+            
+
     
   } catch (error) {
     console.error(error);
@@ -550,8 +564,8 @@
     isQueuelistEmpty,
     prepared,
     formatTime,
-    waitProgress,
     tellerInformation,
+
 
     // Pagination
     currentPage,

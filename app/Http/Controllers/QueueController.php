@@ -12,41 +12,42 @@ class QueueController extends Controller
 {
     public function joinQueue(QueueRequest $request)
 
-{
-    // Check if there are active (not finished) queue entries
-    
+    {
+        // Check if there are active (not finished) queue entries
+        
 
-    $lastQueue = DB::table('queue_numbers')
-                    ->where('status', '!=', 'finished')
-                    ->orderBy('queue_number', 'desc')
-                    ->first();
+        $lastQueue = DB::table('queue_numbers')
+                        ->where('status', '!=', 'finished')
+                        ->orderBy('queue_number', 'desc')
+                        ->first();
 
-    // If there's no active queue, start from 1
-    $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
-    
-    // Create queue entry
-    $queue = Queue::create([
-        'token' => $request->token,
-        'name' => $request->name,
-        'email' => $request->email,
-        'email_status' => $request->email_status,
-        'queue_number' => $nextQueueNumber,
-        'status' => 'waiting',
-        'waiting_customer' => null
-    ]);
+        // If there's no active queue, start from 1
+        $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+        
+        // Create queue entry
+        $queue = Queue::create([
+            'token' => $request->token,
+            'name' => $request->name,
+            'email' => $request->email,
+            'type_id' => $request->type_id,
+            'email_status' => $request->email_status,
+            'queue_number' => $nextQueueNumber,
+            'status' => 'waiting',
+            'waiting_customer' => null
+        ]);
 
-    DB::table('queue_numbers')->insert([
-        'status' => 'waiting',
-        'queue_number' => $nextQueueNumber
-    ]);
-    
-    // Return response with queue ID and queue number
-    return response()->json([
-        'message' => 'Successfully joined queue',
-        'id' => $queue->id, // ✅ Include the queue ID
-        'queue_number' => $queue->queue_number
-    ]);
-}
+        DB::table('queue_numbers')->insert([
+            'status' => 'waiting',
+            'queue_number' => $nextQueueNumber
+        ]);
+        
+        // Return response with queue ID and queue number
+        return response()->json([
+            'message' => 'Successfully joined queue',
+            'id' => $queue->id, // ✅ Include the queue ID
+            'queue_number' => $queue->queue_number
+        ]);
+    }
 
 
     // public function startWait(Request $request)

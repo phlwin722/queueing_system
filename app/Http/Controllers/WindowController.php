@@ -8,146 +8,175 @@ use Illuminate\Support\Facades\DB;
 
 class WindowController extends Controller
 {
-    public function getWindows()
-    {
-        $windows = Window::with(['teller', 'type'])->get()->map(function ($window) {
-            return [
-                'id' => $window->id,
-                'name' => $window->window_name,
-                'teller' => $window->teller ? [
-                    'value' => $window->teller->id,
-                    'label' => $window->teller->teller_firstname . ' ' . $window->teller->teller_lastname
-                ] : null,
-                'type' => $window->type ? [
-                    'value' => $window->type->id,
-                    'label' => $window->type->name
-                ] : null
-            ];
-        });
+    // public function getWindows()
+    // {
+    //     $windows = $this->getData();
 
-        return response()->json(['rows' => $windows]);
-    }
+    //     return response()->json([
+    //         'rows' => $windows
+    //     ]);
+    // }
 
     public function create(WindowRequest $request)
-{
-    $validatedData = $request->validated();
-    
-    // Ensure 'window_name' is set before inserting
-    if (!isset($validatedData['window_name'])) {
-        $validatedData['window_name'] = "Window " . (Window::count() + 1);
-    }
-
-    $window = Window::create($validatedData);
-
-    return response()->json([
-        "row" => [
-            'id' => $window->id,
-            'name' => $window->window_name,
-            'teller' => $window->teller ? ['value' => $window->teller->id, 'label' => $window->teller->teller_firstname . ' ' . $window->teller->teller_lastname] : null,
-            'type' => $window->type ? ['value' => $window->type->id, 'label' => $window->type->name] : null,
-        ],
-        "message" => "Window created successfully!"
-    ]);
-}
-
-
-    public function update(WindowRequest $request)
     {
-        $validatedData = $request->validated();
-        $window = Window::findOrFail($request->id);
-        $window->update($validatedData);
-
-        return response()->json([
-            "row" => $this->getData($window->id),
-            "message" => "Window updated successfully!"
-        ]);
-    }
-
-    public function delete(Request $request)
-    {
-        if (!$request->has('ids') || empty($request->ids)) {
-            return response()->json(["message" => "No IDs provided!"], 400);
+        
+        try{
+            $res = Window::create($request->all());
+            $row = $this->getData($res ->id);
+            return response()->json([
+                "row"=> $row,
+                "message"=>"Window added successfully!"
+            ]);
+            
+        }catch(\Exception $e){
+            $message = $e->getMessage();
+            return response()->json([
+                "message"=>env('APP_DEBUG')
+                    ? $message
+                    : "Something went wrong!"
+            ]);
         }
+    }
+
+   
+
+ 
+
+    public function update(WindowRequest $request){
+        try {
+            // Find the student
+            $window = Window::find($request->id);
     
-        Window::whereIn('id', $request->ids)->delete();
-        return response()->json(["message" => "Window(s) deleted successfully"]);
+            // Check if student exists
+            if (!$window) {
+                return response()->json([
+                    "message" => "Window not found!"
+                ], 404);
+            }
+    
+            // Update the student
+            $window->update($request->all());
+    
+            // Fetch updated data
+            $row = $this->getData($window->id);
+    
+            return response()->json([
+                "row" => $row,
+                "message" => "Window Successfully Updated!"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
+            ]);
+        }
+    }
+
+
+
+    public function delete(Request $request){
+        try{
+            $row  = Window::find($request->id);
+            
+            if(!$row){
+                return response()->json([
+                    "message"=>"window not found!"
+                ],404);
+            }else{
+                Window::destroy($request->id);
+                return response()->json([
+                "message"=>"Window Succesfully Deleted!"
+    
+            ]);
+            }
+            
+        }catch(\Exception $e){
+            $message = $e->getMessage();
+            return response()->json([
+                "message"=>env('APP_DEBUG')
+                    ? $message
+                    : "Something went wrong!"
+            ]);
+        }
+        
     }
     
-//     public function getWindowFormData(Request $request)
-// {
-//     $windowId = $request->query('window_id'); // Get window_id from request if editing
 
-//     // Get the currently assigned teller (if editing)
-//     $assignedTeller = null;
-//     if ($windowId) {
-//         $assignedTeller = DB::table("tellers")
-//             ->join("windows", "tellers.id", "=", "windows.teller_id")
-//             ->where("windows.id", $windowId)
-//             ->select("tellers.id as value", DB::raw("CONCAT(teller_firstname, ' ', teller_lastname) as label"))
-//             ->first();
-//     }
 
-//     // Get tellers that are NOT assigned to any window
-//     $availableTellers = DB::table("tellers")
-//         ->whereNotIn('id', function ($query) {
-//             $query->select('teller_id')->from('windows')->whereNotNull('teller_id');
-//         })
-//         ->select('id as value', DB::raw("CONCAT(teller_firstname, ' ', teller_lastname) as label"))
-//         ->get();
-
-//     // If editing and there is an assigned teller, include them in the list
-//     if ($assignedTeller) {
-//         $availableTellers->prepend($assignedTeller);
-//     }
-
-//     // Get window types
-//     $types = DB::table("types")->select('id as value', 'name as label')->get();
-
-//     return response()->json([
-//         "types" => $types,
-//         "tellers" => $availableTellers
-//     ]);
-// }
-
-    public function getWindowFormData()
-    {
-        // Get tellers that are NOT assigned to any window
-        $tellers = DB::table("tellers")
-            ->whereNotIn('id', function ($query) {
-                $query->select('teller_id')->from('windows')->whereNotNull('teller_id');
-            })
-            ->select('id as value', DB::raw("CONCAT(teller_firstname, ' ', teller_lastname) as label"))
-            ->get();
-    
-        $types = DB::table("types")->select('id as value', 'name as label')->get();
-    
-        return response()->json([
-            "types" => $types,
-            "tellers" => $tellers
-        ]);
-    }
-    
     // public function getWindowFormData()
     // {
-    //     $types = DB::table("types")->select('id as value', 'name as label')->get();
+    //     // Get tellers that are NOT assigned to any window
     //     $tellers = DB::table("tellers")
+    //         ->whereNotIn('id', function ($query) {
+    //             $query->select('teller_id')->from('windows')->whereNotNull('teller_id');
+    //         })
     //         ->select('id as value', DB::raw("CONCAT(teller_firstname, ' ', teller_lastname) as label"))
     //         ->get();
-
+    
+    //     $types = DB::table("types")->select('id as value', 'name as label')->get();
+    
     //     return response()->json([
     //         "types" => $types,
     //         "tellers" => $tellers
     //     ]);
     // }
 
-    private function getData($id)
-    {
-        $window = Window::with(['teller', 'type'])->findOrFail($id);
-        return [
-            'id' => $window->id,
-            'name' => $window->window_name,
-            'teller' => $window->teller ? ['value' => $window->teller->id, 'label' => $window->teller->teller_firstname . ' ' . $window->teller->teller_lastname] : null,
-            'type' => $window->type ? ['value' => $window->type->id, 'label' => $window->type->name] : null,
-        ];
+
+    public function getWindows($id = null){
+        $res = DB::table('windows as wd')
+            ->select(
+                "wd.id",
+                "wd.window_name",
+                "tp.name as type_id",
+                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                "ts.id as pId"
+            )
+            ->leftJoin("types as tp", "tp.id", "wd.type_id")
+            ->leftJoin("tellers as ts", "ts.id", "wd.teller_id")
+            ->orderBy('wd.created_at', 'desc');
+    
+        if ($id) {
+            $res = $res->where("wd.id", $id)->first();
+        } else {
+            $res = $res->get();
+        }
+    
+        return response()->json([
+            'rows' => $res
+        ]);
+    }
+    
+
+    public function getData($id = null){
+        
+        $res = DB::table('windows as wd')
+            ->select(
+                "wd.id",
+                "wd.window_name",
+                "tp.name as type_id",
+                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                "ts.id as pId"
+            )
+            ->leftJoin(
+                "types as tp",
+                "tp.id",
+                "wd.type_id"
+            )
+            ->leftJoin(
+                "tellers as ts",
+                "ts.id",
+                "wd.teller_id"
+            )
+            ->orderBy('wd.created_at', 'desc');
+        
+
+        if($id){
+            $res = $res
+                ->where("wd.id",$id)
+                -> first();
+        }else{
+            $res = $res->get();
+        }
+        return $res;
+    
     }
 }

@@ -13,6 +13,7 @@ class Queue extends Model
         'name', 
         'email', 
         'email_status',
+        'type_id',
         'queue_number', 
         'status',
         'waiting_customer'

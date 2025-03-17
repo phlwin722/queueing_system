@@ -39,12 +39,18 @@
             class="q-mt-md"
           />
           <q-select
+            v-model="type_id"
             label="Service Available"
             transition-show="flip-up"
             transition-hide="flip-down"
             outlined
+            emit-value
+            map-options
             dense
-             class="q-mt-md"
+            class="q-mt-md"
+            :options="categoriesList"
+            option-label="name"
+            option-value="id"
           />
         </q-card-section>
 
@@ -72,6 +78,8 @@ export default {
     const name = ref("");
     const email = ref("");
     const email_status = ref("pending");
+    const type_id = ref();
+    const categoriesList = ref([]);
     const isLoading = ref(false);
     const formError = ref({});
 
@@ -110,6 +118,7 @@ export default {
             name: name.value,
             email: email.value,
             email_status: email_status.value,
+            type_id: type_id.value,
           });
 
           localStorage.setItem("customer_id" + token.value, response.data.id);
@@ -131,7 +140,22 @@ export default {
       }
     };
 
+    const fetchCategories = async () => {
+            try {
+                const { data } = await $axios.post('/types/index');
+                console.log("Full API Response:", data); // 🔍 Debugging
+                categoriesList.value = data.rows; // Ensure this matches the API response structure
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
+
     onMounted(processQrCode); // Runs on page load
+
+    onMounted(() => {
+      processQrCode
+      fetchCategories()
+  })
 
     return {
       name,
@@ -141,6 +165,8 @@ export default {
       formError,
       isLoading,
       token,
+      type_id,
+      categoriesList,
     };
   },
 };
