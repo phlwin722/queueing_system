@@ -38,14 +38,14 @@
             dense
             class="q-mt-md"
           />
-          <q-select
+          <!-- <q-select
             label="Service Available"
             transition-show="flip-up"
             transition-hide="flip-down"
             outlined
             dense
              class="q-mt-md"
-          />
+          /> -->
         </q-card-section>
 
         <q-card-actions align="center">

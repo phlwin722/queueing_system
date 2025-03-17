@@ -60,7 +60,7 @@ class TellerController extends Controller
                 'teller_firstname' => $request->teller_firstname,
                 'teller_lastname' => $request->teller_lastname,
                 'teller_username' => $request->teller_username,
-                'teller_password' => $request->teller_password,
+                'teller_password' => Hash::make($request->teller_password),
                 'type_id' => $request->type_id,
                 'created_at' => now(),
                 'updated_at' => now()
