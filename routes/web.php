@@ -10,7 +10,6 @@ use App\Http\Controllers\Waiting_timeController;
 use App\Http\Controllers\TellerController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\WindowController;
-use App\Models\Teller;
 
 /*
 |--------------------------------------------------------------------------
