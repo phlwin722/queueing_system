@@ -185,41 +185,16 @@
                                   v-if="currentServing"
                                   color="orange"
                                   class="q-ml-sm"
+                                  :label="waiting ? formatTime(a) : 'Wait'"
                                   @click="startWait(currentServing.id, currentServing.queue_number)"
                                   :disable="waiting"
-                                  unelevated
-                                >
-                                  <!-- Progress Background -->
-                                  <q-linear-progress
-                                    v-if="waiting"
-                                    :value="waitProgress"
-                                    color="orange-10"
-                                    class="full-progress"
-                                    height="100%"
                                   />
-
-                                  <!-- Button Text -->
-                                  <div
-                                    class="row items-center no-wrap absolute-full flex flex-center"
-                                  >
-                                    <span v-if="!waiting">Wait</span>
-                                    <span v-if="waiting" class="q-ml-xs"
-                                      >{{ formatTime(a) }}</span
-                                    >
-                                  </div>
-
-                                </q-btn>
-
                                 <q-btn
                                   v-if="currentServing && a == 0"
                                   label="Finished"
                                   color="primary"
                                   @click="finishCustomer(currentServing.id)"
                                 />
-
-                                
-
-                                
                               </div>
                             </q-item-section>
                           </q-item>
@@ -270,13 +245,15 @@
   const queueList = ref([])
   const currentServing = ref(null)
   const waiting = ref(false)
-  const waitTime = ref()
+  const waitTime = ref(30)
   const prepared = ref()
   const originalWaitTime = ref(0); // Store the original wait time
   const isQueuelistEmpty = ref(false)
   let waitTimer = null
-  const waitProgress = ref(0);
-  let refreshInterval = null
+
+
+  // const waitProgress = ref(0);
+let refreshInterval = null
   const $dialog = useQuasar();
   const a = ref()
 
@@ -290,18 +267,28 @@
       const toggleFullscreen = () => {
         $q.fullscreen.toggle();
       };
+  // CONTAINTER OF TELLER INFORMATION
+  const tellerInformation = ref ({
+    id: '',
+    teller_firstname: '',
+    teller_lastname: '',
+    type_id: '',
+  })
 
   // Fetch queue data
   const fetchQueue = async () => {
     try {
-      const response = await $axios.post('/admin/queue-list')
+      const response = await $axios.post('/teller/queue-list', {
+        type_id: tellerInformation.value.type_id
+      })
+    
       queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
       currentServing.value = response.data.current_serving
       // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
       // console.log(queuePosition.value)
       // console.log(response.data.queue_numbers)
       if (queueList.value.length > 0 && queueList.value[0].status === 'waiting' && currentServing.value == null) {
-          caterCustomer(queueList.value[0].id);
+          caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
           startWait(queueList.value[0].id, queueList.value[0].queue_number)
       }
       isQueuelistEmpty.value = queueList.value.length == 0
@@ -309,11 +296,13 @@
       console.error(error)
     }
   }
-
   // Cater customer
-  const caterCustomer = async (customerId) => {
+  const caterCustomer = async (customerId,type_id) => {
     try {
-      await $axios.post('/admin/cater', { id: customerId })
+      await $axios.post('/teller/cater', { 
+        id: customerId,
+        service_id: type_id
+      })
       fetchQueue()
     } catch (error) {
       console.error(error)
@@ -347,12 +336,10 @@
       })
   }
 
-
-
   // Cancel customer
   const cancelCustomer = async (customerId) => {
     try {
-      await $axios.post('/admin/cancel', { id: customerId })
+      await $axios.post('/teller/cancel', { id: customerId })
       fetchQueue()
       $notify('positive', 'check', 'Customer has been removed from the queue.')
       stopWait() // Stop wait if customer is canceled
@@ -365,7 +352,7 @@
   // Finish serving customer
   const finishCustomer = async (customerId) => {
     try {
-      await $axios.post('/admin/finish', { id: customerId })
+      await $axios.post('/teller/finish', { id: customerId })
       fetchQueue()
       
       $notify('positive', 'check', 'Customer has been marked as finished.')
@@ -382,7 +369,6 @@
     if (waiting.value) return; // Prevent multiple clicks while waiting
 
     waiting.value = true;
-    waitProgress.value = 1;
     console.log("original time: "+originalWaitTime.value)
     a.value = waitTime.value
     // If first time clicking, store the original time
@@ -397,61 +383,29 @@
 
     // Clear any existing timer to prevent duplicates
     if (waitTimer) clearInterval(waitTimer);
-    let divisor = a.value
-    
-    if (a.value >60){
-            
+    // let divisor = a.value
 
             waitTimer = setInterval(() => {
-              waitProgress.value = a.value / divisor;
-      
+                
             if (a.value > 0) {
-              waitProgress.value =  waitProgress.value
-            
               a.value--;
-
-              
             } else if(a.value == 0) {
               stopWait();
               originalWaitTime.value = 0;
               console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
-              waitProgress.value = 0;
             }
           }, 1000);
-            
-        }else{
-          
-          waitTimer = setInterval(() => {
-            waitProgress.value = a.value / 60;
-      
-          if (a.value > 0) {
-            waitProgress.value =  waitProgress.value
-          
-            a.value--;
 
-            
-          } else if(a.value == 0) {
-            stopWait();
-            originalWaitTime.value = 0;
-            console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
-            waitProgress.value = 0;
-          }
-    }, 1000);
-        } 
-    
   } catch (error) {
     console.error(error);
     $notify("negative", "error", "Failed to set waiting customer.");
   }
   };
 
-
-
-
   // Fetch the data from the backend when the component is mounted
   const fetchWaitingtime = async () => {
   try {
-    const { data } = await $axios.post('/admin/waiting_Time-fetch');
+    const { data } = await $axios.post('/teller/waiting_Time-fetch');
     // Ensure that data.dataValue is available before trying to assign it to formData
     if (data && data.dataValue && data.dataValue.length > 0) {
       waitTime.value = data.dataValue[0].Waiting_time; // Assign the first object in dataValue to formData
@@ -527,9 +481,15 @@
   const totalPages = computed(() => Math.ceil(queueList.value.length / itemsPerPage))
 
   onMounted(() => {
-    fetchQueue()
-    refreshInterval = setInterval(fetchQueue, 5000) // Auto-refresh every 5 seconds
-    fetchWaitingtime()
+    const storedTellerInfo = sessionStorage.getItem('authTokenTeller')
+    if (storedTellerInfo) {
+      fetchQueue()
+      refreshInterval = setInterval(fetchQueue, 5000) // Auto-refresh every 5 seconds
+      fetchWaitingtime()
+      tellerInformation.value = JSON.parse(storedTellerInfo) 
+    }else {
+      console.error("No teller information found in sessionStorage");
+    }
   })
 
   onUnmounted(() => {
@@ -552,7 +512,8 @@
     isQueuelistEmpty,
     prepared,
     formatTime,
-    waitProgress,
+    tellerInformation,
+
 
     // Pagination
     currentPage,

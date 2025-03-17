@@ -1,16 +1,17 @@
 <template>
-  <q-layout
-    view="lHh lpr lFf"
-    class="shadow-2 rounded-borders absolute-center bg-grey-2"
-  >
+  <q-layout view="lHh lpr lFf" class="shadow-2 absolute-center bg-info">
     <div
-      class="row wrap col-md-6 justify-center q-gutter-md q-pt-md"
+      class="row wrap col-md-6 justify-center q-gutter-md q-pa-md"
       style="width: 100%; max-width: 600px; margin: auto"
     >
       <!-- User Queue Status -->
       <q-card
-        class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md"
+        class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
+      <div>
+        Service Type: {{serviceType}} <br>
+        Personnel: {{assignedTeller}}
+      </div>
         <q-card-section class="text-center">
           <div class="column items-center">
             <div class="text-bold text-grey-7 text-caption">
@@ -57,7 +58,7 @@
 
       <!-- Queue List -->
       <q-card
-        class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-pa-md"
+        class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-px-md q-pa-xs"
         style="margin-bottom: 20px"
       >
         <!-- Show "You are being served" if the customer is being served -->
@@ -137,6 +138,9 @@ export default {
 
     const queueList = ref([]);
     const currentQueue = ref(null);
+    const serviceType = ref();
+    const assignedTeller = ref("")
+    const typeId = ref();
     const queuePosition = ref(null);
     const isBeingServed = ref(false);
     const isWaiting = ref(false);
@@ -163,13 +167,13 @@ export default {
     // Fetch queue list and current serving number
     const fetchQueueData = async () => {
       try {
-        const response = await $axios.post("/customer-list");
+        const response = await $axios.post("/customer-list",{token: tokenurl.value});
+        
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-
         currentQueue.value = response.data.current_serving;
-
+        console.log(response.data.current_serving)
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
         // Determine customer position in queue
@@ -179,16 +183,16 @@ export default {
           ) + 1;
 
         // If admin pressed "Wait" for the first in queue, start countdown
-        if (
-          response.data.waiting_customer === customerQueueNumber.value &&
-          queuePosition.value === 1
-        ) {
-          isWaiting.value = true;
-          startCountdown();
-        } else {
-          isWaiting.value = false;
-          clearInterval(countdownInterval); // Stop countdown if not waiting
-        }
+        // if (
+        //   response.data.waiting_customer === customerQueueNumber.value &&
+        //   queuePosition.value === 1
+        // ) {
+        //   isWaiting.value = true;
+        //   startCountdown();
+        // } else {
+        //   isWaiting.value = false;
+        //   clearInterval(countdownInterval); // Stop countdown if not waiting
+        // }
 
         if (isBeingServed.value) {
           queueList.value = queueList.value.filter(
@@ -224,6 +228,20 @@ export default {
         console.error(error);
       }
     };
+
+    const getTableData = async () => {
+        try{
+            const { data } = await $axios.post('/customer-fetch',{token: tokenurl.value})
+            serviceType.value = data.row.name
+            assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
+            typeId.value = data.row.typeId
+            console.log(serviceType.value)
+            console.log(assignedTeller.value)
+            
+        }catch(error){
+            console.log(error);
+        }
+    }
 
     // Start countdown timer
     // const startCountdown = () => {
@@ -266,7 +284,7 @@ export default {
     // Function to check if the user's queue number is 5, then send an email notification
     const checkingQueueNumber = async () => {
       try {
-        const response = await $axios.post("/customer-list");
+        const response = await $axios.post("/customer-list",{token: tokenurl.value});
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
@@ -309,8 +327,10 @@ export default {
     };
 
     onMounted(() => {
+      getTableData();
       fetchQueueData();
       refreshInterval = setInterval(fetchQueueData, 5000); // Auto-refresh every 5 seconds
+      
     });
 
     onUnmounted(() => {
@@ -330,6 +350,8 @@ export default {
       checkingQueueNumber,
       emailData,
       customerId,
+      serviceType,
+      assignedTeller,
     };
   },
 };

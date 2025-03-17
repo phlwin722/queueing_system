@@ -156,7 +156,7 @@
             type_id: row.type_id, // Window Type
             teller_id: row.teller_id, // Full Name as a single field
             pId: row.pId
-        }));
+            }));
         }catch(error){
             console.log(error);
         }

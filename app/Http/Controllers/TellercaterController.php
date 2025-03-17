@@ -8,7 +8,7 @@ use App\Http\Requests\QueueRequest;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
-class QueueController extends Controller
+class TellercaterController extends Controller
 {
     public function joinQueue(QueueRequest $request)
 
@@ -67,29 +67,18 @@ class QueueController extends Controller
         ]);
     }
 
-    public function getQueueList(Request $request)
+    public function getQueueList()
     {
-        $token = $request->input('token');
-        $typeId = DB::table('queues')
-            ->where('token', $token)
-            ->value('type_id');
-
-        // Get all queue numbers for the specified type_id
-        $queueList = Queue::where('type_id', $typeId)
-            ->orderBy('queue_number')
-            ->get();
-
-        // Get the currently serving queue number for the specified type_id
-        $currentServing = Queue::where('status', 'serving')
-            ->where('type_id', $typeId)
-            ->first()?->queue_number ?? 'N/A';
-
+        $waitingCustomer = DB::table('queues')->value('waiting_customer');
+        $id = DB::table('queues')->where('queue_number', $waitingCustomer)->value('id');
         return response()->json([
-            'queue' => $queueList,
-            'current_serving' => $currentServing,
+            'id' => $id,
+            'queue' => Queue::orderBy('queue_number')->get(),
+            'current_serving' => Queue::where('status', 'serving')
+                              ->first()?->queue_number ?? 'N/A',
+            'waiting_customer' => $waitingCustomer,
         ]);
     }
-
 
     public function leaveQueue(Request $request)
     {
@@ -99,14 +88,25 @@ class QueueController extends Controller
             'message' => 'Queue left successfully'
         ]);
     }
-        // this get the admin queue list
-        public function getCQueueList()
+
+    // this get the teller queue list
+    public function getTellerQueueList(Request $request)
     {
-        $queue = Queue::where('status', 'waiting')
+        // validate type_id
+        $request->validate([
+            'type_id' => 'required'
+        ]);
+
+        // teller id        
+        $type_id = $request->type_id;
+
+        $queue = Queue::where('type_id',$type_id)
+            ->where('status', 'waiting')
             ->orderBy('created_at')
             ->get();
 
-        $currentServing = Queue::where('status', 'serving')->first();
+        $currentServing = Queue::where('type_id',$type_id)
+                         ->where('status', 'serving')->first();
 
         return response()->json([
             'queue' => $queue,
@@ -114,13 +114,16 @@ class QueueController extends Controller
             'queue_numbers' => $queue->pluck('queue_number') // Extracts all queue numbers
         ]);
     }
-    public function caterCustomer(Request $request)
+
+    public function caterTellerCustomer(Request $request)
     {
 
-        Queue::where('status', 'serving')
+        Queue::where('type_id', $request->service_id)
+                ->where('status', 'serving')
                 ->update(['status' => 'served']);
 
-        Queue::where('id', $request->id)
+        Queue::where('type_id', $request->service_id)
+                ->where('id', $request->id)
                 ->update(['status' => 'serving']);
 
         return response()->json(['message' => 'Customer is now being served']);
@@ -231,39 +234,6 @@ class QueueController extends Controller
             ]);
         }
     }
-
-    public function customerData(Request $request)
-    {
-        $token = $request->input('token');
-
-        // Get type_id from the queues table
-        $typeId = DB::table('queues')
-            ->where('token', $token)
-            ->value('type_id');
-
-        // If type_id is null, return an empty response
-        if (!$typeId) {
-            return response()->json(['row' => null], 404);
-        }
-
-        // Get teller details based on type_id
-        $newTeller = DB::table('tellers as t')
-            ->select(
-                "t.id",
-                "t.teller_firstname",
-                "t.teller_lastname",
-                "tp.name",
-                "tp.id as typeId"
-            )
-            ->leftJoin("types as tp", "tp.id", "=", "t.type_id")
-            ->where("t.type_id", $typeId) // Correct column
-            ->first();
-
-        return response()->json([
-            'row' => $newTeller
-        ]);
-    }
-
     
 
 
