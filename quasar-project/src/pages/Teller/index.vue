@@ -174,6 +174,50 @@
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
                                 
+<<<<<<< HEAD
+                                <q-btn
+                                  v-if="currentServing && a == 0"
+                                  label="Cancel"
+                                  color="red-9"
+                                  @click="beforeCancel(currentServing)" 
+                                />
+
+                                <q-btn
+                                  v-if="currentServing"
+                                  color="orange"
+                                  class="q-ml-sm"
+                                  @click="startWait(currentServing.id, currentServing.queue_number)"
+                                  :disable="waiting"
+                                  unelevated
+                                >
+                                  <!-- Progress Background -->
+                                  <q-linear-progress
+                                    v-if="waiting"
+                                    :value="waitProgress"
+                                    color="orange-10"
+                                    class="full-progress"
+                                    height="100%"
+                                  />
+
+                                  <!-- Button Text -->
+                                  <div
+                                    class="row items-center no-wrap absolute-full flex flex-center"
+                                  >
+                                    <span v-if="!waiting">Wait</span>
+                                    <span v-if="waiting" class="q-ml-xs"
+                                      >{{ formatTime(a) }}</span
+                                    >
+                                  </div>
+
+                                </q-btn>
+
+                                <q-btn
+                                  v-if="currentServing && a == 0"
+                                  label="Finished"
+                                  color="primary"
+                                  @click="finishCustomer(currentServing.id)"
+                                />                     
+=======
                                 <q-btn
                                   v-if="currentServing && a == 0"
                                   label="Cancel"
@@ -203,6 +247,7 @@
                                 
 
                                 
+>>>>>>> main
                               </div>
                             </q-item-section>
                           </q-item>
@@ -258,8 +303,10 @@
   const originalWaitTime = ref(0); // Store the original wait time
   const isQueuelistEmpty = ref(false)
   let waitTimer = null
+
+
   // const waitProgress = ref(0);
-  let refreshInterval = null
+let refreshInterval = null
   const $dialog = useQuasar();
   const a = ref()
 
@@ -273,11 +320,21 @@
       const toggleFullscreen = () => {
         $q.fullscreen.toggle();
       };
+  // CONTAINTER OF TELLER INFORMATION
+  const tellerInformation = ref ({
+    id: '',
+    teller_firstname: '',
+    teller_lastname: '',
+    type_id: '',
+  })
 
   // Fetch queue data
   const fetchQueue = async () => {
     try {
-      const response = await $axios.post('/admin/queue-list')
+      const response = await $axios.post('/teller/queue-list', {
+        type_id: tellerInformation.value.type_id
+      })
+    
       queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
       currentServing.value = response.data.current_serving
       // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
@@ -292,7 +349,6 @@
       console.error(error)
     }
   }
-
   // Cater customer
   const caterCustomer = async (customerId) => {
     try {
@@ -329,8 +385,6 @@
         // console.log('I am triggered on both OK and Cancel')
       })
   }
-
-
 
   // Cancel customer
   const cancelCustomer = async (customerId) => {
@@ -380,15 +434,11 @@
     // Clear any existing timer to prevent duplicates
     if (waitTimer) clearInterval(waitTimer);
     // let divisor = a.value
-            
 
             waitTimer = setInterval(() => {
-              
-      
+                
             if (a.value > 0) {
               a.value--;
-
-              
             } else if(a.value == 0) {
               stopWait();
               originalWaitTime.value = 0;
@@ -396,15 +446,13 @@
             }
           }, 1000);
             
+
     
   } catch (error) {
     console.error(error);
     $notify("negative", "error", "Failed to set waiting customer.");
   }
   };
-
-
-
 
   // Fetch the data from the backend when the component is mounted
   const fetchWaitingtime = async () => {
@@ -485,9 +533,15 @@
   const totalPages = computed(() => Math.ceil(queueList.value.length / itemsPerPage))
 
   onMounted(() => {
-    fetchQueue()
-    refreshInterval = setInterval(fetchQueue, 5000) // Auto-refresh every 5 seconds
-    fetchWaitingtime()
+    const storedTellerInfo = sessionStorage.getItem('authTokenTeller')
+    if (storedTellerInfo) {
+      fetchQueue()
+      refreshInterval = setInterval(fetchQueue, 5000) // Auto-refresh every 5 seconds
+      fetchWaitingtime()
+      tellerInformation.value = JSON.parse(storedTellerInfo) 
+    }else {
+      console.error("No teller information found in sessionStorage");
+    }
   })
 
   onUnmounted(() => {
@@ -510,7 +564,8 @@
     isQueuelistEmpty,
     prepared,
     formatTime,
-    // waitProgress,
+    tellerInformation,
+
 
     // Pagination
     currentPage,

@@ -282,7 +282,8 @@ class TellerController extends Controller
                         'tellerFirstname' => $teller->teller_firstname,
                         'tellerLastname' => $teller->teller_lastname,
                         'tellerUsername' => $teller->teller_username,
-                        'token' => $token
+                        'token' => $token,
+                        'type_id' => $teller->type_id
                     ],
                     'message' => "Login sucessfull teller",
                     'result' => 'teller'
