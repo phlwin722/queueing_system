@@ -1,15 +1,12 @@
 <template>
-  <q-layout
-    view="lHh lpr lFf"
-    class="shadow-2 rounded-borders absolute-center bg-grey-2"
-  >
+  <q-layout view="lHh lpr lFf" class="shadow-2 absolute-center bg-info">
     <div
-      class="row wrap col-md-6 justify-center q-gutter-md q-pt-md"
+      class="row wrap col-md-6 justify-center q-gutter-md q-pa-md"
       style="width: 100%; max-width: 600px; margin: auto"
     >
       <!-- User Queue Status -->
       <q-card
-        class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md"
+        class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
         <q-card-section class="text-center">
           <div class="column items-center">
@@ -57,7 +54,7 @@
 
       <!-- Queue List -->
       <q-card
-        class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-pa-md"
+        class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-px-md q-pa-xs"
         style="margin-bottom: 20px"
       >
         <!-- Show "You are being served" if the customer is being served -->
