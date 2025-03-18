@@ -3,7 +3,7 @@
     <q-dialog @hide="closeDialog" v-model="isShow">
         <q-card>
             <q-card-section class="row items-center q-pb-none">
-                <div class="text-h6 text-warning">{{ formMode }} Type</div>
+                <div class="text-h6 text-primary">{{ formMode }} Type</div>
                 <q-space />
                 <q-btn icon="close" 
                 flat 
@@ -25,6 +25,7 @@
                             hide-bottom-space
                             :error="formError.hasOwnProperty('name')"
                             :error-message="formError.name"
+                            autofocus
                         />
                     </div>
                 </div>

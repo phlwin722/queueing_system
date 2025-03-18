@@ -14,8 +14,10 @@
             @click="goonDashboard"
             class="q-ml-sm"
           />
-        <q-toolbar-title class="text-center">Queuing System</q-toolbar-title>
-        <div>{{ formattedString }}</div>
+        <q-toolbar-title class="text-center">QUEUING SYSTEM</q-toolbar-title>
+        <div>
+          <q-spinner-clock color="white" size="1.5em" class="q-mr-xs"/>
+          {{ formattedString }}</div>
       </q-toolbar>
     </q-header>
 

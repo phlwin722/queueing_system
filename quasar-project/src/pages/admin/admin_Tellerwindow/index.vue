@@ -3,6 +3,13 @@
     <!-- <q-input standout="bg-teal text-white" v-model="text" label="Search" :dense="dense" /> -->
     <q-page>
         <div class="q-pa-md">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Teller Window" icon="computer" to="/admin/teller/window" />
+            </q-breadcrumbs>
+
         <q-table
             title="Window"
             :rows="filteredRows"
@@ -13,7 +20,7 @@
             selection="multiple"
             v-model:selected="selected"
             :rows-per-page-options="[0]"
-            class="q-mx-sm"
+            class="q-mx-sm q-mt-md"
         >
 
         <template v-slot:top>
@@ -24,6 +31,7 @@
                         label="Add Window"  
                         @click="handleShowForm('new')"
                         class="custom-btn"
+                        glossy
                     />
                     </div>
                     <div class="col-auto">
@@ -33,6 +41,7 @@
                         :disable="selected.length === 0"
                         @click="beforeDelete(true)"
                         class="custom-btn"
+                        glossy
                     />
                     </div>
                 </div>
@@ -46,18 +55,28 @@
                 color="positive" 
                 icon="edit"
                 dense
+                glossy
                 class="action-btn"
                 @click="handleShowForm('edit', props.row)" 
-                />
+                >
+                <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="bg-secondary">
+                    Edit Window
+                </q-tooltip>
+                </q-btn>
 
                 <q-btn 
                 square 
                 color="negative" 
                 icon="delete"
                 dense
+                glossy
                 class="action-btn"
                 @click="beforeDelete(false,props.row)"
-                />
+                >
+                <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
+                    Delete Window
+                </q-tooltip>
+                </q-btn>
                 </div>
             </q-td>
         </template>
@@ -124,19 +143,21 @@
             field: 'teller_id', 
             sortable: true
         },
-        {
-            name: 'pId',
-            align: 'left',
-            field: 'pId', 
-            sortable: true,
-            classes: 'hidden'
-        },
+    
 
         {
             name: 'actions',
             label: 'Actions',
             align: 'left',
-        }
+        },
+
+        /* {
+            name: 'pId',
+            align: 'left',
+            field: 'pId', 
+            sortable: true,
+            classes: 'hidden',
+        }, */
         ]);
         const filteredRows = computed(() => {
         return rows.value.filter((row) =>
@@ -172,11 +193,12 @@
         console.log("ids",ids)
         const message = isMany
             ? 'Are you sure you want to delete this Records ?'
-            : 'Are you sure you want to delete this specific record?'+'  id: '+row.id
+            : 'Are you sure you want to delete this specific record?'+'  <br> <strong style="color:#F2C037;">Window name:</strong> <span style="color:#C10015; font-weight: bold;">' +row.window_name
 
             Dialog.create({
-            title: 'Confirm Delete',
-            message: message
+            title: '<span style="color: #1c5d99;">Confirm Delete</span>',
+            message: message,
+            html: true,
         }).onOk(() =>{
             handleDelete(ids)
             
@@ -225,12 +247,14 @@
 <style scoped>
 .custom-btn {
     min-width: 150px;
-    height: 40px;
+    height: 35px;
     text-align: center;
     }
 
     .action-btn {
-    width: 60px; /* Adjust as needed */
+        width: 35px; /* Adjust as needed */
   margin-left: 5px;
+  border-radius: 5px;
 }
+
 </style>
