@@ -69,6 +69,7 @@
                   <q-separator />
                   <q-item>
                     <q-item-section>
+
                       <q-btn
                         :disable="(!isQueuelistEmpty || currentServing != null)"
                         class="bg-primary text-white"
@@ -80,6 +81,7 @@
                   <q-separator />
                   <q-item>
                     <q-item-section>
+
                       <q-scroll-area class="my-scroll" style="height: 455px">
                         <q-list bordered separator>
                           <q-item
@@ -381,7 +383,7 @@ let refreshInterval = null
 
     $notify("positive", "check", "Waiting for Queue Number: " + queueNumber);
 
-    // Clear any existing timer to prevent duplicates
+    // Clear any existing timer to prevent duplicatesg
     if (waitTimer) clearInterval(waitTimer);
     // let divisor = a.value
 
@@ -515,7 +517,6 @@ let refreshInterval = null
     tellerInformation,
 
 
-    // Pagination
     currentPage,
     itemsPerPage,
     paginatedQueueList,
