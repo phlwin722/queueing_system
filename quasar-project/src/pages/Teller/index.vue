@@ -3,6 +3,16 @@
     <q-header class="q-px-md">
       <q-toolbar>
         <!-- Fullscreen Toggle Button -->
+        <q-btn
+          flat
+          round
+          dense
+          class="q-mr-sm"
+          color="white"
+          style="min-width: 32px; width: 32px; height: 32px; position: absolute"
+          @click="$q.fullscreen.toggle()"
+          :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
+        />
 
         <q-space />
         <q-img
@@ -17,18 +27,23 @@
         <q-space />
 
         <!-- Avatar with Dropdown Menu -->
-        <q-avatar
-          size="40px"
-          class="cursor-pointer"
-          @click="menuOpen = !menuOpen"
-        >
-          <img src="https://cdn.quasar.dev/img/avatar.png" alt="User Avatar" />
-        </q-avatar>
+        <div class="row items-center justify-center q-gutter-md">
+          <p class="q-mb-none">Juan Dela Cruz</p>
+          <q-avatar
+            size="40px"
+            class="cursor-pointer"
+            @click="menuOpen = !menuOpen"
+          >
+            <img
+              src="https://cdn.quasar.dev/img/avatar.png"
+              alt="User Avatar"
+            />
+          </q-avatar>
+        </div>
 
         <q-menu
           v-model="menuOpen"
-          transition-show="scale"
-          transition-hide="scale"
+          no-parent-event
           anchor="bottom right"
           self="top right"
         >
@@ -71,7 +86,7 @@
                     <q-item-section>
 
                       <q-btn
-                        :disable="(!isQueuelistEmpty || currentServing != null)"
+                        :disable="!isQueuelistEmpty || currentServing != null"
                         class="bg-primary text-white"
                         label="Reset Queue Number"
                         @click="resetQueue()"
@@ -105,10 +120,7 @@
                               <p>{{ customer.name }}</p>
                             </q-item-section>
                             <q-item-section>
-                              <div class="q-gutter-y-xs q-my-sm">
-                                
-                                
-                              </div>
+                              <div class="q-gutter-y-xs q-my-sm"></div>
                             </q-item-section>
                           </q-item>
                         </q-list>
@@ -128,7 +140,7 @@
                   <q-item v-if="currentServing">
                     <q-item-section>
                       <q-item-label class="text-h4 text-center text-primary"
-                        ><strong>Now Serving</strong></q-item-label
+                        ><strong>Current Queue</strong></q-item-label
                       >
                       <q-item-label caption class="text-center"
                         >The queue will be updated once someone is in
@@ -175,22 +187,40 @@
                           <q-item>
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
-                                
                                 <q-btn
                                   v-if="currentServing && a == 0"
                                   label="Cancel"
                                   color="red-9"
-                                  @click="beforeCancel(currentServing)" 
+                                  @click="beforeCancel(currentServing)"
                                 />
 
                                 <q-btn
                                   v-if="currentServing"
                                   color="orange"
                                   class="q-ml-sm"
-                                  :label="waiting ? formatTime(a) : 'Wait'"
-                                  @click="startWait(currentServing.id, currentServing.queue_number)"
+                                  @click="
+                                    startWait(
+                                      currentServing.id,
+                                      currentServing.queue_number
+                                    )
+                                  "
+
                                   :disable="waiting"
                                   />
+
+
+                                  <!-- Button Text -->
+                                  <div
+                                    class="row items-center no-wrap absolute-full flex flex-center"
+                                  >
+                                    <span v-if="!waiting">Wait</span>
+                                    <span v-if="waiting" class="q-ml-xs">{{
+                                      formatTime(a)
+                                    }}</span>
+                                  </div>
+                                </q-btn>
+
+
                                 <q-btn
                                   v-if="currentServing && a == 0"
                                   label="Finished"
@@ -206,21 +236,18 @@
                           <q-item class="bg-grey-9 rounded-borders">
                             <q-item-section>
                               <h1
-                                class="q-mb-sm q-mt-sm text-center text-white"
+                                class="q-mb-sm q-mt-md text-center text-white loading-dots"
                               >
-                                No queue
+                                Queueing<span>.</span><span>.</span
+                                ><span>.</span>
                               </h1>
-                              <p class="text-center text-h6 text-white">
-                                ........
-                              </p>
+                              <h6 class="text-center text-white"></h6>
                             </q-item-section>
                           </q-item>
 
                           <q-item>
                             <q-item-section>
-                              <div class="q-gutter-y-xs q-my-sm">
-                                
-                              </div>
+                              <div class="q-gutter-y-xs q-my-sm"></div>
                             </q-item-section>
                           </q-item>
                         </div>
@@ -238,11 +265,11 @@
 </template>
 
 <script>
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
-  import { $axios, $notify,Dialog } from 'boot/app'
-  import { useQuasar  } from 'quasar'
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { $axios, $notify, Dialog } from "boot/app";
+import { useQuasar } from "quasar";
 
-  export default {
+export default {
   setup() {
   const queueList = ref([])
   const currentServing = ref(null)
@@ -466,12 +493,8 @@ let refreshInterval = null
       $notify('negative', 'error', 'Failed to set waiting customer.')
     }
   }
-
-  // Stop waiting process
-  const stopWait = () => {
-    waiting.value = false
-    clearInterval(waitTimer)
-  }
+            if (a.value > 0) {
+              waitProgress.value = waitProgress.value;
 
   // Computed property for paginated queue list
   const paginatedQueueList = computed(() => {
@@ -522,14 +545,33 @@ let refreshInterval = null
     paginatedQueueList,
     totalPages,
 
-    menuOpen,
-    toggleFullscreen,
-  }
-  }
-  }
-</script>
-
 <style>
+@keyframes queueDots {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.loading-dots span {
+  animation: queueDots 1.5s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 .full-progress {
   position: absolute;
   top: 0;
