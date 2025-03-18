@@ -69,17 +69,6 @@
                   <q-separator />
                   <q-item>
                     <q-item-section>
-                      <q-btn
-                        :disable="!isQueuelistEmpty || currentServing != null"
-                        class="bg-primary text-white"
-                        label="Reset Queue Number"
-                        @click="resetQueue()"
-                      />
-                    </q-item-section>
-                  </q-item>
-                  <q-separator />
-                  <q-item>
-                    <q-item-section>
                       <q-scroll-area class="my-scroll" style="height: 455px">
                         <q-list bordered separator>
                           <q-item
@@ -305,7 +294,6 @@ export default defineComponent({
       $q.fullscreen.toggle();
     };
 
-
     // Pagination
     const currentPage = ref(1);
     const itemsPerPage = 5;
@@ -429,36 +417,6 @@ export default defineComponent({
       }
     };
 
-    // Reset Queue Number
-    const resetQueue = async () => {
-      try {
-        $dialog
-          .dialog({
-            title: "Confirm",
-            message: "Are you sure do you want reset queue?",
-            cancel: true,
-            persistent: true,
-          })
-          .onOk(async () => {
-            const response = await $axios.post("/resetQueue");
-            $notify("positive", "check", response.data.message);
-            console.log(response.data.message);
-          })
-          .onDismiss(() => {
-            // console.log('I am triggered on both OK and Cancel')
-          });
-      } catch (error) {
-        console.error(error);
-        $notify("negative", "error", "Failed to set waiting customer.");
-      }
-    };
-
-    // Stop waiting process
-    const stopWait = () => {
-      waiting.value = false;
-      clearInterval(waitTimer);
-    };
-
     // Computed property for paginated queue list
     const paginatedQueueList = computed(() => {
       const start = (currentPage.value - 1) * itemsPerPage;
@@ -490,7 +448,6 @@ export default defineComponent({
       waiting,
       waitTime,
       beforeCancel,
-      resetQueue,
       isQueuelistEmpty,
 
       // Pagination

@@ -42,8 +42,10 @@ class TellerController extends Controller
                 "message" => "Successfully Created!"
             ]);
         } catch (\Exception $e) {
+            $message = $e->getMessage();
             return response()->json([
-                "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
+                'success' => false,
+                'message' => $message,
             ]);
         }
     }
