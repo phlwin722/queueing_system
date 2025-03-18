@@ -24,7 +24,7 @@ class Waiting_time extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['nullable', 'exists:waiting_times,id'],    
+            'id' => ['nullable', 'exists:waiting_times,id'],
             'Waiting_time' => ['required', 'regex:/^\d{1,2}:\d{2}$/'],
         ];
     }

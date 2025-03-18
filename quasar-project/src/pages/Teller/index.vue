@@ -3,6 +3,16 @@
     <q-header class="q-px-md">
       <q-toolbar>
         <!-- Fullscreen Toggle Button -->
+        <q-btn
+          flat
+          round
+          dense
+          class="q-mr-sm"
+          color="white"
+          style="min-width: 32px; width: 32px; height: 32px; position: absolute"
+          @click="$q.fullscreen.toggle()"
+          :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
+        />
 
         <q-space />
         <q-img
@@ -17,18 +27,23 @@
         <q-space />
 
         <!-- Avatar with Dropdown Menu -->
-        <q-avatar
-          size="40px"
-          class="cursor-pointer"
-          @click="menuOpen = !menuOpen"
-        >
-          <img src="https://cdn.quasar.dev/img/avatar.png" alt="User Avatar" />
-        </q-avatar>
+        <div class="row items-center justify-center q-gutter-md">
+          <p class="q-mb-none">Juan Dela Cruz</p>
+          <q-avatar
+            size="40px"
+            class="cursor-pointer"
+            @click="menuOpen = !menuOpen"
+          >
+            <img
+              src="https://cdn.quasar.dev/img/avatar.png"
+              alt="User Avatar"
+            />
+          </q-avatar>
+        </div>
 
         <q-menu
           v-model="menuOpen"
-          transition-show="scale"
-          transition-hide="scale"
+          no-parent-event
           anchor="bottom right"
           self="top right"
         >
@@ -123,7 +138,7 @@
                   <q-item v-if="currentServing">
                     <q-item-section>
                       <q-item-label class="text-h4 text-center text-primary"
-                        ><strong>Now Serving</strong></q-item-label
+                        ><strong>Current Queue</strong></q-item-label
                       >
                       <q-item-label caption class="text-center"
                         >The queue will be updated once someone is in
@@ -225,13 +240,12 @@
                           <q-item class="bg-grey-9 rounded-borders">
                             <q-item-section>
                               <h1
-                                class="q-mb-sm q-mt-sm text-center text-white"
+                                class="q-mb-sm q-mt-md text-center text-white loading-dots"
                               >
-                                No queue
+                                Queueing<span>.</span><span>.</span
+                                ><span>.</span>
                               </h1>
-                              <p class="text-center text-h6 text-white">
-                                ........
-                              </p>
+                              <h6 class="text-center text-white"></h6>
                             </q-item-section>
                           </q-item>
 
@@ -574,6 +588,32 @@ export default {
 </script>
 
 <style>
+@keyframes queueDots {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.loading-dots span {
+  animation: queueDots 1.5s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 .full-progress {
   position: absolute;
   top: 0;
