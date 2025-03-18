@@ -67,7 +67,8 @@
       <!-- Queue List -->
       <q-card
         class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-px-md q-pa-xs"
-        style="margin-bottom: 20px;"
+        style="margin-bottom: 20px"
+
       >
         <!-- Show "You are being served" if the customer is being served -->
         <div
@@ -371,6 +372,7 @@ export default {
       serviceType,
       assignedTeller,
       abbreviateName, // Expose the abbreviateName function
+
     };
   },
 };

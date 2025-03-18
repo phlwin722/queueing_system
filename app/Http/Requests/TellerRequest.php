@@ -26,11 +26,11 @@ class TellerRequest extends FormRequest
         $id = $this->id ?: 'NULL'; 
 
         return [
-            'teller_firstname' => ['required','regex:/^[a-zA-Z\s]+$/','unique:tellers,teller_firstname,' . $id . ',id'],
+            'teller_firstname' => ['required','regex:/^[a-zA-Z\s]+$/'],
             'teller_lastname' => ['required', 'regex:/^[a-zA-Z\s]+$/'],
-            'teller_username' => ['required'],
+            'teller_username' => ['required','unique:tellers,teller_username,' . $id . ',id'],
             'teller_password' => ['required'],
-          //  'types_id' => ['required'], 
+            'type_id' => ['required'], 
         ];
     }
     protected function failedValidation(Validator $validator){
@@ -43,4 +43,4 @@ class TellerRequest extends FormRequest
 
         throw new HttpResponseException(response()->json($errors, 422));
     }
-}
+}   

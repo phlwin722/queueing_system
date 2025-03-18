@@ -99,7 +99,7 @@ setup() {
 const queueList = ref([])
 const currentServing = ref(null)
 const waiting = ref(false)
-const waitTime = ref()
+const waitTime = ref(30)
 const prepared = ref()
 const originalWaitTime = ref(0); // Store the original wait time
 const isQueuelistEmpty = ref(false)
@@ -111,6 +111,13 @@ const a = ref()
 // Pagination
 const currentPage = ref(1)
 const itemsPerPage = 5
+
+// UI Functions
+const $q = useQuasar();
+    const menuOpen = ref(false);
+    const toggleFullscreen = () => {
+      $q.fullscreen.toggle();
+    };
 
 // Fetch queue data
 const fetchQueue = async () => {
@@ -345,7 +352,10 @@ return {
   currentPage,
   itemsPerPage,
   paginatedQueueList,
-  totalPages
+  totalPages,
+
+  menuOpen,
+  toggleFullscreen,
 }
 }
 }

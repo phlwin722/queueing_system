@@ -5,6 +5,7 @@ use App\Http\Controllers\QueueController;
 use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MailController;
+use App\Http\Controllers\TellercaterController;
 use App\Http\Controllers\Waiting_timeController;
 use App\Http\Controllers\TellerController;
 use App\Http\Controllers\TypeController;
@@ -30,6 +31,7 @@ Route::post('/createAdmin',[AdminController::class,'createAdmin'] );
 Route::post('/customer-join',[QueueController::class, 'joinQueue']);
 Route::post('/customer-list',[QueueController::class, 'getQueueList']);
 Route::post('/customer-leave',[QueueController::class, 'leaveQueue']);
+Route::post('/customer-fetch',[QueueController::class, 'customerData']);
 
 Route::post('/admin/queue-list', [QueueController::class, 'getCQueueList']);
 Route::post('/admin/cater', [QueueController::class, 'caterCustomer']);
@@ -52,12 +54,19 @@ Route::post('/tellers/create', [TellerController::class, 'create']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
 Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
+Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
+Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
+Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
+Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
+Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
+Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
 Route::post('/types/create', [TypeController::class, 'create']);
 Route::post('/types/update', [TypeController::class, 'update']);
 Route::post('/types/delete', [TypeController::class, 'delete']);
+Route::post('/types/dropdown', [TypeController::class, 'viewTypesDropdown']);
 
 
 // Window Routes
@@ -65,7 +74,7 @@ Route::post('/windows/index', [WindowController::class, 'index']);
 Route::post('/windows/create', [WindowController::class, 'create']);
 Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
-Route::post('/windows/form', [WindowController::class, 'form']);
+Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
 // adminside
 
 Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);

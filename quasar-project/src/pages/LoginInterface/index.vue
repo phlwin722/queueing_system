@@ -95,8 +95,8 @@ export default {
           if (data.result == 'teller') {
             // If login is successful, redirect to the admin dashboard
           $notify('positive','done',data.message)
-          sessionStorage.setItem('authTokenTeller',data.tellerInformation)
-          //router.push('/teller/Layout'); // Change the path to your desired route
+          sessionStorage.setItem('authTokenTeller', JSON.stringify(data.tellerInformation))
+          router.push('/teller/Layout'); // Change the path to your desired route
           }
         } 
 

@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -11,11 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('windows', function (Blueprint $table) {
+        Schema::create('tellers', function (Blueprint $table) {
             $table->id();
-            $table->string('window_name');
-            $table->foreignId('type_id')->constrained('types')->onDelete('cascade'); 
-            $table->foreignId('teller_id')->nullable()->constrained('tellers')->onDelete('set null'); 
+            $table->string('teller_firstname');
+            $table->string('teller_lastname');
+            $table->string('teller_username')->unique();
+            $table->string('teller_password');
+            $table->foreignId('type_id')
+            ->nullable()
+            ->constrained('types');
             $table->timestamps();
         });
     }
@@ -25,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('windows');
+        Schema::dropIfExists('tellers');
     }
 };

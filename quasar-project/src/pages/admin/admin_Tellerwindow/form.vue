@@ -1,340 +1,290 @@
 <template>
-    <q-dialog @hide="closeDialog" v-model="isShow">
+    <q-dialog 
+        v-model="icon"
+        @hide="closeDialog"
+    >
         <q-card>
-            <q-card-section class="row items-center q-pb-none">
-                <div class="text-h6">{{ formMode }} Window</div>
-                <q-space />
-                <q-btn icon="close" flat round dense v-close-popup />
-            </q-card-section>
+        <q-card-section class="row items-center q-pb-none">
+            <div class="text-h6 text-primary">{{formMode}} Window</div>
+        <q-space />
+            <q-btn icon="close" flat round dense v-close-popup style="width: 24px; height: 24px;"/>
+        </q-card-section>
 
-            <q-card-section>
-                <div class="row q-col-gutter-sm">
-                    <div class="col-12">
-                        <q-input 
-                            outlined 
-                            v-model="formData.name" 
-                            label="Window:" 
-                            dense
-                           
-                            hide-bottom-space
-                            :error="!!formError.name"
-                            :error-message="formError.name"
-                        />
-                    </div>
-
-                    <div class="col-12">
-                        <q-select
-                            outlined
-                            v-model="formData.teller_id"
-                            label="Assign Personnel"
-                            dense
-                            hide-bottom-space
-                            :error="!!formError.teller_id"
-                            :error-message="formError.teller_id"
-                            :options="tellers"
-                            option-value="value"
-                            option-label="label"
-                        />
-                    </div>
-
-                    <div class="col-12">
-                        <q-select
-                            outlined
-                            v-model="formData.type_id"
-                            label="Window Type"
-                            dense
-                            hide-bottom-space
-                            :error="!!formError.type_id"
-                            :error-message="formError.type_id"
-                            :options="types"
-                            option-value="value"
-                            option-label="label"
-                            
-                        />
-                    </div>
+        <q-card-section>
+            <div class="row q-col-gutter-md">
+                <div class="col-12">
+                    <q-input 
+                    outlined 
+                    v-model="formData.window_name" 
+                    label="Window name" 
+                    dense 
+                    hide-bottom-space
+                    :error="formError.hasOwnProperty('window_name')"
+                    :error-message="formError.window_name"
+                    />
                 </div>
-            </q-card-section>
+                <div class="col-12">
+                    <q-select 
+                    outlined 
+                    v-model="formData.type_id" 
+                    :options="windowTypeList" 
+                    label="Window type" 
+                    hide-bottom-space
+                    :error="formError.hasOwnProperty('type_id')"
+                    :error-message="formError.type_id"
+                    dense
+                    emit-value
+                    map-options
+                    />
+                </div>
+                <div class="col-12">
+                    <q-select 
+                    outlined 
+                    v-model="formData.teller_id"
+                    :options="personnelList"
+                    label="Assign personnel" 
+                    dense
+                    hide-bottom-space
+                    :error="formError.hasOwnProperty('teller_id')"
+                    :error-message="formError.teller_id"
+                    emit-value
+                    map-options
+                    />
+                </div>
+            </div>
+        </q-card-section>
 
-            <q-card-actions align="right">
-                <q-btn flat color="orange" label="Save" @click="handleSubmitForm" />
+        <q-card-actions class="flex justify-center">
+                <q-btn 
+                color="positive" 
+                label="Save" 
+                @click="handleSubmitForm" 
+                class="full-width" 
+                style="max-width: 150px;"
+                />
             </q-card-actions>
 
-            <q-inner-loading :showing="isLoading">
-                <q-spinner-gears size="50px" color="orange" />
-            </q-inner-loading>
+        <q-inner-loading
+        :showing="isLoading"
+        label="Please wait..."
+        label-class="text-teal"
+        label-style="font-size: 1.1em"
+        />
         </q-card>
     </q-dialog>
-</template>
+    </template>
 
-<script>
-import { defineComponent, ref } from "vue";
-import { $axios, $notify } from 'boot/app';
+    <script>
+    import { 
+    defineComponent ,
+    ref,
+    toRefs,
+    onMounted,
+    watch,
+    nextTick 
+    } from 'vue'
 
-export default defineComponent({
-    name: "WindowFormPage",
+    import {
+    $axios,
+    $notify
+    } from 'boot/app'
+
+    export default defineComponent({
+    name:'WindowFormPage',
     props: {
         url: String,
-        fetchWindows: Function,
-        rows: Array,
+        rows: Array
     },
-    setup(props) {
-        const tellers = ref([]);
-        const types = ref([]);
-        const isShow = ref(false);
-        const isLoading = ref(false);
-        const formData = ref({ id: null, name: '', teller_id: null, type_id: null });
-        const formError = ref({});
-        const formMode = ref('New');
+    setup(props){
+        const windowTypeList = ref([])
+        const personnelList = ref([])
+        const icon = ref(false)
+        const isLoading= ref(false)
+        const tempId = ref()
+        const tempTelId =ref()
+        const initFormData = ()=>   {
+            return{
+                id: null,
+                window_name: "",
+                type_id: "",
+                teller_id: "",
+            }
+        }
+        const formData = ref(initFormData())
+        const formError = ref({})
+        const formMode = ref('New')
+        
+        const closeDialog = ()=>{
+            icon.value=false
+            formData.value = initFormData()
+            formError.value = {}
+        }
 
-        // Fetch Dropdown Data
-        const fetchDropdownData = async () => {
+        
+        const showDialog = (mode, row) => {
+            formMode.value = mode === 'new' ? 'New' : 'Edit';
+            
+
+            if (mode === 'edit') {
+    
+                formData.value = Object.assign({},row)
+                tempTelId.value = row.pId
+                console.log(tempTelId.value)
+                fetchtypeId()
+                
+            }
+
+            icon.value = true;
+        };
+
+
+
+
+        const handleSubmitForm = async () =>{
+            const mode = formMode.value === 'New' ? '/create' : '/update'
+            isLoading.value = true
+            try{
+            if(mode === '/create'){
+                const {data} = await $axios.post(props.url +mode, formData.value)
+                const rows = toRefs(props).rows
+                rows.value.unshift(data.row)
+                $notify('positive', 'check', data.message)
+                closeDialog()
+            }else{
+                if (typeof formData.value.teller_id === 'string') {
+                    formData.value.teller_id = tempTelId.value
+                }else if(formData.value.teller_id === null){
+                    formData.value.teller_id = ''
+                }
+                console.log(formData.value.teller_id)
+                const {data} = await $axios.post(props.url +mode,{
+                    id: formData.value.id,
+                    window_name: formData.value.window_name,
+                    type_id: tempId.value,
+                    teller_id: formData.value.teller_id
+                })
+                const rows = toRefs(props).rows
+                const index = rows.value.findIndex(x => x.id === data.row.id)
+                if(index > -1){
+                rows.value[index] = Object.assign({}, data.row)
+                }
+                $notify('positive', 'check', data.message)
+                closeDialog()
+            } 
+            }catch(error){
+            console.log(error.response.status)
+            if(error.response.status === 422){
+                formError.value = error.response.data
+                
+            }else{
+                console.log('error',error)
+            }
+
+            }finally{
+            isLoading.value = false
+            }
+        }
+
+        const fetchWindowTypes = async () => { 
             try {
-                console.log('Fetching dropdown data...');
-                const { data } = await $axios.get(`${props.url}/form`);
-                console.log('Dropdown data fetched:', data);
-                tellers.value = data.tellers || [];
-                types.value = data.types || [];
+                const response = await $axios.post('/types/dropdown');
+                console.log(response.data); 
+
+                if (Array.isArray(response.data.rows)) {
+                    // Map id and section_name correctly
+                    windowTypeList.value = response.data.rows.map(sec => ({
+                        label: sec.name, // This is what the user sees
+                        value: sec.id // This is what will be stored
+                    }));
+
+                    console.log(windowTypeList.value); // Debugging output
+                } else {
+                    console.error('Expected "rows" to be an array, but got:', response.data.rows)
+                }   
+
             } catch (error) {
-                console.error('❌ Error fetching dropdown data:', error);
+                console.error('Error fetching sections:', error); 
             }
         };
 
-        // Show Dialog for Create/Edit
-        // Show Dialog for Create/Edit
-        const showDialog = async (mode, row) => {
-    formMode.value = mode === 'new' ? 'New' : 'Edit';
-    await fetchDropdownData();
+        
+        const fetchPersonnel = async () => { 
+            try {
+                if (!formData.value.type_id) return; // Stop if no grade level is selected
+                console.log(formData.value.type_id)
+                const response = await $axios.post('/tellers/dropdown', {
+                    type_id: formData.value.type_id // Send selected grade level
+                });
+                if (Array.isArray(response.data.rows)) {
+                    personnelList.value = response.data.rows; // Response is already in { label, value } format
+                } else {
+                    console.error('Expected "rows" to be an array, but got:', response.data.rows);
+                }
 
-    if (mode === 'edit') {
-        console.log("📝 Editing Window:", row);
-
-        formData.value = { 
-            id: row.id, 
-            name: row.name, 
-            teller_id: row.teller || null,
-            type_id: row.type || null 
+            } catch (error) {
+                console.error('Error fetching sections:', error); 
+            }
         };
-    } else {
-        // No need to fetch latest from backend, just use existing rows in the table
-        const windowCount = props.rows?.length ?? 0; 
-        const nextNumber = windowCount + 1;
+        
+        const fetchtypeId = async () => { 
+            try {
+                const response = await $axios.post('/tellers/dropdown', {
+                    type_id: formData.value.type_id // Send selected grade level
+                });
+                tempId.value = response.data.id_type
+                console.log(tempId.value)
 
-        formData.value = {
-            id: null,
-            name: `Window ${nextNumber}`, // ✅ Default "Window 1" when empty
-            teller_id: null,
-            type_id: null
-        };
-    
-    }
-
-    console.log("📢 Showing dialog...");
-    isShow.value = true; // ✅ Dialog will always show
-};
-
-
-        // Close Dialog
-        const closeDialog = () => {
-            isShow.value = false;
-            formData.value = { id: null, name: '', teller_id: null, type_id: null };
-            formError.value = {};
-        };
-        const validateForm = () => {
-    let errors = {};
-
-    if (!formData.value.teller_id) {
-        errors.teller_id = "The teller field is required.";
-    }
-
-    if (!formData.value.type_id) {
-        errors.type_id = "The type field is required.";
-    }
-    formError.value = errors;
-
-    return Object.keys(errors).length === 0; // Return true kung walang errors
-};
-
-        // Submit Form (Create or Update)
-        const handleSubmitForm = async () => {
-    isLoading.value = true;
-    formError.value = {}; // Reset errors
-
-    // **Check frontend validation**
-    if (!validateForm()) {
-        isLoading.value = false;
-        return; // Stop execution kung may errors
-    }
-
-    try {
-        const mode = formMode.value === 'New' ? '/create' : '/update';
-
-        const payload = {
-            id: formData.value.id,
-            name: formData.value.name,
-            teller_id: formData.value.teller_id?.value ?? null,
-            type_id: formData.value.type_id?.value ?? null
+            } catch (error) {
+                console.error('Error fetching sections:', error); 
+            }
         };
 
-        const { data } = await $axios.post(`${props.url}${mode}`, payload);
+        
+        watch(() => formData.value.type_id, async (newVal) => {
+            if (newVal) {
+                personnelList.value = []; // Clear previous personnel list
 
-        $notify('positive', 'done', data.message);
-        await props.fetchWindows(); // Refresh table data
-        closeDialog();
-    } catch (error) {
-        if (error.response?.status === 422 && error.response?.data?.errors) {
-            console.log("⚠️ Validation Errors:", error.response.data.errors);
-            
-            // Convert Laravel errors object into Vue-friendly format
-            formError.value = Object.fromEntries(
-                Object.entries(error.response.data.errors).map(([key, value]) => [key, value.join(', ')])
-            );
-        } else {
-            console.error('❌ Unexpected Error:', error);
-            $notify('negative', 'error', 'Something went wrong!');
-        }
-    } finally {
-        isLoading.value = false; // Stop loading spinner
-    }
-};
+                await fetchPersonnel(); // Fetch new personnel based on selected type
 
+                // Wait for Vue to update the list, then set the first teller
+                nextTick(() => {
+                    if (typeof formData.value.type_id === 'string') {
+                        formData.value.teller_id = formData.value.teller_id // Assign first teller's ID
+                        fetchtypeId()
+                    }else{
+                        if(personnelList.value.length>0){
+                            formData.value.teller_id = personnelList.value[0].value
+                            console.log("person: "+formData.value.teller_id)
+                            
+                        }else{
+                            formData.value.teller_id = null
+                            return
+                        }
+                        
+                        fetchtypeId()
+                    }
+                });
+            }
+        });
+            onMounted(() => {
+                fetchPersonnel()
+                fetchWindowTypes()
+            })
 
-
-        return {
-            isShow,
-            isLoading,
+        return{
+            props,
+            icon,
             showDialog,
-            closeDialog,
             formData,
             formError,
+            isLoading,
             formMode,
+            closeDialog,
             handleSubmitForm,
-            tellers, 
-            types
-        };
+            personnelList,
+            windowTypeList,
+
+        }
     }
-});
-
-// Only Validations Error Validations
-
-//:options="availableTypes"
-// import { defineComponent, ref, computed } from "vue";
-
-// export default defineComponent({
-//     name: "WindowFormPage",
-//     props: {
-//         url: String,
-//         fetchWindows: Function,
-//         rows: Array, // ✅ Windows List
-//     },
-//     setup(props) {
-//         const tellers = ref([]);
-//         const types = ref([]);
-//         const isShow = ref(false);
-//         const isLoading = ref(false);
-//         const formData = ref({ id: null, name: '', teller_id: null, type_id: null });
-//         const formError = ref({});
-//         const formMode = ref('New');
-
-//         // ✅ Compute Available Types (Filter Out Already Used Type IDs)
-//         const availableTypes = computed(() => {
-//             const usedTypeIds = props.rows?.map(w => w.type_id).filter(id => id !== null) || [];
-//             return types.value.filter(type => !usedTypeIds.includes(type.value));
-//         });
-
-//         // Fetch Dropdown Data
-//         const fetchDropdownData = async () => {
-//             try {
-//                 console.log('Fetching dropdown data...');
-//                 const { data } = await $axios.get(`${props.url}/form`);
-//                 console.log('Dropdown data fetched:', data);
-//                 tellers.value = data.tellers || [];
-//                 types.value = data.types || [];
-//             } catch (error) {
-//                 console.error('❌ Error fetching dropdown data:', error);
-//             }
-//         };
-
-//         // Show Dialog for Create/Edit
-//         const showDialog = async (mode, row) => {
-//             formMode.value = mode === 'new' ? 'New' : 'Edit';
-//             await fetchDropdownData();
-
-//             if (mode === 'edit') {
-//                 console.log("📝 Editing Window:", row);
-//                 formData.value = { 
-//                     id: row.id, 
-//                     name: row.name, 
-//                     teller_id: row.teller || null,
-//                     type_id: row.type || null 
-//                 };
-//             } else {
-//                 const windowCount = props.rows?.length ?? 0; 
-//                 const nextNumber = windowCount + 1;
-
-//                 formData.value = {
-//                     id: null,
-//                     name: `Window ${nextNumber}`,
-//                     teller_id: null,
-//                     type_id: null
-//                 };
-//             }
-
-//             console.log("📢 Showing dialog...");
-//             isShow.value = true;
-//         };
-
-//         // Close Dialog
-//         const closeDialog = () => {
-//             isShow.value = false;
-//             formData.value = { id: null, name: '', teller_id: null, type_id: null };
-//             formError.value = {};
-//         };
-
-//         // Submit Form (Create or Update)
-//         const handleSubmitForm = async () => {
-//             isLoading.value = true;
-//             try {
-//                 const mode = formMode.value === 'New' ? '/create' : '/update';
-
-//                 const payload = {
-//                     id: formData.value.id,
-//                     name: formData.value.name,
-//                     teller_id: formData.value.teller_id ? formData.value.teller_id.value : null,
-//                     type_id: formData.value.type_id ? formData.value.type_id.value : null
-//                 };
-
-//                 const { data } = await $axios.post(`${props.url}${mode}`, payload);
-
-//                 $notify('positive', 'done', data.message);
-//                 await props.fetchWindows(); // ✅ Refresh table data
-//                 closeDialog();
-//             } catch (error) {
-//                 if (error.response?.status === 422) {
-//                     console.log("Validation Errors:", error.response.data.errors);
-//                     formError.value = error.response.data.errors;
-//                 } else {
-//                     console.error('Error:', error);
-//                     $notify('negative', 'error', 'Something went wrong!');
-//                 }
-//             } finally {
-//                 isLoading.value = false;
-//             }
-//         };
-
-//         return {
-//             isShow,
-//             isLoading,
-//             showDialog,
-//             closeDialog,
-//             formData,
-//             formError,
-//             formMode,
-//             handleSubmitForm,
-//             tellers, 
-//             types,
-//             availableTypes // ✅ Use this instead of `types`
-//         };
-//     }
-// });
-
+    })
 </script>

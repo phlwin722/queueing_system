@@ -5,75 +5,62 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Waiting_time;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\WaitingTime;
 
 class Waiting_timeController extends Controller
 {
-    public function store (Waiting_time $request) {
+    public function store(Waiting_time $request)
+    {
         try {
-            // Insert the validated data into the database
-            $waitingTime = DB::table('waiting_times')->insert ([
-                "Waiting_time" => $request->Waiting_time,
-                "Prepared" => $request->Prepared,
-                "created_at" => now(),
-                "updated_at" => now(),
-            ]);
-    
+            list($minutes, $seconds) = explode(':', $request->Waiting_time);
+            $totalSeconds = ($minutes * 60) + $seconds;
+
+            // Check if a record already exists
+            $waitingTime = WaitingTime::first();
+            $message = '';
+
             if ($waitingTime) {
-                return response () -> json ([
-                    "message" => "Waiting time created successfully"
-                ], 201);
+                // Update the existing record
+                $waitingTime->update(["Waiting_time" => $totalSeconds]);
+                $message = "Waiting time updated successfully!";
+            } else {
+                // Create a new record
+                $waitingTime = WaitingTime::create(["Waiting_time" => $totalSeconds]);
+                $message = "Waiting time created successfully!";
             }
+
+            return response()->json([
+                "message" => $message,
+                "time" => [
+                    'id' => $waitingTime->id,
+                    'time' => $waitingTime->formatted_time
+                ]
+            ], 201);
         } catch (\Exception $e) {
-            // Catch any errors and return them as a response
-            $message = $e->getMessage();
-            return response()->json(
-                [
-                    "message"=> env('APP_DEBUG')? $message : 'Something went wrong'
-                ]);
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
+            ]);
         }
     }
 
-    public function index (Request $request) {
+    public function index(Request $request)
+    {
         try {
             // Fetch all waiting times from the database
             $waitingTimes = DB::table('waiting_times')->get();
 
-                // Return the data as a JSON response
-                return response()->json ([
-                    'message' => 'Data fetched successfully',
-                    'dataValue' => $waitingTimes
-                ]);
-        } catch (\Exception $e) {
-             // Catch any errors and return them as a response
-             $message = $e->getMessage();
-             return response()->json([
-                     "message"=> env('APP_DEBUG')? $message : 'Something went wrong'
-                 ]);
-        }
-    }
-
-    public function update (Waiting_time $request) {
-        try {
-            // Update existing record
-            $waitingTime = DB::table('waiting_times')
-                ->where('id', $request->id)->update([
-                    'Waiting_time' => $request->Waiting_time,
-                    'Prepared' => $request->Prepared,
-                    'updated_at' => now(),
-            ]);
-            $message = 'Waiting time updated successfully';
-
+            // Return the data as a JSON response
             return response()->json([
-                "message"=> $message
+                'message' => 'Data fetched successfully',
+                'dataValue' => $waitingTimes
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             // Catch any errors and return them as a response
             $message = $e->getMessage();
-            return response()->json(
-                [
-                    "message"=> env('APP_DEBUG')? $message : 'Something went wrong'
-                ]);
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $message : 'Something went wrong'
+            ]);
         }
     }
+
 }
