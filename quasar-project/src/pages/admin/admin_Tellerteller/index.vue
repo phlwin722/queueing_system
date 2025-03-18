@@ -227,7 +227,7 @@
 <style scoped>
 .custom-btn {
     min-width: 150px;
-    height: 40px;
+    height: 35px;
     text-align: center;
     }
 
