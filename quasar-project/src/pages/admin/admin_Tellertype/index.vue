@@ -1,6 +1,12 @@
 <template>
     <q-page >
         <div class="q-pa-md">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Teller Types" icon="category" to="/admin/teller/types" />
+            </q-breadcrumbs>
             <q-table
                 title="Types"
                 :rows="rows"
@@ -11,43 +17,68 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
+                class="q-mx-sm q-mt-md"
             >
-                <template v-slot:top>
-                    <div class="q-gutter-x-sm">
-                        <q-btn 
-                            color="primary" 
-                            label="Add Type"  
-                            @click="handleShowForm('new')"
-                        />
-                        <q-btn 
-                            color="red" 
-                            label="Delete Type(s)"  
-                            :disable="selected.length === 0"
-                            @click="beforeDelete(true)"
-                        />
+
+            <template v-slot:top>
+                <div class="row q-col-gutter-sm">
+                    <div class="col-auto">
+                    <q-btn 
+                        color="primary" 
+                        label="Add Type"  
+                        @click="handleShowForm('new')"
+                        class="custom-btn"
+                        glossy
+                    />
                     </div>
-                </template>
+                    <div class="col-auto">
+                    <q-btn 
+                        color="red" 
+                        label="Delete Type(s)"  
+                        :disable="selected.length === 0"
+                        @click="beforeDelete(true)"
+                        class="custom-btn"
+                        glossy
+                    />
+                    </div>
+                </div>
+            </template>
                 
                 <template v-slot:body-cell-actions="props">
                     <q-td :props="props">
                         <div class="q-gutter-x-sm"> 
                             <q-btn
                                 square 
-                                color="primary" 
+                                color="positive" 
                                 icon="edit" 
                                 dense
+                                glossy
+                                class="custom-btn2"
                                 @click="handleShowForm('edit', props.row)"
-                            />
+                            >
+                            <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="bg-secondary">
+                                Edit Window Type
+                            </q-tooltip>
+                            </q-btn>
+
                             <q-btn
                                 square 
                                 color="red" 
                                 icon="delete" 
                                 dense
+                                glossy
+                                class="custom-btn2"
                                 @click="beforeDelete(false, props.row)"
-                            />
+                            >
+                            <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
+                                Delete Window Type
+                            </q-tooltip>
+                            </q-btn>
                         </div>
                     </q-td>
                 </template>
+
+
             </q-table>
         </div>
         <my-form ref="dialogForm" :url="URL" :rows="rows" />
@@ -109,11 +140,12 @@
             const ids = isMany ? selected.value.map(x => x.id) : [row.id];
             const message = isMany 
                 ? 'Are you sure you want to delete these types?'
-                : `Are you sure you want to delete "${row.name}"?`;
+                : `Are you sure you want to delete "<strong style="color:#C10015;">${row.name}</strong>"?`;
     
             Dialog.create({
-                title: 'Confirm Delete',
+                title: '<span style="color: #1c5d99;">Confirm Delete</span>',
                 message: message,
+                html:true,
             }).onOk(() => {
                 handleDelete(ids);
             });
@@ -132,3 +164,17 @@
     }
     });
     </script>
+
+<style scoped>
+.custom-btn {
+    min-width: 150px;
+    height: 35px;
+    text-align: center;
+    }
+
+.custom-btn2 {
+    width: 35px; /* Adjust as needed */
+    margin-left: 5px;
+    border-radius: 5px;
+}
+</style>

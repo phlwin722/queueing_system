@@ -3,9 +3,15 @@
     <q-dialog @hide="closeDialog" v-model="isShow">
         <q-card>
             <q-card-section class="row items-center q-pb-none">
-                <div class="text-h6">{{ formMode }} Type</div>
+                <div class="text-h6 text-primary">{{ formMode }} Type</div>
                 <q-space />
-                <q-btn icon="close" flat round dense v-close-popup />
+                <q-btn icon="close" 
+                flat 
+                round 
+                dense 
+                v-close-popup
+                style="width: 24px; height: 24px;"
+                />
             </q-card-section>
 
             <q-card-section>
@@ -19,13 +25,20 @@
                             hide-bottom-space
                             :error="formError.hasOwnProperty('name')"
                             :error-message="formError.name"
+                            autofocus
                         />
                     </div>
                 </div>
             </q-card-section>
 
-            <q-card-actions align="right">
-                <q-btn flat color="orange" label="Save" @click="handleSubmitForm" />
+            <q-card-actions class="flex justify-center">
+                <q-btn 
+                color="positive" 
+                label="Save" 
+                @click="handleSubmitForm" 
+                class="full-width" 
+                style="max-width: 150px;"
+                />
             </q-card-actions>
 
             <q-inner-loading :showing="isLoading">

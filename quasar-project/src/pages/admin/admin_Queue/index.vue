@@ -99,7 +99,7 @@ setup() {
 const queueList = ref([])
 const currentServing = ref(null)
 const waiting = ref(false)
-const waitTime = ref()
+const waitTime = ref(30)
 const prepared = ref()
 const originalWaitTime = ref(0); // Store the original wait time
 const isQueuelistEmpty = ref(false)

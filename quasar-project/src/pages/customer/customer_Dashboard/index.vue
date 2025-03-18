@@ -8,6 +8,10 @@
       <q-card
         class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
+      <div>
+        Service Type: {{serviceType}} <br>
+        Personnel: {{assignedTeller}}
+      </div>
         <q-card-section class="text-center">
           <div class="column items-center">
             <div class="text-bold text-grey-7 text-caption">
@@ -19,7 +23,7 @@
           </div>
         </q-card-section>
         <q-separator />
-        <q-card-section class="row justify-around q-pa-md">
+        <q-card-section v-if="queuePosition > 0" class="row justify-around q-pa-md">
           <div class="column items-center">
             <div class="text-bold text-grey-7 text-caption">
               Currently Serving
@@ -29,9 +33,17 @@
             </div>
           </div>
           <div class="column items-center">
-            <div class="text-bold text-grey-7 text-caption">Your Position</div>
+            <div class="text-bold text-grey-7 text-caption">Your Remaining Position</div>
             <div class="text-h5 text-indigo-10 text-bold">
               {{ queuePosition || "N/A" }}
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else class="row justify-around q-pa-md">
+          <div class="column items-center">
+            <div class="text-center text-h5 text-bold text-positive q-mb-md">
+              You Are Currently Being Served
             </div>
           </div>
         </q-card-section>
@@ -56,15 +68,15 @@
       <q-card
         class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-px-md q-pa-xs"
         style="margin-bottom: 20px"
+
       >
         <!-- Show "You are being served" if the customer is being served -->
         <div
           v-if="isBeingServed"
           class="text-center text-bold text-positive q-mb-md"
         >
-          Your queue number is now being served ! <br />
           Please proceed to your designated window. <br />
-          If not your queueing number will be cancelled. Thank you!
+          If you do not, your queue number will be canceled. Thank you!
         </div>
 
         <!-- Show warning when customer position is <= 5 -->
@@ -95,7 +107,7 @@
             <q-item v-for="(customer, index) in queueList" :key="index">
               <q-item-section>
                 <q-item-label class="text-bold text-grey-8"
-                  >Queue: {{ customer.queue_number }}</q-item-label
+                  >Queue: {{ customer.queue_number + " " +  abbreviateName(customer.name)}}</q-item-label
                 >
               </q-item-section>
             </q-item>
@@ -134,6 +146,9 @@ export default {
 
     const queueList = ref([]);
     const currentQueue = ref(null);
+    const serviceType = ref();
+    const assignedTeller = ref("")
+    const typeId = ref();
     const queuePosition = ref(null);
     const isBeingServed = ref(false);
     const isWaiting = ref(false);
@@ -157,16 +172,27 @@ export default {
       Math.ceil(queueList.value.length / itemsPerPage)
     );
 
+        // Function to abbreviate name as per your requirement
+    const abbreviateName = (name) => {
+      const words = name.split(" "); // Split the name by spaces (e.g., "John Doe" -> ["John", "Doe"])
+      return words
+        .map((word) => {
+          // Take first letter of each word and append "..."
+          return word[0].toUpperCase() + "...";
+        })
+        .join(" "); // Join back the abbreviated words
+    };
+
     // Fetch queue list and current serving number
     const fetchQueueData = async () => {
       try {
-        const response = await $axios.post("/customer-list");
+        const response = await $axios.post("/customer-list",{token: tokenurl.value});
+        
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-
         currentQueue.value = response.data.current_serving;
-
+        console.log(response.data.current_serving)
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
         // Determine customer position in queue
@@ -176,16 +202,16 @@ export default {
           ) + 1;
 
         // If admin pressed "Wait" for the first in queue, start countdown
-        if (
-          response.data.waiting_customer === customerQueueNumber.value &&
-          queuePosition.value === 1
-        ) {
-          isWaiting.value = true;
-          startCountdown();
-        } else {
-          isWaiting.value = false;
-          clearInterval(countdownInterval); // Stop countdown if not waiting
-        }
+        // if (
+        //   response.data.waiting_customer === customerQueueNumber.value &&
+        //   queuePosition.value === 1
+        // ) {
+        //   isWaiting.value = true;
+        //   startCountdown();
+        // } else {
+        //   isWaiting.value = false;
+        //   clearInterval(countdownInterval); // Stop countdown if not waiting
+        // }
 
         if (isBeingServed.value) {
           queueList.value = queueList.value.filter(
@@ -201,8 +227,8 @@ export default {
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
           setTimeout(
-            () => router.push("/customer-register/" + token.value),
-            2000
+            () => router.push("/customer-thankyou/"),
+            3000
           ); // Delay redirect for a smooth transition
         }
         if (customer && customer.status === "cancelled") {
@@ -221,6 +247,20 @@ export default {
         console.error(error);
       }
     };
+
+    const getTableData = async () => {
+        try{
+            const { data } = await $axios.post('/customer-fetch',{token: tokenurl.value})
+            serviceType.value = data.row.name
+            assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
+            typeId.value = data.row.typeId
+            console.log(serviceType.value)
+            console.log(assignedTeller.value)
+            
+        }catch(error){
+            console.log(error);
+        }
+    }
 
     // Start countdown timer
     // const startCountdown = () => {
@@ -263,7 +303,7 @@ export default {
     // Function to check if the user's queue number is 5, then send an email notification
     const checkingQueueNumber = async () => {
       try {
-        const response = await $axios.post("/customer-list");
+        const response = await $axios.post("/customer-list",{token: tokenurl.value});
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
@@ -306,8 +346,10 @@ export default {
     };
 
     onMounted(() => {
+      getTableData();
       fetchQueueData();
       refreshInterval = setInterval(fetchQueueData, 5000); // Auto-refresh every 5 seconds
+      
     });
 
     onUnmounted(() => {
@@ -327,6 +369,10 @@ export default {
       checkingQueueNumber,
       emailData,
       customerId,
+      serviceType,
+      assignedTeller,
+      abbreviateName, // Expose the abbreviateName function
+
     };
   },
 };

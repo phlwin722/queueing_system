@@ -1,9 +1,14 @@
 <template>
     <q-page >
         <div class="q-pa-md">
-            <q-table
-                
-                title="Personel"
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Teller Personnel" icon="groups" to="/admin/teller/tellers" />
+            </q-breadcrumbs>
+            <q-table   
+                title="Personnel"
                 :rows="rows"
                 :columns="columns"
                 row-key="id"
@@ -12,43 +17,69 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
+                class="q-mx-sm q-mt-md"
             >
-                <template v-slot:top>
-                    <div class="q-gutter-x-sm">
-                        <q-btn 
-                            color="primary" 
-                            label="Add Personel"  
-                            @click="handleShowForm('new')"
-                        />
-                        <q-btn 
-                            color="red" 
-                            label="Delete Personel(s)"  
-                            :disable="selected.length === 0"
-                            @click="beforeDelete(true)"
-                        />
+
+            <template v-slot:top>
+                <div class="row q-col-gutter-sm">
+                    <div class="col-auto">
+                    <q-btn 
+                        color="primary" 
+                        label="Add Personnel"  
+                        @click="handleShowForm('new')"
+                        class="custom-btn"
+                        glossy
+                    />
                     </div>
-                </template>
+                    <div class="col-auto">
+                    <q-btn 
+                        color="red" 
+                        label="Delete Personnel(s)"  
+                        :disable="selected.length === 0"
+                        @click="beforeDelete(true)"
+                        class="custom-btn"
+                        glossy
+                    />
+                    </div>
+                </div>
+            </template>
+
     
-                <template v-slot:body-cell-actions="props">
-                    <q-td :props="props">
-                        <div class="q-gutter-x-sm"> 
-                            <q-btn
-                                square 
-                                color="primary" 
-                                icon="edit" 
-                                dense
-                                @click="handleShowForm('edit', props.row)"
-                            />
-                            <q-btn
-                                square 
-                                color="red" 
-                                icon="delete" 
-                                dense
-                                @click="beforeDelete(false, props.row)"
-                            />
-                        </div>
-                    </q-td>
-                </template>
+            <template v-slot:body-cell-actions="props"> 
+                <q-td :props="props">
+                    <div class="q-gutter-x-md"> 
+                    <q-btn 
+                        square 
+                        color="positive" 
+                        icon="edit" 
+                        dense 
+                        glossy
+                        class="custom-btn2"
+                        @click="handleShowForm('edit', props.row)" 
+                    >
+                    <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="bg-secondary">
+                        Edit Personnel
+                    </q-tooltip>
+                    </q-btn>
+                    <q-btn 
+                        square 
+                        color="red" 
+                        icon="delete" 
+                        dense 
+                        glossy
+                        class="custom-btn2"
+                        @click="beforeDelete(false, props.row)" 
+                    >
+                    <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
+                        Delete Personnel
+                    </q-tooltip>
+                    </q-btn>
+                    </div>
+                </q-td>
+            </template>
+
+
+
             </q-table>
         </div>
         <my-form
@@ -153,11 +184,12 @@
             const ids = isMany ? selected.value.map(x => x.id) : [row.id];
             const message = isMany 
                 ? 'Are you sure you want to delete these tellers?'
-                : `Are you sure you want to delete "${row.teller_firstname} ${row.teller_lastname}"?`;
+                : `Are you sure you want to delete "<strong style="color:#C10015;">${row.teller_firstname} ${row.teller_lastname}</strong>"?`;
     
             Dialog.create({
-                title: 'Confirm Delete',
+                title: '<span style="color: #1c5d99;">Confirm Delete</span>',
                 message: message,
+                html:true,
             }).onOk(() => {
                 handleDelete(ids);
             });
@@ -191,3 +223,17 @@
     }
     });
     </script>
+
+<style scoped>
+.custom-btn {
+    min-width: 150px;
+    height: 35px;
+    text-align: center;
+    }
+
+    .custom-btn2 {
+  width: 35px; /* Adjust as needed */
+  margin-left: 5px;
+  border-radius: 5px;
+}
+</style>

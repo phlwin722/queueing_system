@@ -87,9 +87,10 @@ class TellerController extends Controller
                 'row' => $newTeller 
             ]);
         } catch (\Exception $e) {
+            $message = $e->getMessage();
             return response()->json([
                 'success' => false,
-                'message' => "Something went wrong!",
+                'message' => $message,
             ]);
         }
     }
@@ -221,12 +222,7 @@ class TellerController extends Controller
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
             ]);
         }
-    }
-
-
-
-
-    
+    } 
 
     public function getData($id = null){
         
@@ -282,7 +278,8 @@ class TellerController extends Controller
                         'tellerFirstname' => $teller->teller_firstname,
                         'tellerLastname' => $teller->teller_lastname,
                         'tellerUsername' => $teller->teller_username,
-                        'token' => $token
+                        'token' => $token,
+                        'type_id' => $teller->type_id
                     ],
                     'message' => "Login sucessfull teller",
                     'result' => 'teller'

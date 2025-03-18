@@ -24,9 +24,14 @@ const routes = [
     component: () => import('pages/customer/customer_Register/index.vue')
   },
   {
+    path: '/customer-thankyou' ,
+    component: () => import('pages/customer/customer_Thankyou/index.vue')
+  },
+  {
     path: "/teller/Layout", // The login page path
     component: () => import("pages/Teller/index.vue"), // Dynamically load the login component
   },
+
   {
     path: "/admin/dashboard", // The main path for the admin dashboard
     component: () => import("layouts/MainLayout.vue"), // Load the MainLayout which contains a sidebar or header
