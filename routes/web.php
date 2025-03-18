@@ -10,6 +10,8 @@ use App\Http\Controllers\Waiting_timeController;
 use App\Http\Controllers\TellerController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\WindowController;
+use App\Http\Controllers\ResetWindowSettingController;
+use App\Http\Controllers\WindowArchiveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +77,16 @@ Route::post('/windows/create', [WindowController::class, 'create']);
 Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
 Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
+Route::post('/windows/reset-tellers', [WindowController::class, 'resetTellers']);
+
+//Reset-Window
+Route::post('/waiting_Time-fetch', [ResetWindowSettingController::class, 'fetch']);
+Route::post('/waiting_Time', [ResetWindowSettingController::class, 'store']);
+
+//window-Logs
+Route::post('/admin/window-logs', [WindowArchiveController::class, 'getArchivedWindows']);
+Route::post('/windows/reset-tellers', [WindowController::class, 'resetWindows']);
+
 // adminside
 
 Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
