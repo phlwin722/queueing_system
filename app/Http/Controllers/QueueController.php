@@ -88,22 +88,20 @@ class QueueController extends Controller
         ]);
     }
 
-    public function getCQueueList()
-{
-    $queue = Queue::where('status', 'waiting')
-        ->orderBy('created_at')
-        ->get();
+        public function getCQueueList()
+    {
+        $queue = Queue::where('status', 'waiting')
+            ->orderBy('created_at')
+            ->get();
 
-    $currentServing = Queue::where('status', 'serving')->first();
+        $currentServing = Queue::where('status', 'serving')->first();
 
-    return response()->json([
-        'queue' => $queue,
-        'current_serving' => $currentServing,
-        'queue_numbers' => $queue->pluck('queue_number') // Extracts all queue numbers
-    ]);
-}
-
-
+        return response()->json([
+            'queue' => $queue,
+            'current_serving' => $currentServing,
+            'queue_numbers' => $queue->pluck('queue_number') // Extracts all queue numbers
+        ]);
+    }
 
     public function caterCustomer(Request $request)
     {
