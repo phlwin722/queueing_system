@@ -183,7 +183,7 @@ const resetTeller = async () => {
             const ids = isMany ? selected.value.map(x => x.id) : [row.id];
             $dialog.dialog({
             title: 'Confirm',
-            message: 'Are you sure you want to delete these window?',
+            message: `Are you sure you want to delete ${row.window_name} ?`,
             cancel: true,
             persistent: true,
             ok: {
