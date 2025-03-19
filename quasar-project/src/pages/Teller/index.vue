@@ -43,9 +43,9 @@
 
         <q-menu
           v-model="menuOpen"
-          no-parent-event
           anchor="bottom right"
           self="top right"
+          no-parent-event
         >
           <q-list style="min-width: 150px">
             <q-item clickable v-close-popup @click="goToAccountSettings">
@@ -592,6 +592,8 @@ export default {
       itemsPerPage,
       paginatedQueueList,
       totalPages,
+      menuOpen,
+      toggleFullscreen,
     };
   },
 };
