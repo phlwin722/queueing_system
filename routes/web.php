@@ -44,6 +44,10 @@ Route::post('/send-fetchInfo',[QueueController::class,'fetchData']);
 Route::post('/admin/queue-logs', [QueueController::class, 'queueLogs']);
 Route::post('/admin/reports', [QueueController::class, 'fetchReports']);
 Route::post('/resetQueue', [QueueController::class, 'resetTodayQueueNumbers']);
+Route::post('/waitCustomer', [QueueController::class, 'WaitCustomer']);
+Route::post('/customer-check-waiting', [QueueController::class, 'checkWaitingCustomer']);
+Route::post('/waitCustomerReset', [QueueController::class, 'WaitingCustomerReset']);
+
 Route::post('/admin/waiting_Time',[Waiting_timeController::class,'store']);
 Route::post('/admin/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/admin/waiting_Time-update',[Waiting_timeController::class,'update']);

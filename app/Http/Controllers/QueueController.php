@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\DB;
 class QueueController extends Controller
 {
     public function joinQueue(QueueRequest $request)
-
     {
-        // Check if there are active (not finished) queue entries
-        
+        $type_id = $request->type_id;
 
+        // Check if there are active (not finished) queue entries
         $lastQueue = DB::table('queue_numbers')
+                        ->where('type_id', $type_id)
                         ->where('status', '!=', 'finished')
                         ->orderBy('queue_number', 'desc')
                         ->first();
@@ -35,10 +35,11 @@ class QueueController extends Controller
             'status' => 'waiting',
             'waiting_customer' => null
         ]);
-
+      
         DB::table('queue_numbers')->insert([
             'status' => 'waiting',
-            'queue_number' => $nextQueueNumber
+            'queue_number' => $nextQueueNumber,
+            'type_id' => $type_id
         ]);
         
         // Return response with queue ID and queue number
@@ -48,7 +49,6 @@ class QueueController extends Controller
             'queue_number' => $queue->queue_number
         ]);
     }
-
 
     // public function startWait(Request $request)
     // {
@@ -89,6 +89,7 @@ class QueueController extends Controller
             'current_serving' => $currentServing,
         ]);
     }
+    
 
 
     public function leaveQueue(Request $request)
@@ -264,10 +265,6 @@ class QueueController extends Controller
         ]);
     }
 
-    
-
-
-
     public function resetTodayQueueNumbers()
     {
         DB::table('queue_numbers')->update(['status' => 'finished']);
@@ -277,6 +274,53 @@ class QueueController extends Controller
 
         return response()->json([
             'message' => 'Queue has been reset. The next customer will start at queue number 1.'
+        ]);
+    }
+
+    public function WaitCustomer(Request $request)
+    {
+        $queue = Queue::find($request->id);
+        if ($queue) {
+            $queue->update([
+                'waiting_customer' => 'yes',
+                'updated_at' => now()
+            ]);
+        }
+      
+
+        return response()->json([
+            'message' => 'Customer is being waited.'
+            
+        ]);
+    }
+
+    public function checkWaitingCustomer(Request $request)
+    {
+        $queue = DB::table('queues')
+            ->where('token', $request->input('token'))
+            ->first();
+
+       
+
+        return response()->json([
+            'waiting_customer' => $queue->waiting_customer,
+           
+        ]);
+    }
+
+    
+    public function WaitingCustomerReset(Request $request)
+    {
+        $queue = Queue::find($request->id);
+        if ($queue) {
+            $queue->update([
+                'waiting_customer' => 'no',
+                'updated_at' => now()
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Customer is being waited.'
         ]);
     }
 

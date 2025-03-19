@@ -23,7 +23,7 @@
           </div>
         </q-card-section>
         <q-separator />
-        <q-card-section class="row justify-around q-pa-md">
+        <q-card-section v-if="queuePosition > 0" class="row justify-around q-pa-md">
           <div class="column items-center">
             <div class="text-bold text-grey-7 text-caption">
               Currently Serving
@@ -33,9 +33,17 @@
             </div>
           </div>
           <div class="column items-center">
-            <div class="text-bold text-grey-7 text-caption">Your Position</div>
+            <div class="text-bold text-grey-7 text-caption">Your Remaining Position</div>
             <div class="text-h5 text-indigo-10 text-bold">
               {{ queuePosition || "N/A" }}
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else class="row justify-around q-pa-md">
+          <div class="column items-center">
+            <div class="text-center text-h5 text-bold text-positive q-mb-md">
+              You Are Currently Being Served
             </div>
           </div>
         </q-card-section>
@@ -60,15 +68,20 @@
       <q-card
         class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-px-md q-pa-xs"
         style="margin-bottom: 20px"
+
       >
         <!-- Show "You are being served" if the customer is being served -->
         <div
           v-if="isBeingServed"
           class="text-center text-bold text-positive q-mb-md"
         >
-          Your queue number is now being served ! <br />
           Please proceed to your designated window. <br />
-          If not your queueing number will be cancelled. Thank you!
+          If you do not, your queue number will be canceled. Thank you!
+        </div>
+
+        <div v-if="isWaiting" class="text-center text-bold text-positive q-mb-md">
+            <p class="text-orange">Admin is waiting for you! Please proceed.</p>
+            <h2 class="text-red">{{ formatTime(remainingTime) }}</h2>
         </div>
 
         <!-- Show warning when customer position is <= 5 -->
@@ -99,7 +112,7 @@
             <q-item v-for="(customer, index) in queueList" :key="index">
               <q-item-section>
                 <q-item-label class="text-bold text-grey-8"
-                  >Queue: {{ customer.queue_number }}</q-item-label
+                  >Queue: {{ customer.queue_number + " " +  abbreviateName(customer.name)}}</q-item-label
                 >
               </q-item-section>
             </q-item>
@@ -117,7 +130,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick  } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
 
@@ -149,6 +162,11 @@ export default {
     let refreshInterval = null;
     let countdownInterval = null;
 
+    const waitTime = ref(30); // Default wait time (can be fetched dynamically)
+    const prepared = ref("")
+    const remainingTime = ref(0);
+    let waitInterval = null;
+
     const emailData = ref({
       // Email data list
       name: "",
@@ -163,6 +181,17 @@ export default {
     const totalPages = computed(() =>
       Math.ceil(queueList.value.length / itemsPerPage)
     );
+
+        // Function to abbreviate name as per your requirement
+    const abbreviateName = (name) => {
+      const words = name.split(" "); // Split the name by spaces (e.g., "John Doe" -> ["John", "Doe"])
+      return words
+        .map((word) => {
+          // Take first letter of each word and append "..."
+          return word[0].toUpperCase() + "...";
+        })
+        .join(" "); // Join back the abbreviated words
+    };
 
     // Fetch queue list and current serving number
     const fetchQueueData = async () => {
@@ -184,11 +213,10 @@ export default {
 
         // If admin pressed "Wait" for the first in queue, start countdown
         // if (
-        //   response.data.waiting_customer === customerQueueNumber.value &&
-        //   queuePosition.value === 1
-        // ) {
+        //   response.data.waiting_customer === 'yes') {
+        //   console.log(response.data.waiting_customer)
         //   isWaiting.value = true;
-        //   startCountdown();
+        //   startWait();
         // } else {
         //   isWaiting.value = false;
         //   clearInterval(countdownInterval); // Stop countdown if not waiting
@@ -208,8 +236,8 @@ export default {
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
           setTimeout(
-            () => router.push("/customer-register/" + token.value),
-            2000
+            () => router.push("/customer-thankyou/"),
+            3000
           ); // Delay redirect for a smooth transition
         }
         if (customer && customer.status === "cancelled") {
@@ -247,7 +275,7 @@ export default {
     // const startCountdown = () => {
     //   if (!countdownInterval) {
     //     countdown.value = 60
-    //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed.')
+    //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed. '+ formatTime(remainingTime))
 
     //     countdownInterval = setInterval(() => {
     //       if (countdown.value > 0) {
@@ -265,6 +293,89 @@ export default {
     //   localStorage.setItem('countdown_start_time', newStartTime);
     //   countdown.value = 60; // Reset to 60 seconds
     // };
+
+    // Fetch the waiting status from the backend
+const fetchWaitingStatus = async () => {
+    try {
+        const { data } = await $axios.post('/customer-check-waiting', { token: tokenurl.value });
+        console.log(data.waiting_customer)
+        if (data.waiting_customer === "yes") {
+            isWaiting.value = true;
+            startCountdown();
+        } else {
+            stopCountdown();
+        }
+    } catch (error) {
+        console.error("Error fetching waiting status:", error);
+    }
+};
+
+const fetchWaitingtime = async () => {
+    try {
+        const { data } = await $axios.post('/admin/waiting_Time-fetch');
+
+        if (data && data.dataValue && data.dataValue.length > 0) {
+            let fetchedTime = data.dataValue[0].Waiting_time;
+            let fetchedPrepared = data.dataValue[0].Prepared;
+
+            // Convert to seconds if "Minutes"
+            waitTime.value = fetchedPrepared === "Minutes" ? fetchedTime * 60 : fetchedTime;
+            prepared.value = fetchedPrepared;
+
+            console.log("Wait Time (seconds):", waitTime.value);
+            console.log("Prepared:", prepared.value);
+        } else {
+            console.log('No data available');
+        }
+    } catch (error) {
+        console.log('Error fetching data:', error);
+    }
+};
+
+
+const startCountdown = () => {
+    if (localStorage.getItem("waitStartTime"+tokenurl)) {
+        // Calculate remaining time after refresh
+        const startTime = parseInt(localStorage.getItem("waitStartTime"+tokenurl));
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        remainingTime.value = Math.max(waitTime.value - elapsedTime, 0);
+    } else {
+        // First time starting countdown
+        localStorage.setItem("waitStartTime"+tokenurl, Date.now());
+        remainingTime.value = waitTime.value;
+    }
+
+    if (waitInterval) clearInterval(waitInterval);
+
+    waitInterval = setInterval(() => {
+        if (remainingTime.value > 0) {
+            remainingTime.value--;
+        } else {
+            stopCountdown();
+        }
+    }, 1000);
+};
+
+const stopCountdown = () => {
+    isWaiting.value = false;
+    clearInterval(waitInterval);
+    localStorage.removeItem("waitStartTime"+tokenurl); // Clear stored time
+};
+
+const formatTime = (seconds) => {
+  if(seconds == null){
+      return `.....`;
+    }
+  if (seconds >= 60) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes} m ${remainingSeconds} s`;
+  }
+  return `${seconds} s`;
+};
+
+
+  
 
     // Leave the queue
     const leaveQueue = async () => {
@@ -329,14 +440,22 @@ export default {
     onMounted(() => {
       getTableData();
       fetchQueueData();
+      fetchWaitingtime();
       refreshInterval = setInterval(fetchQueueData, 5000); // Auto-refresh every 5 seconds
+      fetchWaitingStatus();
+      setInterval(fetchWaitingStatus, 5000);
       
     });
+  
 
-    onUnmounted(() => {
-      clearInterval(refreshInterval); // Stop auto-refresh
-      clearInterval(countdownInterval); // Stop countdown
-    });
+
+
+
+
+    // onUnmounted(() => {
+    //   clearInterval(refreshInterval); // Stop auto-refresh
+    //   clearInterval(countdownInterval); // Stop countdown
+    // });
 
     return {
       customerQueueNumber,
@@ -352,6 +471,11 @@ export default {
       customerId,
       serviceType,
       assignedTeller,
+      formatTime,
+      remainingTime,
+      abbreviateName, // Expose the abbreviateName function
+
+
     };
   },
 };

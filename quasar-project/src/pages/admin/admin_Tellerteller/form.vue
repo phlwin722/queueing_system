@@ -3,7 +3,7 @@
         <q-card>
             <!-- Dialog Header -->
             <q-card-section class="row items-center q-pb-none">
-                <div class="text-h6 text-warning">{{ formMode }} Personnel</div>
+                <div class="text-h6 text-primary">{{ formMode }} Personnel</div>
                 <q-space />
                 <q-btn
                 icon="close" 
@@ -27,6 +27,7 @@
                             hide-bottom-space
                             :error="formError.hasOwnProperty('teller_firstname')"
                             :error-message="formError.teller_firstname"
+                            autofocus
                         />
                     </div>
                     <div class="col-12">

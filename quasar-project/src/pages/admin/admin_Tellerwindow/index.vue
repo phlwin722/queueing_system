@@ -2,71 +2,86 @@
 <template>
     <q-page>
         <div class="q-pa-md">
-            <q-table
-                title="Window"
-                :rows="filteredRows"
-                :columns="columns"
-                row-key="id"
-                virtual-scroll
-                v-model:pagination="pagination"
-                selection="multiple"
-                v-model:selected="selected"
-                :rows-per-page-options="[0]"
+            <q-breadcrumbs 
                 class="q-mx-sm"
-            >
-                <template v-slot:top>
-                    <div class="row q-col-gutter-sm">
-                        <div class="col-auto">
-                            <q-btn 
-                                color="primary" 
-                                label="Add Window"  
-                                @click="handleShowForm('new')"
-                                class="custom-btn"
-                            />
-                        </div>
-                        <div class="col-auto">
-                            <q-btn 
-                                color="red" 
-                                label="Delete Record(s)"  
-                                :disable="selected.length === 0"
-                                @click="beforeDelete(true)"
-                                class="custom-btn"
-                            />
-                        </div>
-                        <div class="col-auto">
-                            <q-btn 
-                                color="warning" 
-                                label="Reset Window"  
-                                @click="beforeReset(true)"
-                                class="custom-btn"
-                            />
-                        </div>
-                    </div>
-                </template>
+                >
+                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Teller Window" icon="computer" to="/admin/teller/window" />
+            </q-breadcrumbs>
 
-                <template v-slot:body-cell-actions="props">
-                    <q-td :props="props">
-                        <div class="q-gutter-x-md"> 
-                            <q-btn 
-                                square 
-                                color="positive" 
-                                icon="edit"
-                                dense
-                                class="action-btn"
-                                @click="handleShowForm('edit', props.row)" 
-                            />
-                            <q-btn 
-                                square 
-                                color="negative" 
-                                icon="delete"
-                                dense
-                                class="action-btn"
-                                @click="beforeDelete(false, props.row)"
-                            />
-                        </div>
-                    </q-td>
-                </template>
-            </q-table>
+        <q-table
+            title="Window"
+            :rows="filteredRows"
+            :columns="columns"
+            row-key="id"
+            virtual-scroll
+            v-model:pagination="pagination"
+            selection="multiple"
+            v-model:selected="selected"
+            :rows-per-page-options="[0]"
+            class="q-mx-sm q-mt-md"
+        >
+
+        <template v-slot:top>
+                <div class="row q-col-gutter-sm">
+                    <div class="col-auto">
+                    <q-btn 
+                        color="primary" 
+                        label="Add Window"  
+                        @click="handleShowForm('new')"
+                        class="custom-btn"
+                        glossy
+                    />
+                    </div>
+                    <div class="col-auto">
+                    <q-btn 
+                        color="red" 
+                        label="Delete Record(s)"  
+                        :disable="selected.length === 0"
+                        @click="beforeDelete(true)"
+                        class="custom-btn"
+                        glossy
+                    />
+                    </div>
+                </div>
+            </template>
+
+        <template v-slot:body-cell-actions="props">
+            <q-td :props="props">
+                <div class="q-gutter-x-md"> 
+                <q-btn 
+                square 
+                color="positive" 
+                icon="edit"
+                dense
+                glossy
+                class="action-btn"
+                @click="handleShowForm('edit', props.row)" 
+                >
+                <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="bg-secondary">
+                    Edit Window
+                </q-tooltip>
+                </q-btn>
+
+                <q-btn 
+                square 
+                color="negative" 
+                icon="delete"
+                dense
+                glossy
+                class="action-btn"
+                @click="beforeDelete(false,props.row)"
+                >
+                <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
+                    Delete Window
+                </q-tooltip>
+                </q-btn>
+                </div>
+            </q-td>
+        </template>
+
+
+        </q-table>
         </div>
     </q-page>
     <my-form ref="dialogForm" :url="URL" :rows="rows" />
@@ -90,11 +105,45 @@ export default defineComponent({
         let intervalId = null;
 
         const columns = ref([
-            { name: 'window_name', label: 'Window Name', align: 'left', field: 'window_name', sortable: true },
-            { name: 'type_id', label: 'Window Type', align: 'left', field: 'type_id', sortable: true },
-            { name: 'teller_id', label: 'Assigned Personnel', align: 'left', field: 'teller_id', sortable: true },
-            { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' },
-            { name: 'actions', label: 'Actions', align: 'left' }
+            
+    
+        {
+            name: 'window_name',
+            label: 'Window Name',
+            align: 'left',
+            field: 'window_name',
+            sortable: true
+        },
+        {
+            name: 'type_id',
+            label: 'Window Type',
+            align: 'left',
+            field: 'type_id',
+            sortable: true
+        },
+        {
+            name: 'teller_id',
+            label: 'Assigned Personnel',
+            align: 'left',
+            field: 'teller_id', 
+            sortable: true
+        },
+
+        {
+            name: 'actions',
+            label: 'Actions',
+            align: 'left',
+        },
+
+
+        /* {
+
+            name: 'pId',
+            align: 'left',
+            field: 'pId', 
+            sortable: true,
+            classes: 'hidden',
+        }, */
         ]);
 
         const filteredRows = computed(() => {
@@ -139,6 +188,23 @@ export default defineComponent({
         const setupAutoRefresh = () => {
         if (intervalId) {
             clearInterval(intervalId);
+
+        const beforeDelete = (isMany, row) => {
+        const ids = isMany ? selected.value.map(x => x.id) : [row.id]
+        console.log("ids",ids)
+        const message = isMany
+            ? 'Are you sure you want to delete this Records ?'
+            : 'Are you sure you want to delete this specific record?'+'  <br> <strong style="color:#F2C037;">Window name:</strong> <span style="color:#C10015; font-weight: bold;">' +row.window_name
+
+            Dialog.create({
+            title: '<span style="color: #1c5d99;">Confirm Delete</span>',
+            message: message,
+            html: true,
+        }).onOk(() =>{
+            handleDelete(ids)
+            
+        })
+
         }
 
         let refreshRate = resetMinutes.value * 60 * 1000;
@@ -176,10 +242,6 @@ const resetTeller = async () => {
         $notify('negative', 'error', error.response?.data?.message || 'Failed to reset tellers');
     }
 };
-
-
-
-
         const beforeDelete = (isMany, row) => {
             const ids = isMany ? selected.value.map(x => x.id) : [row.id];
             const message = isMany
@@ -236,12 +298,15 @@ const resetTeller = async () => {
 <style scoped>
 .custom-btn {
     min-width: 150px;
-    height: 40px;
+    height: 35px;
     text-align: center;
 }
 
-.action-btn {
-    width: 60px;
-    margin-left: 5px;
+    .action-btn {
+        width: 35px; /* Adjust as needed */
+  margin-left: 5px;
+  border-radius: 5px;
 }
+
 </style>
+
