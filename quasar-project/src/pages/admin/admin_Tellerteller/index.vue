@@ -96,6 +96,7 @@
     import { defineComponent, ref } from 'vue';
     import { $axios, $notify, Dialog } from 'boot/app';
     import MyForm from 'pages/admin/admin_Tellerteller/form.vue';
+import { useQuasar } from 'quasar';
     
     const URL = "/tellers";
     
@@ -103,6 +104,7 @@
     name: 'TellerIndexPage',
     components: { MyForm },
     setup() {
+        const $dialog = useQuasar();
         const rows = ref([]);
         const columns = ref([
             { 
@@ -182,17 +184,31 @@
     
         const beforeDelete = (isMany, row) => {
             const ids = isMany ? selected.value.map(x => x.id) : [row.id];
-            const message = isMany 
-                ? 'Are you sure you want to delete these tellers?'
-                : `Are you sure you want to delete "<strong style="color:#C10015;">${row.teller_firstname} ${row.teller_lastname}</strong>"?`;
-    
-            Dialog.create({
-                title: '<span style="color: #1c5d99;">Confirm Delete</span>',
-                message: message,
-                html:true,
-            }).onOk(() => {
+          
+            $dialog.dialog({
+            title: 'Confirm',
+            message: 'Are you sure you want to delete these personel?',
+            cancel: true,
+            persistent: true,
+            ok: {
+              label: 'Yes',
+              color: 'primary',
+              unelevated: true,
+              style: 'width: 125px;',
+            },
+            cancel: {
+              label: 'Cancel',
+              color: 'red-8',
+              unelevated: true,
+              style: 'width: 125px;',
+            },
+            style: 'border-radius: 12px; padding: 16px;',
+          }).onOk(async () => {
                 handleDelete(ids);
-            });
+          }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          });
+    
         };
     
         const types = ref([]);

@@ -28,7 +28,7 @@
 
         <!-- Avatar with Dropdown Menu -->
         <div class="row items-center justify-center q-gutter-md">
-          <p class="q-mb-none">Juan Dela Cruz</p>
+          <p class="q-mb-none">{{`${tellerInformation?.tellerFirstname || ''} ${tellerInformation?.tellerLastname || 'Loading'}`}}</p>
           <q-avatar
             size="40px"
             class="cursor-pointer"
@@ -79,17 +79,6 @@
                       <q-item-label class="text-h4 text-center"
                         >Waiting Queue</q-item-label
                       >
-                    </q-item-section>
-                  </q-item>
-                  <q-separator />
-                  <q-item>
-                    <q-item-section>
-                      <q-btn
-                        :disable="!isQueuelistEmpty || currentServing != null"
-                        class="bg-primary text-white"
-                        label="Reset Queue Number"
-                        @click="resetQueue()"
-                      />
                     </q-item-section>
                   </q-item>
                   <q-separator />
@@ -297,14 +286,15 @@ export default {
     // CONTAINTER OF TELLER INFORMATION
     const tellerInformation = ref({
       id: "",
-      teller_firstname: "",
-      teller_lastname: "",
+      tellerFirstname: "",
+      tellerLastname: "",
       type_id: "",
     });
 
     // Fetch queue data
     const fetchQueue = async () => {
       try {
+      
         console.log("tellerid: " + tellerInformation.value.type_id);
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
