@@ -78,8 +78,45 @@
                             :options="categoriesList"
                             option-label="name"
                             option-value="id"
-                            
                         />    
+                    </div>
+                    <div class="col-12">
+                        <q-file 
+                        outlined
+                        clearable
+                        dense
+                        v-model="selectedFile" 
+                        label="Attach your image" 
+                        accept="image/*"
+                        @update:model-value="previewImage"
+                        >
+                            <template v-slot:prepend>
+                            <q-icon name="attach_file" />
+                            </template>
+                            <template v-slot:append>
+                            <q-icon name="preview" class="cursor-pointer" @click="showPreview = true"/>
+                            </template>
+                        </q-file>
+
+                        <!-- Image Preview Dialog -->
+                        <q-dialog v-model="showPreview">
+    <q-card class="q-pa-md" style="width: 175px; max-width: 35vw;">
+        <q-card-section class="row justify-center">
+            <q-img
+                v-if="imageUrl"
+                :src="imageUrl"
+                spinner-color="primary"
+                style="width: 100%; max-height: 500px; object-fit: contain; border-color: black; border-width: 1px; border-style: solid;"
+            />
+            <p v-else class="text-grey">No image selected</p>
+        </q-card-section>
+        <q-card-actions align="center">
+            <q-btn flat label="Close" v-close-popup />
+        </q-card-actions>
+    </q-card>
+</q-dialog>
+
+
                     </div>
                 </div>
             </q-card-section>
@@ -95,6 +132,7 @@
                 />
             </q-card-actions>
 
+
             <!-- Loading Spinner -->
             <q-inner-loading :showing="isLoading">
                 <q-spinner-gears size="50px" color="orange" />
@@ -102,6 +140,8 @@
         </q-card>
     </q-dialog>
 </template>
+
+
 
 <script>
 import { defineComponent, ref,  toRefs } from "vue";
@@ -118,6 +158,12 @@ export default defineComponent({
         const isLoading = ref(false);
         const formMode = ref('New');
         const categoriesList = ref([]);
+
+        // Image preview variables
+        const selectedFile = ref(null);
+        const imageUrl = ref(null);
+        const showPreview = ref(false);
+
 
         const initFormData = () => ({
             id: null,
@@ -145,20 +191,29 @@ export default defineComponent({
             isShow.value = false;
             formData.value = initFormData();
             formError.value = {};
+            selectedFile.value = null;
+            imageUrl.value = null;
         };
 
         const showDialog = async (mode, row) => {
             formMode.value = mode === 'new' ? 'New' : 'Edit';
-         
 
             if(mode === 'edit'){
             formData.value = Object.assign({},row)
-          }
+            }
             
             isShow.value = true;
             fetchCategories();
         };
 
+        // Image preview logic
+        const previewImage = (file) => {
+            if (file) {
+                imageUrl.value = URL.createObjectURL(file);
+            } else {
+                imageUrl.value = null;
+            }
+        };
         // const handleSubmitForm = async () => {
             
         //     isLoading.value = true;
@@ -237,7 +292,11 @@ export default defineComponent({
             formError,
             formMode,
             handleSubmitForm,
-            categoriesList
+            categoriesList,
+            selectedFile,
+            imageUrl,
+            showPreview,
+            previewImage
         };
     }
 });

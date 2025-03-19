@@ -2,6 +2,12 @@
 <template>
     <q-page>
         <div class="q-pa-md">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Teller Window" icon="category" to="/admin/teller/window" />
+            </q-breadcrumbs>
             <q-table
                 title="Window"
                 :rows="filteredRows"
@@ -12,7 +18,7 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
-                class="q-mx-sm"
+                class="q-mx-sm q-mt-md"
             >
                 <template v-slot:top>
                     <div class="row q-col-gutter-sm">
@@ -22,6 +28,7 @@
                                 label="Add Window"  
                                 @click="handleShowForm('new')"
                                 class="custom-btn"
+                                glossy
                             />
                         </div>
                         <div class="col-auto">
@@ -31,6 +38,7 @@
                                 :disable="selected.length === 0"
                                 @click="beforeDelete(true)"
                                 class="custom-btn"
+                                glossy
                             />
                         </div>
                         <div class="col-auto">
@@ -39,6 +47,7 @@
                                 label="Reset Window"  
                                 @click="beforeReset(true)"
                                 class="custom-btn"
+                                glossy=""
                             />
                         </div>
                     </div>
@@ -52,6 +61,7 @@
                                 color="positive" 
                                 icon="edit"
                                 dense
+                                glossy
                                 class="action-btn"
                                 @click="handleShowForm('edit', props.row)" 
                             />
@@ -60,6 +70,7 @@
                                 color="negative" 
                                 icon="delete"
                                 dense
+                                glossy
                                 class="action-btn"
                                 @click="beforeDelete(false, props.row)"
                             />
@@ -93,7 +104,7 @@ export default defineComponent({
             { name: 'window_name', label: 'Window Name', align: 'left', field: 'window_name', sortable: true },
             { name: 'type_id', label: 'Window Type', align: 'left', field: 'type_id', sortable: true },
             { name: 'teller_id', label: 'Assigned Personnel', align: 'left', field: 'teller_id', sortable: true },
-            { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' },
+            /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
             { name: 'actions', label: 'Actions', align: 'left' }
         ]);
 
@@ -236,12 +247,13 @@ const resetTeller = async () => {
 <style scoped>
 .custom-btn {
     min-width: 150px;
-    height: 40px;
+    height: 35px;
     text-align: center;
 }
 
 .action-btn {
-    width: 60px;
+    width: 35px;
     margin-left: 5px;
+    border-radius: 5px;
 }
 </style>
