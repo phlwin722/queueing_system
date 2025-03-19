@@ -263,6 +263,11 @@ export default defineComponent({
           link: "/admin/customer-logs",
         },
         {
+          title: "Window Logs",
+          icon: "upload_file", 
+          link: "/admin/window-logs",
+        },
+        {
           title: "Reports",
           icon: "bar_chart", 
           link: "/admin/reports",
@@ -281,7 +286,11 @@ export default defineComponent({
                 icon: "hourglass_top", 
                 link: "/admin/waiting-time",
               },
-              
+              { 
+                title: "Reset Window",
+                icon: "reset_tv", 
+                link: "/admin/reset-window",
+              },
             ],
           },
       ];

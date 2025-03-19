@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\WindowRequest;
 use App\Models\Window;
+use App\Models\Type;   
+use App\Models\Teller;
+use App\Models\WindowArchive;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WindowController extends Controller
 {
@@ -178,5 +182,43 @@ class WindowController extends Controller
         }
         return $res;
     
+        
     }
+
+    public function resetTellers()
+    {
+        try {
+            Window::query()->update(['teller_id' => null]);
+    return response()->json(['message' => 'All tellers reset successfully!']);
+} catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to reset tellers.'], 500);
+        }
+    }
+
+    public function resetWindows()
+{
+    Log::info("Reset Windows Function Triggered");
+    try {
+        $windows = Window::all();
+
+        foreach ($windows as $window) {
+            $typeName = Type::find($window->type_id)->name ?? 'N/A';
+            $tellerName = Teller::find($window->teller_id)->name ?? 'N/A';
+
+            WindowArchive::create([
+                'window_name' => $window->window_name,
+                'type_name'   => $typeName,
+                'teller_name' => $tellerName,
+                'archived_at' => now(),
+            ]);
+        }
+
+        Window::query()->update(['teller_id' => null]);
+
+        return response()->json(['message' => 'Windows reset successfully']);
+    } catch (\Exception $e) {
+        Log::error("Error resetting windows: " . $e->getMessage());
+        return response()->json(['message' => 'Reset failed'], 500);
+    }
+}
 }
