@@ -220,6 +220,7 @@ export default {
     const isWaiting = ref(false);
     const hasNotified = ref(false); // Prevents repeat notifications
     const countdown = ref(); // 60 seconds countdown
+    const tellerId = ref()
     let refreshInterval = null;
     let countdownInterval = null;
 
@@ -254,6 +255,12 @@ export default {
         .join(" "); // Join back the abbreviated words
     };
 
+    const putTellerId = async () => {
+      await $axios.post("/update-teller_id",{
+        token: tokenurl.value,
+        teller_id : tellerId.value
+      });
+    }
     // Fetch queue list and current serving number
     const fetchQueueData = async () => {
       try {
@@ -307,7 +314,7 @@ export default {
             "The Admin cancelled your queueing number."
           );
           setTimeout(
-            () => router.push("/customer-register/" + token.value),
+            () => router.push("/customer-thankyou/"),
             2000
           );
         }
@@ -316,23 +323,19 @@ export default {
         console.error(error);
       }
     };
-
+    
     const getTableData = async () => {
-      try {
-        const { data } = await $axios.post("/customer-fetch", {
-          token: tokenurl.value,
-        });
-        serviceType.value = data.row.name;
-        assignedTeller.value =
-          data.row.teller_firstname + " " + data.row.teller_lastname;
-        typeId.value = data.row.typeId;
-        console.log(serviceType.value);
-        console.log(assignedTeller.value);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
+        try{
+            const { data } = await $axios.post('/customer-fetch',{token: tokenurl.value})
+            serviceType.value = data.row.name
+            assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
+            typeId.value = data.row.typeId
+            tellerId.value = data.row.id
+            putTellerId()
+        }catch(error){
+            console.log(error);
+        }
+    }
     // Start countdown timer
     // const startCountdown = () => {
     //   if (!countdownInterval) {
@@ -358,21 +361,23 @@ export default {
 
     // Fetch the waiting status from the backend
     const fetchWaitingStatus = async () => {
-      try {
-        const { data } = await $axios.post("/customer-check-waiting", {
-          token: tokenurl.value,
-        });
-        console.log(data.waiting_customer);
-        if (data.waiting_customer === "yes") {
-          isWaiting.value = true;
-          startCountdown();
-        } else {
-          stopCountdown();
-        }
+    try {
+          const { data } = await $axios.post('/customer-check-waiting', { token: tokenurl.value });
+          console.log(data.waiting_customer);
+
+          if (data.waiting_customer === "yes") {
+              if (!isWaiting.value) { // Start countdown only if not already waiting
+                  isWaiting.value = true;
+                  startCountdown();
+              }
+          } else {
+              stopCountdown();
+          }
       } catch (error) {
-        console.error("Error fetching waiting status:", error);
+          console.error("Error fetching waiting status:", error);
       }
-    };
+  };
+
 
     const fetchWaitingtime = async () => {
       try {
@@ -386,9 +391,6 @@ export default {
           waitTime.value =
             fetchedPrepared === "Minutes" ? fetchedTime * 60 : fetchedTime;
           prepared.value = fetchedPrepared;
-
-          console.log("Wait Time (seconds):", waitTime.value);
-          console.log("Prepared:", prepared.value);
         } else {
           console.log("No data available");
         }
@@ -397,30 +399,51 @@ export default {
       }
     };
 
-    const startCountdown = () => {
-      if (localStorage.getItem("waitStartTime" + tokenurl)) {
-        // Calculate remaining time after refresh
-        const startTime = parseInt(
-          localStorage.getItem("waitStartTime" + tokenurl)
-        );
-        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-        remainingTime.value = Math.max(waitTime.value - elapsedTime, 0);
+  const startCountdown = () => {
+      if (remainingTime.value > 0) return; // Prevent resetting the countdown
+      
+      const storedTime = localStorage.getItem("waitStartTime" + tokenurl.value);
+
+      if (storedTime) {
+          // Calculate remaining time after refresh
+          const startTime = parseInt(storedTime);
+          const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+          remainingTime.value = Math.max(waitTime.value - elapsedTime, 0);
       } else {
-        // First time starting countdown
-        localStorage.setItem("waitStartTime" + tokenurl, Date.now());
-        remainingTime.value = waitTime.value;
+          // First time starting countdown
+          localStorage.setItem("waitStartTime" + tokenurl.value, Date.now());
+          remainingTime.value = waitTime.value;
       }
 
       if (waitInterval) clearInterval(waitInterval);
 
       waitInterval = setInterval(() => {
-        if (remainingTime.value > 0) {
-          remainingTime.value--;
-        } else {
-          stopCountdown();
-        }
+          if (remainingTime.value > 0) {
+              remainingTime.value--;
+          } else {
+              stopCountdown();
+          }
       }, 1000);
-    };
+  };
+
+    const stopCountdown = () => {
+      isWaiting.value = false;
+      clearInterval(waitInterval);
+      localStorage.removeItem("waitStartTime" + tokenurl.value);
+      remainingTime.value = 0; // Reset to avoid negative values
+  };
+
+const formatTime = (seconds) => {
+  if(seconds == null){
+      return `.....`;
+    }
+  if (seconds >= 60) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes} m ${remainingSeconds} s`;
+  }
+  return `${seconds} s`;
+};
 
     const stopCountdown = () => {
       isWaiting.value = false;
@@ -447,7 +470,10 @@ export default {
         await $axios.post("/customer-leave", { id: customerId.value });
         $notify("positive", "check", "You have left the queue.");
         console.log("cancelled");
-        router.push("/customer-register/" + token.value);
+        setTimeout(
+            () => router.push("/customer-thankyou/"),
+            2000
+          );
       } catch (error) {
         console.error(error);
         console.log("cancelled");
@@ -471,9 +497,6 @@ export default {
             const { data } = await $axios.post("/send-fetchInfo", {
               id: queueList.value[0].id,
             });
-            console.log(data.Information.email_status);
-            console.log(data.Information.name);
-            console.log(data.Information.token);
             if (data.Information.email_status === "pending") {
               // Assign email data with the recipient's details and email content
               emailData.value = {
@@ -506,9 +529,11 @@ export default {
       getTableData();
       fetchQueueData();
       fetchWaitingtime();
-      refreshInterval = setInterval(fetchQueueData, 5000); // Auto-refresh every 5 seconds
+      refreshInterval = setInterval(fetchWaitingtime, 2000);
+      refreshInterval = setInterval(fetchQueueData, 2000); // Auto-refresh every 5 seconds
       fetchWaitingStatus();
-      setInterval(fetchWaitingStatus, 5000);
+      setInterval(fetchWaitingStatus, 2000);
+      
     });
 
     // onUnmounted(() => {
@@ -530,6 +555,7 @@ export default {
       customerId,
       serviceType,
       assignedTeller,
+      tellerId,
       formatTime,
       remainingTime,
       abbreviateName, // Expose the abbreviateName function

@@ -106,12 +106,21 @@ class TellercaterController extends Controller
             ->get();
 
         $currentServing = Queue::where('type_id',$type_id)
-                         ->where('status', 'serving')->first();
+                        ->where('status', 'serving')->first();
+        
+        $servingQueue = DB::table('queues')
+        ->select('name', 'queue_number','status')
+        ->where('type_id', $type_id)
+        ->where('status', 'serving')
+        ->first();
 
         return response()->json([
             'queue' => $queue,
             'current_serving' => $currentServing,
-            'queue_numbers' => $queue->pluck('queue_number') // Extracts all queue numbers
+            'queue_numbers' => $queue->pluck('queue_number'), // Extracts all queue numbers
+            'name' => $servingQueue->name ?? null,
+            'queue_number' => $servingQueue->queue_number ?? null,
+            'status' => $servingQueue->status ?? null,
         ]);
     }
 

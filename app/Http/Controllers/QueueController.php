@@ -180,19 +180,46 @@ class QueueController extends Controller
     public function queueLogs(Request $request)
     { 
         try {
-            $query = DB::table('queues')
-                ->whereNotIn('status', ['serving', 'waiting'])
-                ->orderBy('created_at', 'desc'); // Sort by latest
+        
 
-            // Check if a date filter is provided
-            if ($request->has('date')) {
+            $res = DB::table('queues as qs')
+            ->select(
+                "qs.name",
+                "qs.email",
+                "qs.queue_number",
+                "tp.name as type_id",
+                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                "qs.status",
+                "qs.created_at"
+            )
+            ->leftJoin("types as tp", "tp.id", "qs.type_id")
+            ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+            ->whereNotIn('status', ['serving', 'waiting'])
+            ->orderBy('qs.created_at', 'desc');
+    
+             // Check if a date filter is provided
+             if ($request->has('date')) {
                 $date = $request->input('date'); 
-                $query->whereDate('created_at', $date); // Filter by date
+                $res->whereDate('created_at', $date); // Filter by date
             }
 
+      
+    
+
+             // $query = DB::table('queues')
+            //     ->whereNotIn('status', ['serving', 'waiting'])
+            //     ->orderBy('created_at', 'desc'); // Sort by latest
+
+       
+
             return response()->json([
-                'rows' => $query->get()
+                'rows' => $res->get()
+                
             ]);
+
+            // return response()->json([
+            //     'rows' => $query->get()
+            // ]);
 
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -200,6 +227,8 @@ class QueueController extends Controller
                 "message" => env('APP_DEBUG') ? $message : "Something went wrong!"
             ]);
         }
+
+    
     }
 
     
@@ -207,22 +236,33 @@ class QueueController extends Controller
     public function fetchReports(Request $request)
     { 
         try {
-            $query = DB::table('queues')
-                ->whereNotIn('status', ['serving', 'waiting'])
-                ->orderBy('created_at', 'asc'); // Sort by latest
+            $res = DB::table('queues as qs')
+            ->select(
+                "qs.name",
+                "qs.email",
+                "qs.queue_number",
+                "tp.name as type_id",
+                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                "qs.status",
+                "qs.created_at"
+            )
+            ->leftJoin("types as tp", "tp.id", "qs.type_id")
+            ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+            ->whereNotIn('status', ['serving', 'waiting'])
+            ->orderBy('qs.created_at', 'asc');
     
             // Filter by "From" date
             if ($request->has('from_date') && !empty($request->input('from_date'))) {
-                $query->whereDate('created_at', '>=', $request->input('from_date'));
+                $res->whereDate('created_at', '>=', $request->input('from_date'));
             }
     
             // Filter by "To" date
             if ($request->has('to_date') && !empty($request->input('to_date'))) {
-                $query->whereDate('created_at', '<=', $request->input('to_date'));
+                $res->whereDate('created_at', '<=', $request->input('to_date'));
             }
     
             return response()->json([
-                'rows' => $query->get()
+                'rows' => $res->get()
             ]);
     
         } catch (\Exception $e) {
@@ -322,6 +362,15 @@ class QueueController extends Controller
         return response()->json([
             'message' => 'Customer is being waited.'
         ]);
+    }
+
+    public function updateTellerId(Request $request){
+        $token = $request->token;
+        $tellerId = $request->teller_id;
+
+        DB::table('queues')
+        ->where('token', $token)
+        ->update(['teller_id' => $tellerId]);
     }
 
 }

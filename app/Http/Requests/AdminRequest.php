@@ -25,7 +25,7 @@ class AdminRequest extends FormRequest
         return [
             'Username'=> [
                 'required',
-                'regex:/^[a-zA-Z\s]+$/'
+                
             ],
             'Password' => [
                 'required'
