@@ -84,17 +84,6 @@
                   <q-separator />
                   <q-item>
                     <q-item-section>
-                      <q-btn
-                        :disable="!isQueuelistEmpty || currentServing != null"
-                        class="bg-primary text-white"
-                        label="Reset Queue Number"
-                        @click="resetQueue()"
-                      />
-                    </q-item-section>
-                  </q-item>
-                  <q-separator />
-                  <q-item>
-                    <q-item-section>
                       <q-scroll-area class="my-scroll" style="height: 455px">
                         <q-list bordered separator>
                           <q-item
@@ -132,6 +121,19 @@
 
             <!-- Second Item -->
             <div class="col-12 col-md-6">
+              <q-card
+                class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
+              >
+                <q-card-section class="flex flex-center">
+                  <q-item>
+                    <q-item-section class="text-center">
+                      <span class="text-h4 text-bold text-uppercase q-pa-sm">
+                        Withdrawal
+                      </span>
+                    </q-item-section>
+                  </q-item>
+                </q-card-section>
+              </q-card>
               <q-card class="q-pa-md">
                 <q-card-section>
                   <!-- If the cater line is not empty -->
