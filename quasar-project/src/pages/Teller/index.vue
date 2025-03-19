@@ -74,6 +74,7 @@
             <div class="col-12 col-md-6">
               <q-card class="q-pa-md">
                 <q-card-section>
+                  Number of Queue in line: {{noOfQueue}}
                   <q-item>
                     <q-item-section>
                       <q-item-label class="text-h4 text-center"
@@ -82,16 +83,6 @@
                     </q-item-section>
                   </q-item>
                   <q-separator />
-                  <q-item>
-                    <q-item-section>
-                      <q-btn
-                        :disable="!isQueuelistEmpty || currentServing != null"
-                        class="bg-primary text-white"
-                        label="Reset Queue Number"
-                        @click="resetQueue()"
-                      />
-                    </q-item-section>
-                  </q-item>
                   <q-separator />
                   <q-item>
                     <q-item-section>
@@ -186,44 +177,26 @@
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
                                 <q-btn
-                                  v-if="currentServing && tempTimer == 0"
-                                  label="Cancel"
-                                  color="red-9"
-                                  @click="beforeCancel(currentServing)"
-                                />
-
-                                <q-btn
-                                  v-if="currentServing"
-                                  color="orange"
-                                  class="q-ml-sm"
-                                  :label="
-                                    waiting ? formatTime(tempTimer) : 'Wait'
-                                  "
-                                  @click="
-                                    startWait(
-                                      cusId,
-                                      currentServing.queue_number
-                                    )
-                                  "
-                                  :disable="waiting"
-                                />
-
-                                <!-- Button Text -->
-                                <div
-                                  class="row items-center no-wrap absolute-full flex flex-center"
-                                >
-                                  <span v-if="!waiting">Wait</span>
-                                  <span v-if="waiting" class="q-ml-xs">{{
-                                    formatTime(a)
-                                  }}</span>
-                                </div>
-
-                                <q-btn
-                                  v-if="currentServing && tempTimer == 0"
-                                  label="Finished"
-                                  color="primary"
-                                  @click="finishCustomer(currentServing.id)"
-                                />
+                                    v-if="currentServing && tempTimer == 0"
+                                    label="Cancel"
+                                    color="red-9"
+                                    @click="beforeCancel(currentServing)" 
+                                  />
+  
+                                  <q-btn
+                                    v-if="currentServing"
+                                    color="orange"
+                                    class="q-ml-sm"
+                                    :label="waiting ? formatTime(tempTimer) : 'Wait'"
+                                    @click="startWait(cusId, currentServing.queue_number)"
+                                    :disable="waiting"
+                                    />
+                                  <q-btn
+                                    v-if="currentServing && tempTimer == 0"
+                                    label="Finished"
+                                    color="primary"
+                                    @click="finishCustomer(currentServing.id)"
+                                  />
                               </div>
                             </q-item-section>
                           </q-item>
@@ -278,7 +251,7 @@ export default {
     const originalWaitTime = ref(0); // Store the original wait time
     const isQueuelistEmpty = ref(false);
     let waitTimer = null;
-    const tTypeid = ref();
+    const noOfQueue = ref();
 
     // const waitProgress = ref(0);
     let refreshInterval = null;
@@ -314,6 +287,7 @@ export default {
           (q) => !["finished", "cancelled"].includes(q.status)
         );
         currentServing.value = response.data.current_serving;
+        noOfQueue.value = queueList.value.length
         // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
         // console.log(queuePosition.value)
         // console.log(response.data.queue_numbers)
@@ -322,8 +296,12 @@ export default {
           queueList.value[0].status === "waiting" &&
           currentServing.value == null
         ) {
-          caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
-          startWait(queueList.value[0].id, queueList.value[0].queue_number);
+          
+
+          setTimeout(() => {
+            caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
+            startWait(queueList.value[0].id, queueList.value[0].queue_number);
+          }, 2000);
         }
         isQueuelistEmpty.value = queueList.value.length == 0;
       } catch (error) {
@@ -333,7 +311,6 @@ export default {
 
     const fetchId = async () => {
       try {
-        console.log("tellertypeid: " + tellerInformation.value.type_id);
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
         });
@@ -423,8 +400,6 @@ export default {
     // Start waiting process
     const startWait = async (customerId, queueNumber) => {
       try {
-        console.log("customerId: " + customerId);
-        console.log("cusId: " + cusId.value);
         await $axios.post("/waitCustomer", { id: customerId });
 
         if (waiting.value) return; // Prevent multiple clicks while waiting
@@ -471,19 +446,16 @@ export default {
 
       waitTimer = setInterval(() => {
         const now = Math.floor(Date.now() / 1000);
-        const startTime =
-          parseInt(localStorage.getItem("wait_start_time")) || 0;
+        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         const elapsed = now - startTime;
         const remaining = duration - elapsed;
 
         if (remaining >= 0) {
           tempTimer.value = remaining;
-          console.log("tempTimer: " + tempTimer.value);
-          console.log("cusId: " + cusId.value);
           if (tempTimer.value === 0) {
             resetWait(cusId.value);
-            console.log("tempTimer: " + tempTimer.value);
+            
           }
         } else {
           stopWait();
@@ -502,8 +474,6 @@ export default {
         if (data && data.dataValue && data.dataValue.length > 0) {
           waitTime.value = data.dataValue[0].Waiting_time; // Assign the first object in dataValue to formData
           prepared.value = data.dataValue[0].Prepared;
-          console.log(data.dataValue[0].Waiting_time);
-          console.log(data.dataValue[0].Prepared);
         } else {
           console.log("No data available");
         }
@@ -549,8 +519,9 @@ export default {
       const storedTellerInfo = sessionStorage.getItem("authTokenTeller");
       if (storedTellerInfo) {
         fetchQueue();
-        refreshInterval = setInterval(fetchQueue, 5000); // Auto-refresh every 5 seconds
-        fetchWaitingtime();
+        refreshInterval = setInterval(fetchQueue, 2000); // Auto-refresh every 5 seconds
+        fetchWaitingtime()
+        refreshInterval = setInterval(fetchWaitingtime, 2000);
         const startTime =
           parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
@@ -559,7 +530,7 @@ export default {
           startTimer();
         }
         fetchId();
-        refreshInterval = setInterval(fetchId, 5000);
+        refreshInterval = setInterval(fetchId, 2000);
         tellerInformation.value = JSON.parse(storedTellerInfo);
       } else {
         console.error("No teller information found in sessionStorage");
@@ -587,6 +558,7 @@ export default {
       formatTime,
       cusId,
       tellerInformation,
+      noOfQueue,
 
       currentPage,
       itemsPerPage,

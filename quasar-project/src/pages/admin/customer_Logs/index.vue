@@ -94,6 +94,20 @@
             sortable: true
           },
           {
+            name: 'type_id',
+            label: 'Service Type',
+            align: 'left',
+            field: 'type_id',
+            sortable: true
+          },
+          {
+            name: 'teller_id',
+            label: 'Assigned Personnel',
+            align: 'left',
+            field: 'teller_id',
+            sortable: true
+          },
+          {
             name: 'status',
             label: 'Status',
             align: 'left',
@@ -101,7 +115,7 @@
             sortable: true
           },
           {
-            name: 'crated_at',
+            name: 'created_at',
             label: 'Date and Time',
             align: 'left',
             field: 'created_at',
@@ -123,17 +137,22 @@
           
             const payload = selectedDate.value ? { date: selectedDate.value } : {}
             const { data } = await $axios.post('/admin/queue-logs',payload)
-            rows.value.splice(
-              0,
-              rows.value.length,
-              ...data.rows
-            )
+            
+            rows.value = data.rows.map(row => ({
+                    name: row.name,
+                    email: row.email,
+                    queue_number: row.queue_number,
+                    type_id: row.type_id,
+                    teller_id: row.teller_id,
+                    status: row.status,
+                    created_at: row.created_at,
+                }));
           }catch(error){
             console.log(error);
           }
         }
         onMounted(() => {
-          refreshInterval = setInterval(getTableData, 5000)
+          // refreshInterval = setInterval(getTableData, 5000)
           getTableData()
         })
       
