@@ -299,4 +299,24 @@ class TellerController extends Controller
                 ]);
             }
     }
+
+    public function valueTypeid (Request $request) {
+        try {
+            $type_id = $request->type_id;
+
+            $serviceType = DB::table('types')
+                            ->where('id',$type_id)
+                            ->first();
+
+            return response()->json([
+                'servicename' =>  $serviceType ? $serviceType->name : null
+            ]);
+
+        } catch(\Exception $e) {
+            $message = $e->getMessage();
+            return response()->json([
+                'message' => env('APP_DEBUG')? $message : $message
+            ]);
+        }
+    }
 }

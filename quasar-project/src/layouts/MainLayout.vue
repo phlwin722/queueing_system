@@ -214,6 +214,7 @@ export default defineComponent({
     // Logout function
     const logout = () => {
       sessionStorage.removeItem("authTokenAdmin"); // Remove auth token
+      sessionStorage.removeItem('adminInformation')
       router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation

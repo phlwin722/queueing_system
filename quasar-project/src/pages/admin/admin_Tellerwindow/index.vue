@@ -76,6 +76,7 @@
 import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
 import { $axios, $notify, Dialog } from 'boot/app';
 import MyForm from 'pages/admin/admin_Tellerwindow/form.vue';
+import { useQuasar } from 'quasar';
 
 const URL = "/windows";
 
@@ -85,6 +86,7 @@ export default defineComponent({
     setup() {
         const text = ref("");
         const rows = ref([]);
+        const $dialog = useQuasar();
         const autoReset = ref(false);
         const resetMinutes = ref(5); // Default to 5 minutes if not set
         let intervalId = null;
@@ -177,21 +179,31 @@ const resetTeller = async () => {
     }
 };
 
-
-
-
         const beforeDelete = (isMany, row) => {
             const ids = isMany ? selected.value.map(x => x.id) : [row.id];
-            const message = isMany
-                ? 'Are you sure you want to delete these records?'
-                : `Are you sure you want to delete this specific record? ID: ${row.window_name}`;
-
-            Dialog.create({
-                title: 'Confirm Delete',
-                message: message
-            }).onOk(() => {
+            $dialog.dialog({
+            title: 'Confirm',
+            message: `Are you sure you want to delete ${row.window_name} ?`,
+            cancel: true,
+            persistent: true,
+            ok: {
+              label: 'Yes',
+              color: 'primary',
+              unelevated: true,
+              style: 'width: 125px;',
+            },
+            cancel: {
+              label: 'Cancel',
+              color: 'red-8',
+              unelevated: true,
+              style: 'width: 125px;',
+            },
+            style: 'border-radius: 12px; padding: 16px;',
+          }).onOk(async () => {
                 handleDelete(ids);
-            });
+          }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          });
         };
 
         const handleDelete = async (id) => {
