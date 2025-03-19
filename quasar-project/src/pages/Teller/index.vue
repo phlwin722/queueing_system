@@ -43,9 +43,9 @@
 
         <q-menu
           v-model="menuOpen"
-          no-parent-event
           anchor="bottom right"
           self="top right"
+          no-parent-event
         >
           <q-list style="min-width: 150px">
             <q-item clickable v-close-popup @click="goToAccountSettings">
@@ -121,6 +121,19 @@
 
             <!-- Second Item -->
             <div class="col-12 col-md-6">
+              <q-card
+                class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
+              >
+                <q-card-section class="flex flex-center">
+                  <q-item>
+                    <q-item-section class="text-center">
+                      <span class="text-h4 text-bold text-uppercase q-pa-sm">
+                        Withdrawal
+                      </span>
+                    </q-item-section>
+                  </q-item>
+                </q-card-section>
+              </q-card>
               <q-card class="q-pa-md">
                 <q-card-section>
                   <!-- If the cater line is not empty -->
@@ -582,6 +595,8 @@ export default {
       itemsPerPage,
       paginatedQueueList,
       totalPages,
+      menuOpen,
+      toggleFullscreen,
     };
   },
 };
