@@ -87,9 +87,10 @@ class TellerController extends Controller
                 'row' => $newTeller 
             ]);
         } catch (\Exception $e) {
+            $message = $e->getMessage();
             return response()->json([
                 'success' => false,
-                'message' => "Something went wrong!",
+                'message' => $message,
             ]);
         }
     }
@@ -230,12 +231,7 @@ class TellerController extends Controller
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
             ]);
         }
-    }
-
-
-
-
-    
+    } 
 
     public function getData($id = null){
         

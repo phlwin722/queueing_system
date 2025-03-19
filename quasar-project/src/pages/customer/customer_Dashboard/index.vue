@@ -23,7 +23,7 @@
           </div>
         </q-card-section>
         <q-separator />
-        <q-card-section class="row justify-around q-pa-md">
+        <q-card-section v-if="queuePosition > 0" class="row justify-around q-pa-md">
           <div class="column items-center">
             <div class="text-bold text-grey-7 text-caption">
               Currently Serving
@@ -33,9 +33,17 @@
             </div>
           </div>
           <div class="column items-center">
-            <div class="text-bold text-grey-7 text-caption">Your Position</div>
+            <div class="text-bold text-grey-7 text-caption">Your Remaining Position</div>
             <div class="text-h5 text-indigo-10 text-bold">
               {{ queuePosition || "N/A" }}
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else class="row justify-around q-pa-md">
+          <div class="column items-center">
+            <div class="text-center text-h5 text-bold text-positive q-mb-md">
+              You Are Currently Being Served
             </div>
           </div>
         </q-card-section>
@@ -60,15 +68,15 @@
       <q-card
         class="col-12 col-md-6 full-width shadow-3 bg-white rounded-borders q-px-md q-pa-xs"
         style="margin-bottom: 20px"
+
       >
         <!-- Show "You are being served" if the customer is being served -->
         <div
           v-if="isBeingServed"
           class="text-center text-bold text-positive q-mb-md"
         >
-          Your queue number is now being served ! <br />
           Please proceed to your designated window. <br />
-          If not your queueing number will be cancelled. Thank you!
+          If you do not, your queue number will be canceled. Thank you!
         </div>
 
         <div v-if="isWaiting" class="text-center text-bold text-positive q-mb-md">
@@ -104,7 +112,7 @@
             <q-item v-for="(customer, index) in queueList" :key="index">
               <q-item-section>
                 <q-item-label class="text-bold text-grey-8"
-                  >Queue: {{ customer.queue_number }}</q-item-label
+                  >Queue: {{ customer.queue_number + " " +  abbreviateName(customer.name)}}</q-item-label
                 >
               </q-item-section>
             </q-item>
@@ -174,6 +182,17 @@ export default {
       Math.ceil(queueList.value.length / itemsPerPage)
     );
 
+        // Function to abbreviate name as per your requirement
+    const abbreviateName = (name) => {
+      const words = name.split(" "); // Split the name by spaces (e.g., "John Doe" -> ["John", "Doe"])
+      return words
+        .map((word) => {
+          // Take first letter of each word and append "..."
+          return word[0].toUpperCase() + "...";
+        })
+        .join(" "); // Join back the abbreviated words
+    };
+
     // Fetch queue list and current serving number
     const fetchQueueData = async () => {
       try {
@@ -217,8 +236,8 @@ export default {
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
           setTimeout(
-            () => router.push("/customer-register/" + token.value),
-            2000
+            () => router.push("/customer-thankyou/"),
+            3000
           ); // Delay redirect for a smooth transition
         }
         if (customer && customer.status === "cancelled") {
@@ -453,7 +472,10 @@ const formatTime = (seconds) => {
       serviceType,
       assignedTeller,
       formatTime,
-      remainingTime
+      remainingTime,
+      abbreviateName, // Expose the abbreviateName function
+
+
     };
   },
 };

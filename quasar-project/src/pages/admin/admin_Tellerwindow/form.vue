@@ -21,6 +21,7 @@
                     hide-bottom-space
                     :error="formError.hasOwnProperty('window_name')"
                     :error-message="formError.window_name"
+                    autofocus
                     />
                 </div>
                 <div class="col-12">
