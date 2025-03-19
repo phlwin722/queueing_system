@@ -1,14 +1,8 @@
-
 <template>
+
+    <!-- <q-input standout="bg-teal text-white" v-model="text" label="Search" :dense="dense" /> -->
     <q-page>
         <div class="q-pa-md">
-            <q-breadcrumbs 
-                class="q-mx-sm"
-                >
-                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
-                <q-breadcrumbs-el label="Teller Window" icon="computer" to="/admin/teller/window" />
-            </q-breadcrumbs>
-
         <q-table
             title="Window"
             :rows="filteredRows"
@@ -19,7 +13,7 @@
             selection="multiple"
             v-model:selected="selected"
             :rows-per-page-options="[0]"
-            class="q-mx-sm q-mt-md"
+            class="q-mx-sm"
         >
 
         <template v-slot:top>
@@ -30,7 +24,6 @@
                         label="Add Window"  
                         @click="handleShowForm('new')"
                         class="custom-btn"
-                        glossy
                     />
                     </div>
                     <div class="col-auto">
@@ -40,7 +33,6 @@
                         :disable="selected.length === 0"
                         @click="beforeDelete(true)"
                         class="custom-btn"
-                        glossy
                     />
                     </div>
                 </div>
@@ -54,28 +46,18 @@
                 color="positive" 
                 icon="edit"
                 dense
-                glossy
                 class="action-btn"
                 @click="handleShowForm('edit', props.row)" 
-                >
-                <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="bg-secondary">
-                    Edit Window
-                </q-tooltip>
-                </q-btn>
+                />
 
                 <q-btn 
                 square 
                 color="negative" 
                 icon="delete"
                 dense
-                glossy
                 class="action-btn"
                 @click="beforeDelete(false,props.row)"
-                >
-                <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
-                    Delete Window
-                </q-tooltip>
-                </q-btn>
+                />
                 </div>
             </q-td>
         </template>
@@ -84,26 +66,40 @@
         </q-table>
         </div>
     </q-page>
-    <my-form ref="dialogForm" :url="URL" :rows="rows" />
-</template>
+    <my-form
+        ref="dialogForm"
+        :url="URL"
+        :rows="rows"
+    />
+    </template>
 
-<script>
-import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
-import { $axios, $notify, Dialog } from 'boot/app';
-import MyForm from 'pages/admin/admin_Tellerwindow/form.vue';
+    <script>
+    import { 
+    defineComponent ,
+    ref,
+    computed 
+    } from 'vue'
 
-const URL = "/windows";
 
-export default defineComponent({
+    import {
+    $axios,
+    $notify,
+    Dialog
+    } from 'boot/app'
+
+    import MyForm from 'pages/admin/admin_Tellerwindow/form.vue';
+
+    const URL = "/windows";
+
+
+    export default defineComponent({
     name: 'IndexPage',
-    components: { MyForm },
-    setup() {
+    components: {
+        MyForm,
+    },
+    setup(){
         const text = ref("");
         const rows = ref([]);
-        const autoReset = ref(false);
-        const resetMinutes = ref(5); // Default to 5 minutes if not set
-        let intervalId = null;
-
         const columns = ref([
             
     
@@ -128,185 +124,112 @@ export default defineComponent({
             field: 'teller_id', 
             sortable: true
         },
-
         {
             name: 'actions',
             label: 'Actions',
             align: 'left',
         },
-
-
-        /* {
-
+        {
             name: 'pId',
             align: 'left',
             field: 'pId', 
             sortable: true,
-            classes: 'hidden',
-        }, */
+            classes: 'hidden'
+        },
         ]);
-
         const filteredRows = computed(() => {
-            return rows.value.filter(row =>
-                Object.values(row).some(value =>
-                    String(value).toLowerCase().includes(text.value.toLowerCase())
-                )
-            );
-        });
-
-        const selected = ref([]);
-        const dialogForm = ref(null);
-
+        return rows.value.filter((row) =>
+        Object.values(row).some((value) =>
+        String(value).toLowerCase().includes(text.value.toLowerCase())
+        )
+    );
+    });
+        const dialogForm = ref(null)
+        const selected = ref([])
         const getTableData = async () => {
-            try {
-                const { data } = await $axios.post(URL + '/getWindows');
-                rows.value = data.rows.map(row => ({
-                    id: row.id,
-                    window_name: row.window_name,
-                    type_id: row.type_id,
-                    teller_id: row.teller_id,
-                    pId: row.pId
-                }));
-            } catch (error) {
-                console.log(error);
-            }
-        };
+        try{
+            const { data } = await $axios.post(URL+'/getWindows')
+            rows.value = data.rows.map(row => ({
+            id: row.id,
+            window_name: row.window_name,
+            type_id: row.type_id, // Window Type
+            teller_id: row.teller_id, // Full Name as a single field
+            pId: row.pId
+            }));
+        }catch(error){
+            console.log(error);
+        }
+        }
+        getTableData()
+        const handleShowForm = (mode, row)=>{
+        dialogForm.value.showDialog(mode, row)
+        }
 
-        const fetchSettings = async () => {
-            try {
-                const { data } = await $axios.post("/waiting_Time-fetch");
-                if (data) {
-                    autoReset.value = !!data.auto_reset;
-                    resetMinutes.value = data.reset_minutes || 5;
-                    setupAutoRefresh();
-                }
-            } catch (error) {
-                console.error("Error fetching settings:", error);
-            }
-        };
-
-        const setupAutoRefresh = () => {
-        if (intervalId) {
-            clearInterval(intervalId);
 
         const beforeDelete = (isMany, row) => {
         const ids = isMany ? selected.value.map(x => x.id) : [row.id]
         console.log("ids",ids)
         const message = isMany
             ? 'Are you sure you want to delete this Records ?'
-            : 'Are you sure you want to delete this specific record?'+'  <br> <strong style="color:#F2C037;">Window name:</strong> <span style="color:#C10015; font-weight: bold;">' +row.window_name
+            : 'Are you sure you want to delete this specific record?'+'  id: '+row.id
 
             Dialog.create({
-            title: '<span style="color: #1c5d99;">Confirm Delete</span>',
-            message: message,
-            html: true,
+            title: 'Confirm Delete',
+            message: message
         }).onOk(() =>{
             handleDelete(ids)
             
         })
-
         }
 
-        let refreshRate = resetMinutes.value * 60 * 1000;
-        if (refreshRate < 20000) refreshRate = 20000; // Minimum 20 sec
+        const handleDelete = async (id) =>{
+        try{
+            const { data } = await $axios.post(URL +'/delete', {id}) 
+            for(const x in id){
+            const index = rows.value.findIndex(o => o.id === id[x])
+            if(index > -1){
+                rows.value.splice(index,1)
+            }
+            }
+            $notify('positive', 'check', data.message)
 
-        intervalId = setInterval(() => {
-            getTableData();
-        }, refreshRate);
-    };
+            selected.value.splice(
+            0,
+            selected.value.length,
 
-        const handleShowForm = (mode, row) => {
-            dialogForm.value.showDialog(mode, row);
-        };
+            )      
+        }catch(error){
+            console.log('error',error)
+            $notify('negative', 'error',error.response.data.message)
+        }
+        }
 
-        const beforeReset = () => {
-    Dialog.create({
-        title: 'Confirm Reset',
-        message: 'Are you sure you want to reset all assigned tellers?'
-    }).onOk(() => {
-        resetTeller();
+        return{
+        rows,
+        columns,
+        dialogForm,
+        selected,
+        handleShowForm,
+        URL,
+        beforeDelete,
+        filteredRows,
+        text,
+        }
+    }
+
+
     });
-};
-
-const resetTeller = async () => {
-    console.log("Reset Teller API Called"); // Debug log
-    try {
-        const { data } = await $axios.post('/windows/reset-tellers'); 
-        console.log("API Response:", data); // Debug response
-        $notify('positive', 'check', data.message);
-        setTimeout(() => {
-            getTableData(); 
-        }, 500);
-    } catch (error) {
-        console.log('Error:', error.response?.data || error);
-        $notify('negative', 'error', error.response?.data?.message || 'Failed to reset tellers');
-    }
-};
-        const beforeDelete = (isMany, row) => {
-            const ids = isMany ? selected.value.map(x => x.id) : [row.id];
-            const message = isMany
-                ? 'Are you sure you want to delete these records?'
-                : `Are you sure you want to delete this specific record? ID: ${row.window_name}`;
-
-            Dialog.create({
-                title: 'Confirm Delete',
-                message: message
-            }).onOk(() => {
-                handleDelete(ids);
-            });
-        };
-
-        const handleDelete = async (id) => {
-            try {
-                const { data } = await $axios.post(URL + '/delete', { id });
-                rows.value = rows.value.filter(row => !id.includes(row.id));
-                $notify('positive', 'check', data.message);
-                selected.value = [];
-            } catch (error) {
-                console.log('error', error);
-                $notify('negative', 'error', error.response.data.message);
-            }
-        };
-
-        onMounted(() => {
-            getTableData();
-            fetchSettings();
-        });
-
-        onUnmounted(() => {
-            if (intervalId) {
-                clearInterval(intervalId);
-            }
-        });
-
-        return {
-            rows,
-            columns,
-            dialogForm,
-            selected,
-            handleShowForm,
-            URL,
-            beforeReset,
-            beforeDelete,
-            filteredRows,
-            text
-        };
-    }
-});
 </script>
 
 <style scoped>
 .custom-btn {
     min-width: 150px;
-    height: 35px;
+    height: 40px;
     text-align: center;
-}
+    }
 
     .action-btn {
-        width: 35px; /* Adjust as needed */
+    width: 60px; /* Adjust as needed */
   margin-left: 5px;
-  border-radius: 5px;
 }
-
 </style>
-
