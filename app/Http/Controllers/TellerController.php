@@ -113,37 +113,46 @@ class TellerController extends Controller
     }
 
 
-    public function update(TellerRequest $request){
-        try{
+    public function update(TellerRequest $request)
+    {
+        try {
             $teller = Teller::find($request->id);
 
-            // Check if student exists
+            // Check if teller exists
             if (!$teller) {
                 return response()->json([
-                    "message" => "Student not found!"
+                    "message" => "Teller not found!"
                 ], 404);
             }
-    
-            // Update the student
-            $teller->update($request->all());
-    
+
+            // Update each field manually
+            $teller->teller_firstname = $request->teller_firstname;
+            $teller->teller_lastname = $request->teller_lastname;
+            $teller->teller_username = $request->teller_username;
+            $teller->type_id = $request->type_id;
+
+            // Update password only if provided
+            if ($request->filled('teller_password')) {
+                $teller->teller_password = Hash::make($request->teller_password);
+            }
+
+            // Save the updates
+            $teller->save();
+
             // Fetch updated data
             $row = $this->getData($teller->id);
-    
+
             return response()->json([
                 "row" => $row,
-                "message" => "Student Successfully Updated!"
+                "message" => "Teller Successfully Updated!"
             ]);
-        }catch(\Exception $e){
-            $message = $e->getMessage();
+        } catch (\Exception $e) {
             return response()->json([
-                "message"=>env('APP_DEBUG')
-                    ? $message
-                    : $message
+                "message" => env('APP_DEBUG') ? $e->getMessage() : "An error occurred"
             ]);
         }
-        
     }
+
 
     public function delete(Request $request)
 {

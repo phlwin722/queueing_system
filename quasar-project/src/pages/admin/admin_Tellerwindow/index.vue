@@ -143,7 +143,6 @@
             field: 'teller_id', 
             sortable: true
         },
-    
 
         {
             name: 'actions',
@@ -151,7 +150,9 @@
             align: 'left',
         },
 
+
         /* {
+
             name: 'pId',
             align: 'left',
             field: 'pId', 
