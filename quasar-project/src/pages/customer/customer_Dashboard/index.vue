@@ -71,6 +71,11 @@
           If not your queueing number will be cancelled. Thank you!
         </div>
 
+        <div v-if="isWaiting" class="text-center text-bold text-positive q-mb-md">
+            <p class="text-orange">Admin is waiting for you! Please proceed.</p>
+            <h2 class="text-red">{{ formatTime(remainingTime) }}</h2>
+        </div>
+
         <!-- Show warning when customer position is <= 5 -->
         <div
           v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
@@ -117,7 +122,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick  } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
 
@@ -148,6 +153,11 @@ export default {
     const countdown = ref(); // 60 seconds countdown
     let refreshInterval = null;
     let countdownInterval = null;
+
+    const waitTime = ref(30); // Default wait time (can be fetched dynamically)
+    const prepared = ref("")
+    const remainingTime = ref(0);
+    let waitInterval = null;
 
     const emailData = ref({
       // Email data list
@@ -184,11 +194,10 @@ export default {
 
         // If admin pressed "Wait" for the first in queue, start countdown
         // if (
-        //   response.data.waiting_customer === customerQueueNumber.value &&
-        //   queuePosition.value === 1
-        // ) {
+        //   response.data.waiting_customer === 'yes') {
+        //   console.log(response.data.waiting_customer)
         //   isWaiting.value = true;
-        //   startCountdown();
+        //   startWait();
         // } else {
         //   isWaiting.value = false;
         //   clearInterval(countdownInterval); // Stop countdown if not waiting
@@ -247,7 +256,7 @@ export default {
     // const startCountdown = () => {
     //   if (!countdownInterval) {
     //     countdown.value = 60
-    //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed.')
+    //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed. '+ formatTime(remainingTime))
 
     //     countdownInterval = setInterval(() => {
     //       if (countdown.value > 0) {
@@ -265,6 +274,89 @@ export default {
     //   localStorage.setItem('countdown_start_time', newStartTime);
     //   countdown.value = 60; // Reset to 60 seconds
     // };
+
+    // Fetch the waiting status from the backend
+const fetchWaitingStatus = async () => {
+    try {
+        const { data } = await $axios.post('/customer-check-waiting', { token: tokenurl.value });
+        console.log(data.waiting_customer)
+        if (data.waiting_customer === "yes") {
+            isWaiting.value = true;
+            startCountdown();
+        } else {
+            stopCountdown();
+        }
+    } catch (error) {
+        console.error("Error fetching waiting status:", error);
+    }
+};
+
+const fetchWaitingtime = async () => {
+    try {
+        const { data } = await $axios.post('/admin/waiting_Time-fetch');
+
+        if (data && data.dataValue && data.dataValue.length > 0) {
+            let fetchedTime = data.dataValue[0].Waiting_time;
+            let fetchedPrepared = data.dataValue[0].Prepared;
+
+            // Convert to seconds if "Minutes"
+            waitTime.value = fetchedPrepared === "Minutes" ? fetchedTime * 60 : fetchedTime;
+            prepared.value = fetchedPrepared;
+
+            console.log("Wait Time (seconds):", waitTime.value);
+            console.log("Prepared:", prepared.value);
+        } else {
+            console.log('No data available');
+        }
+    } catch (error) {
+        console.log('Error fetching data:', error);
+    }
+};
+
+
+const startCountdown = () => {
+    if (localStorage.getItem("waitStartTime"+tokenurl)) {
+        // Calculate remaining time after refresh
+        const startTime = parseInt(localStorage.getItem("waitStartTime"+tokenurl));
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        remainingTime.value = Math.max(waitTime.value - elapsedTime, 0);
+    } else {
+        // First time starting countdown
+        localStorage.setItem("waitStartTime"+tokenurl, Date.now());
+        remainingTime.value = waitTime.value;
+    }
+
+    if (waitInterval) clearInterval(waitInterval);
+
+    waitInterval = setInterval(() => {
+        if (remainingTime.value > 0) {
+            remainingTime.value--;
+        } else {
+            stopCountdown();
+        }
+    }, 1000);
+};
+
+const stopCountdown = () => {
+    isWaiting.value = false;
+    clearInterval(waitInterval);
+    localStorage.removeItem("waitStartTime"+tokenurl); // Clear stored time
+};
+
+const formatTime = (seconds) => {
+  if(seconds == null){
+      return `.....`;
+    }
+  if (seconds >= 60) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes} m ${remainingSeconds} s`;
+  }
+  return `${seconds} s`;
+};
+
+
+  
 
     // Leave the queue
     const leaveQueue = async () => {
@@ -329,14 +421,22 @@ export default {
     onMounted(() => {
       getTableData();
       fetchQueueData();
+      fetchWaitingtime();
       refreshInterval = setInterval(fetchQueueData, 5000); // Auto-refresh every 5 seconds
+      fetchWaitingStatus();
+      setInterval(fetchWaitingStatus, 5000);
       
     });
+  
 
-    onUnmounted(() => {
-      clearInterval(refreshInterval); // Stop auto-refresh
-      clearInterval(countdownInterval); // Stop countdown
-    });
+
+
+
+
+    // onUnmounted(() => {
+    //   clearInterval(refreshInterval); // Stop auto-refresh
+    //   clearInterval(countdownInterval); // Stop countdown
+    // });
 
     return {
       customerQueueNumber,
@@ -352,6 +452,8 @@ export default {
       customerId,
       serviceType,
       assignedTeller,
+      formatTime,
+      remainingTime
     };
   },
 };

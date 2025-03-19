@@ -125,18 +125,17 @@
             sortable: true
         },
         {
+            name: 'actions',
+            label: 'Actions',
+            align: 'left',
+        },
+        {
             name: 'pId',
             align: 'left',
             field: 'pId', 
             sortable: true,
             classes: 'hidden'
         },
-
-        {
-            name: 'actions',
-            label: 'Actions',
-            align: 'left',
-        }
         ]);
         const filteredRows = computed(() => {
         return rows.value.filter((row) =>

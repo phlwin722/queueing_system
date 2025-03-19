@@ -22,11 +22,11 @@
       </q-card-section>
 
       
-      
+
       <q-card-actions align="space-between">
             <!-- Cancel Button -->
             <q-btn 
-            v-if="currentServing && a == 0"
+            v-if="currentServing && tempTimer == 0"
             color="red" 
             label="Cancel" 
             class="modern-btn"
@@ -34,18 +34,19 @@
             />
 
          <!-- Wait Button (Only for the first customer in the queue) -->
+          
          <q-btn
               v-if="currentServing"
               color="orange-5"
               class="modern-btn"
-              :label="waiting ? formatTime(a) : 'Wait'"
-              @click="startWait(currentServing.id, currentServing.queue_number)"
+              :label="waiting ? formatTime(tempTimer) : 'Wait'"
+              @click="startWait(cusId, currentServing.queue_number)"
               :disable="waiting"
             />
-
+          
           <!-- Finish Button -->
           <q-btn
-          v-if="currentServing && a == 0"
+          v-if="currentServing && tempTimer == 0"
           color="blue"
           label="Finish"
           class="modern-btn"
@@ -96,17 +97,19 @@ import { useQuasar  } from 'quasar'
 
 export default {
 setup() {
+const cusId = ref()
 const queueList = ref([])
 const currentServing = ref(null)
 const waiting = ref(false)
 const waitTime = ref(30)
 const prepared = ref()
+let waitTimer = null
+const tempTimer = ref()
 const originalWaitTime = ref(0); // Store the original wait time
 const isQueuelistEmpty = ref(false)
-let waitTimer = null
 let refreshInterval = null
 const $dialog = useQuasar();
-const a = ref()
+
 
 // Pagination
 const currentPage = ref(1)
@@ -120,6 +123,7 @@ const $q = useQuasar();
     };
 
 // Fetch queue data
+// cusId.value = currentServing.value = response.data.current_serving.id
 const fetchQueue = async () => {
   try {
     const response = await $axios.post('/admin/queue-list')
@@ -131,8 +135,18 @@ const fetchQueue = async () => {
     if (queueList.value.length > 0 && queueList.value[0].status === 'waiting' && currentServing.value == null) {
         caterCustomer(queueList.value[0].id);
         startWait(queueList.value[0].id, queueList.value[0].queue_number)
+        
     }
     isQueuelistEmpty.value = queueList.value.length == 0
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const fetchId = async () => {
+  try {
+    const response = await $axios.post('/admin/queue-list')
+    cusId.value = response.data.current_serving.id
   } catch (error) {
     console.error(error)
   }
@@ -143,6 +157,7 @@ const caterCustomer = async (customerId) => {
   try {
     await $axios.post('/admin/cater', { id: customerId })
     fetchQueue()
+    fetchId()
   } catch (error) {
     console.error(error)
     $notify('negative', 'error', 'You are currently serving a customer. Please finish it first!.')
@@ -205,39 +220,76 @@ const finishCustomer = async (customerId) => {
 
 // Start waiting process
 const startWait = async (customerId, queueNumber) => {
-try {
-  console.log()
-  if (waiting.value) return; // Prevent multiple clicks while waiting
+  try {
+    console.log("customerId: "+customerId)
+    console.log("cusId: "+cusId.value)
+    await $axios.post('/waitCustomer', { id: customerId })
 
-  waiting.value = true;
-  console.log("original time: "+originalWaitTime.value)
-  a.value = waitTime.value
-  // If first time clicking, store the original time
-  if (originalWaitTime.value === 0) {
-    originalWaitTime.value = prepared.value === "Minutes" ? a.value * 60 : a.value;
+    if (waiting.value) return; // Prevent multiple clicks while waiting
+
+    waiting.value = true;
+
+    // Fetch and store the original wait time if not set
+    if (originalWaitTime.value === 0) {
+      originalWaitTime.value = prepared.value === "Minutes" ? waitTime.value * 60 : waitTime.value;
+    }
+
+    // Set the start time in localStorage
+    const startTime = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+    localStorage.setItem("wait_start_time", startTime);
+    localStorage.setItem("wait_duration", originalWaitTime.value);
+
+    // Reset the wait time
+    tempTimer.value = originalWaitTime.value;
+
+    $notify("positive", "check", "Waiting for Queue Number: " + queueNumber);
+
+    // Clear any existing timer
+    if (waitTimer) clearInterval(waitTimer);
+
+    startTimer(customerId);
+  } catch (error) {
+    console.error(error);
+    $notify("negative", "error", "Failed to set waiting customer.");
   }
-  console.log("original time: "+originalWaitTime.value)
-  // Reset the wait time from stored value
-  a.value = originalWaitTime.value;
+};
 
-  $notify("positive", "check", "Waiting for Queue Number: " + queueNumber);
+  const resetWait = async (id) =>{
+    const response = await $axios.post('/waitCustomerReset', { id: id })
+    console.log(response.message)
+  }
 
-  // Clear any existing timer to prevent duplicates
+
+// Start the countdown timer
+const startTimer =  (id) => {
   if (waitTimer) clearInterval(waitTimer);
 
   waitTimer = setInterval(() => {
-    if (a.value > 0) {
-      a.value--;
-    } else if(a.value == 0) {
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
+    const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
+    const elapsed = now - startTime;
+    const remaining = duration - elapsed;
+
+    if (remaining >= 0) {
+    
+      tempTimer.value = remaining;
+      console.log("tempTimer: "+tempTimer.value)
+      console.log("cusId: "+cusId.value)
+      if(tempTimer.value === 0){
+        resetWait(cusId.value)
+        console.log("tempTimer: "+tempTimer.value)
+      }
+    } else  {
       stopWait();
       originalWaitTime.value = 0;
-      console.log("original time: "+originalWaitTime.value) // Reset stored time after countdown finishes
+      localStorage.removeItem("wait_start_time");
+      localStorage.removeItem("wait_duration");
+      
+      
+
     }
   }, 1000);
-} catch (error) {
-  console.error(error);
-  $notify("negative", "error", "Failed to set waiting customer.");
-}
 };
 
 
@@ -261,13 +313,25 @@ try {
 }
 };
 
+// Format time as MM:SS
 const formatTime = (seconds) => {
-if (seconds >= 60) {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes} m ${remainingSeconds} s`;
-}
-return `${seconds} s`;
+  if(seconds == null){
+      return `.....`;
+    }
+  if (seconds >= 60) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes} m ${remainingSeconds} s`;
+  }
+  return `${seconds} s`;
+};
+
+// Stop waiting process
+const stopWait = () => {
+  waiting.value = false;
+  clearInterval(waitTimer);
+  localStorage.removeItem("wait_start_time");
+  localStorage.removeItem("wait_duration");
 };
 
 
@@ -306,11 +370,7 @@ const resetQueue = async () => {
   }
 }
 
-// Stop waiting process
-const stopWait = () => {
-  waiting.value = false
-  clearInterval(waitTimer)
-}
+
 
 // Computed property for paginated queue list
 const paginatedQueueList = computed(() => {
@@ -323,14 +383,27 @@ const totalPages = computed(() => Math.ceil(queueList.value.length / itemsPerPag
 
 onMounted(() => {
   fetchQueue()
-  refreshInterval = setInterval(fetchQueue, 5000) // Auto-refresh every 5 seconds
+  refreshInterval = setInterval(() => {
+  fetchQueue();
+   // Add more functions as needed
+}, 5000);
   fetchWaitingtime()
+  const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
+  const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
+  if (startTime && duration) {
+    waiting.value = true;
+    startTimer();
+  }
+  fetchId()
+  
+  
+  
 })
 
-onUnmounted(() => {
-  clearInterval(refreshInterval) // Stop interval when component is destroyed
-  clearInterval(waitTimer) // Stop wait timer if it exists
-})
+// onUnmounted(() => {
+//   clearInterval(refreshInterval) // Stop interval when component is destroyed
+//   clearInterval(waitTimer) // Stop wait timer if it exists
+// })
 
 return {
   queueList,
@@ -341,12 +414,13 @@ return {
   startWait,
   waiting,
   waitTime,
-  a,
+  tempTimer,
   beforeCancel,
   resetQueue,
   isQueuelistEmpty,
   prepared,
   formatTime,
+  cusId,
 
   // Pagination
   currentPage,

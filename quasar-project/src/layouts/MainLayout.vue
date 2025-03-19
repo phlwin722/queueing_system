@@ -279,6 +279,7 @@ export default defineComponent({
                 icon: "hourglass_top", 
                 link: "/admin/waiting-time",
               },
+              
             ],
           },
       ];

@@ -280,5 +280,52 @@ class QueueController extends Controller
         ]);
     }
 
+    public function WaitCustomer(Request $request)
+    {
+        $queue = Queue::find($request->id);
+        if ($queue) {
+            $queue->update([
+                'waiting_customer' => 'yes',
+                'updated_at' => now()
+            ]);
+        }
+      
+
+        return response()->json([
+            'message' => 'Customer is being waited.'
+            
+        ]);
+    }
+
+    public function checkWaitingCustomer(Request $request)
+    {
+        $queue = DB::table('queues')
+            ->where('token', $request->input('token'))
+            ->first();
+
+       
+
+        return response()->json([
+            'waiting_customer' => $queue->waiting_customer,
+           
+        ]);
+    }
+
+    
+    public function WaitingCustomerReset(Request $request)
+    {
+        $queue = Queue::find($request->id);
+        if ($queue) {
+            $queue->update([
+                'waiting_customer' => 'no',
+                'updated_at' => now()
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Customer is being waited.'
+        ]);
+    }
+
 }
 
