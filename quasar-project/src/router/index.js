@@ -1,23 +1,36 @@
-import { route } from "quasar/wrappers";
-import { createRouter, createWebHistory } from "vue-router";
-import routes from "./routes"; // Import the routes array
+import { route } from "quasar/wrappers"; // Import the Quasar router wrapper
+import { createRouter, createWebHistory } from "vue-router"; // Import Vue Router functions
+import routes from "./routes"; // Import the routes array from another file
 
 export default route(function () {
+  // Create a new Vue Router instance with a history mode
   const Router = createRouter({
-    history: createWebHistory(),
-    routes, // Ensure routes is passed correctly as an array
+    history: createWebHistory(), // Use web history mode for routing (no hashes in URL)
+    routes, // Pass the array of routes to the router
   });
 
-  // 🔹 Navigation Guard: Redirect if not logged in
+  // 🔹 Navigation Guard: This runs before each route change
   Router.beforeEach((to, from, next) => {
-    const isAuthenticated = sessionStorage.getItem("authTokenAdmin"); // Check session
-    if (to.matched.some((record) => record.meta.requiresAuth) && !isAuthenticated) {
-      sessionStorage.clear();
-      next("/login"); // Redirect to login if not authenticated
+    // Check if the user is authenticated as an admin (get token from session storage)
+    const isAuthenticatedAdmin = sessionStorage.getItem("authTokenAdmin");
+    
+    // Check if the user is authenticated as a teller (get token from session storage)
+    const isAuthenticatedTeller = sessionStorage.getItem("authTokenTeller");
+
+    // Check if the route requires authentication (meta field 'requiresAuth')
+    if (to.matched.some((record) => record.meta.requiresAuth)) {
+      // If the route requires authentication, check if neither admin nor teller is authenticated
+      if (!isAuthenticatedAdmin && !isAuthenticatedTeller) {
+        sessionStorage.clear(); // Clear session storage if neither is authenticated
+        next("/login"); // Redirect to login page
+      } else {
+        next(); // Proceed to the requested route if the user is authenticated (admin or teller)
+      }
     } else {
-      next();
+      next(); // If the route does not require authentication, proceed to the route
     }
   });
 
+  // Return the router instance
   return Router;
 });

@@ -43,17 +43,11 @@
 
         <q-menu
           v-model="menuOpen"
+          no-parent-event
           anchor="bottom right"
           self="top right"
-          no-parent-event
         >
           <q-list style="min-width: 150px">
-            <q-item clickable v-close-popup @click="goToAccountSettings">
-              <q-item-section avatar>
-                <q-icon name="settings" />
-              </q-item-section>
-              <q-item-section>Account Settings</q-item-section>
-            </q-item>
             <q-item clickable v-close-popup @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout" />
@@ -81,6 +75,7 @@
                       >
                     </q-item-section>
                   </q-item>
+                  <q-separator />
                   <q-separator />
                   <q-item>
                     <q-item-section>
@@ -128,7 +123,7 @@
                   <q-item>
                     <q-item-section class="text-center">
                       <span class="text-h4 text-bold text-uppercase q-pa-sm">
-                        Withdrawal
+                       {{`${tellerInformation?.type_name || 'Loading...'}`}}
                       </span>
                     </q-item-section>
                   </q-item>
@@ -188,44 +183,26 @@
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
                                 <q-btn
-                                  v-if="currentServing && tempTimer == 0"
-                                  label="Cancel"
-                                  color="red-9"
-                                  @click="beforeCancel(currentServing)"
-                                />
-
-                                <q-btn
-                                  v-if="currentServing"
-                                  color="orange"
-                                  class="q-ml-sm"
-                                  :label="
-                                    waiting ? formatTime(tempTimer) : 'Wait'
-                                  "
-                                  @click="
-                                    startWait(
-                                      cusId,
-                                      currentServing.queue_number
-                                    )
-                                  "
-                                  :disable="waiting"
-                                />
-
-                                <!-- Button Text -->
-                                <div
-                                  class="row items-center no-wrap absolute-full flex flex-center"
-                                >
-                                  <span v-if="!waiting">Wait</span>
-                                  <span v-if="waiting" class="q-ml-xs">{{
-                                    formatTime(a)
-                                  }}</span>
-                                </div>
-
-                                <q-btn
-                                  v-if="currentServing && tempTimer == 0"
-                                  label="Finished"
-                                  color="primary"
-                                  @click="finishCustomer(currentServing.id)"
-                                />
+                                    v-if="currentServing && tempTimer == 0"
+                                    label="Cancel"
+                                    color="red-9"
+                                    @click="beforeCancel(currentServing)" 
+                                  />
+  
+                                  <q-btn
+                                    v-if="currentServing"
+                                    color="orange"
+                                    class="q-ml-sm"
+                                    :label="waiting ? formatTime(tempTimer) : 'Wait'"
+                                    @click="startWait(cusId, currentServing.queue_number)"
+                                    :disable="waiting"
+                                    />
+                                  <q-btn
+                                    v-if="currentServing && tempTimer == 0"
+                                    label="Finished"
+                                    color="primary"
+                                    @click="finishCustomer(currentServing.id)"
+                                  />
                               </div>
                             </q-item-section>
                           </q-item>
@@ -263,15 +240,18 @@
   </q-layout>
 </template>
 
+
 <script>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const cusId = ref();
     const queueList = ref([]);
+    const router = useRouter()
     const currentServing = ref(null);
     const waiting = ref(false);
     const waitTime = ref(30);
@@ -302,13 +282,12 @@ export default {
       tellerFirstname: "",
       tellerLastname: "",
       type_id: "",
+      type_name: '',
     });
 
     // Fetch queue data
     const fetchQueue = async () => {
       try {
-      
-        console.log("tellerid: " + tellerInformation.value.type_id);
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
         });
@@ -336,7 +315,6 @@ export default {
 
     const fetchId = async () => {
       try {
-        console.log("tellertypeid: " + tellerInformation.value.type_id);
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
         });
@@ -548,11 +526,35 @@ export default {
       Math.ceil(queueList.value.length / itemsPerPage)
     );
 
+    // fetching the name of value of type id on service type
+    const fetchType_idValue = async () => {
+      try {
+        const { data } = await $axios.post('/teller/typeid-value',{
+          type_id: tellerInformation.value.type_id
+        })
+        // Update the type_name inside the tellerInformation ref
+        tellerInformation.value.type_name = data.servicename;
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error.response.data.message)
+        }
+      }
+    }
+    
+    const logout = async () => {
+      sessionStorage.removeItem('authTokenTeller');
+      sessionStorage.removeItem('tellerInformation');
+      router.push("/login"); // Redirect to login page
+      setTimeout(() => {
+        window.location.reload(); // Prevent back navigation
+      }, 100);
+    }
+
     onMounted(() => {
-      const storedTellerInfo = sessionStorage.getItem("authTokenTeller");
+      const storedTellerInfo = sessionStorage.getItem("tellerInformation");
       if (storedTellerInfo) {
         fetchQueue();
-        refreshInterval = setInterval(fetchQueue, 5000); // Auto-refresh every 5 seconds
+        refreshInterval = setInterval(fetchQueue, 2000); // Auto-refresh every 5 seconds
         fetchWaitingtime();
         const startTime =
           parseInt(localStorage.getItem("wait_start_time")) || 0;
@@ -562,8 +564,9 @@ export default {
           startTimer();
         }
         fetchId();
-        refreshInterval = setInterval(fetchId, 5000);
+        refreshInterval = setInterval(fetchId, 2000);
         tellerInformation.value = JSON.parse(storedTellerInfo);
+        fetchType_idValue();
       } else {
         console.error("No teller information found in sessionStorage");
       }
@@ -583,6 +586,7 @@ export default {
       startWait,
       waiting,
       waitTime,
+      fetchType_idValue,
       tempTimer,
       beforeCancel,
       isQueuelistEmpty,
@@ -590,7 +594,7 @@ export default {
       formatTime,
       cusId,
       tellerInformation,
-
+      logout,
       currentPage,
       itemsPerPage,
       paginatedQueueList,
