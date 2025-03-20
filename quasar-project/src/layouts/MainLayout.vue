@@ -2,22 +2,23 @@
   <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
     <q-header>
       <q-toolbar>
-          <q-img 
-            src="~assets/vrtlogowhite1.png" 
-            alt="Logo" 
-            fit="full" 
-            :style="{ 
-              maxWidth: $q.screen.lt.sm ? '100px' : '160px',
-              cursor: 'pointer',  // Fix cursor property
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-            }"
-            @click="goonDashboard"
-            class="q-ml-sm"
-          />
+        <q-img
+          src="~assets/vrtlogowhite1.png"
+          alt="Logo"
+          fit="full"
+          :style="{
+            maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+            cursor: 'pointer', // Fix cursor property
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          }"
+          @click="goonDashboard"
+          class="q-ml-sm"
+        />
         <q-toolbar-title class="text-center">QUEUING SYSTEM</q-toolbar-title>
         <div>
-          <q-spinner-clock color="white" size="1.5em" class="q-mr-xs"/>
-          {{ formattedString }}</div>
+          <q-spinner-clock color="white" size="1.5em" class="q-mr-xs" />
+          {{ formattedString }}
+        </div>
       </q-toolbar>
     </q-header>
 
@@ -32,44 +33,118 @@
       content-class="fit"
       :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
     >
-    <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: 0 }" style="height: 100%;">
-      <q-list padding class="q-pb-xl q-mb-xl">
-        <template v-for="(item, index) in linksList" :key="index">
-          <!-- Parent with children (Dropdown) -->
-          <q-expansion-item
-            v-if="item.children"
-            expand-separator
-            :icon="item.icon"
-            :label="item.title"
-          >
-            <q-list>
-              <q-item
-                v-for="(child, childIndex) in item.children"
-                :key="childIndex"
-                clickable
-                v-ripple
-                :to="child.link"
-              >
-                <q-item-section avatar class="q-pl-xl">
-                  <q-icon :name="child.icon" :color="child.link === $route.path ? 'primary' : 'secondary'"/>
-                </q-item-section>
-                <q-item-section class="text-left ">{{ child.title }}</q-item-section>
-              </q-item>
-            </q-list>
-          </q-expansion-item>
+      <q-scroll-area
+        class="fit"
+        :horizontal-thumb-style="{ opacity: 0 }"
+        style="height: 100%"
+      >
+        <q-list padding class="q-pb-xl q-mb-xl">
+          <template v-for="(item, index) in linksList" :key="index">
+            <!-- Parent with children (Dropdown) -->
+            <q-expansion-item
+              v-if="item.children"
+              expand-separator
+              :icon="item.icon"
+              :label="item.title"
+            >
+              <q-list>
+                <template
+                  v-for="(child, childIndex) in item.children"
+                  :key="childIndex"
+                >
+                  <!-- Render each child -->
+                  <q-item clickable v-ripple :to="child.link">
+                    <q-item-section avatar class="q-pl-xl">
+                      <q-icon
+                        :name="child.icon"
+                        :color="
+                          child.link === $route.path ? 'primary' : 'secondary'
+                        "
+                      />
+                    </q-item-section>
+                    <q-item-section class="text-left">{{
+                      child.title
+                    }}</q-item-section>
+                  </q-item>
 
-          <!-- Normal Menu Item -->
-          <q-item v-else clickable v-ripple :to="item.link" exact>
-            <q-item-section avatar>
-              <q-icon :name="item.icon" :color="item.link === $route.path ? 'primary' : 'secondary'" />
-            </q-item-section>
-            <q-item-section v-if="!miniState">{{ item.title }}</q-item-section>
-          </q-item>
-        </template>
-      </q-list>
+                  <!-- Insert "Waiting Time" only after "Personal Info" -->
+                  <q-item
+                    v-if="child.title === 'Personal Info'"
+                    clickable
+                    v-ripple
+                  >
+                    <q-item-section avatar class="q-pl-xl">
+                      <q-icon
+                        name="hourglass_top"
+                        :color="isMenuOpen ? 'primary' : 'secondary'"
+                      />
+                    </q-item-section>
+                    <q-item-section
+                      class="text-left"
+                      :class="{ 'text-primary': isMenuOpen }"
+                      >Waiting Time</q-item-section
+                    >
+                    <!-- Waiting time seamless dialog -->
+                    <q-menu
+                      fit
+                      anchor="top right"
+                      self="top left"
+                      transition-show="jump-down"
+                      transition-hide="jump-up"
+                      @before-show="isMenuOpen = false"
+                      @before-hide="isMenuOpen = true"
+                    >
+                      <q-card class="q-pa-md">
+                        <q-form @submit.prevent="process">
+                          <q-input
+                            v-model="formData.Waiting_time"
+                            mask="##:##"
+                            fill-mask="0"
+                            label="Enter Time (MM:SS)"
+                            :error="formError.hasOwnProperty('Waiting_time')"
+                            :error-message="formError.Waiting_time"
+                            :hint="
+                              timeData
+                                ? `Last saved time: ${timeData}`
+                                : 'Format: MM:SS'
+                            "
+                            :model-value="timeData"
+                            outlined
+                            class="q-mb-md text-h6"
+                          />
 
+                          <div class="row justify-center">
+                            <q-btn
+                              color="primary"
+                              label="Save"
+                              icon="save"
+                              @click="process"
+                            />
+                          </div>
+                        </q-form>
+                      </q-card>
+                    </q-menu>
+                  </q-item>
+                </template>
+              </q-list>
+            </q-expansion-item>
+
+            <!-- Normal Menu Item -->
+            <q-item v-else clickable v-ripple :to="item.link" exact>
+              <q-item-section avatar>
+                <q-icon
+                  :name="item.icon"
+                  :color="item.link === $route.path ? 'primary' : 'secondary'"
+                />
+              </q-item-section>
+              <q-item-section v-if="!miniState">{{
+                item.title
+              }}</q-item-section>
+            </q-item>
+          </template>
+        </q-list>
       </q-scroll-area>
-      
+
       <!-- Mini Drawer Toggle Button -->
       <div class="q-mini-drawer-hide absolute" style="top: 15px; right: -17px">
         <q-btn
@@ -82,29 +157,42 @@
         />
       </div>
 
-    <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
-      <div class="q-pa-xs absolute-bottom full-width q-mt-md bg-accent" style="border-top: 1px solid #ccc;">
+      <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
+      <div
+        class="q-pa-xs absolute-bottom full-width q-mt-md bg-accent"
+        style="border-top: 1px solid #ccc"
+      >
         <q-btn-dropdown class="full-width" flat no-caps dropdown-icon="none">
           <template v-slot:label>
             <q-item class="none flex items-center">
               <q-item-section avatar>
-                <q-img 
+                <q-img
                   :src="previewAdminImage"
-                  style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid  #1c5d99;" 
-                  fit="cover" />
+                  style="
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    border: 1px solid #1c5d99;
+                  "
+                  fit="cover"
+                />
               </q-item-section>
               <q-item-section>
                 <q-item-label>
-                {{ adminInformationContent && adminInformationContent.Firstname ? adminInformationContent.Firstname + " " + adminInformationContent.Lastname : "Loading..." }}
-              </q-item-label>
-
+                  {{
+                    adminInformationContent && adminInformationContent.Firstname
+                      ? adminInformationContent.Firstname +
+                        " " +
+                        adminInformationContent.Lastname
+                      : "Loading..."
+                  }}
+                </q-item-label>
               </q-item-section>
             </q-item>
           </template>
 
           <q-list>
-            <q-item clickable v-ripple 
-              @click="logout">
+            <q-item clickable v-ripple @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout" color="red" />
               </q-item-section>
@@ -113,7 +201,6 @@
           </q-list>
         </q-btn-dropdown>
       </div>
-
     </q-drawer>
     <q-page-container>
       <router-view />
@@ -125,7 +212,7 @@
 import { defineComponent, ref, onMounted } from "vue";
 import { date } from "quasar";
 import { useRouter } from "vue-router";
-import { $axios } from "src/boot/app";
+import { $axios, $notify } from "src/boot/app";
 
 export default defineComponent({
   name: "MainLayout",
@@ -136,20 +223,24 @@ export default defineComponent({
     const formattedString = ref();
     const drawer = ref(false);
     const miniState = ref(false);
-    const adminInformation = ref(null)
-    const previewAdminImage = ref(null)
+    const adminInformation = ref(null);
+    const previewAdminImage = ref(null);
 
     const adminInformationContent = ref({
-      id: '',
-      Firstname: '',
-      Lastname: '',
-      Image: '',
-    })
+      id: "",
+      Firstname: "",
+      Lastname: "",
+      Image: "",
+    });
+    const isMenuOpen = false;
 
     // Function to update the time
     const updateFormattedTime = () => {
       const timeStamp = Date.now();
-      formattedString.value = date.formatDate(timeStamp, "YYYY-MM-DD h:mm:ss A");
+      formattedString.value = date.formatDate(
+        timeStamp,
+        "YYYY-MM-DD h:mm:ss A"
+      );
     };
 
     const toggleMiniState = () => {
@@ -165,25 +256,25 @@ export default defineComponent({
 
     const fetchAdminInformation = async () => {
       try {
-        const { data } = await $axios.post('/admin/Information', {
-          id: adminInformation.value.id
+        const { data } = await $axios.post("/admin/Information", {
+          id: adminInformation.value.id,
         });
 
         if (data.dataValue) {
-          adminInformationContent.value = data.dataValue; // Use the object directly, no need for 
-          previewAdminImage.value = data.dataValue.Image
+          adminInformationContent.value = data.dataValue; // Use the object directly, no need for
+          previewAdminImage.value = data.dataValue.Image;
         } else {
-          console.error('No data found or invalid structure', data);
+          console.error("No data found or invalid structure", data);
           adminInformationContent.value = {
-            Firstname: 'N/A',
-            Lastname: 'N/A'
+            Firstname: "N/A",
+            Lastname: "N/A",
           };
         }
       } catch (error) {
-        console.error('Error fetching admin info', error);
+        console.error("Error fetching admin info", error);
         adminInformationContent.value = {
-          Firstname: 'Error',
-          Lastname: 'Error'
+          Firstname: "Error",
+          Lastname: "Error",
         };
       }
     };
@@ -192,19 +283,18 @@ export default defineComponent({
       try {
         router.push("/admin/dashboard"); // Redirect to login page
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
-    }
-
+    };
 
     // Set an interval to update the time every second
     onMounted(() => {
-      const storedAdminInfo = sessionStorage.getItem('adminInformation');
+      const storedAdminInfo = sessionStorage.getItem("adminInformation");
       if (storedAdminInfo) {
         adminInformation.value = JSON.parse(storedAdminInfo);
-        fetchAdminInformation()
+        fetchAdminInformation();
         updateFormattedTime(); // Call it once on mount
-        setInterval(fetchAdminInformation,1000);
+        setInterval(fetchAdminInformation, 1000);
         setInterval(updateFormattedTime, 1000); // Update every second
       } else {
         console.error("No admin information found in sessionStorage");
@@ -214,87 +304,144 @@ export default defineComponent({
     // Logout function
     const logout = () => {
       sessionStorage.removeItem("authTokenAdmin"); // Remove auth token
-      sessionStorage.removeItem('adminInformation')
+      sessionStorage.removeItem("adminInformation");
       router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation
       }, 100);
     };
 
+    // waiting time function section
+    const isLoading = ref(false);
+    const formData = ref({
+      id: "", // Store ID if it exists
+      Waiting_time: "",
+    });
+    const timeData = ref(null);
+    const formError = ref({});
+
+    // Fetch saved time
+    const formatTime = (seconds) => {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(
+        remainingSeconds
+      ).padStart(2, "0")}`;
+    };
+
+    const fetchWaitingtime = async () => {
+      try {
+        const { data } = await $axios.post("/admin/waiting_Time-fetch");
+        console.log("Fetched Data:", data);
+
+        if (data && data.dataValue && data.dataValue.length > 0) {
+          const waitingTimeInSeconds = data.dataValue[0].Waiting_time; // Fetch as seconds
+          timeData.value = formatTime(waitingTimeInSeconds); // Convert to MM:SS
+          console.log("Updated timeData (MM:SS):", timeData.value);
+        } else {
+          console.warn("No waiting time found");
+        }
+      } catch (error) {
+        console.error("Error fetching waiting time:", error);
+      }
+    };
+
+    const process = async () => {
+      isLoading.value = true;
+      try {
+        const endpoint = "/admin/waiting_Time"; // Always use the same endpoint
+
+        const { data } = await $axios.post(endpoint, formData.value);
+        formError.value = {}; // Reset form errors
+
+        if (data) {
+          $notify("positive", "done", data.message);
+          fetchWaitingtime(); // Refresh data after insert/update
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          formError.value = error.response.data; // Handle validation errors
+        } else {
+          console.error("Error", error);
+        }
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    onMounted(() => {
+      fetchWaitingtime();
+    });
+
     const linksList = [
       {
         title: "Dashboard",
         icon: "dashboard",
         link: "/admin/dashboard",
-        },
-        {
-          title: "Teller",
-          icon: "person",
-          children: [
-            { 
-              title: "Window", 
-              icon: "computer", 
-              link: "/admin/teller/window" 
-            },
-            { 
-              title: "Personnel", 
-              icon: "groups", 
-              link: "/admin/teller/tellers" 
-            },
-            { 
-              title: "Service Types", 
-              icon: "category", 
-              link: "/admin/teller/types" 
-            },
-          ],
-        },
-        {
-          title: "Archive",
-          icon: "archive", 
-          link: "/admin/archive",
-        },
-        {
-          title: "Admin Queue",
-          icon: "admin_panel_settings", 
-          link: "/admin/admin_Queue",
-        },
-        {
-          title: "Customer Logs",
-          icon: "description", 
-          link: "/admin/customer-logs",
-        },
-        {
-          title: "Window Logs",
-          icon: "upload_file", 
-          link: "/admin/window-logs",
-        },
-        {
-          title: "Reports",
-          icon: "bar_chart", 
-          link: "/admin/reports",
-        },
-        {
-          title: "Settings",
-          icon: "settings",
-            children: [
-              { 
-                title: "Personal Info", 
-                icon: "computer", 
-                link: "/admin/settings" 
-              },
-              { 
-                title: "Waiting Time",
-                icon: "hourglass_top", 
-                link: "/admin/waiting-time",
-              },
-              { 
-                title: "Reset Window",
-                icon: "reset_tv", 
-                link: "/admin/reset-window",
-              },
-            ],
+      },
+      {
+        title: "Teller",
+        icon: "person",
+        children: [
+          {
+            title: "Window",
+            icon: "computer",
+            link: "/admin/teller/window",
           },
-      ];
+          {
+            title: "Personnel",
+            icon: "groups",
+            link: "/admin/teller/tellers",
+          },
+          {
+            title: "Service Types",
+            icon: "category",
+            link: "/admin/teller/types",
+          },
+        ],
+      },
+      {
+        title: "Archive",
+        icon: "archive",
+        link: "/admin/archive",
+      },
+      {
+        title: "Admin Queue",
+        icon: "admin_panel_settings",
+        link: "/admin/admin_Queue",
+      },
+      {
+        title: "Customer Logs",
+        icon: "description",
+        link: "/admin/customer-logs",
+      },
+      {
+        title: "Window Logs",
+        icon: "upload_file",
+        link: "/admin/window-logs",
+      },
+      {
+        title: "Reports",
+        icon: "bar_chart",
+        link: "/admin/reports",
+      },
+      {
+        title: "Settings",
+        icon: "settings",
+        children: [
+          {
+            title: "Personal Info",
+            icon: "computer",
+            link: "/admin/settings",
+          },
+          {
+            title: "Reset Window",
+            icon: "reset_tv",
+            link: "/admin/reset-window",
+          },
+        ],
+      },
+    ];
 
     return {
       leftDrawerOpen,
@@ -310,6 +457,14 @@ export default defineComponent({
       goonDashboard,
       logout, // Make logout function available in the template
       linksList,
+      isMenuOpen,
+
+      // waiting time function
+      formData,
+      timeData,
+      process,
+      isLoading,
+      formError,
 
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
