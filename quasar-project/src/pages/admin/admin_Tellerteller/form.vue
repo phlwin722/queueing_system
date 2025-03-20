@@ -274,17 +274,7 @@ export default defineComponent({
             $notify('negative', 'error', 'Passwords do not match. Please check your input data');
             isLoading.value = false; // Hide the loading spinner
             return;
-        try{
-        const {data} = await $axios.post(props.url +mode, formData.value)
-        const rows = toRefs(props).rows
-        if(mode === '/create'){
-            rows.value.unshift(data.row)
-        }else{
-            const index = rows.value.findIndex(x => x.id === data.row.id)
-            if(index > -1){
-            rows.value[index] = Object.assign({}, data.row)
-            }
-
+        }
             try {
                 // If updating and a new password is provided, update the password in formData
                 if (mode === '/update' && formDataPassword.value.teller_newPassword !== '') {
@@ -314,8 +304,7 @@ export default defineComponent({
             } finally {
                 isLoading.value = false; // Hide the loading spinner
             }
-        };
-
+        }
 
         // Return necessary variables and methods for the template
         return {
