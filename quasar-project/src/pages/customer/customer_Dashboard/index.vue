@@ -27,10 +27,10 @@
             </div>
           </q-card-section>
           <q-card-section class="row items-center">
-            <q-icon
-              name="person_outline"
-              size="md"
-              class="text-secondary q-mr-sm"
+            <q-img
+              width="30px"
+              height="30px"
+              class="text-secondary q-mr-md shadow-1"
             />
             <div class="column">
               <div class="text-xs text-grey-7 text-uppercase">Personnel</div>
@@ -48,7 +48,7 @@
             <div class="text-bold text-grey-7 text-caption">
               Your Queue Number
             </div>
-            <div class="text-h2 text-primary text-bold">
+            <div class="text-h2 text-primary text-bold q-mt-sm">
               {{ customerQueueNumber || "N/A" }}
             </div>
           </div>

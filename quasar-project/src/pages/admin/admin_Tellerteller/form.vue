@@ -1,7 +1,7 @@
 <template>
     <!-- Dialog Box -->
     <q-dialog @hide="closeDialog" v-model="isShow">
-        <q-card>
+        <q-card class="relative-position">
             <!-- Dialog Header -->
             <q-card-section class="row items-center q-pb-none">
                 <div class="text-h6 text-primary">{{ formMode }} Personnel</div>
@@ -59,7 +59,6 @@
                     
                     <!-- Conditional Password Input (for Edit Mode) -->
                     <div v-if="formMode === 'Edit'" class="col-12">
-                        <div class="col-12">
                             <q-input 
                                 outlined 
                                 v-model="formDataPassword.teller_newPassword" 
@@ -70,8 +69,8 @@
                                 :error="formError.hasOwnProperty('teller_newpassword')" 
                                 :error-message="formError.teller_newpassword"
                         />
-                        </div>
-                        <div class="col-12">
+                        
+                        <div class="col-12 q-mt-md">
                             <q-input 
                                 outlined 
                                 v-model="formDataPassword.teller_retypepassword" 
@@ -133,27 +132,37 @@
                             </template>
                             <template v-slot:append>
                             <q-icon name="preview" class="cursor-pointer" @click="showPreview = true"/>
+                            <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
+                                        preview image
+                                    </q-tooltip>
                             </template>
                         </q-file>
 
                         <!-- Image Preview Dialog -->
                         <q-dialog v-model="showPreview">
-    <q-card class="q-pa-md" style="width: 175px; max-width: 35vw;">
-        <q-card-section class="row justify-center">
-            <q-img
-                v-if="imageUrl"
-                :src="imageUrl"
-                spinner-color="primary"
-                style="width: 100%; max-height: 500px; object-fit: contain; border-color: black; border-width: 1px; border-style: solid;"
-            />
-            <p v-else class="text-grey">No image selected</p>
-        </q-card-section>
-        <q-card-actions align="center">
-            <q-btn flat label="Close" v-close-popup />
-        </q-card-actions>
-    </q-card>
-</q-dialog>
-
+                            <q-card class="q-pa-md absulute-position"  style="width: 200px; max-width: 30vw; left: 420px; top: 0;">
+                                <q-card-section class="row justify-center">
+                                    
+                                    <q-img
+                                        v-if="imageUrl"
+                                        :src="imageUrl"
+                                        spinner-color="primary"
+                                        style="width: 100%; max-height: 500px; object-fit: contain; border-color: black; border-width: 1px; border-style: solid;"
+                                    />
+                                    <p v-else class="text-grey" align="center">No image selected</p>
+                                    
+                                </q-card-section>
+                                
+                                <q-card-actions align="center">
+                                    <q-btn 
+                                    flat 
+                                    label="Close" 
+                                    v-close-popup
+                                    />
+                                </q-card-actions>
+                            </q-card>
+                        </q-dialog>
+                        
 
                     </div>
                 </div>
@@ -259,8 +268,10 @@ export default defineComponent({
         const previewImage = (file) => {
             if (file) {
                 imageUrl.value = URL.createObjectURL(file);
+                showPreview.value = true;
             } else {
                 imageUrl.value = null;
+                showPreview.value = false;
             }
         };
 
