@@ -1,35 +1,47 @@
 <template>
-  <q-page class="q-pa-md">
-    <q-card-actions align="center">
-        <q-btn
-          :disable="(!isQueuelistEmpty || currentServing != null)"
-          color="green"
-          label="Reset Queue Number"
-          @click="resetQueue()"
-        />
-      </q-card-actions>
-      <div class="col-12">
-                        <q-select
-                            outlined
-                            v-model="type_id" 
-                            label="Service Type"
-                            emit-value
-                            map-options
-                            dense
-                            hide-bottom-space
-                            :options="serviceTypeList"
-                            option-label="name"
-                            option-value="id"
-                            
-                        />    
-                    </div>
+  <q-page class="q-pa-md bg-grey-1">
+    <!-- Reset Queue Button -->
+    <q-card-actions align="center" class="q-mb-md">
+      <q-btn
+        :disable="(!isQueuelistEmpty || currentServing != null)"
+        color="positive"
+        label="Reset Queue Number"
+        @click="resetQueue()"
+        class="rounded-borders shadow-2"
+      />
+    </q-card-actions>
+
+    <!-- Service Type Selector -->
+    <div class="q-mb-md">
+      <q-select
+        outlined
+        v-model="type_id"
+        label="Service Type"
+        emit-value
+        map-options
+        dense
+        hide-bottom-space
+        :options="serviceTypeList"
+        option-label="name"
+        option-value="id"
+        class="rounded-borders shadow-2"
+      />
+    </div>
+    <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
+    <q-card-section class="q-pb-sm">
+        <div class="text-bold">Assigned Personnel: {{ tellerFullName }}</div>
+        <div class="text-bold">Number of Queue in line: {{ noOfQueue }}</div>
+      </q-card-section>
+      </q-card>
+
     <!-- Current Serving Section -->
-    <q-card class="q-mb-md q-pa-md" bordered>
-      Number of Queue in line: {{noOfQueue}}
+    <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
+      
+
       <q-card-section class="text-center">
-        <div class="text-h5 text-bold">Now Serving</div>
-        <div v-if="servingStatus != null" class="text-h4 text-primary q-mt-md">
-          Queue number: <br>{{ cusQueueNum }}
+        <div class="text-h5 text-bold text-primary">Now Serving</div>
+        <div v-if="servingStatus != null" class="text-h4 text-blue-7 q-mt-md">
+          Queue number: <br />{{ cusQueueNum }}
         </div>
         <div v-if="servingStatus != null" class="text-subtitle1 text-grey">
           Name: <strong>{{ cusName }}</strong>
@@ -37,56 +49,49 @@
         <div v-else class="text-grey">No one is being served</div>
       </q-card-section>
 
-      
-
-      <q-card-actions align="space-between">
-            <!-- Cancel Button -->
-            <q-btn 
-            v-if="currentServing && tempTimer == 0"
-            color="red" 
-            label="Cancel" 
-            class="modern-btn"
-            @click="beforeCancel(currentServing)" 
-            />
-
-         <!-- Wait Button (Only for the first customer in the queue) -->
-          
-         <q-btn
-              v-if="currentServing && tempTimer == 0"
-              color="orange-5"
-              class="modern-btn"
-              :label="waiting ? formatTime(tempTimer) : 'Wait'"
-              @click="startWait(cusId, currentServing.queue_number)"
-              :disable="waiting"
-            />
-          
-          <!-- Finish Button -->
-          <q-btn
+      <!-- Action Buttons -->
+      <q-card-actions align="center" class="q-pt-md">
+        <q-btn 
           v-if="currentServing && tempTimer == 0"
-          color="blue"
+          color="negative"
+          label="Cancel"
+          class="q-mx-sm rounded-borders"
+          @click="beforeCancel(currentServing)"
+        />
+
+        <q-btn
+          v-if="currentServing && tempTimer == 0"
+          color="warning"
+          :label="waiting ? formatTime(tempTimer) : 'Wait'"
+          class="q-mx-sm rounded-borders"
+          @click="startWait(cusId, currentServing.queue_number)"
+          :disable="waiting"
+        />
+
+        <q-btn
+          v-if="currentServing && tempTimer == 0"
+          color="primary"
           label="Finish"
-          class="modern-btn"
+          class="q-mx-sm rounded-borders"
           @click="finishCustomer(currentServing.id)"
         />
-          
       </q-card-actions>
     </q-card>
 
-    <!-- Queue List Section -->
-    <q-card bordered>
-      <q-card-section>
-        <div class="text-h6">Waiting Queue</div>
+    <!-- Waiting Queue List -->
+    <q-card class="q-pa-md shadow-2 rounded-borders">
+      <q-card-section class="text-h6 text-bold text-primary q-mb-sm">
+        Waiting Queue
       </q-card-section>
 
       <q-separator />
 
-      <q-list separator bordered>
-        <q-item v-for="(customer, index) in paginatedQueueList" :key="customer.id">
+      <q-list bordered separator>
+        <q-item v-for="customer in paginatedQueueList" :key="customer.id">
           <q-item-section>
             <q-item-label class="text-bold">Name: {{ customer.name }}</q-item-label>
             <q-item-label class="text-bold">Queue No: {{ customer.queue_number }}</q-item-label>
           </q-item-section>
-
         </q-item>
       </q-list>
 
@@ -98,11 +103,10 @@
           :max-pages="5"
           boundary-numbers
           color="primary"
+          class="q-mt-sm"
         />
       </q-card-actions>
     </q-card>
-
-    
   </q-page>
 </template>
 
@@ -131,6 +135,7 @@ const serviceTypeList = ref([]);
 const cusName = ref()
 const cusQueueNum = ref()
 const servingStatus = ref()
+const tellerFullName = ref()
 
 
 // Pagination
@@ -156,6 +161,7 @@ const fetchQueue = async () => {
     cusName.value = response.data.name
     cusQueueNum.value = response.data.queue_number
     servingStatus.value = response.data.status
+    tellerFullName.value = response.data.fullname
     // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
     // console.log(queuePosition.value)
     // console.log(response.data.queue_numbers)
@@ -462,6 +468,7 @@ return {
   cusName,
   cusQueueNum,
   servingStatus,
+  tellerFullName,
 
   // Pagination
   currentPage,
@@ -475,3 +482,9 @@ return {
 }
 }
 </script>
+
+<style scoped>
+.rounded-borders {
+  border-radius: 12px;
+}
+</style>
