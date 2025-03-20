@@ -180,56 +180,38 @@ class QueueController extends Controller
     public function queueLogs(Request $request)
     { 
         try {
-        
-
             $res = DB::table('queues as qs')
-            ->select(
-                "qs.name",
-                "qs.email",
-                "qs.queue_number",
-                "tp.name as type_id",
-                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
-                "qs.status",
-                "qs.created_at"
-            )
-            ->leftJoin("types as tp", "tp.id", "qs.type_id")
-            ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
-            ->whereNotIn('status', ['serving', 'waiting'])
-            ->orderBy('qs.created_at', 'desc');
+                ->select(
+                    "qs.name",
+                    "qs.email",
+                    "qs.queue_number",
+                    "tp.name as type_id",
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                    "qs.status",
+                    "qs.created_at"
+                )
+                ->leftJoin("types as tp", "tp.id", "qs.type_id")
+                ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+                ->whereNotIn('qs.status', ['serving', 'waiting']) // Add 'qs.' to the status column
+                ->orderBy('qs.created_at', 'desc');
     
-             // Check if a date filter is provided
-             if ($request->has('date')) {
+            // Check if a date filter is provided
+            if ($request->has('date') && $request->input('date')) {
                 $date = $request->input('date'); 
-                $res->whereDate('created_at', $date); // Filter by date
+                $res->whereDate('qs.created_at', $date); // Use the alias 'qs'
             }
-
-      
     
-
-             // $query = DB::table('queues')
-            //     ->whereNotIn('status', ['serving', 'waiting'])
-            //     ->orderBy('created_at', 'desc'); // Sort by latest
-
-       
-
             return response()->json([
                 'rows' => $res->get()
-                
             ]);
-
-            // return response()->json([
-            //     'rows' => $query->get()
-            // ]);
-
         } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json([
                 "message" => env('APP_DEBUG') ? $message : "Something went wrong!"
             ]);
         }
-
-    
     }
+    
 
     
 
@@ -248,17 +230,17 @@ class QueueController extends Controller
             )
             ->leftJoin("types as tp", "tp.id", "qs.type_id")
             ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
-            ->whereNotIn('status', ['serving', 'waiting'])
+            ->whereNotIn('qs.status', ['serving', 'waiting'])
             ->orderBy('qs.created_at', 'asc');
     
             // Filter by "From" date
             if ($request->has('from_date') && !empty($request->input('from_date'))) {
-                $res->whereDate('created_at', '>=', $request->input('from_date'));
+                $res->whereDate('qs.created_at', '>=', $request->input('from_date'));
             }
     
             // Filter by "To" date
             if ($request->has('to_date') && !empty($request->input('to_date'))) {
-                $res->whereDate('created_at', '<=', $request->input('to_date'));
+                $res->whereDate('qs.created_at', '<=', $request->input('to_date'));
             }
     
             return response()->json([

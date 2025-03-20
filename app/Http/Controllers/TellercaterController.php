@@ -114,6 +114,13 @@ class TellercaterController extends Controller
         ->where('status', 'serving')
         ->first();
 
+        $name = DB::table('tellers')
+        ->select('teller_firstname', 'teller_lastname')
+        ->where('type_id', $type_id)
+        ->first();
+
+        $fullname = $name->teller_firstname ." ". $name->teller_lastname;
+
         return response()->json([
             'queue' => $queue,
             'current_serving' => $currentServing,
@@ -121,6 +128,7 @@ class TellercaterController extends Controller
             'name' => $servingQueue->name ?? null,
             'queue_number' => $servingQueue->queue_number ?? null,
             'status' => $servingQueue->status ?? null,
+            'fullname' => $fullname ?? null,
         ]);
     }
 

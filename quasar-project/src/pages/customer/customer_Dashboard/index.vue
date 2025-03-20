@@ -95,7 +95,7 @@
               size="lg"
               unelevated
               class="rounded-borders full-width text-bold"
-              @click="leaveQueue"
+              @click="beforeCancel"
             />
           </q-card-actions>
         </q-card-section>
@@ -194,11 +194,13 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
+import { useQuasar } from "quasar";
 
 export default {
   setup() {
     const router = useRouter();
     const route = useRoute();
+    const $dialog = useQuasar();
     const tokenurl = ref(route.params.token);
     const customerQueueNumber = ref(
       localStorage.getItem("queue_number" + tokenurl.value) || null
@@ -305,9 +307,10 @@ export default {
         if (customer.status === "finished" && !hasNotified.value) {
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
-          setTimeout(() => router.push("/customer-thankyou/"), 3000); // Delay redirect for a smooth transition
+          setTimeout(() => router.push("/customer-thankyou/"), 2000); // Delay redirect for a smooth transition
         }
-        if (customer && customer.status === "cancelled") {
+        if (customer && customer.status === "cancelled" && !hasNotified.value) {
+          hasNotified.value = true; // Mark as notified
           $notify(
             "negative",
             "error",
@@ -445,17 +448,48 @@ export default {
       return `${seconds} s`;
     };
 
+    //cancel dialog
+    const beforeCancel = () => {
+      $dialog
+        .dialog({
+          title: "Confirm",
+          message: "Are you sure you want to leave the queue?",
+          cancel: true,
+          persistent: true,
+          ok: {
+            label: "Yes",
+            color: "primary", // Make confirm button red
+            unelevated: true, // Flat button style
+            style: "width: 125px;",
+          },
+          cancel: {
+            label: "Cancel",
+            color: "red-8", // Make cancel button grey
+            unelevated: true,
+            style: "width: 125px;",
+          },
+          style: "border-radius: 12px; padding: 16px;",
+        })
+        .onOk(() => {
+          leaveQueue()
+        })
+        .onDismiss(() => {
+          // console.log('I am triggered on both OK and Cancel')
+        });
+    };
+
 
     // Leave the queue
     const leaveQueue = async () => {
       try {
         console.log(customerId.value);
         await $axios.post("/customer-leave", { id: customerId.value });
+        hasNotified.value = true; // Mark as notified
         $notify("positive", "check", "You have left the queue.");
         console.log("cancelled");
         setTimeout(
             () => router.push("/customer-thankyou/"),
-            2000
+            1000
           );
       } catch (error) {
         console.error(error);
@@ -542,6 +576,7 @@ export default {
       formatTime,
       remainingTime,
       abbreviateName, // Expose the abbreviateName function
+      beforeCancel,
     };
   },
 };
