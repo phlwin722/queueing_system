@@ -56,17 +56,18 @@ class TellerController extends Controller
 
     public function create(TellerRequest $request){
         try {
+            // Insert a new teller and get the ID
             $tellerID = DB::table('tellers')->insertGetId([
                 'teller_firstname' => $request->teller_firstname,
                 'teller_lastname' => $request->teller_lastname,
                 'teller_username' => $request->teller_username,
                 'teller_password' => Hash::make($request->teller_password),
-                'type_id' => $request->type_id,
+                'type_ids_selected' => $request->type_ids_selected, // Store selected types as JSON
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
     
-            //  Fetch the newly inserted section with the grade level
+            // Fetch the newly inserted teller and join with the types table
             $newTeller = DB::table('tellers as t')
                 ->select(
                     "t.id",
@@ -74,26 +75,27 @@ class TellerController extends Controller
                     "t.teller_lastname",
                     "t.teller_username",
                     "t.teller_password",
-                    "t.type_id",
-                    "tp.name"
+                    "t.type_ids_selected",
+                    DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
                 )
-                ->leftJoin("types as tp", "tp.id", "=", "t.type_id")
+                ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, CAST(tp.id AS JSON))'), '>', DB::raw('0')) // JSON contains join
                 ->where("t.id", $tellerID)
+                ->groupBy("t.id") // Group by the teller ID to get one row
                 ->first();
     
             return response()->json([
                 'success' => true,
                 'message' => 'Teller added successfully!',
-                'row' => $newTeller 
+                'row' => $newTeller
             ]);
         } catch (\Exception $e) {
-            $message = $e->getMessage();
             return response()->json([
                 'success' => false,
-                'message' => $message,
+                'message' => $e->getMessage(),
             ]);
         }
     }
+    
 
     public function form(Request $request)
     {
@@ -129,7 +131,7 @@ class TellerController extends Controller
             $teller->teller_firstname = $request->teller_firstname;
             $teller->teller_lastname = $request->teller_lastname;
             $teller->teller_username = $request->teller_username;
-            $teller->type_id = $request->type_id;
+            $teller->type_ids_selected = $request->type_ids_selected;
 
             // Update password only if provided
             if ($request->filled('teller_password')) {
@@ -184,85 +186,92 @@ class TellerController extends Controller
         try {
             $type_id = $request->input('type_id');
 
+            // Check if type_id is a string and not numeric
             if (is_string($type_id) && !is_numeric($type_id)) {
+                // Resolve the ID based on type_id
                 $id = DB::table('types')->where('name', $type_id)->value('id');
+                
+                // Query tellers where `type_ids_selected` contains the specific ID
                 $tellers = DB::table('tellers')
-                ->where('type_id', $id)
-                ->select('id', 'teller_firstname', 'teller_lastname')
-                ->get(); // Execute query
+                    ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)', [json_encode([$id])]) // JSON_CONTAINS with the id as a JSON array
+                    ->select('id', 'teller_firstname', 'teller_lastname');
 
-            // Format response for dropdown
-            $formattedTellers = $tellers->map(function ($teller) {
-                return [
-                    
-                    'value' => $teller->id, // ID as the value
-                    'label' => $teller->teller_firstname . ' ' . $teller->teller_lastname // Full name as the label
-                ];
-            });
+                // Execute the query
+                $tellers = $tellers->get();
 
-            return response()->json([
-                'rows' => $formattedTellers,
-                'id_type' => $id,
-            ]);
-            }else{
-                    // Fetch tellers based on type_id
+                // Format the results for the dropdown
+                $formattedTellers = $tellers->map(function ($teller) {
+                    return [
+                        'value' => $teller->id, // ID as the value
+                        'label' => $teller->teller_firstname . ' ' . $teller->teller_lastname // Full name as the label
+                    ];
+                });
+
+                return response()->json([
+                    'rows' => $formattedTellers,
+                    'id_type' => $id,
+                ]);
+            } else {
+                // If type_id is numeric, handle it differently
                 $tellers = DB::table('tellers')
-                ->where('type_id', $type_id)
-                ->select('id', 'teller_firstname', 'teller_lastname')
-                ->get(); // Execute query
+                ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)', [json_encode([$type_id])]) // JSON_CONTAINS with the id as a JSON array
+                    ->select('id', 'teller_firstname', 'teller_lastname')
+                    ->get(); // Execute the query
 
-            // Format response for dropdown
-            $formattedTellers = $tellers->map(function ($teller) {
-                return [
-                    'value' => $teller->id, // ID as the value
-                    'label' => $teller->teller_firstname . ' ' . $teller->teller_lastname // Full name as the label
-                ];
-            });
+                // Format response for dropdown
+                $formattedTellers = $tellers->map(function ($teller) {
+                    return [
+                        'value' => $teller->id, // ID as the value
+                        'label' => $teller->teller_firstname . ' ' . $teller->teller_lastname // Full name as the label
+                    ];
+                });
 
-            return response()->json([
-                'rows' => $formattedTellers,
-                'id_type' => $type_id
-            ]);
+                return response()->json([
+                    'rows' => $formattedTellers,
+                    'id_type' => $type_id
+                ]);
             }
-            
-            
+
         } catch (\Exception $e) {
+            // Handle exceptions and return an error message
             return response()->json([
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
             ]);
         }
-    } 
+    }
+
 
     public function getData($id = null){
-        
         $res = DB::table('tellers as t')
-        ->select(
-            "t.id",
-            "t.teller_firstname",
-            "t.teller_lastname",
-            "t.teller_username",
-            "t.teller_password",
-            "t.type_id",
-            "tp.name"
-        )
-        ->leftJoin("types as tp", "tp.id", "t.type_id")
-        ->orderBy('t.created_at', 'desc'); // Ordering by created_at in descending order
-
-
-        
-
-        if($id){
-            $res = $res
-                ->where("t.id",$id)
-                -> first();
-        }else{
+            ->select(
+                "t.id",
+                "t.teller_firstname",
+                "t.teller_lastname",
+                "t.teller_username",
+                "t.teller_password",
+                "t.type_ids_selected",
+                DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
+            )
+            ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, CAST(tp.id AS JSON))'), '>', DB::raw('0')) // JSON contains join
+            ->groupBy(
+                "t.id", 
+                "t.teller_firstname", 
+                "t.teller_lastname", 
+                "t.teller_username", 
+                "t.teller_password", 
+                "t.type_ids_selected"
+            )
+            ->orderBy('t.created_at', 'desc'); // Ordering by created_at in descending order
+    
+        if ($id) {
+            $res = $res->where("t.id", $id)->first();
+        } else {
             $res = $res->get();
         }
         
         return $res;
-
-    
     }
+    
 
     public function validationLoginTeller (AdminRequest $request) {
         $teller = DB::table('tellers')

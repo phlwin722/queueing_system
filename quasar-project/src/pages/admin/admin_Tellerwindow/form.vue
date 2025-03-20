@@ -189,16 +189,13 @@
         const fetchWindowTypes = async () => { 
             try {
                 const response = await $axios.post('/types/dropdown');
-                console.log(response.data); 
-
-                if (Array.isArray(response.data.rows)) {
+                    if (Array.isArray(response.data.rows)) {
                     // Map id and section_name correctly
                     windowTypeList.value = response.data.rows.map(sec => ({
                         label: sec.name, // This is what the user sees
                         value: sec.id // This is what will be stored
                     }));
 
-                    console.log(windowTypeList.value); // Debugging output
                 } else {
                     console.error('Expected "rows" to be an array, but got:', response.data.rows)
                 }   
@@ -216,6 +213,8 @@
                 const response = await $axios.post('/tellers/dropdown', {
                     type_id: formData.value.type_id // Send selected grade level
                 });
+
+                console.log(response.tellers)
                 if (Array.isArray(response.data.rows)) {
                     personnelList.value = response.data.rows; // Response is already in { label, value } format
                 } else {
