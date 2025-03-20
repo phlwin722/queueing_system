@@ -30,7 +30,7 @@ class TellerRequest extends FormRequest
             'teller_lastname' => ['required', 'regex:/^[a-zA-Z\s]+$/'],
             'teller_username' => ['required','unique:tellers,teller_username,' . $id . ',id'],
             'teller_password' => ['required'],
-            'type_id' => ['required'], 
+            'type_ids_selected' => ['required'], 
         ];
     }
     protected function failedValidation(Validator $validator){

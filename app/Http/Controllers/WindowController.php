@@ -27,6 +27,16 @@ class WindowController extends Controller
         try{
             $res = Window::create($request->all());
             $row = $this->getData($res ->id);
+            
+            $type_id = $request->type_id;
+            $teller_id = $request->teller_id;
+
+            DB::table('tellers')
+                ->where('id', $teller_id)
+                ->update(['type_id' => $type_id]);
+        
+
+
             return response()->json([
                 "row"=> $row,
                 "message"=>"Window added successfully!"
@@ -63,6 +73,14 @@ class WindowController extends Controller
     
             // Fetch updated data
             $row = $this->getData($window->id);
+
+            $type_id = $request->type_id;
+            $teller_id = $request->teller_id;
+
+            DB::table('tellers')
+                ->where('id', $teller_id)
+                ->update(['type_id' => $type_id]);
+        
     
             return response()->json([
                 "row" => $row,
@@ -189,36 +207,36 @@ class WindowController extends Controller
     {
         try {
             Window::query()->update(['teller_id' => null]);
-    return response()->json(['message' => 'All tellers reset successfully!']);
-} catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to reset tellers.'], 500);
+            return response()->json(['message' => 'All tellers reset successfully!']);
+        } catch (\Exception $e) {
+                    return response()->json(['message' => 'Failed to reset tellers.'], 500);
         }
     }
 
-    public function resetWindows()
-{
-    Log::info("Reset Windows Function Triggered");
-    try {
-        $windows = Window::all();
+        public function resetWindows()
+    {
+        Log::info("Reset Windows Function Triggered");
+        try {
+            $windows = Window::all();
 
-        foreach ($windows as $window) {
-            $typeName = Type::find($window->type_id)->name ?? 'N/A';
-            $tellerName = Teller::find($window->teller_id)->name ?? 'N/A';
+            foreach ($windows as $window) {
+                $typeName = Type::find($window->type_id)->name ?? 'N/A';
+                $tellerName = Teller::find($window->teller_id)->name ?? 'N/A';
 
-            WindowArchive::create([
-                'window_name' => $window->window_name,
-                'type_name'   => $typeName,
-                'teller_name' => $tellerName,
-                'archived_at' => now(),
-            ]);
+                WindowArchive::create([
+                    'window_name' => $window->window_name,
+                    'type_name'   => $typeName,
+                    'teller_name' => $tellerName,
+                    'archived_at' => now(),
+                ]);
+            }
+
+            Window::query()->update(['teller_id' => null]);
+
+            return response()->json(['message' => 'Windows reset successfully']);
+        } catch (\Exception $e) {
+            Log::error("Error resetting windows: " . $e->getMessage());
+            return response()->json(['message' => 'Reset failed'], 500);
         }
-
-        Window::query()->update(['teller_id' => null]);
-
-        return response()->json(['message' => 'Windows reset successfully']);
-    } catch (\Exception $e) {
-        Log::error("Error resetting windows: " . $e->getMessage());
-        return response()->json(['message' => 'Reset failed'], 500);
     }
-}
 }
