@@ -1,104 +1,120 @@
 <template>
-    <div class="q-pa-md q-gutter-sm text-center">
-      <div class="text-h5 text-primary font-weight-bold">
-        Thank you for using our queueing system!
-      </div>
-  
-      <div class="q-mt-md text-subtitle1 text-grey-7">
-        <p>Your experience matters to us. Stay connected with us!</p>
-      </div>
-  
-      <q-btn
-        push
-        color="primary"
-        @click="goToPage"
-        round
-        icon="facebook"
-        class="q-mt-md custom-btn"
-      >
-        Visit Our Facebook
-      </q-btn>
-  
-      <div class="q-mt-lg text-grey-6">
-        <p>VRTSystems Corporation</p>
-      </div>
-    </div>
-  </template>
-  
-  <script>
-  import { defineComponent } from 'vue';
-  
-  export default defineComponent({
-    name: 'IndexPage',
-  
-    setup() {
-      const goToPage = async () => {
-        window.location = "https://www.facebook.com/vrtsystems";
-      };
-      return {
-        goToPage,
-      };
-    },
-  });
-  </script>
-  
-  <style scoped>
-  .q-pa-md {
-    background-color: #f9f9f9; /* Slightly lighter background */
-    border-radius: 15px; /* Softer rounded corners */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
-    padding: 2rem;
-  }
-  
-  .text-h5 {
-    font-size: 1.5rem; /* Increase font size */
-    font-weight: 600; /* Slightly bolder text */
-    color: #2c3e50; /* Rich color for the heading */
-  }
-  
-  .q-btn {
-    font-size: 1.2rem;
-    padding: 16px 32px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px; /* Slight spacing between letters */
-    transition: all 0.3s ease;
-    border-radius: 30px; /* Softer rounded button */
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1); /* Subtle button shadow */
-  }
-  
-  .q-btn:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
-  }
-  
-  .text-center {
-    text-align: center;
-  }
-  
-  .q-mt-md {
-    margin-top: 24px;
-  }
-  
-  .q-mt-lg {
-    margin-top: 48px;
-  }
-  
+  <div class="full-width bg-primary header-background"></div>
+
+  <div class="q-py-md flex flex-center">
+    <q-card class="q-pa-md q-mt-xl text-center shadow-3 bg-white rounded-card" bordered>
+      
+      <q-card-section class="column items-center">
+        <!-- Responsive Logo -->
+        <q-img
+          src="~assets/vrtlogoblack.webp"
+          alt="Logo"
+          fit="contain"
+          :style="{ maxWidth: $q.screen.lt.md ? '120px' : '200px' }"
+          class="q-mb-md"
+        /> 
+
+        <div class="custom-border text-h6 text-secondary text-weight-bold q-pa-md q-mb-md">
+          <q-icon name="check_circle" color="green" size="32px" class="check-icon" />
+          Thank you for using our <br /> Queuing System
+          <q-icon name="mood" size="md" class="q-ml-xs" />
+        </div>
+
+
+
+      </q-card-section>
+
+      <q-card-section>
+        <p class="text-subtitle1 text-grey-8">
+          Your experience matters to us. Stay connected with us!
+        </p>
+      </q-card-section>
+
+      <!-- Facebook Button with Logo -->
+      <q-card-section>
+        <q-btn
+          dense
+          color="blue-8"
+          @click="goToPage"
+          size="md"
+          class="custom-btn"
+          glossy
+        >
+          Visit Our Facebook
+        </q-btn>
+      </q-card-section>
+
+      <q-card-section class=" text-grey-7 q-mt-md">
+        <p class="text-weight-medium">VRTSystems Corporation</p>
+      </q-card-section>
+      
+    </q-card>
+  </div>
+</template>
+
+<script>
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  name: "IndexPage",
+
+  setup() {
+    const goToPage = () => {
+      window.open("https://www.facebook.com/vrtsystems", "_blank");
+    };
+    return {
+      goToPage,
+    };
+  },
+});
+</script>
+
+<style scoped>
+/* Background Styling */
+.header-background {
+  height: 30vh;
+  position: absolute;
+  z-index: -1;
+}
+
+/* Custom Button Styling */
+.custom-btn {
+  width: 225px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
   .custom-btn {
-    background-color: #3b9ff3; /* Fresh blue background */
-    color: white;
-    border: none;
-    font-weight: 500; /* Slightly lighter button text */
+    width: 180px;
+    font-size: 14px;
   }
-  
-  .custom-btn:hover {
-    background-color: #1f77d1; /* Darker shade for hover */
-    transform: translateY(-6px); /* Further hover lift effect */
-  }
-  
-  .text-grey-6 {
-    color: #7f8c8d;
-    font-size: 1rem;
-    font-weight: 300;
-  }
-  </style>
-  
+}
+
+/* Rounded Card */
+.rounded-card {
+  width: 90vw;
+  max-width: 400px;
+  border-radius: 16px;
+}
+
+.custom-border {
+  border: 1.5px solid #1976d2; /* Custom border color */
+  padding: 20px;
+  border-radius: 8px;
+  position: relative; /* Needed for absolute positioning */
+  text-align: center;
+}
+
+.check-icon {
+  position: absolute;
+  top: -18px; /* Moves the icon above the border */
+  left: 50%; /* Centers the icon */
+  transform: translateX(-50%); /* Ensures perfect centering */
+  background-color: white; /* Makes it stand out */
+  border-radius: 50%;
+  padding: 2px;
+}
+
+</style>

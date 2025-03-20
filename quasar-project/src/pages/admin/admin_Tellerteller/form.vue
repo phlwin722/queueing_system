@@ -118,6 +118,44 @@
                             option-value="id"
                         />    
                     </div>
+                    <div class="col-12">
+                        <q-file 
+                        outlined
+                        clearable
+                        dense
+                        v-model="selectedFile" 
+                        label="Attach your image" 
+                        accept="image/*"
+                        @update:model-value="previewImage"
+                        >
+                            <template v-slot:prepend>
+                            <q-icon name="attach_file" />
+                            </template>
+                            <template v-slot:append>
+                            <q-icon name="preview" class="cursor-pointer" @click="showPreview = true"/>
+                            </template>
+                        </q-file>
+
+                        <!-- Image Preview Dialog -->
+                        <q-dialog v-model="showPreview">
+    <q-card class="q-pa-md" style="width: 175px; max-width: 35vw;">
+        <q-card-section class="row justify-center">
+            <q-img
+                v-if="imageUrl"
+                :src="imageUrl"
+                spinner-color="primary"
+                style="width: 100%; max-height: 500px; object-fit: contain; border-color: black; border-width: 1px; border-style: solid;"
+            />
+            <p v-else class="text-grey">No image selected</p>
+        </q-card-section>
+        <q-card-actions align="center">
+            <q-btn flat label="Close" v-close-popup />
+        </q-card-actions>
+    </q-card>
+</q-dialog>
+
+
+                    </div>
                 </div>
             </q-card-section>
 
@@ -132,6 +170,7 @@
                 />
             </q-card-actions>
 
+
             <!-- Loading Spinner -->
             <q-inner-loading :showing="isLoading">
                 <q-spinner-gears size="50px" color="orange" />
@@ -139,6 +178,8 @@
         </q-card>
     </q-dialog>
 </template>
+
+
 
 <script>
 import { defineComponent, ref, toRefs } from "vue";
@@ -157,7 +198,11 @@ export default defineComponent({
         const formMode = ref('New'); // Tracks the mode (New or Edit) of the form
         const categoriesList = ref([]); // List of categories for the select input
 
-        // Initialize form data with default values
+        // Image preview variables
+        const selectedFile = ref(null);
+        const imageUrl = ref(null);
+        const showPreview = ref(false);
+
         const initFormData = () => ({
             id: null,
             teller_firstname: '',
@@ -193,30 +238,51 @@ export default defineComponent({
             formData.value = initFormData(); // Reset form data
             formDataPassword.value = initDataPassword(); // Reset form data
             formError.value = {}; // Reset form errors
+            selectedFile.value = null;
+            imageUrl.value = null;
         };
 
         // Show the dialog and fetch data (for edit mode, populate form with row data)
         const showDialog = async (mode, row) => {
-            formMode.value = mode === 'new' ? 'New' : 'Edit'; // Set form mode to New or Edit
-              // Use template literals or string concatenation to properly display formMode
-            if (mode === 'edit') {
-                formData.value = Object.assign({}, row); // If editing, copy data from row
-            }
 
-            isShow.value = true; // Show the dialog
-            fetchCategories(); // Fetch categories for the select input
+            formMode.value = mode === 'new' ? 'New' : 'Edit';
+
+            if(mode === 'edit'){
+            formData.value = Object.assign({},row)
+            }
+            
+            isShow.value = true;
+            fetchCategories();
         };
 
-        const handleSubmitForm = async () => {
-            const mode = formMode.value === 'New' ? '/create' : '/update'; // Determine the mode
-            isLoading.value = true; // Show loading spinner
-            formError.value = {}; // Reset form errors
+        // Image preview logic
+        const previewImage = (file) => {
+            if (file) {
+                imageUrl.value = URL.createObjectURL(file);
+            } else {
+                imageUrl.value = null;
+            }
+        };
 
-            // Check if passwords match
-            if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
-                $notify('negative', 'error', 'Passwords do not match. Please check your input data');
-                isLoading.value = false; // Hide the loading spinner
-                return;
+    const handleSubmitForm = async () =>{
+        const mode = formMode.value === 'New' ? '/create' : '/update'
+        isLoading.value = true
+        formError.value = {}; // Reset form errors
+
+        // Check if passwords match
+        if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
+            $notify('negative', 'error', 'Passwords do not match. Please check your input data');
+            isLoading.value = false; // Hide the loading spinner
+            return;
+        try{
+        const {data} = await $axios.post(props.url +mode, formData.value)
+        const rows = toRefs(props).rows
+        if(mode === '/create'){
+            rows.value.unshift(data.row)
+        }else{
+            const index = rows.value.findIndex(x => x.id === data.row.id)
+            if(index > -1){
+            rows.value[index] = Object.assign({}, data.row)
             }
 
             try {
@@ -262,7 +328,11 @@ export default defineComponent({
             formDataPassword,
             formMode,
             handleSubmitForm,
-            categoriesList
+            categoriesList,
+            selectedFile,
+            imageUrl,
+            showPreview,
+            previewImage
         };
     }
 });
