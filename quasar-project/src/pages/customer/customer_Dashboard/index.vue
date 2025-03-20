@@ -433,28 +433,10 @@ export default {
       remainingTime.value = 0; // Reset to avoid negative values
   };
 
-const formatTime = (seconds) => {
-  if(seconds == null){
-      return `.....`;
-    }
-  if (seconds >= 60) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes} m ${remainingSeconds} s`;
-  }
-  return `${seconds} s`;
-};
-
-    const stopCountdown = () => {
-      isWaiting.value = false;
-      clearInterval(waitInterval);
-      localStorage.removeItem("waitStartTime" + tokenurl); // Clear stored time
-    };
-
     const formatTime = (seconds) => {
-      if (seconds == null) {
-        return `.....`;
-      }
+      if(seconds == null){
+          return `.....`;
+        }
       if (seconds >= 60) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
@@ -462,6 +444,7 @@ const formatTime = (seconds) => {
       }
       return `${seconds} s`;
     };
+
 
     // Leave the queue
     const leaveQueue = async () => {
