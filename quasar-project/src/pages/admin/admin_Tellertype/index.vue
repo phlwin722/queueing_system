@@ -89,12 +89,14 @@
     import { defineComponent, ref } from 'vue';
     import { $axios, $notify, Dialog } from 'boot/app';
     import MyForm from 'pages/admin/admin_Tellertype/form.vue';
+    import { useQuasar } from 'quasar';
     
     const URL = "/types";
     export default defineComponent({
     name: 'TypeIndexPage',
     components: { MyForm },
     setup() {
+        const $dialog = useQuasar()
         const rows = ref([]);
         const columns = ref([
             { name: 'name', label: 'Type Name', align: 'left', field: 'name', sortable: true },
@@ -138,17 +140,29 @@
     
         const beforeDelete = (isMany, row) => {
             const ids = isMany ? selected.value.map(x => x.id) : [row.id];
-            const message = isMany 
-                ? 'Are you sure you want to delete these types?'
-                : `Are you sure you want to delete "<strong style="color:#C10015;">${row.name}</strong>"?`;
-    
-            Dialog.create({
-                title: '<span style="color: #1c5d99;">Confirm Delete</span>',
-                message: message,
-                html:true,
-            }).onOk(() => {
+            $dialog.dialog({
+            title: 'Confirm',
+            message: 'Are you sure you want to delete these service type?',
+            cancel: true,
+            persistent: true,
+            ok: {
+              label: 'Yes',
+              color: 'primary',
+              unelevated: true,
+              style: 'width: 125px;',
+            },
+            cancel: {
+              label: 'Cancel',
+              color: 'red-8',
+              unelevated: true,
+              style: 'width: 125px;',
+            },
+            style: 'border-radius: 12px; padding: 16px;',
+          }).onOk(async () => {
                 handleDelete(ids);
-            });
+          }).onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          });
         };
     
         return {

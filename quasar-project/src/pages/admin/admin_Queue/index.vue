@@ -8,15 +8,31 @@
           @click="resetQueue()"
         />
       </q-card-actions>
+      <div class="col-12">
+                        <q-select
+                            outlined
+                            v-model="type_id" 
+                            label="Service Type"
+                            emit-value
+                            map-options
+                            dense
+                            hide-bottom-space
+                            :options="serviceTypeList"
+                            option-label="name"
+                            option-value="id"
+                            
+                        />    
+                    </div>
     <!-- Current Serving Section -->
     <q-card class="q-mb-md q-pa-md" bordered>
+      Number of Queue in line: {{noOfQueue}}
       <q-card-section class="text-center">
         <div class="text-h5 text-bold">Now Serving</div>
-        <div v-if="currentServing" class="text-h4 text-primary q-mt-md">
-          Queue number: <br>{{ currentServing.queue_number }}
+        <div v-if="servingStatus != null" class="text-h4 text-primary q-mt-md">
+          Queue number: <br>{{ cusQueueNum }}
         </div>
-        <div v-if="currentServing" class="text-subtitle1 text-grey">
-          Name: <strong>{{ currentServing.name }}</strong>
+        <div v-if="servingStatus != null" class="text-subtitle1 text-grey">
+          Name: <strong>{{ cusName }}</strong>
         </div>
         <div v-else class="text-grey">No one is being served</div>
       </q-card-section>
@@ -36,7 +52,7 @@
          <!-- Wait Button (Only for the first customer in the queue) -->
           
          <q-btn
-              v-if="currentServing"
+              v-if="currentServing && tempTimer == 0"
               color="orange-5"
               class="modern-btn"
               :label="waiting ? formatTime(tempTimer) : 'Wait'"
@@ -109,6 +125,12 @@ const originalWaitTime = ref(0); // Store the original wait time
 const isQueuelistEmpty = ref(false)
 let refreshInterval = null
 const $dialog = useQuasar();
+const noOfQueue = ref();
+const type_id = ref()
+const serviceTypeList = ref([]);
+const cusName = ref()
+const cusQueueNum = ref()
+const servingStatus = ref()
 
 
 // Pagination
@@ -126,15 +148,21 @@ const $q = useQuasar();
 // cusId.value = currentServing.value = response.data.current_serving.id
 const fetchQueue = async () => {
   try {
-    const response = await $axios.post('/admin/queue-list')
+    const response = await $axios.post("/teller/queue-list", {
+          type_id: type_id.value,
+        });
     queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
     currentServing.value = response.data.current_serving
+    cusName.value = response.data.name
+    cusQueueNum.value = response.data.queue_number
+    servingStatus.value = response.data.status
     // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
     // console.log(queuePosition.value)
     // console.log(response.data.queue_numbers)
+    noOfQueue.value = queueList.value.length
     if (queueList.value.length > 0 && queueList.value[0].status === 'waiting' && currentServing.value == null) {
-        caterCustomer(queueList.value[0].id);
-        startWait(queueList.value[0].id, queueList.value[0].queue_number)
+        // caterCustomer(queueList.value[0].id);
+        // startWait(queueList.value[0].id, queueList.value[0].queue_number)
         
     }
     isQueuelistEmpty.value = queueList.value.length == 0
@@ -142,6 +170,16 @@ const fetchQueue = async () => {
     console.error(error)
   }
 }
+
+const fetchCategories = async () => {
+            try {
+                const { data } = await $axios.post('/types/index');
+              
+                serviceTypeList.value = data.rows; // Ensure this matches the API response structure
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
 
 const fetchId = async () => {
   try {
@@ -155,7 +193,10 @@ const fetchId = async () => {
 // Cater customer
 const caterCustomer = async (customerId) => {
   try {
-    await $axios.post('/admin/cater', { id: customerId })
+    await $axios.post("/teller/cater", {
+          id: customerId,
+          service_id: type_id.value,
+        });
     fetchQueue()
     fetchId()
   } catch (error) {
@@ -221,8 +262,6 @@ const finishCustomer = async (customerId) => {
 // Start waiting process
 const startWait = async (customerId, queueNumber) => {
   try {
-    console.log("customerId: "+customerId)
-    console.log("cusId: "+cusId.value)
     await $axios.post('/waitCustomer', { id: customerId })
 
     if (waiting.value) return; // Prevent multiple clicks while waiting
@@ -274,11 +313,8 @@ const startTimer =  (id) => {
     if (remaining >= 0) {
     
       tempTimer.value = remaining;
-      console.log("tempTimer: "+tempTimer.value)
-      console.log("cusId: "+cusId.value)
       if(tempTimer.value === 0){
         resetWait(cusId.value)
-        console.log("tempTimer: "+tempTimer.value)
       }
     } else  {
       stopWait();
@@ -303,8 +339,6 @@ try {
   if (data && data.dataValue && data.dataValue.length > 0) {
     waitTime.value = data.dataValue[0].Waiting_time; // Assign the first object in dataValue to formData
     prepared.value = data.dataValue[0].Prepared;
-    console.log(data.dataValue[0].Waiting_time)
-    console.log(data.dataValue[0].Prepared)
   } else {
     console.log('No data available');
   }
@@ -386,7 +420,7 @@ onMounted(() => {
   refreshInterval = setInterval(() => {
   fetchQueue();
    // Add more functions as needed
-}, 5000);
+}, 2000);
   fetchWaitingtime()
   const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
   const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
@@ -395,6 +429,7 @@ onMounted(() => {
     startTimer();
   }
   fetchId()
+  fetchCategories()
   
   
   
@@ -421,6 +456,12 @@ return {
   prepared,
   formatTime,
   cusId,
+  noOfQueue,
+  type_id,
+  serviceTypeList,
+  cusName,
+  cusQueueNum,
+  servingStatus,
 
   // Pagination
   currentPage,

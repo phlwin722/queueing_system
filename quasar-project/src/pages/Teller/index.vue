@@ -28,7 +28,13 @@
 
         <!-- Avatar with Dropdown Menu -->
         <div class="row items-center justify-center q-gutter-md">
-          <p class="q-mb-none">Juan Dela Cruz</p>
+          <p class="q-mb-none">
+            {{
+              `${tellerInformation?.tellerFirstname || ""} ${
+                tellerInformation?.tellerLastname || "Loading"
+              }`
+            }}
+          </p>
           <q-avatar
             size="40px"
             class="cursor-pointer"
@@ -48,12 +54,6 @@
           self="top right"
         >
           <q-list style="min-width: 150px">
-            <q-item clickable v-close-popup @click="goToAccountSettings">
-              <q-item-section avatar>
-                <q-icon name="settings" />
-              </q-item-section>
-              <q-item-section>Account Settings</q-item-section>
-            </q-item>
             <q-item clickable v-close-popup @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout" />
@@ -74,6 +74,7 @@
             <div class="col-12 col-md-6">
               <q-card class="q-pa-md">
                 <q-card-section>
+                  Number of Queue in line: {{noOfQueue}}
                   <q-item>
                     <q-item-section>
                       <q-item-label class="text-h4 text-center"
@@ -82,20 +83,13 @@
                     </q-item-section>
                   </q-item>
                   <q-separator />
-                  <q-item>
-                    <q-item-section>
-                      <q-btn
-                        :disable="!isQueuelistEmpty || currentServing != null"
-                        class="bg-primary text-white"
-                        label="Reset Queue Number"
-                        @click="resetQueue()"
-                      />
-                    </q-item-section>
-                  </q-item>
                   <q-separator />
                   <q-item>
                     <q-item-section>
-                      <q-scroll-area class="my-scroll" style="height: 455px">
+                      <q-scroll-area
+                        class="my-scroll"
+                        style="height: 455px; overflow-y: auto"
+                      >
                         <q-list bordered separator>
                           <q-item
                             v-if="paginatedQueueList.length === 0"
@@ -117,8 +111,19 @@
                               </h5>
                               <p>{{ customer.name }}</p>
                             </q-item-section>
-                            <q-item-section>
-                              <div class="q-gutter-y-xs q-my-sm"></div>
+                            <q-item-section side>
+                              <q-badge
+                                v-if="index <= 4"
+                                color="orange"
+                                label="Up Next"
+                                class="custom-badge"
+                              />
+                              <q-badge
+                                v-else
+                                color="blue-grey"
+                                label="Waiting"
+                                class="custom-badge"
+                              />
                             </q-item-section>
                           </q-item>
                         </q-list>
@@ -132,6 +137,19 @@
 
             <!-- Second Item -->
             <div class="col-12 col-md-6">
+              <q-card
+                class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
+              >
+                <q-card-section class="flex flex-center">
+                  <q-item>
+                    <q-item-section class="text-center">
+                      <span class="text-h4 text-bold text-uppercase q-pa-sm">
+                       {{`${tellerInformation?.type_name || 'Loading...'}`}}
+                      </span>
+                    </q-item-section>
+                  </q-item>
+                </q-card-section>
+              </q-card>
               <q-card class="q-pa-md">
                 <q-card-section>
                   <!-- If the cater line is not empty -->
@@ -186,6 +204,7 @@
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
                                 <q-btn
+
                                   v-if="currentServing && tempTimer == 0"
                                   label="Cancel"
                                   color="red-9"
@@ -212,7 +231,7 @@
                                 <div
                                   class="row items-center no-wrap absolute-full flex flex-center"
                                 >
-                                  <span v-if="!waiting">Wait</span>
+                                  <span v-if="!waiting"></span>
                                   <span v-if="waiting" class="q-ml-xs">{{
                                     formatTime(a)
                                   }}</span>
@@ -224,6 +243,7 @@
                                   color="primary"
                                   @click="finishCustomer(currentServing.id)"
                                 />
+
                               </div>
                             </q-item-section>
                           </q-item>
@@ -261,15 +281,18 @@
   </q-layout>
 </template>
 
+
 <script>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const cusId = ref();
     const queueList = ref([]);
+    const router = useRouter()
     const currentServing = ref(null);
     const waiting = ref(false);
     const waitTime = ref(30);
@@ -278,7 +301,7 @@ export default {
     const originalWaitTime = ref(0); // Store the original wait time
     const isQueuelistEmpty = ref(false);
     let waitTimer = null;
-    const tTypeid = ref();
+    const noOfQueue = ref();
 
     // const waitProgress = ref(0);
     let refreshInterval = null;
@@ -286,7 +309,7 @@ export default {
 
     // Pagination
     const currentPage = ref(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
 
     // UI Functions
     const $q = useQuasar();
@@ -297,15 +320,15 @@ export default {
     // CONTAINTER OF TELLER INFORMATION
     const tellerInformation = ref({
       id: "",
-      teller_firstname: "",
-      teller_lastname: "",
+      tellerFirstname: "",
+      tellerLastname: "",
       type_id: "",
+      type_name: '',
     });
 
     // Fetch queue data
     const fetchQueue = async () => {
       try {
-        console.log("tellerid: " + tellerInformation.value.type_id);
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
         });
@@ -314,6 +337,7 @@ export default {
           (q) => !["finished", "cancelled"].includes(q.status)
         );
         currentServing.value = response.data.current_serving;
+        noOfQueue.value = queueList.value.length
         // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
         // console.log(queuePosition.value)
         // console.log(response.data.queue_numbers)
@@ -322,8 +346,12 @@ export default {
           queueList.value[0].status === "waiting" &&
           currentServing.value == null
         ) {
-          caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
-          startWait(queueList.value[0].id, queueList.value[0].queue_number);
+          
+
+          setTimeout(() => {
+            caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
+            startWait(queueList.value[0].id, queueList.value[0].queue_number);
+          }, 2000);
         }
         isQueuelistEmpty.value = queueList.value.length == 0;
       } catch (error) {
@@ -333,7 +361,6 @@ export default {
 
     const fetchId = async () => {
       try {
-        console.log("tellertypeid: " + tellerInformation.value.type_id);
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
         });
@@ -423,8 +450,6 @@ export default {
     // Start waiting process
     const startWait = async (customerId, queueNumber) => {
       try {
-        console.log("customerId: " + customerId);
-        console.log("cusId: " + cusId.value);
         await $axios.post("/waitCustomer", { id: customerId });
 
         if (waiting.value) return; // Prevent multiple clicks while waiting
@@ -471,19 +496,16 @@ export default {
 
       waitTimer = setInterval(() => {
         const now = Math.floor(Date.now() / 1000);
-        const startTime =
-          parseInt(localStorage.getItem("wait_start_time")) || 0;
+        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         const elapsed = now - startTime;
         const remaining = duration - elapsed;
 
         if (remaining >= 0) {
           tempTimer.value = remaining;
-          console.log("tempTimer: " + tempTimer.value);
-          console.log("cusId: " + cusId.value);
           if (tempTimer.value === 0) {
             resetWait(cusId.value);
-            console.log("tempTimer: " + tempTimer.value);
+            
           }
         } else {
           stopWait();
@@ -502,8 +524,6 @@ export default {
         if (data && data.dataValue && data.dataValue.length > 0) {
           waitTime.value = data.dataValue[0].Waiting_time; // Assign the first object in dataValue to formData
           prepared.value = data.dataValue[0].Prepared;
-          console.log(data.dataValue[0].Waiting_time);
-          console.log(data.dataValue[0].Prepared);
         } else {
           console.log("No data available");
         }
@@ -535,22 +555,44 @@ export default {
     };
 
     // Computed property for paginated queue list
-    const paginatedQueueList = computed(() => {
-      const start = (currentPage.value - 1) * itemsPerPage;
-      return queueList.value.slice(start, start + itemsPerPage);
-    });
+    const paginatedQueueList = computed(() => queueList.value);
 
     // Total pages for pagination
     const totalPages = computed(() =>
       Math.ceil(queueList.value.length / itemsPerPage)
     );
 
+    // fetching the name of value of type id on service type
+    const fetchType_idValue = async () => {
+      try {
+        const { data } = await $axios.post('/teller/typeid-value',{
+          type_id: tellerInformation.value.type_id
+        })
+        // Update the type_name inside the tellerInformation ref
+        tellerInformation.value.type_name = data.servicename;
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error.response.data.message)
+        }
+      }
+    }
+    
+    const logout = async () => {
+      sessionStorage.removeItem('authTokenTeller');
+      sessionStorage.removeItem('tellerInformation');
+      router.push("/login"); // Redirect to login page
+      setTimeout(() => {
+        window.location.reload(); // Prevent back navigation
+      }, 100);
+    }
+
     onMounted(() => {
-      const storedTellerInfo = sessionStorage.getItem("authTokenTeller");
+      const storedTellerInfo = sessionStorage.getItem("tellerInformation");
       if (storedTellerInfo) {
         fetchQueue();
-        refreshInterval = setInterval(fetchQueue, 5000); // Auto-refresh every 5 seconds
-        fetchWaitingtime();
+        refreshInterval = setInterval(fetchQueue, 2000); // Auto-refresh every 5 seconds
+        fetchWaitingtime()
+        refreshInterval = setInterval(fetchWaitingtime, 2000);
         const startTime =
           parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
@@ -559,8 +601,9 @@ export default {
           startTimer();
         }
         fetchId();
-        refreshInterval = setInterval(fetchId, 5000);
+        refreshInterval = setInterval(fetchId, 2000);
         tellerInformation.value = JSON.parse(storedTellerInfo);
+        fetchType_idValue();
       } else {
         console.error("No teller information found in sessionStorage");
       }
@@ -580,6 +623,7 @@ export default {
       startWait,
       waiting,
       waitTime,
+      fetchType_idValue,
       tempTimer,
       beforeCancel,
       isQueuelistEmpty,
@@ -587,11 +631,14 @@ export default {
       formatTime,
       cusId,
       tellerInformation,
-
+      noOfQueue,
+      logout,
       currentPage,
       itemsPerPage,
       paginatedQueueList,
       totalPages,
+      menuOpen,
+      toggleFullscreen,
     };
   },
 };
@@ -632,9 +679,9 @@ export default {
   z-index: 0;
 }
 .q-item__separator {
-  border-color: #ff5733; /* Set custom color */
-  border-width: 50px; /* Adjust thickness */
-  margin: 5px 0; /* Adjust spacing */
+  border-color: #ff5733;
+  border-width: 50px;
+  margin: 5px 0;
 }
 @media (max-width: 320px) {
   .text-left,
@@ -650,13 +697,13 @@ export default {
   .q-gutter-y-xs {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Optional: controls the spacing between buttons */
+    gap: 8px;
   }
 }
 .q-gutter-y-xs {
   display: flex;
   flex-direction: column;
-  gap: 5px; /* Optional: control the spacing between buttons */
+  gap: 5px;
 }
 
 /* Ensure buttons are full-width */
@@ -683,5 +730,11 @@ export default {
 
 .my-scroll::-webkit-scrollbar-track {
   background: #f1f1f1; /* track color */
+}
+
+.custom-badge {
+  font-size: 1.2rem;
+  padding: 6px 12px;
+  cursor: default;
 }
 </style>

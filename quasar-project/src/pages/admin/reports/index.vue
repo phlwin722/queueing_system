@@ -69,40 +69,54 @@ export default defineComponent({
     const columns = ref([
         
     {
-        name: 'name',
-        label: 'Customer Name',
-        align: 'left',
-        field: 'name',
-        sortable: true
-        },
-    {
-        name: 'email',
-        label: 'Email address',
-        align: 'left',
-        field: 'email',
-        sortable: true
-        },
+            name: 'name',
+            label: 'Customer Name',
+            align: 'left',
+            field: 'name',
+            sortable: true
+          },
         {
-        name: 'queue_number',
-        label: 'Queue Number',
-        align: 'left',
-        field: 'queue_number',
-        sortable: true
-        },
-        {
-        name: 'status',
-        label: 'Status',
-        align: 'left',
-        field: 'status',
-        sortable: true
-        },
-        {
-        name: 'crated_at',
-        label: 'Date and Time',
-        align: 'left',
-        field: 'created_at',
-        sortable: true
-        },
+            name: 'email',
+            label: 'Email address',
+            align: 'left',
+            field: 'email',
+            sortable: true
+          },
+          {
+            name: 'queue_number',
+            label: 'Queue Number',
+            align: 'left',
+            field: 'queue_number',
+            sortable: true
+          },
+          {
+            name: 'type_id',
+            label: 'Service Type',
+            align: 'left',
+            field: 'type_id',
+            sortable: true
+          },
+          {
+            name: 'teller_id',
+            label: 'Assigned Personnel',
+            align: 'left',
+            field: 'teller_id',
+            sortable: true
+          },
+          {
+            name: 'status',
+            label: 'Status',
+            align: 'left',
+            field: 'status',
+            sortable: true
+          },
+          {
+            name: 'created_at',
+            label: 'Date and Time',
+            align: 'left',
+            field: 'created_at',
+            sortable: true
+          },
     ]);
     let refreshInterval = null
     const filteredRows = computed(() => {

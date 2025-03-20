@@ -34,6 +34,7 @@ Route::post('/customer-join',[QueueController::class, 'joinQueue']);
 Route::post('/customer-list',[QueueController::class, 'getQueueList']);
 Route::post('/customer-leave',[QueueController::class, 'leaveQueue']);
 Route::post('/customer-fetch',[QueueController::class, 'customerData']);
+Route::post('/update-teller_id',[QueueController::class, 'updateTellerId']);
 
 Route::post('/admin/queue-list', [QueueController::class, 'getCQueueList']);
 Route::post('/admin/cater', [QueueController::class, 'caterCustomer']);
@@ -59,6 +60,7 @@ Route::post('/tellers/index', [TellerController::class, 'index']);
 Route::post('/tellers/create', [TellerController::class, 'create']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
+Route::post('/teller/typeid-value',[TellerController::class,'valueTypeid']);
 Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
 Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
 Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
