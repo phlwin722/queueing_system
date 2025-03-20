@@ -99,19 +99,20 @@
                         />
                     </div>
 
-
                     <!-- Personnel Type Select -->
                     <div class="col-12">
                         <q-select
                             outlined
-                            v-model="formData.type_id" 
-                            label="Personnel Type"
+                            v-model="formData.type_ids_selected" 
+                            label="Personel Type"
                             emit-value
+                            multiple
+                            use-chips
                             map-options
                             dense
                             hide-bottom-space
-                            :error="formError.hasOwnProperty('type_id')"
-                            :error-message="formError.type_id"
+                            :error="formError.hasOwnProperty('type_ids_selected')"
+                            :error-message="formError.type_ids_selected"
                             :options="categoriesList"
                             option-label="name"
                             option-value="id"
@@ -161,9 +162,7 @@
                                     />
                                 </q-card-actions>
                             </q-card>
-                        </q-dialog>
-                        
-
+                        </q-dialog>                    
                     </div>
                 </div>
             </q-card-section>
@@ -178,7 +177,6 @@
                     style="max-width: 150px;"
                 />
             </q-card-actions>
-
 
             <!-- Loading Spinner -->
             <q-inner-loading :showing="isLoading">
@@ -218,7 +216,7 @@ export default defineComponent({
             teller_lastname: '',
             teller_username: '', 
             teller_password: '', 
-            type_id: ''
+            type_ids_selected: [],
         });
 
         const initDataPassword = () => ({
@@ -234,7 +232,7 @@ export default defineComponent({
         const fetchCategories = async () => {
             try {
                 const { data } = await $axios.post('/types/index');
-                console.log("Full API Response:", data); // 🔍 Debugging
+                //console.log("Full API Response:", data); // 🔍 Debugging
                 categoriesList.value = data.rows; // Ensure this matches the API response structure
             } catch (error) {
                 console.error('Error fetching categories:', error); // Handle error if API request fails
@@ -256,8 +254,26 @@ export default defineComponent({
 
             formMode.value = mode === 'new' ? 'New' : 'Edit';
 
-            if(mode === 'edit'){
-            formData.value = Object.assign({},row)
+            if (mode === 'edit') {
+                formData.value = Object.assign({}, row);
+                console.log('Form Data:', formData.value);
+                
+                // Check if type_ids_selected is a string and parse it to an array
+                if (typeof formData.value.type_ids_selected === 'string') {
+                    formData.value.type_ids_selected = JSON.parse(formData.value.type_ids_selected);
+                    console.log('Parsed type_ids_selected:', formData.value.type_ids_selected);
+                }
+
+                // Check if categoriesList is an array
+                if (Array.isArray(categoriesList.value)) {
+                    // Now you can safely map over the array and find categories
+                    const selectedCategories = formData.value.type_ids_selected.map(id => 
+                        categoriesList.value.find(category => category.id === id)
+                    );
+                    console.log('Selected Categories:', selectedCategories);
+                } else {
+                    console.error('categoriesList is not an array:', categoriesList);
+                }
             }
             
             isShow.value = true;
@@ -275,21 +291,27 @@ export default defineComponent({
             }
         };
 
-    const handleSubmitForm = async () =>{
-        const mode = formMode.value === 'New' ? '/create' : '/update'
-        isLoading.value = true
-        formError.value = {}; // Reset form errors
+        const handleSubmitForm = async () => {
+            const mode = formMode.value === 'New' ? '/create' : '/update';
+            isLoading.value = true;
+            formError.value = {}; // Reset form errors
 
-        // Check if passwords match
-        if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
-            $notify('negative', 'error', 'Passwords do not match. Please check your input data');
-            isLoading.value = false; // Hide the loading spinner
-            return;
-        }
+            // Check if passwords match
+            if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
+                $notify('negative', 'error', 'Passwords do not match. Please check your input data');
+                isLoading.value = false;
+                return;
+            }
+
             try {
                 // If updating and a new password is provided, update the password in formData
                 if (mode === '/update' && formDataPassword.value.teller_newPassword !== '') {
-                    formData.value.teller_password = formDataPassword.value.teller_newPassword; // Update password for the edit
+                    formData.value.teller_password = formDataPassword.value.teller_newPassword;
+                }
+
+                // Convert selected types array to a JSON string before sending it to the backend
+                if (mode === '/create') {
+                    formData.value.type_ids_selected = JSON.stringify(formData.value.type_ids_selected); // Convert to JSON string
                 }
 
                 // Send form data to the server
@@ -299,10 +321,12 @@ export default defineComponent({
 
                 // Handle response data and update the rows accordingly
                 if (mode === '/create') {
+                    console.log(data.row)
                     rows.value.unshift(data.row); // Add new row at the beginning
                 } else {
                     const index = rows.value.findIndex(x => x.id === data.row.id); // Find the index of the edited row
                     if (index > -1) {
+                        console.log(data.row)
                         rows.value[index] = Object.assign({}, data.row); // Update existing row
                     }
                 }
@@ -310,12 +334,17 @@ export default defineComponent({
                 $notify('positive', 'check', data.message); // Show success notification
                 closeDialog(); // Close the dialog and reset form
             } catch (error) {
-                console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
-                $notify('negative', 'error', 'An error occurred while processing your request.');
+                if (error.response.status === 422) {
+                    formError.value = error.response.data;
+                }else {
+                    console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
+                  $notify('negative', 'error', 'An error occurred while processing your request.');
+                }
             } finally {
                 isLoading.value = false; // Hide the loading spinner
             }
-        }
+        };
+
 
         // Return necessary variables and methods for the template
         return {
@@ -332,7 +361,7 @@ export default defineComponent({
             selectedFile,
             imageUrl,
             showPreview,
-            previewImage
+            previewImage,
         };
     }
 });
