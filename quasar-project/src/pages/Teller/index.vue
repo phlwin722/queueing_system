@@ -204,45 +204,26 @@
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
                                 <q-btn
-
-                                  v-if="currentServing && tempTimer == 0"
-                                  label="Cancel"
-                                  color="red-9"
-                                  @click="beforeCancel(currentServing)"
-                                />
-
-                                <q-btn
-                                  v-if="currentServing"
-                                  color="orange"
-                                  class="q-ml-sm"
-                                  :label="
-                                    waiting ? formatTime(tempTimer) : 'Wait'
-                                  "
-                                  @click="
-                                    startWait(
-                                      cusId,
-                                      currentServing.queue_number
-                                    )
-                                  "
-                                  :disable="waiting"
-                                />
-
-                                <!-- Button Text -->
-                                <div
-                                  class="row items-center no-wrap absolute-full flex flex-center"
-                                >
-                                  <span v-if="!waiting"></span>
-                                  <span v-if="waiting" class="q-ml-xs">{{
-                                    formatTime(a)
-                                  }}</span>
-                                </div>
-
-                                <q-btn
-                                  v-if="currentServing && tempTimer == 0"
-                                  label="Finished"
-                                  color="primary"
-                                  @click="finishCustomer(currentServing.id)"
-                                />
+                                    v-if="currentServing && tempTimer == 0"
+                                    label="Cancel"
+                                    color="red-9"
+                                    @click="beforeCancel(currentServing)" 
+                                  />
+  
+                                  <q-btn
+                                    v-if="currentServing"
+                                    color="orange"
+                                    class="q-ml-sm"
+                                    :label="waiting ? formatTime(tempTimer) : 'Wait'"
+                                    @click="startWait(cusId, currentServing.queue_number)"
+                                    :disable="waiting"
+                                    />
+                                  <q-btn
+                                    v-if="currentServing && tempTimer == 0"
+                                    label="Finished"
+                                    color="primary"
+                                    @click="finishCustomer(currentServing.id)"
+                                  />
 
                               </div>
                             </q-item-section>
