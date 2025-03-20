@@ -62,18 +62,27 @@
                                 icon="edit"
                                 dense
                                 glossy
-                                class="action-btn"
+                                class="custom-btn2"
                                 @click="handleShowForm('edit', props.row)" 
-                            />
+                                >
+                                <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="bg-secondary">
+                        Edit Window
+                    </q-tooltip>
+                            </q-btn>
+                            
                             <q-btn 
                                 square 
                                 color="negative" 
                                 icon="delete"
                                 dense
                                 glossy
-                                class="action-btn"
+                                class="custom-btn2"
                                 @click="beforeDelete(false, props.row)"
-                            />
+                            >
+                            <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
+                        Delete Window
+                    </q-tooltip>
+                    </q-btn>
                         </div>
                     </q-td>
                 </template>
@@ -263,7 +272,7 @@ const resetTeller = async () => {
     text-align: center;
 }
 
-.action-btn {
+.custom-btn2 {
     width: 35px;
     margin-left: 5px;
     border-radius: 5px;
