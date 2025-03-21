@@ -99,6 +99,13 @@
             />
           </q-card-actions>
         </q-card-section>
+        <div
+          v-if="isWaiting"
+          class="text-center text-bold text-positive q-mb-md"
+        >
+          <p class="text-orange">Admin is waiting for you! Please proceed.</p>
+          <h2 class="text-red">{{ formatTime(remainingTime) }}</h2>
+        </div>
       </q-card>
 
       <!-- Queue List -->
@@ -113,22 +120,6 @@
 
         <q-separator inset />
 
-        <!-- Show different messages based on queue state -->
-        <div
-          v-if="isBeingServed"
-          class="text-center text-bold text-positive q-mb-md"
-        >
-          Please proceed to your designated window. <br />
-          If you do not, your queue number will be canceled. Thank you!
-        </div>
-
-        <div
-          v-if="isWaiting"
-          class="text-center text-bold text-positive q-mb-md"
-        >
-          <p class="text-orange">Admin is waiting for you! Please proceed.</p>
-          <h2 class="text-red">{{ formatTime(remainingTime) }}</h2>
-        </div>
 
         <div
           v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
@@ -257,12 +248,12 @@ export default {
         .join(" "); // Join back the abbreviated words
     };
 
-    const putTellerId = async () => {
-      await $axios.post("/update-teller_id",{
-        token: tokenurl.value,
-        teller_id : tellerId.value
-      });
-    }
+    // const putTellerId = async () => {
+    //   await $axios.post("/update-teller_id",{
+    //     token: tokenurl.value,
+    //     teller_id : tellerId.value
+    //   });
+    // }
     // Fetch queue list and current serving number
     const fetchQueueData = async () => {
       try {
@@ -274,7 +265,6 @@ export default {
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
         currentQueue.value = response.data.current_serving;
-        console.log(response.data.current_serving);
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
         // Determine customer position in queue
@@ -333,8 +323,8 @@ export default {
             serviceType.value = data.row.name
             assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
             typeId.value = data.row.typeId
-            tellerId.value = data.row.id
-            putTellerId()
+            // tellerId.value = data.row.id
+            // putTellerId()
         }catch(error){
             console.log(error);
         }
@@ -366,7 +356,6 @@ export default {
     const fetchWaitingStatus = async () => {
     try {
           const { data } = await $axios.post('/customer-check-waiting', { token: tokenurl.value });
-          console.log(data.waiting_customer);
 
           if (data.waiting_customer === "yes") {
               if (!isWaiting.value) { // Start countdown only if not already waiting
@@ -482,18 +471,15 @@ export default {
     // Leave the queue
     const leaveQueue = async () => {
       try {
-        console.log(customerId.value);
         await $axios.post("/customer-leave", { id: customerId.value });
         hasNotified.value = true; // Mark as notified
         $notify("positive", "check", "You have left the queue.");
-        console.log("cancelled");
         setTimeout(
             () => router.push("/customer-thankyou/"),
             1000
           );
       } catch (error) {
         console.error(error);
-        console.log("cancelled");
         $notify("negative", "error", "Failed to leave queue.");
       }
     };
@@ -510,7 +496,6 @@ export default {
 
         if (queuePosition.value === 1) {
           if (queueList.value.length > 0) {
-            console.log(queueList.value[0].id);
             const { data } = await $axios.post("/send-fetchInfo", {
               id: queueList.value[0].id,
             });
@@ -531,8 +516,7 @@ export default {
                 emailData.value
               );
 
-              // Show an alert to confirm that the email was sent successfully
-              console.log("Message success", emailContent);
+            
             }
           }
         }

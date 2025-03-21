@@ -70,11 +70,21 @@
         <div class="q-pa-md full-width">
           <!-- Main Row Container -->
           <div class="row q-col-gutter-md justify-center full-height">
+
+
+
             <!-- First Item -->
             <div class="col-12 col-md-6">
               <q-card class="q-pa-md">
                 <q-card-section>
-                  Number of Queue in line: {{noOfQueue}}
+                  <q-item>
+                    <q-item-section>
+                      <q-item-label class="text-h4 text-center"
+                        >Number of Queue in line: {{noOfQueue}}</q-item-label
+                      >
+                    </q-item-section>
+                  </q-item>
+                  <q-separator />
                   <q-item>
                     <q-item-section>
                       <q-item-label class="text-h4 text-center"
@@ -309,9 +319,12 @@ export default {
 
     // Fetch queue data
     const fetchQueue = async () => {
+      // console.log("id: "+tellerInformation.value.id)
+      //   console.log("typeId: "+tellerInformation.value.type_id)
       try {
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
+          teller_id: tellerInformation.value.id,
         });
 
         queueList.value = response.data.queue.filter(
@@ -342,8 +355,10 @@ export default {
 
     const fetchId = async () => {
       try {
+        
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
+          teller_id: tellerInformation.value.id,
         });
         cusId.value = response.data.current_serving.id;
       } catch (error) {
@@ -356,16 +371,12 @@ export default {
         await $axios.post("/teller/cater", {
           id: customerId,
           service_id: type_id,
+          teller_id: tellerInformation.value.id
         });
         fetchQueue();
         fetchId();
       } catch (error) {
         console.error(error);
-        $notify(
-          "negative",
-          "error",
-          "You are currently serving a customer. Please finish it first!."
-        );
       }
     };
     //cancel dialog
