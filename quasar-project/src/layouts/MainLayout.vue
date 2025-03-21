@@ -68,63 +68,72 @@
                   </q-item>
 
                   <!-- Insert "Waiting Time" only after "Personal Info" -->
-                  <q-item
-                    v-if="child.title === 'Personal Info'"
-                    clickable
-                    v-ripple
-                  >
-                    <q-item-section avatar class="q-pl-xl">
-                      <q-icon
-                        name="hourglass_top"
-                        :color="isMenuOpen ? 'primary' : 'secondary'"
-                      />
-                    </q-item-section>
-                    <q-item-section
-                      class="text-left"
-                      :class="{ 'text-primary': isMenuOpen }"
-                      >Waiting Time</q-item-section
-                    >
-                    <!-- Waiting time seamless dialog -->
-                    <q-menu
-                      fit
-                      anchor="top right"
-                      self="top left"
-                      transition-show="jump-down"
-                      transition-hide="jump-up"
-                      @before-show="isMenuOpen = false"
-                      @before-hide="isMenuOpen = true"
-                    >
-                      <q-card class="q-pa-md">
-                        <q-form @submit.prevent="process">
-                          <q-input
-                            v-model="formData.Waiting_time"
-                            mask="##:##"
-                            fill-mask="0"
-                            label="Enter Time (MM:SS)"
-                            :error="formError.hasOwnProperty('Waiting_time')"
-                            :error-message="formError.Waiting_time"
-                            :hint="
-                              timeData
-                                ? `Last saved time: ${timeData}`
-                                : 'Format: MM:SS'
-                            "
-                            :model-value="timeData"
-                            outlined
-                            class="q-mb-md text-h6"
-                          />
-
-                          <div class="row justify-center">
-                            <q-btn
-                              color="primary"
-                              label="Save"
-                              icon="save"
-                              @click="process"
+                  <template v-if="child.title === 'Personal Info'">
+                    <q-item clickable v-ripple>
+                      <q-item-section avatar class="q-pl-xl">
+                        <q-icon
+                          name="hourglass_top"
+                          :color="isMenuOpen ? 'primary' : 'secondary'"
+                        />
+                      </q-item-section>
+                      <q-item-section
+                        class="text-left"
+                        :class="{ 'text-primary': isMenuOpen }"
+                        >Waiting Time</q-item-section
+                      >
+                      <!-- Waiting time seamless dialog -->
+                      <q-menu
+                        fit
+                        anchor="top right"
+                        self="top left"
+                        transition-show="jump-down"
+                        transition-hide="jump-up"
+                      >
+                        <q-card class="q-pa-md">
+                          <q-form @submit.prevent="process">
+                            <q-input
+                              v-model="formData.Waiting_time"
+                              mask="##:##"
+                              fill-mask="0"
+                              label="Enter Time (MM:SS)"
+                              :error="formError.hasOwnProperty('Waiting_time')"
+                              :error-message="formError.Waiting_time"
+                              :hint="
+                                timeData
+                                  ? `Last saved time: ${timeData}`
+                                  : 'Format: MM:SS'
+                              "
+                              :model-value="timeData"
+                              outlined
+                              class="q-mb-md text-h6"
                             />
-                          </div>
-                        </q-form>
-                      </q-card>
-                    </q-menu>
-                  </q-item>
+                            <div class="row justify-center">
+                              <q-btn
+                                color="primary"
+                                label="Save"
+                                icon="save"
+                                @click="process"
+                              />
+                            </div>
+                          </q-form>
+                        </q-card>
+                      </q-menu>
+                    </q-item>
+
+                    <q-item
+                      clickable
+                      v-ripple
+                      :disable="!isQueuelistEmpty || currentServing != null"
+                      @click="resetQueue()"
+                    >
+                      <q-item-section avatar class="q-pl-xl">
+                        <q-icon name="restart_alt" />
+                      </q-item-section>
+                      <q-item-section class="text-left"
+                        >Reset Queue</q-item-section
+                      >
+                    </q-item>
+                  </template>
                 </template>
               </q-list>
             </q-expansion-item>
@@ -225,6 +234,8 @@ export default defineComponent({
     const miniState = ref(false);
     const adminInformation = ref(null);
     const previewAdminImage = ref(null);
+    const currentServing = ref(null);
+    const isQueuelistEmpty = ref(false);
 
     const adminInformationContent = ref({
       id: "",
@@ -369,6 +380,78 @@ export default defineComponent({
       }
     };
 
+    // Resetting Queue Number
+
+    // Reset Queue Number
+
+    const fetchQueue = async () => {
+      try {
+        const response = await $axios.post("/teller/queue-list", {
+          type_id: type_id.value,
+        });
+        queueList.value = response.data.queue.filter(
+          (q) => !["finished", "cancelled"].includes(q.status)
+        );
+        currentServing.value = response.data.current_serving;
+        cusName.value = response.data.name;
+        cusQueueNum.value = response.data.queue_number;
+        servingStatus.value = response.data.status;
+        tellerFullName.value = response.data.fullname;
+        // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
+        // console.log(queuePosition.value)
+        // console.log(response.data.queue_numbers)
+        noOfQueue.value = queueList.value.length;
+        if (
+          queueList.value.length > 0 &&
+          queueList.value[0].status === "waiting" &&
+          currentServing.value == null
+        ) {
+          // caterCustomer(queueList.value[0].id);
+          // startWait(queueList.value[0].id, queueList.value[0].queue_number)
+        }
+        isQueuelistEmpty.value = queueList.value.length == 0;
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const resetQueue = async () => {
+      try {
+        $dialog
+          .dialog({
+            title: "Confirm",
+            message: "Are you sure do you want reset queue?",
+            cancel: true,
+            persistent: true,
+            color: "primary",
+            ok: {
+              label: "Yes",
+              color: "primary", // Make confirm button red
+              unelevated: true, // Flat button style
+              style: "width: 125px;",
+            },
+            cancel: {
+              label: "Cancel",
+              color: "red-8", // Make cancel button grey
+              unelevated: true,
+              style: "width: 125px;",
+            },
+            style: "border-radius: 12px; padding: 16px;",
+          })
+          .onOk(async () => {
+            const response = await $axios.post("/resetQueue");
+            $notify("positive", "check", response.data.message);
+            console.log(response.data.message);
+          })
+          .onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          });
+      } catch (error) {
+        console.error(error);
+        $notify("negative", "error", "Failed to set waiting customer.");
+      }
+    };
+
     onMounted(() => {
       fetchWaitingtime();
     });
@@ -465,6 +548,12 @@ export default defineComponent({
       process,
       isLoading,
       formError,
+
+      // reset queue number functions
+      currentServing,
+      isQueuelistEmpty,
+      fetchQueue,
+      resetQueue,
 
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
