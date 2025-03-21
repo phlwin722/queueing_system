@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class WindowArchive extends Model
 {
     protected $fillable = [
+        'window_id',
         'window_name',
         'type_id',
         'teller_id',
         'archived_at',
     ];
+    
     public $timestamps = true; 
 
     public function type()

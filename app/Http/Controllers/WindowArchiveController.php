@@ -4,21 +4,35 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\WindowArchive;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WindowArchiveController extends Controller
 {
-    public function getArchivedWindows(Request $request)
-    {
-        $query = WindowArchive::query();
+    public function getWindowLogs(Request $request)
+{
+    $query = DB::table('window_archives as wa')
+        ->select(
+            "wa.id",
+            "wa.window_name",
+            "tp.name as type_name",
+            DB::raw("COALESCE(CONCAT(ts.teller_firstname, ' ', ts.teller_lastname), 'Unassigned') as teller_name"),
+            "wa.archived_at"
+        )
+        ->leftJoin("types as tp", "tp.id", "wa.type_id")
+        ->leftJoin("tellers as ts", "ts.id", "wa.teller_id")
+        ->orderBy('wa.archived_at', 'desc');
 
-        // Optional: Filter by date
-        if ($request->date) {
-            $query->whereDate('archived_at', $request->date);
-        }
-
-        return response()->json([
-            'rows' => $query->orderBy('archived_at', 'desc')->get()
-        ]);
+    // Filter by selected date if provided
+    if ($request->has('date')) {
+        $query->whereDate('wa.archived_at', $request->date);
     }
+
+    $logs = $query->get();
+
+    return response()->json([
+        'rows' => $logs
+    ]);
+}
 }
 

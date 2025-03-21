@@ -10,7 +10,7 @@ use App\Http\Controllers\Waiting_timeController;
 use App\Http\Controllers\TellerController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\WindowController;
-use App\Http\Controllers\ResetWindowSettingController;
+use App\Http\Controllers\ResetSettingController;
 use App\Http\Controllers\WindowArchiveController;
 
 /*
@@ -82,19 +82,23 @@ Route::post('/windows/index', [WindowController::class, 'index']);
 Route::post('/windows/create', [WindowController::class, 'create']);
 Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
+
+//Reset-Manual button
 Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
+//Manual Reset Button Window Logs
 Route::post('/windows/reset-tellers', [WindowController::class, 'resetTellers']);
 
-//Reset-Window
-Route::post('/waiting_Time-fetch', [ResetWindowSettingController::class, 'fetch']);
-Route::post('/waiting_Time', [ResetWindowSettingController::class, 'store']);
+//window-Logs Get Data Table
+Route::post('/admin/window-logs', [WindowArchiveController::class, 'getWindowLogs']);
 
-//window-Logs
-Route::post('/admin/window-logs', [WindowArchiveController::class, 'getArchivedWindows']);
+//Automatic Reset 
 Route::post('/windows/reset-tellers', [WindowController::class, 'resetWindows']);
 
-// adminside
+//Reset-Settings Automatic 
+Route::post('/windows/reset-settings-fetch', [ResetSettingController::class, 'fetchSettings']);
+Route::post('/windows/reset-settings', [ResetSettingController::class, 'saveSettings']);
 
+// adminside
 Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
 Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
 

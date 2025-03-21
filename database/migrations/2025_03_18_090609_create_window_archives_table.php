@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('window_archives', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('window_id'); // Para i-track ang original window
             $table->string('window_name');
             $table->unsignedBigInteger('type_id')->nullable();
             $table->unsignedBigInteger('teller_id')->nullable();

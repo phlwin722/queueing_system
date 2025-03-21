@@ -11,22 +11,11 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      */
-    protected function schedule(Schedule $schedule): void
+    protected function schedule(Schedule $schedule)
 {
-    $settings = ResetWindowSetting::first();
-
-    if ($settings && $settings->auto_reset) {
-        if ($settings->reset_minutes > 0) {
-            $schedule->command('reset:personnel')->everyMinute();
-        }
-        if ($settings->reset_days > 0) {
-            $schedule->command('reset:personnel')->daily();
-        }
-        if ($settings->reset_weeks > 0) {
-            $schedule->command('reset:personnel')->weekly();
-        }
-    }
+    $schedule->command('windows:reset')->everyMinute();
 }
+
 
 
     /**

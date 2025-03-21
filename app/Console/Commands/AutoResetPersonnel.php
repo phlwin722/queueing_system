@@ -3,53 +3,40 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Window;
-use App\Models\ResetWindowSetting;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\WindowController;
 
-class AutoResetPersonnel extends Command
+class ResetWindowsCommand extends Command
 {
-    protected $signature = 'reset:personnel';
-    protected $description = 'Automatically unassign personnel from windows based on reset settings';
+    protected $signature = 'windows:reset';
+    protected $description = 'Auto reset windows based on scheduled time.';
 
     public function handle()
-{
-    $settings = ResetWindowSetting::first();
+    {
+        Log::info('Checking for scheduled resets...');
 
-    if (!$settings || !$settings->auto_reset) {
-        $this->info('Auto-reset is disabled. Skipping...');
-        return;
+        // Get the reset settings
+        $settings = DB::table('reset_settings')->first();
+
+        if (!$settings || !$settings->auto_reset) {
+            Log::info('Auto reset is disabled.');
+            return;
+        }
+
+        $currentTime = now()->format('H:i');
+        $currentDay  = now()->format('l');  // Example: "Monday"
+        $currentDate = now()->day;          // Example: "15"
+
+        if (
+            ($settings->reset_type === 'Daily' && $settings->reset_time === $currentTime) ||
+            ($settings->reset_type === 'Weekly' && $settings->reset_time === $currentTime && $settings->reset_day === $currentDay) ||
+            ($settings->reset_type === 'Monthly' && $settings->reset_time === $currentTime && $settings->reset_date == $currentDate)
+        ) {
+            Log::info('Running auto reset for windows...');
+            app(WindowController::class)->resetWindows();
+        } else {
+            Log::info('No scheduled reset for now.');
+        }
     }
-
-    $lastReset = $settings->last_reset_at ?? now()->subMinutes($settings->reset_minutes + 1);
-    $nextReset = $lastReset
-        ->addMinutes($settings->reset_minutes ?? 0)
-        ->addDays($settings->reset_days ?? 0)
-        ->addWeeks($settings->reset_weeks ?? 0);
-
-    if (now()->lt($nextReset)) {
-        $this->info('Not yet time for reset. Next reset at: ' . $nextReset);
-        return;
-    }
-
-    // Archive Windows before resetting
-    Window::whereNotNull('teller_id')->each(function ($window) {
-        \DB::table('window_archives')->insert([
-            'window_name' => $window->window_name,
-            'type_id' => $window->type_id,
-            'teller_id' => $window->teller_id,
-            'archived_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    });
-
-    // Reset Windows (Remove `teller_id`)
-    Window::whereNotNull('teller_id')->update(['teller_id' => null]);
-
-    // Update last reset time
-    $settings->update(['last_reset_at' => now()]);
-
-    $this->info('Windows personnel reset successfully. Next reset at: ' . now()->addMinutes($settings->reset_minutes)->addDays($settings->reset_days)->addWeeks($settings->reset_weeks));
-}
-
 }

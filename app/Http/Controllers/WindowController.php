@@ -185,40 +185,44 @@ class WindowController extends Controller
         
     }
 
+    // **🔄 Manual Reset**
     public function resetTellers()
     {
         try {
             Window::query()->update(['teller_id' => null]);
-    return response()->json(['message' => 'All tellers reset successfully!']);
-} catch (\Exception $e) {
+            return response()->json(['message' => 'All tellers reset successfully!']);
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to reset tellers.'], 500);
         }
     }
 
+    // **🔄 Auto Reset with Archive**
     public function resetWindows()
-{
-    Log::info("Reset Windows Function Triggered");
-    try {
-        $windows = Window::all();
+    {
+        Log::info("Reset Windows Function Triggered");
 
-        foreach ($windows as $window) {
-            $typeName = Type::find($window->type_id)->name ?? 'N/A';
-            $tellerName = Teller::find($window->teller_id)->name ?? 'N/A';
+        try {
+            $windows = Window::all();
 
-            WindowArchive::create([
-                'window_name' => $window->window_name,
-                'type_name'   => $typeName,
-                'teller_name' => $tellerName,
-                'archived_at' => now(),
-            ]);
+            foreach ($windows as $window) {
+                WindowArchive::create([
+                    'window_id'   => $window->id,
+                    'window_name' => $window->window_name,
+                    'type_id'     => $window->type_id,
+                    'teller_id'   => $window->teller_id,
+                    'archived_at' => now(),
+                ]);
+            }
+
+            // **Reset tellers after archiving**
+            Window::query()->update(['teller_id' => null]);
+
+            return response()->json(['message' => 'Windows reset successfully']);
+        } catch (\Exception $e) {
+            Log::error("Error resetting windows: " . $e->getMessage());
+            return response()->json(['message' => 'Reset failed'], 500);
         }
-
-        Window::query()->update(['teller_id' => null]);
-
-        return response()->json(['message' => 'Windows reset successfully']);
-    } catch (\Exception $e) {
-        Log::error("Error resetting windows: " . $e->getMessage());
-        return response()->json(['message' => 'Reset failed'], 500);
     }
+    
 }
-}
+
