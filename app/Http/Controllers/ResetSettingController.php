@@ -16,7 +16,6 @@ class ResetSettingController extends Controller
     }
 
     // Save settings
-    // Save settings
 public function saveSettings(Request $request)
 {
     Log::info('Received Data:', $request->all()); // Debugging log
@@ -32,12 +31,18 @@ public function saveSettings(Request $request)
     Log::info('Validated Data:', $validated);
 
     // Ensure `reset_time` is stored in HH:MM:SS format
-    $validated['reset_time'] = $validated['reset_time'] ? $validated['reset_time'] . ':00' : null;
+    if ($validated['reset_time']) {
+        // Kunin ang kasalukuyang seconds at idagdag sa reset_time
+        $currentSeconds = now()->format('s');
+        $validated['reset_time'] = $validated['reset_time'] . ':' . $currentSeconds;
+    }
+    
 
     // Convert full date (YYYY-MM-DD) to day only (1-31)
     if ($validated['reset_date']) {
-        $validated['reset_date'] = date('j', strtotime($validated['reset_date']));
+        $validated['reset_date'] = date('Y-m-d', strtotime($validated['reset_date']));
     }
+    
 
     // Ensure only one row exists
     $settings = DB::table('reset_settings')->first();

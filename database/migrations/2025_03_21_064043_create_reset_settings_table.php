@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('reset_type', ['Daily', 'Weekly', 'Monthly'])->nullable();
             $table->time('reset_time')->nullable(); // Ensures HH:MM:SS format
             $table->string('reset_day')->nullable();
-            $table->integer('reset_date')->nullable();
+            $table->date('reset_date')->nullable();
             $table->timestamps();
         });
     }

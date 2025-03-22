@@ -3,7 +3,7 @@
         <q-card class="q-pa-md">
             <q-form @submit.prevent="submitForm">
                 <q-separator spaced />
-                
+
                 <q-item>
                     <q-item-section>
                         <q-item-label>Reset Window</q-item-label>
@@ -15,44 +15,42 @@
                         <q-checkbox v-model="form.auto_reset" />
                     </q-item-section>
                 </q-item>
-                
+
                 <div v-if="form.auto_reset">
-                    <q-select 
-                        v-model="form.reset_type" 
-                        :options="['Daily', 'Weekly', 'Monthly']" 
-                        label="Reset Frequency" 
-                        outlined 
+                    <q-select
+                        v-model="form.reset_type"
+                        :options="['Daily', 'Weekly', 'Monthly']"
+                        label="Reset Frequency"
+                        outlined
                         class="q-mt-sm"
                     />
-                    
-                    <div v-if="form.reset_type">
-                        <q-card flat bordered class="q-pa-md">
-                            <q-input 
-                                v-model="form.reset_time" 
-                                label="Time (HH:MM)" 
-                                outlined 
-                                class="q-mt-sm" 
-                                placeholder="00:00" 
-                                @update:model-value="formatTime"
-                                maxlength="5"
-                                inputmode="numeric"
-                            >
-                                <template v-slot:append>
-                                    <q-icon name="access_time" class="cursor-pointer" @click="showTimePicker = true" />
-                                </template>
-                            </q-input>
-                            
-                            <q-dialog v-model="showTimePicker">
-                                <q-card>
-                                    <q-time v-model="form.reset_time" format24h @update:model-value="formatTime" />
-                                    <q-card-actions align="right">
-                                        <q-btn flat label="OK" v-close-popup />
-                                    </q-card-actions>
-                                </q-card>
-                            </q-dialog>
-                        </q-card>
-                    </div>
-                    
+
+                    <q-card v-if="form.reset_type" flat bordered class="q-pa-md">
+                        <q-input
+                            v-model="form.reset_time"
+                            label="Time (HH:MM)"
+                            outlined
+                            class="q-mt-sm"
+                            placeholder="00:00"
+                            @update:model-value="formatTime"
+                            maxlength="5"
+                            inputmode="numeric"
+                        >
+                            <template v-slot:append>
+                                <q-icon name="access_time" class="cursor-pointer" @click="showTimePicker = true" />
+                            </template>
+                        </q-input>
+
+                        <q-dialog v-model="showTimePicker">
+                            <q-card>
+                                <q-time v-model="form.reset_time" format24h @update:model-value="formatTime" />
+                                <q-card-actions align="right">
+                                    <q-btn flat label="OK" v-close-popup />
+                                </q-card-actions>
+                            </q-card>
+                        </q-dialog>
+                    </q-card>
+
                     <div v-if="form.reset_type === 'Weekly'" class="q-mt-sm">
                         <q-card flat bordered class="q-pa-md">
                             <q-option-group
@@ -64,28 +62,31 @@
                             />
                         </q-card>
                     </div>
-                    
+
                     <div v-if="form.reset_type === 'Monthly'" class="q-mt-sm">
                         <q-card flat bordered class="q-pa-md">
-                            <q-input 
-                                v-model="form.reset_date" 
-                                label="Select Date" 
-                                outlined 
-                                class="q-mt-sm" 
-                                type="date" 
+                            <q-input
+                                v-model="form.reset_date"
+                                label="Select Date"
+                                outlined
+                                class="q-mt-sm"
+                                type="date"
+                                :min="minDate"
+                                :max="'9999-12-31'"
+                                @blur="validateDate"
                             />
                         </q-card>
                     </div>
                 </div>
-                
-                <q-btn 
-                    color="primary" 
-                    label="Save" 
-                    icon="save" 
-                    type="submit" 
-                    class="q-mt-md" 
+
+                <q-btn
+                    color="primary"
+                    label="Save"
+                    icon="save"
+                    type="submit"
+                    class="q-mt-md"
                     :loading="isSubmitting"
-                    :disable="form.auto_reset && ((form.reset_type === 'Daily' && !form.reset_time) || (form.reset_type === 'Weekly' && !form.reset_day) || (form.reset_type === 'Monthly' && !form.reset_date))" 
+                    :disable="isFormInvalid"
                 />
             </q-form>
         </q-card>
@@ -93,22 +94,23 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { $axios, $notify } from "src/boot/app";
 
 export default {
     setup() {
         const isSubmitting = ref(false);
         const showTimePicker = ref(false);
+        const today = new Date().toISOString().split("T")[0];
+
         const form = ref({
             id: "",
             auto_reset: false,
             reset_type: null,
-            reset_time: "", 
+            reset_time: "",
             reset_day: "",
             reset_date: ""
         });
-        const formErrors = ref({});
 
         const weekDays = [
             { label: "Sunday", value: "Sunday" },
@@ -133,36 +135,77 @@ export default {
             form.value.reset_time = hh + (mm !== undefined ? ":" + mm : "");
         };
 
+        const validateDate = () => {
+            if (!form.value.reset_date) return;
+
+            let selectedDate = new Date(form.value.reset_date);
+            let currentDate = new Date(today);
+            let maxDate = new Date("9999-12-31");
+
+            if (selectedDate < currentDate) {
+                $notify("negative", "error", "Invalid date. Please select a future date.");
+                form.value.reset_date = "";
+            }
+
+            if (selectedDate > maxDate) {
+                $notify("negative", "error", "Invalid date. Maximum allowed date is 9999-12-31.");
+                form.value.reset_date = "";
+            }
+        };
+
+        const isFormInvalid = computed(() => {
+            if (!form.value.auto_reset) return false;
+            if (form.value.reset_type === "Daily" && !form.value.reset_time) return true;
+            if (form.value.reset_type === "Weekly" && (!form.value.reset_day || !form.value.reset_time)) return true;
+            if (form.value.reset_type === "Monthly" && (!form.value.reset_date || !form.value.reset_time)) return true;
+            return false;
+        });
+
         const submitForm = async () => {
             isSubmitting.value = true;
+
+            // Remove unnecessary fields based on reset type
+            const payload = { ...form.value };
+
+            if (payload.reset_type === "Daily") {
+                payload.reset_day = null;
+                payload.reset_date = null;
+            } else if (payload.reset_type === "Weekly") {
+                payload.reset_date = null;
+            } else if (payload.reset_type === "Monthly") {
+                payload.reset_day = null;
+            }
+
             try {
-                await $axios.post("/windows/reset-settings", form.value);
-                localStorage.setItem('resetSettings', JSON.stringify(form.value));  // Save to localStorage
-                $notify('positive', 'check', "Settings saved successfully.");
+                await $axios.post("/windows/reset-settings", payload);
+                localStorage.setItem("resetSettings", JSON.stringify(payload)); // Save to localStorage
+                $notify("positive", "check", "Settings saved successfully.");
             } catch (error) {
-                $notify('negative', 'error', "Failed to save settings.");
+                $notify("negative", "error", "Failed to save settings.");
             } finally {
                 isSubmitting.value = false;
             }
         };
 
         onMounted(() => {
-            // Check if there are saved settings in localStorage
-            const savedSettings = localStorage.getItem('resetSettings');
+            // Load saved settings from localStorage
+            const savedSettings = localStorage.getItem("resetSettings");
             if (savedSettings) {
-                form.value = JSON.parse(savedSettings);  // Load saved settings into the form
-            }
+                form.value = JSON.parse(savedSettings);
+            }   
         });
 
         return {
             form,
             submitForm,
             isSubmitting,
-            formErrors,
             weekDays,
             formatTime,
+            validateDate,
+            minDate: today,
+            isFormInvalid,
             showTimePicker
         };
-    },
+    }
 };
 </script>

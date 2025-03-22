@@ -67,7 +67,7 @@ Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueue
 Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
 Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
 Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
-Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
+//Yung na Missing sa Route Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
@@ -87,15 +87,14 @@ Route::post('/windows/delete', [WindowController::class, 'delete']);
 Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
 //Manual Reset Button Window Logs
 Route::post('/windows/reset-tellers', [WindowController::class, 'resetTellers']);
-
 //window-Logs Get Data Table
 Route::post('/admin/window-logs', [WindowArchiveController::class, 'getWindowLogs']);
 
 //Automatic Reset 
-Route::post('/windows/reset-tellers', [WindowController::class, 'resetWindows']);
+Route::post('/windows/reset-windows', [WindowController::class, 'resetWindows']);
 
 //Reset-Settings Automatic 
-Route::post('/windows/reset-settings-fetch', [ResetSettingController::class, 'fetchSettings']);
+Route::post ('/windows/fetch-reset-settings', [ResetSettingController::class, 'fetchSettings']);
 Route::post('/windows/reset-settings', [ResetSettingController::class, 'saveSettings']);
 
 // adminside
@@ -103,3 +102,8 @@ Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
 Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
 
 Route::post('/send-email', [MailController::class, 'sendEmail']);
+
+//Waiting-Time 
+Route::post('/waiting_Time',[Waiting_timeController::class,'store']); 
+Route::post('/waiting_Time-fetch',[Waiting_timeController::class,'index']);
+Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
