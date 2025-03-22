@@ -40,8 +40,8 @@
             class="cursor-pointer"
             @click="menuOpen = !menuOpen"
           >
-            <img
-              src="https://cdn.quasar.dev/img/avatar.png"
+            <q-img
+              :src="imageUrl || require('assets/no-image.png')"
               alt="User Avatar"
             />
           </q-avatar>
@@ -283,6 +283,7 @@ export default {
     const isQueuelistEmpty = ref(false);
     let waitTimer = null;
     const noOfQueue = ref();
+    const imageUrl = ref();
 
     // const waitProgress = ref(0);
     let refreshInterval = null;
@@ -558,9 +559,23 @@ export default {
       }
     }
     
+    const fetch_Image = async () => {
+      try {
+        const { data } = await $axios.post('/teller/image-teller', {
+          id: tellerInformation.value.id
+        });
+
+        imageUrl.value = data.Image
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+    
     const logout = async () => {
-      sessionStorage.removeItem('authTokenTeller');
-      sessionStorage.removeItem('tellerInformation');
+      localStorage.removeItem('authTokenTeller');
+      localStorage.removeItem('tellerInformation');
       router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation
@@ -568,7 +583,7 @@ export default {
     }
 
     onMounted(() => {
-      const storedTellerInfo = sessionStorage.getItem("tellerInformation");
+      const storedTellerInfo = localStorage.getItem("tellerInformation");
       if (storedTellerInfo) {
         fetchQueue();
         refreshInterval = setInterval(fetchQueue, 2000); // Auto-refresh every 5 seconds
@@ -585,8 +600,9 @@ export default {
         refreshInterval = setInterval(fetchId, 2000);
         tellerInformation.value = JSON.parse(storedTellerInfo);
         fetchType_idValue();
+        fetch_Image();
       } else {
-        console.error("No teller information found in sessionStorage");
+        console.error("No teller information found in localStorage");
       }
     });
 
@@ -620,6 +636,8 @@ export default {
       totalPages,
       menuOpen,
       toggleFullscreen,
+      fetch_Image,
+      imageUrl,
     };
   },
 };

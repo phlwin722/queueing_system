@@ -395,15 +395,15 @@
   
       // Fetch the data when the component is mounted
       onMounted(() => {
-        // check if have sessionStorage 
-        const storedAdminfo = sessionStorage.getItem('adminInformation')
+        // check if have localStorage 
+        const storedAdminfo = localStorage.getItem('adminInformation')
         if (storedAdminfo) {
           const adminData = JSON.parse(storedAdminfo);
           idAdmin.value = adminData.id;  // Make sure you're only storing the ID here
           fetchAdminInfo()
           setInterval(fetchingImage, 1000);
         } else {
-          console.error("No admin information found in sessionStorage");
+          console.error("No admin information found in localStorage");
         }
       });
   

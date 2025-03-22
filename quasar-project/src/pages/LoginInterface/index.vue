@@ -83,9 +83,9 @@ export default {
         formError.value = {}; // Clear error messages
 
         if (data.result == 'admin') {
-          // Store token in sessionStorage instead of localStorage
-          sessionStorage.setItem('authTokenAdmin', data.token); 
-          sessionStorage.setItem('adminInformation', JSON.stringify(data.adminInformation));
+          // Store token in localStorage instead of localStorage
+          localStorage.setItem('authTokenAdmin', data.token); 
+          localStorage.setItem('adminInformation', JSON.stringify(data.adminInformation));
 
           // If login is successful, redirect to the admin dashboard
           $notify('positive','done',data.message)
@@ -93,12 +93,16 @@ export default {
         } else {
           const { data } = await $axios.post('/teller/validate',formData.value);
           if (data.result == 'teller') {
-            // If login is successful, redirect to the admin dashboard
-          $notify('positive','done',data.message)
-          // Store token in sessionStorage instead of localStorage
-          sessionStorage.setItem('authTokenTeller', data.tellerInformation.token); 
-          sessionStorage.setItem('tellerInformation', JSON.stringify(data.tellerInformation))
-          router.push('/teller/Layout'); // Change the path to your desired route
+            if (data.tellerInformation.type_id != null) {
+              // If login is successful, redirect to the admin dashboard
+              $notify('positive','done',data.message)
+              // Store token in localStorage instead of localStorage
+              localStorage.setItem('authTokenTeller', data.tellerInformation.token); 
+              localStorage.setItem('tellerInformation', JSON.stringify(data.tellerInformation))
+              router.push('/teller/Layout'); // Change the path to your desired route
+            } else {
+              $notify('negative','error','No service type has been assigned')
+            }
           }
         } 
 
@@ -112,6 +116,8 @@ export default {
           formError.value = {}; // Clear error messages
           
           $notify('negative','error',"Invalid username or password")
+        } else if (error.response.status === 400) {
+          $notify('negative','error',"Invalid credentials")
         } else {
           console.log("error", error);
         }
