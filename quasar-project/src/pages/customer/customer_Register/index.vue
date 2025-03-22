@@ -143,7 +143,6 @@ export default {
     const fetchCategories = async () => {
             try {
                 const { data } = await $axios.post('/types/index');
-                console.log("Full API Response:", data); // 🔍 Debugging
                 categoriesList.value = data.rows; // Ensure this matches the API response structure
             } catch (error) {
                 console.error('Error fetching categories:', error);

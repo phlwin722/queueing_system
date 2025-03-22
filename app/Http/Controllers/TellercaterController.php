@@ -89,57 +89,63 @@ class TellercaterController extends Controller
         ]);
     }
 
-    // this get the teller queue list
     public function getTellerQueueList(Request $request)
     {
-        // validate type_id
         $request->validate([
-            'type_id' => 'required'
+            'type_id' => 'required',
+            'teller_id' => 'required'  // Ensure we receive teller_id
         ]);
-
-        // teller id        
+    
         $type_id = $request->type_id;
-
-        $queue = Queue::where('type_id',$type_id)
-            ->where('status', 'waiting')
-            ->orderBy('created_at')
-            ->get();
-
-        $currentServing = Queue::where('type_id',$type_id)
-                        ->where('status', 'serving')->first();
-        
+        $teller_id = $request->teller_id;
+    
+        $queue = Queue::where('type_id', $type_id)
+                    ->where('teller_id', $teller_id) // Fetch queue specific to teller
+                    ->where('status', 'waiting')
+                    ->orderBy('created_at')
+                    ->get();
+    
+        $currentServing = Queue::where('type_id', $type_id)
+                              ->where('teller_id', $teller_id)
+                              ->where('status', 'serving')
+                              ->first();
+    
         $servingQueue = DB::table('queues')
-        ->select('name', 'queue_number','status')
-        ->where('type_id', $type_id)
-        ->where('status', 'serving')
-        ->first();
-
+                        ->select('name', 'queue_number', 'status')
+                        ->where('type_id', $type_id)
+                        ->where('teller_id', $teller_id)
+                        ->where('status', 'serving')
+                        ->first();
+    
         $name = DB::table('tellers')
-        ->select('teller_firstname', 'teller_lastname')
-        ->where('type_id', $type_id)
-        ->first();
-
-        $fullname = $name->teller_firstname ." ". $name->teller_lastname;
-
+                 ->select('teller_firstname', 'teller_lastname')
+                 ->where('id', $teller_id)
+                 ->first();
+    
+        $fullname = $name ? $name->teller_firstname . " " . $name->teller_lastname : null;
+    
         return response()->json([
             'queue' => $queue,
             'current_serving' => $currentServing,
-            'queue_numbers' => $queue->pluck('queue_number'), // Extracts all queue numbers
+            'queue_numbers' => $queue->pluck('queue_number'),
             'name' => $servingQueue->name ?? null,
             'queue_number' => $servingQueue->queue_number ?? null,
             'status' => $servingQueue->status ?? null,
-            'fullname' => $fullname ?? null,
+            'fullname' => $fullname
         ]);
     }
+    
 
     public function caterTellerCustomer(Request $request)
     {
 
         Queue::where('type_id', $request->service_id)
+                ->where('teller_id', $request->teller_id)
                 ->where('status', 'serving')
                 ->update(['status' => 'served']);
 
         Queue::where('type_id', $request->service_id)
+                ->where('teller_id', $request->teller_id)
                 ->where('id', $request->id)
                 ->update(['status' => 'serving']);
 
