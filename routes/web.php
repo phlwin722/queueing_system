@@ -68,6 +68,11 @@ Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer
 Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
 Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
 Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
+Route::post('/teller/image',[TellerController::class,'fetchImage']);
+Route::post('/teller/image-teller',[TellerController::class,'fetchImageTeller']);
+Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchImageTellerCsDashboaard']);
+
+
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);

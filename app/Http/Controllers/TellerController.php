@@ -62,10 +62,47 @@ class TellerController extends Controller
                 'teller_lastname' => $request->teller_lastname,
                 'teller_username' => $request->teller_username,
                 'teller_password' => Hash::make($request->teller_password),
-                'type_ids_selected' => $request->type_ids_selected, // Store selected types as JSON
+                'type_ids_selected' => json_encode($request->type_ids_selected), // Store selected types as JSON
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
+
+            // insert image on database
+            $teller = DB::table('tellers')
+                ->where('id',$tellerID)
+                ->first();
+            // delete the old message if it exist
+            if ($teller->Image) {
+                $oldImagePath = public_path($teller->Image);
+                if (file_exists($oldImagePath)) {
+                    unlink ($oldImagePath); // Delete the file
+                }
+            }
+
+            // Process and save the uploaded file
+            if ($request->hasFile('Image')) {
+                $file = $request->file('Image');
+                $filename = time(). '.' . $file->getClientOriginalExtension();
+
+                // define the folder path (inside public directory)
+                $folderPath = public_path('assets/teller/' . $tellerID);
+                    
+                // Ensure the folder exists
+                if (!file_exists($folderPath)) {
+                    mkdir($folderPath,0755,true);  // Create folder with proper permissions
+                }
+
+                // move file to the folder
+                $file->move($folderPath,$filename);
+
+                // correct url public access
+                $filePath = "assets/teller/{$tellerID}/{$filename}";
+
+                /// **FIXED:** Update database using Query Builder (no `save()` method)
+                DB::table('tellers')
+                    ->where('id',$tellerID)
+                    ->update(['Image' => $filePath]);
+            }
     
             // Fetch the newly inserted teller and join with the types table
             $newTeller = DB::table('tellers as t')
@@ -76,12 +113,14 @@ class TellerController extends Controller
                     "t.teller_username",
                     "t.teller_password",
                     "t.type_ids_selected",
+                    "t.Image",
                     DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
                 )
-                ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, CAST(tp.id AS JSON))'), '>', DB::raw('0')) // JSON contains join
+                ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
                 ->where("t.id", $tellerID)
-                ->groupBy("t.id") // Group by the teller ID to get one row
+                ->groupBy("t.id")
                 ->first();
+
     
             return response()->json([
                 'success' => true,
@@ -95,7 +134,59 @@ class TellerController extends Controller
             ]);
         }
     }
+
+    // fetching image each of teller admin teller 
+    public function fetchImage (Request $request) {
+        $id = $request->id;
+        
+        $tellerImage = DB::table('tellers')
+            ->where('id',$id)
+            ->first();
+
+        return response()->json([
+            'Image' => $tellerImage->Image ? asset($tellerImage->Image) : asset('assets/no-image-user.png')
+        ]);
+    }
+
+
+    // fetching image each of teller layout
+    public function fetchImageTeller (Request $request){
+        try{
+            $id = $request->id;
+
+            $tellerImage = DB::table('tellers')
+                ->where('id',$id)
+                ->first();
+
+                return response()->json([
+                    'Image' => $tellerImage->Image ? asset($tellerImage->Image) : asset('assets/no-image-user.png')
+                ]);
+        } catch (\Exception $e) {
+                return response()->json([
+                    'error' => $e->getMessage()
+                ]);
+        }
+    }
+
+    // customer dashboard folder
+    public function fetchImageTellerCsDashboaard (Request $request) {
+        try {
+            $id = $request->id;
+
+            $tellerImage = DB::table('tellers')
+                ->where('id',$id)
+                ->first();
     
+                return response()->json([
+                    'Image' => $tellerImage->Image ? asset($tellerImage->Image) : asset('assets/no-image-user.png')
+                ]);
+        } catch (\Exception $e) {
+            return response ()-> json([
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
 
     public function form(Request $request)
     {
@@ -119,31 +210,60 @@ class TellerController extends Controller
     {
         try {
             $teller = Teller::find($request->id);
-
+    
             // Check if teller exists
             if (!$teller) {
                 return response()->json([
                     "message" => "Teller not found!"
                 ], 404);
             }
-
-            // Update each field manually
+    
+            // Update fields manually
             $teller->teller_firstname = $request->teller_firstname;
             $teller->teller_lastname = $request->teller_lastname;
             $teller->teller_username = $request->teller_username;
             $teller->type_ids_selected = $request->type_ids_selected;
-
+    
             // Update password only if provided
             if ($request->filled('teller_password')) {
                 $teller->teller_password = Hash::make($request->teller_password);
             }
-
-            // Save the updates
+    
+            // Update the image if provided
+            if ($request->hasFile('Image')) {
+                // Delete the old image if it exists
+                if ($teller->Image && file_exists(public_path($teller->Image))) {
+                    unlink(public_path($teller->Image)); // Delete the old image file
+                }
+    
+                // Process and save the new uploaded image
+                $file = $request->file('Image');
+                $filename = time() . '.' . $file->getClientOriginalExtension();
+    
+                // Define the folder path (inside the public directory)
+                $folderPath = public_path('assets/teller/' . $request->id);
+    
+                // Ensure the folder exists
+                if (!file_exists($folderPath)) {
+                    mkdir($folderPath, 0755, true);  // Create folder with proper permissions
+                }
+    
+                // Move the file to the folder
+                $file->move($folderPath, $filename);
+    
+                // Save the file path in the database
+                $filePath = "assets/teller/{$request->id}/{$filename}";
+    
+                // Update the image path using Eloquent
+                $teller->Image = $filePath;
+            }
+    
+            // Save the updates (will save the image path as well)
             $teller->save();
-
+    
             // Fetch updated data
             $row = $this->getData($teller->id);
-
+    
             return response()->json([
                 "row" => $row,
                 "message" => "Teller Successfully Updated!"
@@ -154,32 +274,31 @@ class TellerController extends Controller
             ]);
         }
     }
+    
 
+    public function delete(Request $request){
+        try {
+            // Check if any windows are using this teller
+            $windowCount = \App\Models\Window::whereIn('teller_id', $request->ids)->count();
 
-    public function delete(Request $request)
-{
-    try {
-        // Check if any windows are using this teller
-        $windowCount = \App\Models\Window::whereIn('teller_id', $request->ids)->count();
+            if ($windowCount > 0) {
+                return response()->json([
+                    "message" => "Cannot delete teller. It is still referenced in windows."
+                ], 400);
+            }
 
-        if ($windowCount > 0) {
+            // Proceed with deletion
+            Teller::destroy($request->ids);
+
             return response()->json([
-                "message" => "Cannot delete teller. It is still referenced in windows."
-            ], 400);
-        }
-
-        // Proceed with deletion
-        Teller::destroy($request->ids);
-
+                "message" => "Successfully Deleted!"
+            ]);
+        } catch (\Exception $e) {
         return response()->json([
-            "message" => "Successfully Deleted!"
-        ]);
-    } catch (\Exception $e) {
-       return response()->json([
-            "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
-        ]);
+                "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
+            ]);
+        }
     }
-}
 
     public function viewTellerDropdown(Request $request)
     {
@@ -188,16 +307,14 @@ class TellerController extends Controller
 
             // Check if type_id is a string and not numeric
             if (is_string($type_id) && !is_numeric($type_id)) {
-                // Resolve the ID based on type_id
+                // Resolve the ID based on type_id (name of the type)
                 $id = DB::table('types')->where('name', $type_id)->value('id');
                 
-                // Query tellers where `type_ids_selected` contains the specific ID
+                // Ensure $id is in the right format for comparison
                 $tellers = DB::table('tellers')
-                    ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)', [json_encode([$id])]) // JSON_CONTAINS with the id as a JSON array
-                    ->select('id', 'teller_firstname', 'teller_lastname');
-
-                // Execute the query
-                $tellers = $tellers->get();
+                    ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)', [json_encode([strval($id)])]) // Ensure ID is treated as a string
+                    ->select('id', 'teller_firstname', 'teller_lastname')
+                    ->get(); // Execute the query
 
                 // Format the results for the dropdown
                 $formattedTellers = $tellers->map(function ($teller) {
@@ -214,7 +331,7 @@ class TellerController extends Controller
             } else {
                 // If type_id is numeric, handle it differently
                 $tellers = DB::table('tellers')
-                ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)', [json_encode([$type_id])]) // JSON_CONTAINS with the id as a JSON array
+                    ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)', [json_encode([strval($type_id)])]) // Ensure type_id is treated as a string
                     ->select('id', 'teller_firstname', 'teller_lastname')
                     ->get(); // Execute the query
 
@@ -250,16 +367,18 @@ class TellerController extends Controller
                 "t.teller_username",
                 "t.teller_password",
                 "t.type_ids_selected",
+                "t.Image",
                 DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
             )
-            ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, CAST(tp.id AS JSON))'), '>', DB::raw('0')) // JSON contains join
+            ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
             ->groupBy(
                 "t.id", 
                 "t.teller_firstname", 
                 "t.teller_lastname", 
                 "t.teller_username", 
                 "t.teller_password", 
-                "t.type_ids_selected"
+                "t.type_ids_selected",
+                "t.Image"
             )
             ->orderBy('t.created_at', 'desc'); // Ordering by created_at in descending order
     
@@ -305,7 +424,7 @@ class TellerController extends Controller
             }else {
                 return response()->json([
                     'error' => 'Invalid credentials'
-                ]);
+                ],400);
             }
     }
 

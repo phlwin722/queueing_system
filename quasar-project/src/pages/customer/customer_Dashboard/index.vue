@@ -28,6 +28,7 @@
           </q-card-section>
           <q-card-section class="row items-center">
             <q-img
+              :src="imageUrl || require('assets/no-image.png')"
               width="30px"
               height="30px"
               class="text-secondary q-mr-md shadow-1"
@@ -214,6 +215,7 @@ export default {
     const hasNotified = ref(false); // Prevents repeat notifications
     const countdown = ref(); // 60 seconds countdown
     const tellerId = ref()
+    const imageUrl = ref()
     let refreshInterval = null;
     let countdownInterval = null;
 
@@ -323,8 +325,9 @@ export default {
             serviceType.value = data.row.name
             assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
             typeId.value = data.row.typeId
-            // tellerId.value = data.row.id
-            // putTellerId()
+            tellerId.value = data.row.id
+            fetchImage(tellerId.value)
+          //putTellerId()
         }catch(error){
             console.log(error);
         }
@@ -526,6 +529,20 @@ export default {
       }
     };
 
+    const fetchImage = async (tellerId) => {
+      try {
+        const { data } = await $axios.post('/teller/image-fetch-csdashboard',{
+          id: tellerId,
+        })
+
+        imageUrl.value = data.Image
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
     onMounted(() => {
       getTableData();
       fetchQueueData();
@@ -534,7 +551,6 @@ export default {
       refreshInterval = setInterval(fetchQueueData, 2000); // Auto-refresh every 5 seconds
       fetchWaitingStatus();
       setInterval(fetchWaitingStatus, 2000);
-      
     });
 
     // onUnmounted(() => {
@@ -561,6 +577,8 @@ export default {
       remainingTime,
       abbreviateName, // Expose the abbreviateName function
       beforeCancel,
+      fetchImage,
+      imageUrl,
     };
   },
 };

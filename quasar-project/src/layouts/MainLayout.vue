@@ -289,22 +289,22 @@ export default defineComponent({
 
     // Set an interval to update the time every second
     onMounted(() => {
-      const storedAdminInfo = sessionStorage.getItem("adminInformation");
+      const storedAdminInfo = localStorage.getItem("adminInformation");
       if (storedAdminInfo) {
         adminInformation.value = JSON.parse(storedAdminInfo);
         fetchAdminInformation();
         updateFormattedTime(); // Call it once on mount
-        setInterval(fetchAdminInformation, 1000);
+        setInterval(fetchAdminInformation, 6000);
         setInterval(updateFormattedTime, 1000); // Update every second
       } else {
-        console.error("No admin information found in sessionStorage");
+        console.error("No admin information found in localStorage");
       }
     });
 
     // Logout function
     const logout = () => {
-      sessionStorage.removeItem("authTokenAdmin"); // Remove auth token
-      sessionStorage.removeItem("adminInformation");
+      localStorage.removeItem("authTokenAdmin"); // Remove auth token
+      localStorage.removeItem("adminInformation");
       router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation
