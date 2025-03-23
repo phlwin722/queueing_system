@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Queue extends Model
 {
 
+    use HasFactory; // Add this line to use the factory feature
     protected $fillable = [
         'id',
         'token',
