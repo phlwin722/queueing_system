@@ -411,6 +411,11 @@ export default defineComponent({
         link: "/admin/admin_Queue",
       },
       {
+        title: "Currency Conversion",
+        icon: "currency_exchange",
+        link: "/admin/currency_conversion",
+      },
+      {
         title: "Customer Logs",
         icon: "description",
         link: "/admin/customer-logs",
