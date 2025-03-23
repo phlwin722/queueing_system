@@ -12,6 +12,7 @@ use App\Http\Controllers\TypeController;
 use App\Http\Controllers\WindowController;
 use App\Http\Controllers\ResetWindowSettingController;
 use App\Http\Controllers\WindowArchiveController;
+use App\Http\Controllers\CurrencyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -89,6 +90,13 @@ Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
 Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
 Route::post('/windows/reset-tellers', [WindowController::class, 'resetTellers']);
+
+// Currency Routes
+Route::post('/currency/showData', [CurrencyController::class, 'showData']);
+Route::post('/currency/create', [CurrencyController::class, 'create']);
+Route::post('/currency/update', [CurrencyController::class, 'update']);
+Route::post('/currency/delete', [CurrencyController::class, 'delete']);
+
 
 //Reset-Window
 Route::post('/waiting_Time-fetch', [ResetWindowSettingController::class, 'fetch']);
