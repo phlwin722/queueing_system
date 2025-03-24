@@ -45,7 +45,7 @@
       
 
     
-  <div class="q-pa-md q-mt-xs shadow-1 q-mt-md" style="width: 64%;">
+  <div class="q-pa-md q-mt-xs shadow-1 q-mt-md" style="width: 63%;">
     <BarChart
       :cancelledPercent="cancelledPercent"
       :finishedPercent="finishedPercent"
