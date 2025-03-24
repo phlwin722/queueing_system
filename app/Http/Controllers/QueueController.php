@@ -222,17 +222,17 @@ class QueueController extends Controller
                     "tp.name as type_id",
                     DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
                     "qs.status",
-                    "qs.created_at"
+                    "qs.updated_at"
                 )
                 ->leftJoin("types as tp", "tp.id", "qs.type_id")
                 ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
                 ->whereNotIn('qs.status', ['serving', 'waiting']) // Add 'qs.' to the status column
-                ->orderBy('qs.created_at', 'desc');
+                ->orderBy('qs.updated_at', 'desc');
     
             // Check if a date filter is provided
             if ($request->has('date') && $request->input('date')) {
                 $date = $request->input('date'); 
-                $res->whereDate('qs.created_at', $date); // Use the alias 'qs'
+                $res->whereDate('qs.updated_at', $date); // Use the alias 'qs'
             }
     
             return response()->json([
@@ -260,21 +260,21 @@ class QueueController extends Controller
                 "tp.name as type_id",
                 DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
                 "qs.status",
-                "qs.created_at"
+                "qs.updated_at"
             )
             ->leftJoin("types as tp", "tp.id", "qs.type_id")
             ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
             ->whereNotIn('qs.status', ['serving', 'waiting'])
-            ->orderBy('qs.created_at', 'asc');
+            ->orderBy('qs.updated_at', 'asc');
     
             // Filter by "From" date
             if ($request->has('from_date') && !empty($request->input('from_date'))) {
-                $res->whereDate('qs.created_at', '>=', $request->input('from_date'));
+                $res->whereDate('qs.updated_at', '>=', $request->input('from_date'));
             }
     
             // Filter by "To" date
             if ($request->has('to_date') && !empty($request->input('to_date'))) {
-                $res->whereDate('qs.created_at', '<=', $request->input('to_date'));
+                $res->whereDate('qs.updated_at', '<=', $request->input('to_date'));
             }
     
             return response()->json([

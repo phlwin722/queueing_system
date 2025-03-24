@@ -151,10 +151,10 @@
             sortable: true
           },
           {
-            name: 'created_at',
+            name: 'updated_at',
             label: 'Date and Time',
             align: 'left',
-            field: 'created_at',
+            field: 'updated_at',
             sortable: true
           },
         ]);
