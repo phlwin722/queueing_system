@@ -25,28 +25,33 @@ class ResetWindowsCommand extends Command
                 return;
             }
 
-            $currentTime = now()->format('H:i:s'); // Exact format for Hours Minutes Seconds
-            $resetTime = Carbon::parse($settings->reset_time)->format('H:i:s');
+            $currentTime = now();
+            $resetTime = Carbon::parse($settings->reset_time);
 
-            $currentDay = now()->format('l'); // Full day name (Monday, Tuesday, etc.)
-            $currentDate = now()->format('Y-m-d'); // Full date
+            $currentDay = $currentTime->format('l'); // Full day name (Monday, Tuesday, etc.)
+            $currentDate = $currentTime->format('Y-m-d'); // Full date
 
             // Debugging logs
-            Log::debug("🕒 Current Time: $currentTime | Reset Time: $resetTime");
+            Log::debug("🕒 Current Time: {$currentTime->toDateTimeString()} | Reset Time: {$resetTime->toDateTimeString()}");
             Log::debug("📅 Reset Type: $settings->reset_type | Reset Day: $settings->reset_day | Reset Date: $settings->reset_date");
 
             $shouldReset = false;
 
-            if ($settings->reset_type === 'Daily' && abs(strtotime($currentTime) - strtotime($resetTime)) <= 60) {
+            // ✅ If reset time has already passed, log and exit
+            if ($currentTime->greaterThan($resetTime)) {
+                Log::info('⏳ No schedule found or time passed.');
+                return;
+            }
+
+            if ($settings->reset_type === 'Daily' && abs($currentTime->timestamp - $resetTime->timestamp) <= 60) {
                 $shouldReset = true;
             } 
-            elseif ($settings->reset_type === 'Weekly' && $currentTime === $resetTime && $settings->reset_day === $currentDay) {
+            elseif ($settings->reset_type === 'Weekly' && $currentTime->equalTo($resetTime) && $settings->reset_day === $currentDay) {
                 $shouldReset = true;
             } 
-            elseif ($settings->reset_type === 'Monthly' && $currentTime === $resetTime && $settings->reset_date === $currentDate) {
+            elseif ($settings->reset_type === 'Monthly' && $currentTime->equalTo($resetTime) && $settings->reset_date === $currentDate) {
                 $shouldReset = true;
             }
-            
 
             if ($shouldReset) {
                 Log::info('✅ Running auto reset for windows...');
@@ -65,4 +70,3 @@ class ResetWindowsCommand extends Command
         }
     }
 }
-    
