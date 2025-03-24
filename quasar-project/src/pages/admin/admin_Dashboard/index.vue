@@ -68,7 +68,7 @@
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
               <!-- Apply color based on the status -->
-              <q-badge :color="props.row.status === 'Available' ? 'red' : 'green'">
+              <q-badge :color="props.row.status === 'Available' ? 'green' : 'red'">
                 {{ props.row.status }}
               </q-badge>
             </q-td>
@@ -113,7 +113,7 @@ export default {
     const getTableData = async () => {
           try{
           
-            console.log(dateToday)
+            
             const { data } = await $axios.post('/admin/queue-logs',{
               date: dateToday
             })
@@ -182,7 +182,12 @@ export default {
 
         onMounted(() => {
           getTableData()
-          fetchWorkStation();
+          fetchWorkStation()
+          setInterval(() => {
+          getTableData()
+          fetchWorkStation()
+          // Add more functions as needed
+        }, 5000);
         })
 
     return {
