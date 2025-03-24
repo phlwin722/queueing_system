@@ -52,7 +52,7 @@
     />
   </div>
 
-    <!-- Active Queue Table & Teller Workstations -->
+    Active Queue Table & Teller Workstations
     <div class="row q-mt-xs q-col-gutter-md">
       <!-- Active Queue Table -->
       <div class="col-8">
@@ -100,67 +100,122 @@
     </q-card>
   </div>
 </div>
-
-
-<!-- Bar Chart Component -->
-
   </q-page>
 </template>
 
 <script>
-import { $axios } from 'src/boot/app';
-import { ref, onMounted } from 'vue';
 
+import { 
+  defineComponent ,
+  ref,
+  computed,
+  onMounted
+} from 'vue'
+
+
+import {
+  $axios,
+  $notify,
+  Dialog
+} from 'boot/app'
+
+import BarChart from 'components/BarChart.vue';
 export default {
   name: "QueueDashboard",
+  components: { BarChart },
   setup() {
-    const rowsWorkStation = ref([]);
-    const columnsWorkStation = ([
-      {
-        name:'name',
-        label:'Name',
-        align:'left',
-        field: 'teller_name',
-        sortable: true
-      },
-      {
-        name: 'status',
-        label: 'Status',
-        align: 'left',
-        field: 'status',
-        sortable: true
-      }
-    ])
+    const rows = ref([]);
+    const cancelledPercent = ref(0);
+    const finishedPercent = ref(0);
+    const cancelledCount = ref (0)
+    const finishedCount = ref(0)
+    const total = ref(0)
+    const dateToday = new Date().toISOString().slice(0, 10);
 
-   // Fetch the information of teller if assigned
-   const fetchWorkStation = async () => {
-      try {
-        const { data } = await $axios.post('/tellers/index');
-        // Process rows data to assign the correct status and full name
-        rowsWorkStation.value = data.rows.map(row => {
-          return {
-            id: row.id,
-            // If type_id is null, status is 'Available', otherwise 'Assigned'
-            status: row.type_id === null ? 'Available' : 'Assigned',
-            // Combine teller_firstname and teller_lastname for the full name
-            teller_name: `${row.teller_firstname} ${row.teller_lastname}`
-          };
-        });
-      } catch (error) {
-        if (error.response.status === 422) {
-          console.log(error.message);
+    const getTableData = async () => {
+          try{
+          
+            console.log(dateToday)
+            const { data } = await $axios.post('/admin/queue-logs',{
+              date: dateToday
+            })
+            
+            rows.value.splice(0, rows.value.length, ...data.rows);
+            computePercentages();
+          }catch(error){
+            console.log(error);
+          }
         }
-      }
-    };
 
-    onMounted(() => {
-      fetchWorkStation();
-    })
+        const computePercentages = () => {
+          total.value = rows.value.length;
+          if (total === 0) {
+            cancelledPercent.value = 0;
+            finishedPercent.value = 0;
+            return;
+          }
+
+          cancelledCount.value = rows.value.filter(row => row.status === 'cancelled').length;
+          finishedCount.value = rows.value.filter(row => row.status === 'finished').length;
+
+          cancelledPercent.value = ((cancelledCount.value / total.value) * 100).toFixed(2);
+          finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
+
+        };
+
+       const rowsWorkStation = ref([]);
+          const columnsWorkStation = ([
+            {
+              name:'name',
+              label:'Name',
+              align:'left',
+              field: 'teller_name',
+              sortable: true
+            },
+            {
+              name: 'status',
+              label: 'Status',
+              align: 'left',
+              field: 'status',
+              sortable: true
+            }
+          ])
+
+         // Fetch the information of teller if assigned
+         const fetchWorkStation = async () => {
+            try {
+              const { data } = await $axios.post('/tellers/index');
+              // Process rows data to assign the correct status and full name
+              rowsWorkStation.value = data.rows.map(row => {
+                return {
+                  id: row.id,
+                  // If type_id is null, status is 'Available', otherwise 'Assigned'
+                  status: row.type_id === null ? 'Available' : 'Assigned',
+                  // Combine teller_firstname and teller_lastname for the full name
+                  teller_name: `${row.teller_firstname} ${row.teller_lastname}`
+                };
+              });
+            } catch (error) {
+              if (error.response.status === 422) {
+                console.log(error.message);
+              }
+            }
+          };
+
+        onMounted(() => {
+          getTableData()
+          fetchWorkStation();
+        })
 
     return {
       columnsWorkStation,
       rowsWorkStation,
       fetchWorkStation,
+      cancelledPercent,
+      finishedPercent,
+      cancelledCount,
+      finishedCount,
+      total,
       queueColumns: [
         { name: "ticket", label: "Ticket Number", align: "left", field: "ticket" },
         { name: "customer", label: "Customer", align: "left", field: "customer" },

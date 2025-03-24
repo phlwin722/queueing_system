@@ -125,7 +125,6 @@
                     <q-item
                       clickable
                       v-ripple
-                      :disable="!isQueuelistEmpty || currentServing != null"
                       @click="resetQueue()"
                     >
                       <q-item-section avatar class="q-pl-xl">
@@ -421,8 +420,8 @@ export default defineComponent({
       try {
         $dialog
           .dialog({
-            title: "Confirm",
-            message: "Are you sure do you want reset queue?",
+            title: "Confirm Queue Reset",
+            message: "Please make sure all the queues are finished",
             cancel: true,
             persistent: true,
             color: "primary",
@@ -450,7 +449,7 @@ export default defineComponent({
           });
       } catch (error) {
         console.error(error);
-        $notify("negative", "error", "Failed to set waiting customer.");
+        $notify("negative", "error", "No customer yet.");
       }
     };
 
