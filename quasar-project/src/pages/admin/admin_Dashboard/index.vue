@@ -1,6 +1,14 @@
 <template>
-  <q-page class="q-px-lg q-py-md">
-    <div class="text-secondary q-mb-md">Dashboard</div>
+  <q-page class="q-px-lg">
+
+    <div class="q-my-md bg-white q-pa-sm shadow-1">
+    <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el icon="home" to="/" />
+                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+            </q-breadcrumbs>
+      </div>
     <!-- Queue Summary Cards -->
     <div class="row q-gutter-md">
       <!-- Total Customers -->
