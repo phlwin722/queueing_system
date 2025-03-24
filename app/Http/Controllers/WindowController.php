@@ -6,6 +6,7 @@ use App\Http\Requests\WindowRequest;
 use App\Models\Window;
 use App\Models\Type;   
 use App\Models\Teller;
+use App\Models\ResetSetting;
 use App\Models\WindowArchive;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -203,40 +204,87 @@ class WindowController extends Controller
         
     }
 
+    // **🔄 Manual Reset**
     public function resetTellers()
     {
         try {
             Window::query()->update(['teller_id' => null]);
+            Teller::query()->update(['type_id' => null]);
             return response()->json(['message' => 'All tellers reset successfully!']);
         } catch (\Exception $e) {
-                    return response()->json(['message' => 'Failed to reset tellers.'], 500);
+            return response()->json(['message' => 'Failed to reset tellers.'], 500);
         }
     }
 
-        public function resetWindows()
-    {
-        Log::info("Reset Windows Function Triggered");
-        try {
+    // **🔄 Auto Reset with Archive**
+    public function resetWindows()
+{
+    Log::info("Reset Windows Function Triggered");
+
+    try {
+        DB::transaction(function () {
             $windows = Window::all();
 
             foreach ($windows as $window) {
-                $typeName = Type::find($window->type_id)->name ?? 'N/A';
-                $tellerName = Teller::find($window->teller_id)->name ?? 'N/A';
-
                 WindowArchive::create([
+                    'window_id'   => $window->id,
                     'window_name' => $window->window_name,
-                    'type_name'   => $typeName,
-                    'teller_name' => $tellerName,
+                    'type_id'     => $window->type_id,
+                    'teller_id'   => $window->teller_id,
                     'archived_at' => now(),
                 ]);
             }
 
+            // Reset tellers after archiving
             Window::query()->update(['teller_id' => null]);
+            Teller::query()->update(['type_id' => null]);
+            ResetSetting::query()->update([
+                'reset_type'  => null,
+                'reset_time'  => null,
+                'reset_day'   => null,
+                'reset_date'  => null
+            ]);
+        });
 
-            return response()->json(['message' => 'Windows reset successfully']);
-        } catch (\Exception $e) {
-            Log::error("Error resetting windows: " . $e->getMessage());
-            return response()->json(['message' => 'Reset failed'], 500);
-        }
+        Log::info("✅ Windows reset successfully.");
+        return response()->json(['message' => 'Windows reset successfully']);
+    } catch (\Exception $e) {
+        Log::error("❌ Error resetting windows: " . $e->getMessage());
+        return response()->json(['message' => 'Reset failed'], 500);
     }
 }
+
+    //For Automatic Call the Reset Settings 
+    public function autoResetWindows()
+{
+    $settings = DB::table('reset_settings')->first();
+
+    if (!$settings) {
+        Log::info("❌ No reset settings found.");
+        return;
+    }
+
+    $currentTime = now()->format('H:i');
+    $currentDay = now()->format('l'); // Example: "Monday"
+    $currentDate = now()->format('Y-m-d');
+
+    $shouldReset = false;
+
+    if ($settings->reset_type === "Daily" && $currentTime === $settings->reset_time) {
+        $shouldReset = true;
+    } elseif ($settings->reset_type === "Weekly" && $currentTime === $settings->reset_time && $currentDay === $settings->reset_day) {
+        $shouldReset = true;
+    } elseif ($settings->reset_type === "Monthly" && $currentTime === $settings->reset_time && $currentDate === $settings->reset_date) {
+        $shouldReset = true;
+    }
+
+    if ($shouldReset) {
+        Log::info("✅ Reset triggered automatically.");
+        $this->resetWindows();
+    } else {
+        Log::info("⏳ Not yet time for reset.");
+    }
+}
+
+}
+

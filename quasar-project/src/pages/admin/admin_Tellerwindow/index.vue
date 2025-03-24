@@ -48,6 +48,8 @@
                                 @click="beforeReset(true)"
                                 class="custom-btn"
                                 glossy=""
+                                :disable="rows.length === 0"
+                                
                             />
                         </div>
                     </div>
@@ -158,22 +160,32 @@ export default defineComponent({
             }
         };
 
-        const setupAutoRefresh = () => {
-        if (intervalId) {
-            clearInterval(intervalId);
-        }
+        const setupAutoRefresh = async () => {
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
 
-        let refreshRate = resetMinutes.value * 60 * 1000;
-        if (refreshRate < 20000) refreshRate = 20000; // Minimum 20 sec
+    try {
+        const { data } = await $axios.post('/windows/fetch-reset-settings'); 
+        let refreshRate = 60000; // Default: 1 min
+
+        if (data.auto_reset && data.reset_time) {
+            const now = new Date();
+            const [hours, minutes] = data.reset_time.split(':').map(Number);
+            const resetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+            const timeDiff = resetTime - now;
+
+            refreshRate = timeDiff > 20000 ? timeDiff : 20000;
+        }
 
         intervalId = setInterval(() => {
             getTableData();
         }, refreshRate);
-    };
+    } catch (error) {
+        console.log("Failed to fetch reset settings:", error);
+    }
+};
 
-        const handleShowForm = (mode, row) => {
-            dialogForm.value.showDialog(mode, row);
-        };
 
         const beforeReset = () => {
     Dialog.create({
@@ -183,27 +195,40 @@ export default defineComponent({
         resetTeller();
     });
 };
-
 const resetTeller = async () => {
+    // Check if all tellers are already reset
+    const hasAssignedTellers = rows.value.some(row => row.teller_id !== null);
+
+    if (!hasAssignedTellers) {
+        $notify('warning', 'info', 'All windows are already reset.');
+        return;
+    }
+
     console.log("Reset Teller API Called"); // Debug log
     try {
-        const { data } = await $axios.post('/windows/reset-tellers'); 
+        const { data } = await $axios.post('/windows/reset-windows'); 
         console.log("API Response:", data); // Debug response
         $notify('positive', 'check', data.message);
         setTimeout(() => {
-            getTableData(); 
-        }, 500);
+            getTableData();
+        }, 10000); 
     } catch (error) {
         console.log('Error:', error.response?.data || error);
-        $notify('negative', 'error', error.response?.data?.message || 'Failed to reset tellers');
+        $notify('negative', 'error', error.response?.data?.message || 'Failed to reset windows');
     }
 };
+
+
+const handleShowForm = (mode, row) => {
+            dialogForm.value.showDialog(mode, row);
+        };
 
     const beforeDelete = (isMany, row) => {
         const ids = isMany ? selected.value.map(x => x.id) : [row.id];
         const itemNames = isMany ? 'Windows' : row.window_name;
 
         $dialog.dialog({
+
             title: 'Confirm',
             message: `Are you sure you want to delete ${itemNames}?`,  // Adjusted message
             cancel: true,
@@ -260,6 +285,7 @@ const resetTeller = async () => {
             beforeReset,
             beforeDelete,
             filteredRows,
+            setTimeout,
             text
         };
     }
