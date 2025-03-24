@@ -1,7 +1,7 @@
 
 <template>
     <q-page class="q-px-lg">
-        <div class="q-my-sm bg-white q-pa-sm shadow-1">
+        <div class="q-my-md bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >

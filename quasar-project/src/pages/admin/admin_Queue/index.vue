@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md bg-grey-1">
+  <q-page class="q-pa-lg">
 
     <!-- Service Type Selector -->
     <div class="q-mb-md">
@@ -15,6 +15,8 @@
           map-options
           />
       </div>
+
+      <div class="q-mt-md">
       <div class="col-12">
           <q-select 
           outlined 
@@ -26,6 +28,7 @@
           emit-value
           map-options
           />
+      </div>
       </div>
     </div>
     <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
