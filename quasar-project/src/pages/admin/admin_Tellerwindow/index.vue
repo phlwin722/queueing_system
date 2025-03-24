@@ -186,15 +186,34 @@ export default defineComponent({
     }
 };
 
+    const handleShowForm = (mode, row) => {
+        dialogForm.value.showDialog(mode, row);
+    };
 
-        const beforeReset = () => {
-    Dialog.create({
-        title: 'Confirm Reset',
-        message: 'Are you sure you want to reset all assigned tellers?'
-    }).onOk(() => {
-        resetTeller();
-    });
-};
+    const beforeReset = () => {
+        $dialog.dialog({
+            title: 'Confirm Reset',
+            message: `Are you sure you want to reset all assigned tellers?`,  // Adjusted message
+            cancel: true,
+            persistent: true,
+            ok: {
+                label: 'Yes',
+                color: 'primary',
+                unelevated: true,
+                style: 'width: 125px;',
+            },
+            cancel: {
+                label: 'Cancel',
+                color: 'red-8',
+                unelevated: true,
+                style: 'width: 125px;',
+            },
+            style: 'border-radius: 12px; padding: 16px;',
+        }).onOk(async () => {
+            resetTeller();
+        });
+    };
+
 const resetTeller = async () => {
     // Check if all tellers are already reset
     const hasAssignedTellers = rows.value.some(row => row.teller_id !== null);

@@ -74,19 +74,20 @@
       </q-card-section>
       <q-separator />
       <q-table
-        flat
-        bordered
-        :rows="tellers"
-        :columns="columns"
-        row-key="id"
-      >
-        <template v-slot:body-cell-status="props">
-          <q-td :props="props">
-            <q-badge :color="props.row.status === 'Available' ? 'green' : 'red'">
-              {{ props.row.status }}
-            </q-badge>
-          </q-td>
-        </template>
+          flat
+          bordered
+          :rows="rowsWorkStation"
+          :columns="columnsWorkStation"
+          row-key="id"
+        >
+          <template v-slot:body-cell-status="props">
+            <q-td :props="props">
+              <!-- Apply color based on the status -->
+              <q-badge :color="props.row.status === 'Available' ? 'red' : 'green'">
+                {{ props.row.status }}
+              </q-badge>
+            </q-td>
+          </template>
       </q-table>
     </q-card>
   </div>
@@ -95,17 +96,63 @@
 
 <!-- Bar Chart Component -->
 
-    
-    
-
   </q-page>
 </template>
 
 <script>
+import { $axios } from 'src/boot/app';
+import { ref, onMounted } from 'vue';
+
 export default {
   name: "QueueDashboard",
-  data() {
+  setup() {
+    const rowsWorkStation = ref([]);
+    const columnsWorkStation = ([
+      {
+        name:'name',
+        label:'Name',
+        align:'left',
+        field: 'teller_name',
+        sortable: true
+      },
+      {
+        name: 'status',
+        label: 'Status',
+        align: 'left',
+        field: 'status',
+        sortable: true
+      }
+    ])
+
+   // Fetch the information of teller if assigned
+   const fetchWorkStation = async () => {
+      try {
+        const { data } = await $axios.post('/tellers/index');
+        // Process rows data to assign the correct status and full name
+        rowsWorkStation.value = data.rows.map(row => {
+          return {
+            id: row.id,
+            // If type_id is null, status is 'Available', otherwise 'Assigned'
+            status: row.type_id === null ? 'Available' : 'Assigned',
+            // Combine teller_firstname and teller_lastname for the full name
+            teller_name: `${row.teller_firstname} ${row.teller_lastname}`
+          };
+        });
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error.message);
+        }
+      }
+    };
+
+    onMounted(() => {
+      fetchWorkStation();
+    })
+
     return {
+      columnsWorkStation,
+      rowsWorkStation,
+      fetchWorkStation,
       queueColumns: [
         { name: "ticket", label: "Ticket Number", align: "left", field: "ticket" },
         { name: "customer", label: "Customer", align: "left", field: "customer" },
@@ -119,16 +166,10 @@ export default {
         { ticket: "A004", customer: "Rafael Johnson", status: "Completed", teller: "Teller 4" },
         { ticket: "A005", customer: "rica Johnson", status: "Completed", teller: "Teller 5" },
       ],
-      tellers: [
-        { name: "Teller 1", status: "Available" },
-        { name: "Teller 2", status: "Busy" },
-        { name: "Teller 3", status: "Available" },
-        { name: "Teller 4", status: "Busy" },
-        { name: "Teller 5", status: "Available" },
-      ],
     };
   },
 };
+
 </script>
 
 <style scoped>
