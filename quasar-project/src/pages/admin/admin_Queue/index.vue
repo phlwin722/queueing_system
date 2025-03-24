@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md bg-grey-1">
+  <q-page class="q-pa-lg">
 
     <!-- Service Type Selector -->
     <div class="q-mb-md row q-col-gutter-md">

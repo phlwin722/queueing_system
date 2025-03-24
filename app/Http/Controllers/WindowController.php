@@ -238,12 +238,6 @@ class WindowController extends Controller
             // Reset tellers after archiving
             Window::query()->update(['teller_id' => null]);
             Teller::query()->update(['type_id' => null]);
-            ResetSetting::query()->update([
-                'reset_type'  => null,
-                'reset_time'  => null,
-                'reset_day'   => null,
-                'reset_date'  => null
-            ]);
         });
 
         Log::info("✅ Windows reset successfully.");
