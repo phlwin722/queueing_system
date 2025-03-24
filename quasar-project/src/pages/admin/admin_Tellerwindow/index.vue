@@ -187,10 +187,6 @@ export default defineComponent({
     }
 };
 
-    const handleShowForm = (mode, row) => {
-        dialogForm.value.showDialog(mode, row);
-    };
-
     const beforeReset = () => {
         $dialog.dialog({
             title: 'Confirm Reset',
