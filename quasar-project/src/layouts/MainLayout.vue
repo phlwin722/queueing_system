@@ -223,6 +223,7 @@ import { defineComponent, ref, onMounted } from "vue";
 import { date } from "quasar";
 import { useRouter } from "vue-router";
 import { $axios, $notify } from "src/boot/app";
+import { useQuasar } from "quasar";
 
 export default defineComponent({
   name: "MainLayout",
@@ -237,7 +238,7 @@ export default defineComponent({
     const previewAdminImage = ref(null);
     const currentServing = ref(null);
     const isQueuelistEmpty = ref(false);
-
+    const $dialog = useQuasar();
     const adminInformationContent = ref({
       id: "",
       Firstname: "",
@@ -449,7 +450,7 @@ export default defineComponent({
           });
       } catch (error) {
         console.error(error);
-        $notify("negative", "error", "No customer yet.");
+        $notify("negative", "error",error);
       }
     };
 
