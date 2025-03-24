@@ -1,17 +1,24 @@
 <template>
-  <div class="flex flex-center q-mt-md q-pa-lg full-height">
-    <q-card class="q-pa-lg q-mt-sm shadow-3 login-card">
+  <div
+    style="height: 40vh; width: 100%; position: absolute; z-index: -1"
+    class="bg-primary"
+  ></div>
+  <div class="column flex flex-center q-pa-md" style="min-height: 80vh">
+    <q-img
+      src="~assets/vrtlogowhite.webp"
+      alt="Logo"
+      fit="full"
+      style="max-width: 400px; margin: 0 auto"
+    />
+    <q-card class="q-pa-lg q-mt-sm shadow-3 login-card" style="width: 25rem">
       <q-card-section class="text-center">
-        <q-img 
-          src="~assets/vrtlogoblack.webp" 
-          alt="Logo" 
-          fit="full" 
-          style="max-width: 180px; margin: 0 auto;"/>
-        <h2 class="text-primary welcome-heading">Welcome</h2>
-
+        <h2 class="text-primary welcome-heading">Login</h2>
       </q-card-section>
       <q-card-section>
-        <q-form class="q-gutter-lg form-container" @submit.prevent="goAdminValidation">
+        <q-form
+          class="q-gutter-lg form-container"
+          @submit.prevent="goAdminValidation"
+        >
           <q-input
             filled
             v-model="formData.Username"
@@ -22,10 +29,10 @@
             class="none"
           />
 
-          <q-input 
-            v-model="formData.Password" 
-            filled 
-            :type="isPwd ? 'password' : 'text'" 
+          <q-input
+            v-model="formData.Password"
+            filled
+            :type="isPwd ? 'password' : 'text'"
             label="Password"
             :error="formError.hasOwnProperty('Password')"
             :error-message="formError.Password"
@@ -41,17 +48,16 @@
           </q-input>
 
           <div class="flex justify-center">
-            <q-btn 
-              label="Login" 
+            <q-btn
+              label="Login"
               type="submit"
               color="primary"
-              class="q-mx-auto full-width"
+              class="full-width"
             />
           </div>
-</q-form>
-
+        </q-form>
       </q-card-section>
-      
+
       <q-inner-loading
         :showing="isLoading"
         label="Please wait..."
@@ -63,12 +69,12 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { $axios, $notify } from 'boot/app'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { $axios, $notify } from "boot/app";
 
 export default {
-  setup () {
+  setup() {
     const router = useRouter();
     const isLoading = ref(false);
     const isPwd = ref(true);
@@ -78,46 +84,56 @@ export default {
     const goAdminValidation = async () => {
       isLoading.value = true;
       try {
-        const { data } = await $axios.post('/admin/validate', formData.value);
+        const { data } = await $axios.post("/admin/validate", formData.value);
         // Reset formError to an empty object after successful validation
         formError.value = {}; // Clear error messages
 
-        if (data.result == 'admin') {
+        if (data.result == "admin") {
           // Store token in localStorage instead of localStorage
-          localStorage.setItem('authTokenAdmin', data.token); 
-          localStorage.setItem('adminInformation', JSON.stringify(data.adminInformation));
+          localStorage.setItem("authTokenAdmin", data.token);
+          localStorage.setItem(
+            "adminInformation",
+            JSON.stringify(data.adminInformation)
+          );
 
           // If login is successful, redirect to the admin dashboard
-          $notify('positive','done',data.message)
-          router.push('/admin/dashboard'); // Change the path to your desired route
+          $notify("positive", "done", data.message);
+          router.push("/admin/dashboard"); // Change the path to your desired route
         } else {
-          const { data } = await $axios.post('/teller/validate',formData.value);
-          if (data.result == 'teller') {
+          const { data } = await $axios.post(
+            "/teller/validate",
+            formData.value
+          );
+          if (data.result == "teller") {
             if (data.tellerInformation.type_id != null) {
               // If login is successful, redirect to the admin dashboard
-              $notify('positive','done',data.message)
+              $notify("positive", "done", data.message);
               // Store token in localStorage instead of localStorage
-              localStorage.setItem('authTokenTeller', data.tellerInformation.token); 
-              localStorage.setItem('tellerInformation', JSON.stringify(data.tellerInformation))
-              router.push('/teller/Layout'); // Change the path to your desired route
+              localStorage.setItem(
+                "authTokenTeller",
+                data.tellerInformation.token
+              );
+              localStorage.setItem(
+                "tellerInformation",
+                JSON.stringify(data.tellerInformation)
+              );
+              router.push("/teller/Layout"); // Change the path to your desired route
             } else {
-              $notify('negative','error','No service type has been assigned')
+              $notify("negative", "error", "No service type has been assigned");
             }
           }
-        } 
-
+        }
       } catch (error) {
         if (error.response.status === 422) {
           console.log("Validation Errors:", error.response.data); // Show errors in console
           formError.value = error.response.data;
-        }
-        else if (error.response && error.response.status === 401) {
+        } else if (error.response && error.response.status === 401) {
           // Reset formError to an empty object after successful validation
           formError.value = {}; // Clear error messages
-          
-          $notify('negative','error',"Invalid username or password")
+
+          $notify("negative", "error", "Invalid username or password");
         } else if (error.response.status === 400) {
-          $notify('negative','error',"Invalid credentials")
+          $notify("negative", "error", "Invalid credentials");
         } else {
           console.log("error", error);
         }
@@ -125,7 +141,6 @@ export default {
         isLoading.value = false;
       }
     };
-
 
     onMounted(() => {
       //Prevent Users from using the back button after logout
@@ -139,8 +154,7 @@ export default {
       formData,
       formError,
       isLoading,
-    }
-  }
-}
+    };
+  },
+};
 </script>
-
