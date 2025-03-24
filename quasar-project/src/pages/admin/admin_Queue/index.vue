@@ -2,56 +2,77 @@
   <q-page class="q-pa-md bg-grey-1">
 
     <!-- Service Type Selector -->
-    <div class="q-mb-md">
-      <div class="col-12">
-          <q-select 
-          outlined 
-          v-model="type_id" 
-          :options="serviceTypeList" 
-          label="Window type" 
-          hide-bottom-space
-          dense
-          emit-value
-          map-options
-          />
-      </div>
-      <div class="col-12">
-          <q-select 
-          outlined 
-          v-model="teller_id"
-          :options="personnelList"
-          label="Assigned personnel" 
-          dense
-          hide-bottom-space
-          emit-value
-          map-options
-          />
-      </div>
+    <div class="q-mb-md row q-col-gutter-md">
+  <!-- Window Type Select -->
+  <div class="col-6">
+    <q-select 
+      outlined 
+      v-model="type_id" 
+      :options="serviceTypeList" 
+      label="Window type" 
+      hide-bottom-space
+      dense
+      emit-value
+      map-options
+    />
+  </div>
+
+  <!-- Assigned Personnel Select -->
+  <div class="col-6">
+    <q-select 
+      outlined 
+      v-model="teller_id"
+      :options="personnelList"
+      label="Assigned personnel" 
+      dense
+      hide-bottom-space
+      emit-value
+      map-options
+    />
+  </div>
+</div>
+
+<q-card class="q-mb-md q-pa-md shadow-2 rounded-borders bg-primary text-white">
+  <q-card-section class="q-gutter-y-md">
+    <div class="row items-center justify-between">
+      <div class="text-h6">Assigned Personnel:</div>
+      <div class="text-subtitle2">{{ tellerFullName }}</div>
     </div>
-    <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
-    <q-card-section class="q-pb-sm">
-        <div class="text-bold">Assigned Personnel: {{ tellerFullName }}</div>
-        <div class="text-bold">Number of Queue in line: {{ noOfQueue }}</div>
-      </q-card-section>
-      </q-card>
+
+    <q-separator class="q-my-sm" color="white" />
+
+    <div class="row items-center justify-between">
+      <div class="text-h6">Queue in Line:</div>
+      <div class="text-subtitle2">{{ noOfQueue }}</div>
+    </div>
+  </q-card-section>
+</q-card>
+
 
     <!-- Current Serving Section -->
-    <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
-      
 
-      <q-card-section class="text-center">
-        <div class="text-h5 text-bold text-primary">Now Serving</div>
-        <div v-if="servingStatus != null" class="text-h4 text-blue-7 q-mt-md">
-          Queue number: <br />{{ cusQueueNum }}
-        </div>
-        <div v-if="servingStatus != null" class="text-subtitle1 text-grey">
-          Name: <strong>{{ cusName }}</strong>
-        </div>
-        <div v-else class="text-grey">No one is being served</div>
-      </q-card-section>
+    <q-card class="q-mb-md q-pa-lg shadow-2 rounded-borders bg-white text-dark">
+  <q-card-section class="text-center">
+    <div class="text-h5 text-bold text-primary">Now Serving</div>
 
-      <!-- Action Buttons -->
-      <q-card-actions align="center" class="q-pt-md">
+    <q-separator class="q-my-md" color="primary" />
+
+    <div v-if="servingStatus !== null">
+      <div class="text-h4 text-blue-7 q-mt-md">Queue Number:</div>
+      <div class="text-h3 text-primary q-mt-xs"><strong>{{ cusQueueNum }}</strong></div>
+
+      <q-separator class="q-my-sm" color="primary" />
+
+      <div class="text-subtitle2 text-grey-8">
+        Name: <strong class="text-dark">{{ cusName }}</strong>
+      </div>
+    </div>
+
+    <div v-else class="text-subtitle1 text-grey-6 q-mt-md">No one is being served</div>
+  </q-card-section>
+
+   <!-- Action Buttons -->
+   <q-card-actions align="center" class="q-pt-md">
         <q-btn 
           v-if="currentServing && tempTimer == 0"
           color="negative"
@@ -77,37 +98,48 @@
           @click="finishCustomer(currentServing.id)"
         />
       </q-card-actions>
-    </q-card>
+</q-card>
+
 
     <!-- Waiting Queue List -->
-    <q-card class="q-pa-md shadow-2 rounded-borders">
-      <q-card-section class="text-h6 text-bold text-primary q-mb-sm">
-        Waiting Queue
-      </q-card-section>
+    <q-card class="q-pa-md shadow-3 rounded-borders bg-primary text-white">
+    <q-card-section class="text-h6 text-bold text-accent q-mb-sm text-center">
+      Waiting Queue
+    </q-card-section>
 
-      <q-separator />
+    <q-separator color="white" />
 
-      <q-list bordered separator>
-        <q-item v-for="customer in paginatedQueueList" :key="customer.id">
-          <q-item-section>
-            <q-item-label class="text-bold">Name: {{ customer.name }}</q-item-label>
-            <q-item-label class="text-bold">Queue No: {{ customer.queue_number }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+    <q-list bordered class="q-mb-md" dense>
+      <q-item 
+        v-for="customer in paginatedQueueList" 
+        :key="customer.id" 
+        class="bg-white text-primary rounded-borders q-my-xs shadow-1"
+      >
+        <q-item-section>
+          <q-item-label class="text-bold text-dark">
+            <span class="text-grey">Name:</span> {{ customer.name }}
+          </q-item-label>
+          <q-item-label class="text-bold text-dark">
+            <span class="text-grey">Queue No:</span> {{ customer.queue_number }}
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
 
-      <!-- Pagination -->
-      <q-card-actions align="center">
-        <q-pagination
-          v-model="currentPage"
-          :max="totalPages"
-          :max-pages="5"
-          boundary-numbers
-          color="primary"
-          class="q-mt-sm"
-        />
-      </q-card-actions>
-    </q-card>
+    <!-- Pagination -->
+    <q-card-actions align="center">
+      <q-pagination
+        v-model="currentPage"
+        :max="totalPages"
+        :max-pages="5"
+        boundary-numbers
+        color="accent"
+        input-style="width: 60px; text-align: center;"
+        class="text-white"
+      />
+    </q-card-actions>
+  </q-card>
+
   </q-page>
 </template>
 
