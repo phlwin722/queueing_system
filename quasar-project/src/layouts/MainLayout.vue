@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
-    <q-header>
+    <q-header bordered>
       <q-toolbar>
         <q-img
           src="~assets/vrtlogowhite1.png"
@@ -14,8 +14,9 @@
           @click="goonDashboard"
           class="q-ml-sm"
         />
-        <q-toolbar-title class="text-center">QUEUING SYSTEM</q-toolbar-title>
-        <div>
+        <q-space />
+        <!-- <q-toolbar-title class="text-center">QUEUING SYSTEM</q-toolbar-title> -->
+        <div class="row items-center">
           <q-spinner-clock color="white" size="1.5em" class="q-mr-xs" />
           {{ formattedString }}
         </div>
@@ -32,13 +33,14 @@
       bordered
       content-class="fit"
       :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
+      class="q-pa-sm"
     >
       <q-scroll-area
         class="fit"
         :horizontal-thumb-style="{ opacity: 0 }"
         style="height: 100%"
       >
-        <q-list padding class="q-pb-xl q-mb-xl">
+        <q-list padding class="q-pb-xl q-mb-xl text-secondary">
           <template v-for="(item, index) in linksList" :key="index">
             <!-- Parent with children (Dropdown) -->
             <q-expansion-item
@@ -155,7 +157,7 @@
       </q-scroll-area>
 
       <!-- Mini Drawer Toggle Button -->
-      <div class="q-mini-drawer-hide absolute" style="top: 15px; right: -17px">
+      <div class="q-mini-drawer-hide absolute" style="top: 575px; right: -17px">
         <q-btn
           dense
           round

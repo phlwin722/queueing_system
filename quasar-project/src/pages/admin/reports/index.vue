@@ -5,7 +5,7 @@
         <!-- From Date -->
         <q-input 
         filled
-        class="bg-accent text-black q-pl-sm" 
+        class="bg-accent text-black" 
         v-model="fromDate" 
         type="date"
         label="From"
@@ -15,7 +15,7 @@
         <!-- To Date -->
         <q-input 
         filled
-        class="bg-accent text-black q-pl-sm" 
+        class="bg-accent text-black" 
         v-model="toDate" 
         type="date"
         label="To"
