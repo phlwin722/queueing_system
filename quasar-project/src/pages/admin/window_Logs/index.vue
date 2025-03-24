@@ -13,6 +13,7 @@
     <!-- Date Picker Input -->
     <q-input
     filled
+    dense
     class="bg-accent text-black"
     v-model="selectedDate"
     type="date"
