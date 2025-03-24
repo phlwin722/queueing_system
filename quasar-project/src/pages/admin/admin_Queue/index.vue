@@ -1,31 +1,32 @@
 <template>
   <q-page class="q-pa-md bg-grey-1">
-    <!-- Reset Queue Button -->
-    <q-card-actions align="center" class="q-mb-md">
-      <q-btn
-        :disable="(!isQueuelistEmpty || currentServing != null)"
-        color="positive"
-        label="Reset Queue Number"
-        @click="resetQueue()"
-        class="rounded-borders shadow-2"
-      />
-    </q-card-actions>
 
     <!-- Service Type Selector -->
     <div class="q-mb-md">
-      <q-select
-        outlined
-        v-model="type_id"
-        label="Service Type"
-        emit-value
-        map-options
-        dense
-        hide-bottom-space
-        :options="serviceTypeList"
-        option-label="name"
-        option-value="id"
-        class="rounded-borders shadow-2"
-      />
+      <div class="col-12">
+          <q-select 
+          outlined 
+          v-model="type_id" 
+          :options="serviceTypeList" 
+          label="Window type" 
+          hide-bottom-space
+          dense
+          emit-value
+          map-options
+          />
+      </div>
+      <div class="col-12">
+          <q-select 
+          outlined 
+          v-model="teller_id"
+          :options="personnelList"
+          label="Assigned personnel" 
+          dense
+          hide-bottom-space
+          emit-value
+          map-options
+          />
+      </div>
     </div>
     <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
     <q-card-section class="q-pb-sm">
@@ -111,7 +112,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick  } from 'vue'
 import { $axios, $notify,Dialog } from 'boot/app'
 import { useQuasar  } from 'quasar'
 
@@ -131,7 +132,9 @@ let refreshInterval = null
 const $dialog = useQuasar();
 const noOfQueue = ref();
 const type_id = ref()
+const teller_id = ref()
 const serviceTypeList = ref([]);
+const personnelList = ref([])
 const cusName = ref()
 const cusQueueNum = ref()
 const servingStatus = ref()
@@ -155,6 +158,7 @@ const fetchQueue = async () => {
   try {
     const response = await $axios.post("/teller/queue-list", {
           type_id: type_id.value,
+          teller_id: teller_id.value,
         });
     queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
     currentServing.value = response.data.current_serving
@@ -177,13 +181,43 @@ const fetchQueue = async () => {
   }
 }
 
-const fetchCategories = async () => {
+
+
+        const fetchWindowTypes = async () => { 
             try {
-                const { data } = await $axios.post('/types/index');
-              
-                serviceTypeList.value = data.rows; // Ensure this matches the API response structure
+                const response = await $axios.post('/types/dropdown');
+                    if (Array.isArray(response.data.rows)) {
+                    // Map id and section_name correctly
+                    serviceTypeList.value = response.data.rows.map(sec => ({
+                        label: sec.name, // This is what the user sees
+                        value: sec.id // This is what will be stored
+                    }));
+
+                } else {
+                    console.error('Expected "rows" to be an array, but got:', response.data.rows)
+                }   
+
             } catch (error) {
-                console.error('Error fetching categories:', error);
+                console.error('Error fetching sections:', error); 
+            }
+        };
+
+        const fetchPersonnel = async () => { 
+            try {
+                if (!type_id.value) return; // Stop if no grade level is selected
+                const response = await $axios.post('/tellers/dropdown', {
+                    type_id: type_id.value 
+                });
+
+                console.log(response.tellers)
+                if (Array.isArray(response.data.rows)) {
+                    personnelList.value = response.data.rows; // Response is already in { label, value } format
+                } else {
+                    console.error('Expected "rows" to be an array, but got:', response.data.rows);
+                }
+
+            } catch (error) {
+                console.error('Error fetching sections:', error); 
             }
         };
 
@@ -195,6 +229,32 @@ const fetchId = async () => {
     console.error(error)
   }
 }
+
+watch(() => type_id.value, async (newVal) => {
+            if (newVal) {
+                personnelList.value = []; // Clear previous personnel list
+
+                await fetchPersonnel(); // Fetch new personnel based on selected type
+
+                // Wait for Vue to update the list, then set the first teller
+                nextTick(() => {
+                    if (typeof type_id.value === 'string') {
+                        teller_id.value = teller_id.value // Assign first teller's ID
+                        fetchtypeId()
+                    }else{
+                        if(personnelList.value.length>0){
+                            teller_id.value = personnelList.value[0].value
+                            
+                        }else{
+                            teller_id.value = null
+                            return
+                        }
+                        
+                        fetchtypeId()
+                    }
+                });
+            }
+        });
 
 // Cater customer
 const caterCustomer = async (customerId) => {
@@ -435,16 +495,15 @@ onMounted(() => {
     startTimer();
   }
   fetchId()
-  fetchCategories()
+  fetchWindowTypes()
+  fetchPersonnel()
   
   
   
 })
 
-// onUnmounted(() => {
-//   clearInterval(refreshInterval) // Stop interval when component is destroyed
-//   clearInterval(waitTimer) // Stop wait timer if it exists
-// })
+
+
 
 return {
   queueList,
@@ -469,6 +528,8 @@ return {
   cusQueueNum,
   servingStatus,
   tellerFullName,
+  personnelList,
+  teller_id,
 
   // Pagination
   currentPage,

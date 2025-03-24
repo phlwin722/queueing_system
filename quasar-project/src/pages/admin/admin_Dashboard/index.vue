@@ -44,7 +44,7 @@
     />
   </div>
 
-    <!-- Active Queue Table & Teller Workstations -->
+    Active Queue Table & Teller Workstations
     <div class="row q-mt-xs q-col-gutter-md">
       <!-- Active Queue Table -->
       <div class="col-8">
@@ -92,19 +92,75 @@
   </div>
 </div>
 
-
-<!-- Bar Chart Component -->
-
-    
-    
-
   </q-page>
 </template>
 
 <script>
+import { 
+  defineComponent ,
+  ref,
+  computed,
+  onMounted
+} from 'vue'
+
+
+import {
+  $axios,
+  $notify,
+  Dialog
+} from 'boot/app'
+
+import BarChart from 'components/BarChart.vue';
 export default {
   name: "QueueDashboard",
+  components: { BarChart },
   data() {
+    const rows = ref([]);
+    const cancelledPercent = ref(0);
+    const finishedPercent = ref(0);
+    const cancelledCount = ref (0)
+    const finishedCount = ref(0)
+    const total = ref(0)
+    const dateToday = new Date().toISOString().slice(0, 10);
+
+    const getTableData = async () => {
+          try{
+          
+            console.log(dateToday)
+            const { data } = await $axios.post('/admin/queue-logs',{
+              date: dateToday
+            })
+            
+            rows.value.splice(0, rows.value.length, ...data.rows);
+            computePercentages();
+          }catch(error){
+            console.log(error);
+          }
+        }
+
+        const computePercentages = () => {
+          total.value = rows.value.length;
+          if (total === 0) {
+            cancelledPercent.value = 0;
+            finishedPercent.value = 0;
+            return;
+          }
+
+          cancelledCount.value = rows.value.filter(row => row.status === 'cancelled').length;
+          finishedCount.value = rows.value.filter(row => row.status === 'finished').length;
+
+          
+
+          cancelledPercent.value = ((cancelledCount.value / total.value) * 100).toFixed(2);
+          finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
+
+        };
+
+        onMounted(() => {
+          getTableData()
+        })
+      
+
     return {
       queueColumns: [
         { name: "ticket", label: "Ticket Number", align: "left", field: "ticket" },
@@ -126,6 +182,11 @@ export default {
         { name: "Teller 4", status: "Busy" },
         { name: "Teller 5", status: "Available" },
       ],
+      cancelledPercent,
+      finishedPercent,
+      cancelledCount,
+      finishedCount,
+      total
     };
   },
 };
