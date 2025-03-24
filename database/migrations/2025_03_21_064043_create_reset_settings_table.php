@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reset_window_settings', function (Blueprint $table) {
+        Schema::create('reset_settings', function (Blueprint $table) {
             $table->id();
             $table->boolean('auto_reset')->default(false);
-            $table->integer('reset_minutes')->default(0);
-            $table->integer('reset_days')->default(0);
-            $table->integer('reset_weeks')->default(0);
-            $table->timestamp('last_reset_at')->nullable();
+            $table->enum('reset_type', ['Daily', 'Weekly', 'Monthly'])->nullable();
+            $table->time('reset_time')->nullable(); // Ensures HH:MM:SS format
+            $table->string('reset_day')->nullable();
+            $table->date('reset_date')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reset_window_settings');
+        Schema::dropIfExists('reset_settings');
     }
 };

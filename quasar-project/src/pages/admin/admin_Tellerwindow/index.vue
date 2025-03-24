@@ -1,13 +1,15 @@
 
 <template>
-    <q-page>
-        <div class="q-pa-md">
+    <q-page class="q-px-lg">
+        <div class="q-my-sm bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
-                <q-breadcrumbs-el label="Teller Window" icon="category" to="/admin/teller/window" />
+                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el label="Teller" icon="person"/>
+                <q-breadcrumbs-el label="Teller Window" icon="computer" to="/admin/teller/window" />
             </q-breadcrumbs>
+            </div>
             <q-table
                 title="Window"
                 :rows="filteredRows"
@@ -18,7 +20,7 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
-                class="q-mx-sm q-mt-md"
+                class="q-mt-md"
             >
                 <template v-slot:top>
                     <div class="row q-col-gutter-sm">
@@ -48,6 +50,8 @@
                                 @click="beforeReset(true)"
                                 class="custom-btn"
                                 glossy=""
+                                :disable="rows.length === 0"
+                                
                             />
                         </div>
                     </div>
@@ -87,7 +91,6 @@
                     </q-td>
                 </template>
             </q-table>
-        </div>
     </q-page>
     <my-form ref="dialogForm" :url="URL" :rows="rows" />
 </template>
@@ -158,52 +161,94 @@ export default defineComponent({
             }
         };
 
-        const setupAutoRefresh = () => {
-        if (intervalId) {
-            clearInterval(intervalId);
-        }
+        const setupAutoRefresh = async () => {
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
 
-        let refreshRate = resetMinutes.value * 60 * 1000;
-        if (refreshRate < 20000) refreshRate = 20000; // Minimum 20 sec
+    try {
+        const { data } = await $axios.post('/windows/fetch-reset-settings'); 
+        let refreshRate = 60000; // Default: 1 min
+
+        if (data.auto_reset && data.reset_time) {
+            const now = new Date();
+            const [hours, minutes] = data.reset_time.split(':').map(Number);
+            const resetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+            const timeDiff = resetTime - now;
+
+            refreshRate = timeDiff > 20000 ? timeDiff : 20000;
+        }
 
         intervalId = setInterval(() => {
             getTableData();
         }, refreshRate);
-    };
-
-        const handleShowForm = (mode, row) => {
-            dialogForm.value.showDialog(mode, row);
-        };
-
-        const beforeReset = () => {
-    Dialog.create({
-        title: 'Confirm Reset',
-        message: 'Are you sure you want to reset all assigned tellers?'
-    }).onOk(() => {
-        resetTeller();
-    });
+    } catch (error) {
+        console.log("Failed to fetch reset settings:", error);
+    }
 };
 
+    const handleShowForm = (mode, row) => {
+        dialogForm.value.showDialog(mode, row);
+    };
+
+    const beforeReset = () => {
+        $dialog.dialog({
+            title: 'Confirm Reset',
+            message: `Are you sure you want to reset all assigned tellers?`,  // Adjusted message
+            cancel: true,
+            persistent: true,
+            ok: {
+                label: 'Yes',
+                color: 'primary',
+                unelevated: true,
+                style: 'width: 125px;',
+            },
+            cancel: {
+                label: 'Cancel',
+                color: 'red-8',
+                unelevated: true,
+                style: 'width: 125px;',
+            },
+            style: 'border-radius: 12px; padding: 16px;',
+        }).onOk(async () => {
+            resetTeller();
+        });
+    };
+
 const resetTeller = async () => {
+    // Check if all tellers are already reset
+    const hasAssignedTellers = rows.value.some(row => row.teller_id !== null);
+
+    if (!hasAssignedTellers) {
+        $notify('warning', 'info', 'All windows are already reset.');
+        return;
+    }
+
     console.log("Reset Teller API Called"); // Debug log
     try {
-        const { data } = await $axios.post('/windows/reset-tellers'); 
+        const { data } = await $axios.post('/windows/reset-windows'); 
         console.log("API Response:", data); // Debug response
         $notify('positive', 'check', data.message);
         setTimeout(() => {
-            getTableData(); 
-        }, 500);
+            getTableData();
+        }, 10000); 
     } catch (error) {
         console.log('Error:', error.response?.data || error);
-        $notify('negative', 'error', error.response?.data?.message || 'Failed to reset tellers');
+        $notify('negative', 'error', error.response?.data?.message || 'Failed to reset windows');
     }
 };
+
+
+const handleShowForm = (mode, row) => {
+            dialogForm.value.showDialog(mode, row);
+        };
 
     const beforeDelete = (isMany, row) => {
         const ids = isMany ? selected.value.map(x => x.id) : [row.id];
         const itemNames = isMany ? 'Windows' : row.window_name;
 
         $dialog.dialog({
+
             title: 'Confirm',
             message: `Are you sure you want to delete ${itemNames}?`,  // Adjusted message
             cancel: true,
@@ -260,6 +305,7 @@ const resetTeller = async () => {
             beforeReset,
             beforeDelete,
             filteredRows,
+            setTimeout,
             text
         };
     }

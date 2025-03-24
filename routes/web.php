@@ -10,7 +10,7 @@ use App\Http\Controllers\Waiting_timeController;
 use App\Http\Controllers\TellerController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\WindowController;
-use App\Http\Controllers\ResetWindowSettingController;
+use App\Http\Controllers\ResetSettingController;
 use App\Http\Controllers\WindowArchiveController;
 use App\Http\Controllers\CurrencyController;
 
@@ -68,11 +68,11 @@ Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueue
 Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
 Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
 Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
+
 Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/teller/image',[TellerController::class,'fetchImage']);
 Route::post('/teller/image-teller',[TellerController::class,'fetchImageTeller']);
 Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchImageTellerCsDashboaard']);
-
 
 
 // Type Routes
@@ -88,8 +88,16 @@ Route::post('/windows/index', [WindowController::class, 'index']);
 Route::post('/windows/create', [WindowController::class, 'create']);
 Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
+
+//Reset-Manual button
 Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
+//Manual Reset Button Window Logs
 Route::post('/windows/reset-tellers', [WindowController::class, 'resetTellers']);
+//window-Logs Get Data Table
+Route::post('/admin/window-logs', [WindowArchiveController::class, 'getWindowLogs']);
+
+//Automatic Reset 
+Route::post('/windows/reset-windows', [WindowController::class, 'resetWindows']);
 
 // Currency Routes
 Route::post('/currency/showData', [CurrencyController::class, 'showData']);
@@ -102,13 +110,18 @@ Route::post('/currency/delete', [CurrencyController::class, 'delete']);
 Route::post('/waiting_Time-fetch', [ResetWindowSettingController::class, 'fetch']);
 Route::post('/waiting_Time', [ResetWindowSettingController::class, 'store']);
 
-//window-Logs
-Route::post('/admin/window-logs', [WindowArchiveController::class, 'getArchivedWindows']);
-Route::post('/windows/reset-tellers', [WindowController::class, 'resetWindows']);
+
+//Reset-Settings Automatic 
+Route::post ('/windows/fetch-reset-settings', [ResetSettingController::class, 'fetchSettings']);
+Route::post('/windows/reset-settings', [ResetSettingController::class, 'saveSettings']);
 
 // adminside
-
 Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
 Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
 
 Route::post('/send-email', [MailController::class, 'sendEmail']);
+
+//Waiting-Time 
+Route::post('/waiting_Time',[Waiting_timeController::class,'store']); 
+Route::post('/waiting_Time-fetch',[Waiting_timeController::class,'index']);
+Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);

@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
-    <q-header bordered>
+    <q-header>
       <q-toolbar>
         <q-img
           src="~assets/vrtlogowhite1.png"
@@ -33,7 +33,7 @@
       bordered
       content-class="fit"
       :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
-      class="q-pa-sm"
+      class="q-px-sm shadow-1"
     >
       <q-scroll-area
         class="fit"
@@ -156,7 +156,7 @@
       </q-scroll-area>
 
       <!-- Mini Drawer Toggle Button -->
-      <div class="q-mini-drawer-hide absolute" style="top: 575px; right: -17px">
+      <div class="q-mini-drawer-hide absolute" style="top: 20px; right: -17px">
         <q-btn
           dense
           round

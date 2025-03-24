@@ -1,10 +1,20 @@
 <template>
-  <div class="row q-mx-lg q-mt-md items-center">
+  <q-page class="q-px-sm">
+  <div class="q-ma-md bg-white q-pa-sm shadow-1">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el label="Customer logs" icon="description" to="/admin/customer-logs" />
+            </q-breadcrumbs>
+            </div>
+
+  <div class="row items-center">
     
     <!-- Search Input -->
     <q-input
       filled
-      class="bg-accent text-black col q-mr-sm"
+      class="bg-accent q-mx-md text-black col q-mr-md"
       v-model="text"
       label="Search"
       :dense="dense"
@@ -16,7 +26,7 @@
         <!-- Date Picker Input -->
         <q-input
       filled
-      class="bg-accent text-black"
+      class="bg-accent text-black q-mr-md"
       v-model="selectedDate"
       type="date"
       label="Select Date"
@@ -26,8 +36,7 @@
     />
   </div>
 
-  <q-page>
-    <div class="q-px-lg q-mt-md">
+    <div class="q-px-md q-mt-md">
       <q-table
         title="Customer Logs"
         :rows="filteredRows"
@@ -41,7 +50,7 @@
     </div>
 
      <!-- Bar Chart Component -->
-<div class="q-px-lg q-mt-md">
+<div class="q-px-md q-mt-md">
   <div class="q-pa-md row justify-around bg-grey-2 rounded-borders shadow-2">
     <!-- Finished Customers -->
     <div class="column items-center text-center">
@@ -72,6 +81,7 @@
       :finishedPercent="finishedPercent"
     />
   </div>
+
   </q-page>
 </template>
 
@@ -207,8 +217,6 @@
           refreshInterval = setInterval(getTableData, 3000)
           getTableData()
         })
-      
-    
     
         return{
           rows,
