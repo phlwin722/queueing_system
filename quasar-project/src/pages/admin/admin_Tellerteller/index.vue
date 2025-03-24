@@ -1,12 +1,14 @@
 <template>
-    <q-page >
-        <div class="q-pa-md">
+    <q-page class="q-px-lg">
+        <div class="q-my-sm bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el label="Teller" icon="person"/>
                 <q-breadcrumbs-el label="Teller Personnel" icon="groups" to="/admin/teller/tellers" />
             </q-breadcrumbs>
+            </div>
             <q-table   
                 title="Personnel"
                 :rows="rows"
@@ -17,7 +19,7 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
-                class="q-mx-sm q-mt-md"
+                class="q-mt-md"
             >
 
             <template v-slot:top>
@@ -81,7 +83,7 @@
 
 
             </q-table>
-        </div>
+
         <my-form
             ref="dialogForm"
             :url="URL"

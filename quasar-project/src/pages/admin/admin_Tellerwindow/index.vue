@@ -1,13 +1,15 @@
 
 <template>
-    <q-page>
-        <div class="q-pa-md">
+    <q-page class="q-px-lg">
+        <div class="q-my-sm bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
-                <q-breadcrumbs-el label="Teller Window" icon="category" to="/admin/teller/window" />
+                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el label="Teller" icon="person"/>
+                <q-breadcrumbs-el label="Teller Window" icon="computer" to="/admin/teller/window" />
             </q-breadcrumbs>
+            </div>
             <q-table
                 title="Window"
                 :rows="filteredRows"
@@ -18,7 +20,7 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
-                class="q-mx-sm q-mt-md"
+                class="q-mt-md"
             >
                 <template v-slot:top>
                     <div class="row q-col-gutter-sm">
@@ -89,7 +91,6 @@
                     </q-td>
                 </template>
             </q-table>
-        </div>
     </q-page>
     <my-form ref="dialogForm" :url="URL" :rows="rows" />
 </template>
