@@ -5,7 +5,7 @@
         <!-- From Date -->
         <q-input 
         filled
-        class="bg-accent text-black q-pl-sm" 
+        class="bg-accent text-black" 
         v-model="fromDate" 
         type="date"
         label="From"
@@ -15,7 +15,7 @@
         <!-- To Date -->
         <q-input 
         filled
-        class="bg-accent text-black q-pl-sm" 
+        class="bg-accent text-black" 
         v-model="toDate" 
         type="date"
         label="To"
@@ -36,6 +36,39 @@
             </template>
         </q-table>
         </div>
+
+             <!-- Bar Chart Component -->
+  
+             <div class="q-px-lg q-mt-md">
+<div class="q-pa-md row justify-around bg-grey-2 rounded-borders shadow-2">
+    <!-- Finished Customers -->
+    <div class="column items-center text-center">
+        <q-icon name="check_circle" color="positive" size="40px" />
+        <div class="text-h6 text-positive">Finished</div>
+        <div class="text-h5">{{ finishedCount }}</div>
+    </div>
+
+    <!-- Cancelled Customers -->
+    <div class="column items-center text-center">
+        <q-icon name="cancel" color="negative" size="40px" />
+        <div class="text-h6 text-negative">Cancelled</div>
+        <div class="text-h5">{{ cancelledCount }}</div>
+    </div>
+
+    <!-- Total Customers -->
+    <div class="column items-center text-center">
+        <q-icon name="people" color="primary" size="40px" />
+        <div class="text-h6 text-primary">Total</div>
+        <div class="text-h5">{{ total }}</div>
+    </div>
+    </div>
+</div>
+            <div class="q-px-lg q-mt-md">
+                <BarChart
+                :cancelledPercent="cancelledPercent"
+                :finishedPercent="finishedPercent"
+                />
+            </div>
     </q-page>
 </template>
 
@@ -55,6 +88,8 @@ import {
     Dialog
 } from 'boot/app'
 
+import BarChart from 'components/BarChart.vue';
+
 
 
 
@@ -62,6 +97,7 @@ import {
 
 export default defineComponent({
     name: 'IndexPage',
+    components: { BarChart },
 
     setup(){
     const text = ref("");
@@ -111,10 +147,10 @@ export default defineComponent({
             sortable: true
           },
           {
-            name: 'created_at',
+            name: 'updated_at',
             label: 'Date and Time',
             align: 'left',
-            field: 'created_at',
+            field: 'updated_at',
             sortable: true
           },
     ]);
@@ -126,6 +162,11 @@ export default defineComponent({
     )
     );
 });
+    const cancelledPercent = ref(0);
+    const finishedPercent = ref(0);
+    const cancelledCount = ref (0)
+    const finishedCount = ref(0)
+    const total = ref(0)
     const fromDate = ref(""); // Holds the "From" date
     const toDate = ref(""); // Holds the "To" date
 
@@ -139,12 +180,31 @@ export default defineComponent({
 
             const { data } = await $axios.post('/admin/reports', payload);
             rows.value.splice(0, rows.value.length, ...data.rows);
+            computePercentages();
         } catch (error) {
                 console.log(error);
         }
     }
+
+    const computePercentages = () => {
+        total.value = rows.value.length;
+        if (total === 0) {
+        cancelledPercent.value = 0;
+        finishedPercent.value = 0;
+        return;
+        }
+
+        cancelledCount.value = rows.value.filter(row => row.status === 'cancelled').length;
+        finishedCount.value = rows.value.filter(row => row.status === 'finished').length;
+
+        
+
+        cancelledPercent.value = ((cancelledCount.value / total.value) * 100).toFixed(2);
+        finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
+
+    };
     onMounted(() => {
-        refreshInterval = setInterval(getTableData, 5000)
+        refreshInterval = setInterval(getTableData, 2000)
         getTableData()
     })
     
@@ -155,7 +215,12 @@ export default defineComponent({
         columns,
         filteredRows,
         fromDate,
-        toDate
+        toDate,
+        cancelledPercent,
+        finishedPercent,
+        cancelledCount,
+        finishedCount,
+        total,
         
     }
     }

@@ -96,7 +96,7 @@
     import { defineComponent, ref } from 'vue';
     import { $axios, $notify, Dialog } from 'boot/app';
     import MyForm from 'pages/admin/admin_Tellerteller/form.vue';
-import { useQuasar } from 'quasar';
+    import { useQuasar } from 'quasar';
     
     const URL = "/tellers";
     
@@ -129,10 +129,10 @@ import { useQuasar } from 'quasar';
                 sortable: true 
             },
             {  
-                name: 'name', 
+                name: 'type_names', 
                 label: 'Type', 
                 align: 'left', 
-                field: 'name', 
+                field: 'type_names', 
                 sortable: true
             },
             { 

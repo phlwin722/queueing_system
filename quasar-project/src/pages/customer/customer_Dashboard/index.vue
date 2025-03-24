@@ -27,10 +27,11 @@
             </div>
           </q-card-section>
           <q-card-section class="row items-center">
-            <q-icon
-              name="person_outline"
-              size="md"
-              class="text-secondary q-mr-sm"
+            <q-img
+              :src="imageUrl || require('assets/no-image.png')"
+              width="30px"
+              height="30px"
+              class="text-secondary q-mr-md shadow-1"
             />
             <div class="column">
               <div class="text-xs text-grey-7 text-uppercase">Personnel</div>
@@ -48,7 +49,7 @@
             <div class="text-bold text-grey-7 text-caption">
               Your Queue Number
             </div>
-            <div class="text-h2 text-primary text-bold">
+            <div class="text-h2 text-primary text-bold q-mt-sm">
               {{ customerQueueNumber || "N/A" }}
             </div>
           </div>
@@ -95,10 +96,17 @@
               size="lg"
               unelevated
               class="rounded-borders full-width text-bold"
-              @click="leaveQueue"
+              @click="beforeCancel"
             />
           </q-card-actions>
         </q-card-section>
+        <div
+          v-if="isWaiting"
+          class="text-center text-bold text-positive q-mb-md"
+        >
+          <p class="text-orange">Admin is waiting for you! Please proceed.</p>
+          <h2 class="text-red">{{ formatTime(remainingTime) }}</h2>
+        </div>
       </q-card>
 
       <!-- Queue List -->
@@ -113,22 +121,6 @@
 
         <q-separator inset />
 
-        <!-- Show different messages based on queue state -->
-        <div
-          v-if="isBeingServed"
-          class="text-center text-bold text-positive q-mb-md"
-        >
-          Please proceed to your designated window. <br />
-          If you do not, your queue number will be canceled. Thank you!
-        </div>
-
-        <div
-          v-if="isWaiting"
-          class="text-center text-bold text-positive q-mb-md"
-        >
-          <p class="text-orange">Admin is waiting for you! Please proceed.</p>
-          <h2 class="text-red">{{ formatTime(remainingTime) }}</h2>
-        </div>
 
         <div
           v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
@@ -194,11 +186,13 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
+import { useQuasar } from "quasar";
 
 export default {
   setup() {
     const router = useRouter();
     const route = useRoute();
+    const $dialog = useQuasar();
     const tokenurl = ref(route.params.token);
     const customerQueueNumber = ref(
       localStorage.getItem("queue_number" + tokenurl.value) || null
@@ -221,6 +215,7 @@ export default {
     const hasNotified = ref(false); // Prevents repeat notifications
     const countdown = ref(); // 60 seconds countdown
     const tellerId = ref()
+    const imageUrl = ref()
     let refreshInterval = null;
     let countdownInterval = null;
 
@@ -255,12 +250,12 @@ export default {
         .join(" "); // Join back the abbreviated words
     };
 
-    const putTellerId = async () => {
-      await $axios.post("/update-teller_id",{
-        token: tokenurl.value,
-        teller_id : tellerId.value
-      });
-    }
+    // const putTellerId = async () => {
+    //   await $axios.post("/update-teller_id",{
+    //     token: tokenurl.value,
+    //     teller_id : tellerId.value
+    //   });
+    // }
     // Fetch queue list and current serving number
     const fetchQueueData = async () => {
       try {
@@ -272,7 +267,6 @@ export default {
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
         currentQueue.value = response.data.current_serving;
-        console.log(response.data.current_serving);
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
         // Determine customer position in queue
@@ -305,9 +299,10 @@ export default {
         if (customer.status === "finished" && !hasNotified.value) {
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
-          setTimeout(() => router.push("/customer-thankyou/"), 3000); // Delay redirect for a smooth transition
+          setTimeout(() => router.push("/customer-thankyou/"), 2000); // Delay redirect for a smooth transition
         }
-        if (customer && customer.status === "cancelled") {
+        if (customer && customer.status === "cancelled" && !hasNotified.value) {
+          hasNotified.value = true; // Mark as notified
           $notify(
             "negative",
             "error",
@@ -331,7 +326,8 @@ export default {
             assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
             typeId.value = data.row.typeId
             tellerId.value = data.row.id
-            putTellerId()
+            fetchImage(tellerId.value)
+          //putTellerId()
         }catch(error){
             console.log(error);
         }
@@ -363,7 +359,6 @@ export default {
     const fetchWaitingStatus = async () => {
     try {
           const { data } = await $axios.post('/customer-check-waiting', { token: tokenurl.value });
-          console.log(data.waiting_customer);
 
           if (data.waiting_customer === "yes") {
               if (!isWaiting.value) { // Start countdown only if not already waiting
@@ -445,21 +440,49 @@ export default {
       return `${seconds} s`;
     };
 
+    //cancel dialog
+    const beforeCancel = () => {
+      $dialog
+        .dialog({
+          title: "Confirm",
+          message: "Are you sure you want to leave the queue?",
+          cancel: true,
+          persistent: true,
+          ok: {
+            label: "Yes",
+            color: "primary", // Make confirm button red
+            unelevated: true, // Flat button style
+            style: "width: 125px;",
+          },
+          cancel: {
+            label: "Cancel",
+            color: "red-8", // Make cancel button grey
+            unelevated: true,
+            style: "width: 125px;",
+          },
+          style: "border-radius: 12px; padding: 16px;",
+        })
+        .onOk(() => {
+          leaveQueue()
+        })
+        .onDismiss(() => {
+          // console.log('I am triggered on both OK and Cancel')
+        });
+    };
+
 
     // Leave the queue
     const leaveQueue = async () => {
       try {
-        console.log(customerId.value);
         await $axios.post("/customer-leave", { id: customerId.value });
+        hasNotified.value = true; // Mark as notified
         $notify("positive", "check", "You have left the queue.");
-        console.log("cancelled");
         setTimeout(
             () => router.push("/customer-thankyou/"),
-            2000
+            1000
           );
       } catch (error) {
         console.error(error);
-        console.log("cancelled");
         $notify("negative", "error", "Failed to leave queue.");
       }
     };
@@ -476,7 +499,6 @@ export default {
 
         if (queuePosition.value === 1) {
           if (queueList.value.length > 0) {
-            console.log(queueList.value[0].id);
             const { data } = await $axios.post("/send-fetchInfo", {
               id: queueList.value[0].id,
             });
@@ -497,8 +519,7 @@ export default {
                 emailData.value
               );
 
-              // Show an alert to confirm that the email was sent successfully
-              console.log("Message success", emailContent);
+            
             }
           }
         }
@@ -508,6 +529,20 @@ export default {
       }
     };
 
+    const fetchImage = async (tellerId) => {
+      try {
+        const { data } = await $axios.post('/teller/image-fetch-csdashboard',{
+          id: tellerId,
+        })
+
+        imageUrl.value = data.Image
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
     onMounted(() => {
       getTableData();
       fetchQueueData();
@@ -516,7 +551,6 @@ export default {
       refreshInterval = setInterval(fetchQueueData, 2000); // Auto-refresh every 5 seconds
       fetchWaitingStatus();
       setInterval(fetchWaitingStatus, 2000);
-      
     });
 
     // onUnmounted(() => {
@@ -542,6 +576,9 @@ export default {
       formatTime,
       remainingTime,
       abbreviateName, // Expose the abbreviateName function
+      beforeCancel,
+      fetchImage,
+      imageUrl,
     };
   },
 };

@@ -28,6 +28,16 @@ class WindowController extends Controller
         try{
             $res = Window::create($request->all());
             $row = $this->getData($res ->id);
+            
+            $type_id = $request->type_id;
+            $teller_id = $request->teller_id;
+
+            DB::table('tellers')
+                ->where('id', $teller_id)
+                ->update(['type_id' => $type_id]);
+        
+
+
             return response()->json([
                 "row"=> $row,
                 "message"=>"Window added successfully!"
@@ -64,6 +74,14 @@ class WindowController extends Controller
     
             // Fetch updated data
             $row = $this->getData($window->id);
+
+            $type_id = $request->type_id;
+            $teller_id = $request->teller_id;
+
+            DB::table('tellers')
+                ->where('id', $teller_id)
+                ->update(['type_id' => $type_id]);
+        
     
             return response()->json([
                 "row" => $row,

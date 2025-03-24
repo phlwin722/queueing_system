@@ -30,17 +30,45 @@ class TellerRequest extends FormRequest
             'teller_lastname' => ['required', 'regex:/^[a-zA-Z\s]+$/'],
             'teller_username' => ['required','unique:tellers,teller_username,' . $id . ',id'],
             'teller_password' => ['required'],
-            'type_id' => ['required'], 
+            'type_ids_selected' => ['required', 'array', 'min:1'],  // Ensure it's an array and not empty
+            'Image' => ['required'],
         ];
     }
-    protected function failedValidation(Validator $validator){
+
+    /**
+     * Handle failed validation.
+     *
+     * @param Validator $validator
+     * @throws HttpResponseException
+     */
+    protected function failedValidation(Validator $validator)
+    {
         $errors = [];
         $messages = $validator->getMessageBag();
 
+        // Iterate through each validation error
         foreach ($messages->keys() as $key) {
-            $errors[$key] = $messages->get($key, $this->messageFormat)[0];
+            if ($key === 'type_ids_selected') {
+                /* $errors[$key] = 'Personnel field is required'; */
+                // If 'type_ids_selected' failed the 'array' rule
+                if (in_array('array', $messages->get($key))) {
+                    // If it fails array validation, override with custom message
+                    $errors[$key] = 'Personnel field is required'; // Custom message for array validation failure
+                } elseif (in_array('required', $messages->get($key))) {
+                    // If 'required' rule failed (field is empty or missing)
+                    $errors[$key] = 'Personnel field is required'; // Custom message
+                } else {
+                    // Use the default error message if the validation fails for any other reason
+                    // $errors[$key] = $messages->get($key)[0];
+                    $errors[$key] =  'Personnel field is required';
+                }
+            } else {
+                // For other fields, keep the default error message
+                $errors[$key] = $messages->get($key)[0];
+            }
         }
 
+        // Throw a response with the errors in JSON format (status 422 for validation errors)
         throw new HttpResponseException(response()->json($errors, 422));
     }
-}   
+}

@@ -1,7 +1,8 @@
+
 <template>
     <!-- Dialog Box -->
     <q-dialog @hide="closeDialog" v-model="isShow">
-        <q-card>
+        <q-card class="relative-position">
             <!-- Dialog Header -->
             <q-card-section class="row items-center q-pb-none">
                 <div class="text-h6 text-primary">{{ formMode }} Personnel</div>
@@ -59,7 +60,6 @@
                     
                     <!-- Conditional Password Input (for Edit Mode) -->
                     <div v-if="formMode === 'Edit'" class="col-12">
-                        <div class="col-12">
                             <q-input 
                                 outlined 
                                 v-model="formDataPassword.teller_newPassword" 
@@ -70,8 +70,8 @@
                                 :error="formError.hasOwnProperty('teller_newpassword')" 
                                 :error-message="formError.teller_newpassword"
                         />
-                        </div>
-                        <div class="col-12">
+                        
+                        <div class="col-12 q-mt-md">
                             <q-input 
                                 outlined 
                                 v-model="formDataPassword.teller_retypepassword" 
@@ -100,19 +100,20 @@
                         />
                     </div>
 
-
                     <!-- Personnel Type Select -->
                     <div class="col-12">
                         <q-select
                             outlined
-                            v-model="formData.type_id" 
-                            label="Personnel Type"
+                            v-model="formData.type_ids_selected" 
+                            label="Personel Type"
                             emit-value
+                            multiple
+                            use-chips
                             map-options
                             dense
                             hide-bottom-space
-                            :error="formError.hasOwnProperty('type_id')"
-                            :error-message="formError.type_id"
+                            :error="formError.hasOwnProperty('type_ids_selected')"
+                            :error-message="formError.type_ids_selected"
                             :options="categoriesList"
                             option-label="name"
                             option-value="id"
@@ -120,41 +121,48 @@
                     </div>
                     <div class="col-12">
                         <q-file 
-                        outlined
-                        clearable
-                        dense
-                        v-model="selectedFile" 
-                        label="Attach your image" 
-                        accept="image/*"
-                        @update:model-value="previewImage"
-                        >
+                            outlined
+                            clearable
+                            dense
+                            v-model="selectedImage" 
+                            :error="formError.hasOwnProperty('Image')"
+                            :error-message="formError.Image"
+                            label="Attach your image" 
+                            accept="image/*"
+                            @update:model-value="previewImage"
+                            >
                             <template v-slot:prepend>
                             <q-icon name="attach_file" />
                             </template>
                             <template v-slot:append>
                             <q-icon name="preview" class="cursor-pointer" @click="showPreview = true"/>
+                            <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
+                                        preview image
+                                    </q-tooltip>
                             </template>
                         </q-file>
 
                         <!-- Image Preview Dialog -->
                         <q-dialog v-model="showPreview">
-    <q-card class="q-pa-md" style="width: 175px; max-width: 35vw;">
-        <q-card-section class="row justify-center">
-            <q-img
-                v-if="imageUrl"
-                :src="imageUrl"
-                spinner-color="primary"
-                style="width: 100%; max-height: 500px; object-fit: contain; border-color: black; border-width: 1px; border-style: solid;"
-            />
-            <p v-else class="text-grey">No image selected</p>
-        </q-card-section>
-        <q-card-actions align="center">
-            <q-btn flat label="Close" v-close-popup />
-        </q-card-actions>
-    </q-card>
-</q-dialog>
-
-
+                            <q-card class="q-pa-md absulute-position"  style="width: 200px; max-width: 30vw; left: 420px; top: 0;">
+                                <q-card-section class="row justify-center">
+                                    <q-img
+                                        :src="imageUrl || require('assets/no-image.png')"
+                                        spinner-color="primary"
+                                        style="width: 100%; max-height: 500px; object-fit: contain; border-color: black; border-width: 1px; border-style: solid;"
+                                    />
+                                    
+                                </q-card-section>
+                                
+                                <q-card-actions align="center">
+                                    <q-btn 
+                                    flat 
+                                    label="Close" 
+                                    v-close-popup
+                                    />
+                                </q-card-actions>
+                            </q-card>
+                        </q-dialog>                    
                     </div>
                 </div>
             </q-card-section>
@@ -169,7 +177,6 @@
                     style="max-width: 150px;"
                 />
             </q-card-actions>
-
 
             <!-- Loading Spinner -->
             <q-inner-loading :showing="isLoading">
@@ -199,7 +206,7 @@ export default defineComponent({
         const categoriesList = ref([]); // List of categories for the select input
 
         // Image preview variables
-        const selectedFile = ref(null);
+        const selectedImage = ref(null);
         const imageUrl = ref(null);
         const showPreview = ref(false);
 
@@ -209,7 +216,8 @@ export default defineComponent({
             teller_lastname: '',
             teller_username: '', 
             teller_password: '', 
-            type_id: ''
+            type_ids_selected: [],
+            Image: '',
         });
 
         const initDataPassword = () => ({
@@ -225,7 +233,7 @@ export default defineComponent({
         const fetchCategories = async () => {
             try {
                 const { data } = await $axios.post('/types/index');
-                console.log("Full API Response:", data); // 🔍 Debugging
+                console.log("Full API Response:", data.rows); // 🔍 Debugging
                 categoriesList.value = data.rows; // Ensure this matches the API response structure
             } catch (error) {
                 console.error('Error fetching categories:', error); // Handle error if API request fails
@@ -238,60 +246,130 @@ export default defineComponent({
             formData.value = initFormData(); // Reset form data
             formDataPassword.value = initDataPassword(); // Reset form data
             formError.value = {}; // Reset form errors
-            selectedFile.value = null;
+            selectedImage.value = null;
             imageUrl.value = null;
         };
 
         // Show the dialog and fetch data (for edit mode, populate form with row data)
         const showDialog = async (mode, row) => {
-
+            // Set the form mode based on the action (new or edit)
             formMode.value = mode === 'new' ? 'New' : 'Edit';
-
-            if(mode === 'edit'){
-            formData.value = Object.assign({},row)
-            }
             
-            isShow.value = true;
-            fetchCategories();
+            // Fetch the categories of personnel types
+            await fetchCategories(); // This is asynchronous, so wait for it to complete
+
+            // If in 'edit' mode, populate the form with the row data
+            if (mode === 'edit') {
+                // Clone the row data to formData for editing, avoiding direct mutation
+                formData.value = Object.assign({}, row);
+
+                try {
+                    // Attempt to fetch the teller's image from the backend based on the teller's ID
+                    const { data } = await $axios.post('teller/image', {
+                        id: formData.value.id // Sending the teller's ID to the backend
+                    });
+
+                    // Set the fetched image URL to imageUrl for displaying
+                    imageUrl.value = data.Image;
+
+                    // Ensure 'type_ids_selected' is an array and contains integers
+                    if (typeof formData.value.type_ids_selected === 'string') {
+                        try {
+                            // If 'type_ids_selected' is a string, try parsing it into an array of integers
+                            formData.value.type_ids_selected = JSON.parse(formData.value.type_ids_selected).map(id => parseInt(id, 10));
+                        } catch (e) {
+                            // If parsing fails, fall back to an empty array
+                            formData.value.type_ids_selected = [];
+                        }
+                    }
+
+                    // If 'type_ids_selected' is not an array, convert it to an empty array
+                    if (!Array.isArray(formData.value.type_ids_selected)) {
+                        formData.value.type_ids_selected = [];
+                    }
+
+                    // Convert all values in 'type_ids_selected' to integers for consistency
+                    formData.value.type_ids_selected = formData.value.type_ids_selected.map(id => parseInt(id, 10));
+
+                    // Map each selected type ID to its corresponding category from categoriesList
+                    const selectedCategories = formData.value.type_ids_selected.map(id => {
+                        // Find the category matching the selected ID
+                        const category = categoriesList.value.find(cat => String(cat.id) === String(id));
+                        return category; // Return the category object
+                    });
+
+                    // Log the selected categories to the console for debugging
+                    console.log('Selected Categories:', selectedCategories);
+                } catch (error) {
+                    // Log any errors encountered while fetching the teller image
+                    console.error('Error fetching teller image:', error);
+                }
+            }
+
+            // Show the dialog by setting isShow to true
+            isShow.value = true; 
         };
+
 
         // Image preview logic
         const previewImage = (file) => {
             if (file) {
                 imageUrl.value = URL.createObjectURL(file);
+                showPreview.value = true;
             } else {
                 imageUrl.value = null;
+                showPreview.value = false;
             }
         };
 
-    const handleSubmitForm = async () =>{
-        const mode = formMode.value === 'New' ? '/create' : '/update'
-        isLoading.value = true
-        formError.value = {}; // Reset form errors
+        const handleSubmitForm = async () => {
+            const mode = formMode.value === 'New' ? '/create' : '/update';
+            isLoading.value = true;
+            formError.value = {}; // Reset form errors
 
-        // Check if passwords match
-        if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
-            $notify('negative', 'error', 'Passwords do not match. Please check your input data');
-            isLoading.value = false; // Hide the loading spinner
-            return;
-        }
+            // Check if passwords match
+            if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
+                $notify('negative', 'error', 'Passwords do not match. Please check your input data');
+                isLoading.value = false;
+                return;
+            }
+
             try {
                 // If updating and a new password is provided, update the password in formData
-                if (mode === '/update' && formDataPassword.value.teller_newPassword !== '') {
-                    formData.value.teller_password = formDataPassword.value.teller_newPassword; // Update password for the edit
+                if (mode === '/update') {
+                    if (formDataPassword.value.teller_newPassword !== ''){
+                        formData.value.teller_password = formDataPassword.value.teller_newPassword;
+                    
+                    }
+
+                    // check if selectedImage has not null
+                    if (selectedImage.value != null) {
+                        formData.value.Image = selectedImage.value;
+                        console.log("Image value",  formData.value.Image)
+                    }
+                }
+
+                // Convert selected types array to a JSON string before sending it to the backend
+                if (mode === '/create') {
+                    //formData.value.type_ids_selected = JSON.stringify(formData.value.type_ids_selected); // Convert to JSON string
+                    formData.value.Image = selectedImage.value
                 }
 
                 // Send form data to the server
-                const { data } = await $axios.post(props.url + mode, formData.value);
+                const { data } = await $axios.post(props.url + mode, formData.value,{
+                    headers: {'Content-Type': 'multipart/form-data' }
+                });
 
                 const rows = toRefs(props).rows; // Access rows passed in props
 
                 // Handle response data and update the rows accordingly
                 if (mode === '/create') {
+                    console.log(data.row)
                     rows.value.unshift(data.row); // Add new row at the beginning
                 } else {
                     const index = rows.value.findIndex(x => x.id === data.row.id); // Find the index of the edited row
                     if (index > -1) {
+                        console.log(data.row)
                         rows.value[index] = Object.assign({}, data.row); // Update existing row
                     }
                 }
@@ -299,12 +377,22 @@ export default defineComponent({
                 $notify('positive', 'check', data.message); // Show success notification
                 closeDialog(); // Close the dialog and reset form
             } catch (error) {
-                console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
-                $notify('negative', 'error', 'An error occurred while processing your request.');
+                if (error.response.status === 422) {
+                    formError.value = error.response.data;
+
+                    // Reset the type_ids_selected field if there's an error
+                    if (formError.value.hasOwnProperty('type_ids_selected')) {
+                        formData.value.type_ids_selected = []; // Clear the field value if validation fails
+                    }
+                }else {
+                    console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
+                    $notify('negative', 'error', 'An error occurred while processing your request.');
+                }
             } finally {
                 isLoading.value = false; // Hide the loading spinner
             }
-        }
+        };
+
 
         // Return necessary variables and methods for the template
         return {
@@ -318,10 +406,10 @@ export default defineComponent({
             formMode,
             handleSubmitForm,
             categoriesList,
-            selectedFile,
+            selectedImage,
             imageUrl,
             showPreview,
-            previewImage
+            previewImage,
         };
     }
 });
