@@ -200,7 +200,9 @@ const resetTeller = async () => {
         const { data } = await $axios.post('/windows/reset-windows'); 
         console.log("API Response:", data); // Debug response
         $notify('positive', 'check', data.message);
-        await getTableData();  
+        setTimeout(() => {
+            getTableData();
+        }, 10000); 
     } catch (error) {
         console.log('Error:', error.response?.data || error);
         $notify('negative', 'error', error.response?.data?.message || 'Failed to reset windows');
@@ -274,6 +276,7 @@ const handleShowForm = (mode, row) => {
             beforeReset,
             beforeDelete,
             filteredRows,
+            setTimeout,
             text
         };
     }

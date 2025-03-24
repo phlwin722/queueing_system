@@ -25,7 +25,7 @@ class ResetWindowsCommand extends Command
                 return;
             }
 
-            $currentTime = now()->format('H:i:s'); // Exact format
+            $currentTime = now()->format('H:i:s'); // Exact format for Hours Minutes Seconds
             $resetTime = Carbon::parse($settings->reset_time)->format('H:i:s');
 
             $currentDay = now()->format('l'); // Full day name (Monday, Tuesday, etc.)

@@ -6,6 +6,7 @@ use App\Http\Requests\WindowRequest;
 use App\Models\Window;
 use App\Models\Type;   
 use App\Models\Teller;
+use App\Models\ResetSetting;
 use App\Models\WindowArchive;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -219,6 +220,12 @@ class WindowController extends Controller
             // Reset tellers after archiving
             Window::query()->update(['teller_id' => null]);
             Teller::query()->update(['type_id' => null]);
+            ResetSetting::query()->update([
+                'reset_type'  => null,
+                'reset_time'  => null,
+                'reset_day'   => null,
+                'reset_date'  => null
+            ]);
         });
 
         Log::info("✅ Windows reset successfully.");
