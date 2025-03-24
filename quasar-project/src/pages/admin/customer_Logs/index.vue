@@ -207,8 +207,6 @@
           refreshInterval = setInterval(getTableData, 3000)
           getTableData()
         })
-      
-    
     
         return{
           rows,
