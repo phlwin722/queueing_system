@@ -23,6 +23,20 @@
                     :error-message="formError.currency_name"
                     autofocus
                     />
+                    
+                </div>
+                <div class="col-12">
+                    <q-input 
+                    outlined 
+                    v-model="formData.currency_symbol" 
+                    label="Currency Symbol" 
+                    dense 
+                    hide-bottom-space
+                    :error="formError.hasOwnProperty('currency_symbol')"
+                    :error-message="formError.currency_symbol"
+                    autofocus
+                    />
+                    
                 </div>
                 <div class="col-12">
                     <q-input 
@@ -84,6 +98,7 @@
             return{
                 id: null,
                 currency_name: "",
+                currency_symbol: "",
                 value: "",
             }
         }
@@ -126,6 +141,7 @@
                         rows.value.push({
                             id: data.row.id,
                             currency_name: data.row.currency_name,
+                            currency_symbol: data.row.currency_symbol,
                             value: parseFloat(data.row.value).toFixed(2) // Ensure 2 decimal places
                         });
                     } else {
@@ -137,6 +153,7 @@
                         rows.value[index] = {
                             id: data.row.id,
                             currency_name: data.row.currency_name,
+                            currency_symbol: data.row.currency_symbol,
                             value: parseFloat(data.row.value).toFixed(2)  // Ensure 2 decimal places
                         };
                     }

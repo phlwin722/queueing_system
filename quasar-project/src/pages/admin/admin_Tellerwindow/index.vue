@@ -168,16 +168,22 @@ export default defineComponent({
 
     try {
         const { data } = await $axios.post('/windows/fetch-reset-settings'); 
-        let refreshRate = 60000; // Default: 1 min
+        let refreshRate = 10000; // Default: 10 seconds
 
         if (data.auto_reset && data.reset_time) {
-            const now = new Date();
-            const [hours, minutes] = data.reset_time.split(':').map(Number);
-            const resetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-            const timeDiff = resetTime - now;
+    const now = new Date();
+    const [hours, minutes] = data.reset_time.split(':').map(Number);
+    
+    const resetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes - 1);
+    
+    let timeDiff = resetTime - now;
 
-            refreshRate = timeDiff > 20000 ? timeDiff : 20000;
-        }
+    refreshRate = timeDiff > 10000 ? timeDiff : 10000;
+}
+
+
+        // Immediately refresh the table before setting the interval
+        await getTableData(); 
 
         intervalId = setInterval(() => {
             getTableData();

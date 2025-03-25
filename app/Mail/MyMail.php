@@ -119,7 +119,7 @@ class MyMail extends Mailable
                         <p>We appreciate your time!</p>
                     </div>
 
-                    <a href='http://192.168.70.240:8080/customer-dashboard/{$this->data['token']}' class='button'>Open my dashboard</a>
+                    <a href='http://192.168.0.164:8080/customer-dashboard/{$this->data['token']}' class='button'>Open my dashboard</a>
                     <!-- Email Footer -->
                     <div class='footer'>
                         &copy; " . date('Y') . " VRTSYSTEMS TECHNOLOGIES CORPORATION. All rights reserved.

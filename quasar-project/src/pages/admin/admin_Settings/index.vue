@@ -195,7 +195,7 @@
 </template>
   
   <script>
-  import { ref, onMounted, watch  } from 'vue';
+  import { ref, onMounted, watch, onUnmounted  } from 'vue';
   import { $axios, $notify } from 'src/boot/app';
   import { useQuasar } from 'quasar';
   
@@ -404,6 +404,11 @@
 
   
       // Fetch the data when the component is mounted
+      let imageTimeout;
+      const optimizedFetchImage = async () => {
+        await fetchingImage()
+        imageTimeout = setTimeout(optimizedFetchImage, 2000); // Recursive Timeout
+      };
       onMounted(() => {
         // check if have localStorage 
         const storedAdminfo = localStorage.getItem('adminInformation')
@@ -411,11 +416,14 @@
           const adminData = JSON.parse(storedAdminfo);
           idAdmin.value = adminData.id;  // Make sure you're only storing the ID here
           fetchAdminInfo()
-          setInterval(fetchingImage, 1000);
+          optimizedFetchImage()
         } else {
           console.error("No admin information found in localStorage");
         }
       });
+      onUnmounted(() => {
+      clearTimeout(imageTimeout);
+    });
   
       return {
         tab,

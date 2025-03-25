@@ -7,6 +7,7 @@ use App\Models\Admin;
 use App\Models\Teller;
 use App\Models\Window;
 use App\Models\Type;
+use App\Models\Currency;
 use Database\Factories\Customer_logFactory;
 use Illuminate\Database\Seeder;
 
@@ -121,6 +122,44 @@ class QueueSeeder extends Seeder
                 'teller_id' => '4',
                 'created_at' => now(),
                 'updated_at' => now (),
+            ],
+        ]);
+
+        Currency::insert([
+            [
+                'currency_name' => 'Php',
+                'currency_symbol' => '₱',
+                'value' => '100.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Japanese Yen',
+                'currency_symbol' => '¥',
+                'value' => '1.01',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'ChineseYuan',
+                'currency_symbol' => '¥',
+                'value' => '0.10',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Euro',
+                'currency_symbol' => '€',
+                'value' => '10.21',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'USD',
+                'currency_symbol' => '$',
+                'value' => '56.62',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ]);
 

@@ -33,18 +33,20 @@ class QueueRequest extends FormRequest
                 'required',
                 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'
             ],
+            "type_id" => [
+                'required'
+            ]
 
         ];
     }
     // "regex:/^(09|\+639)\d{9}$/"
 
-    // public function messages(): array
-    // {
-    //     return [
-    
-    //         'mobile.regex' => 'Please input a valid mobile number.',
-    //     ];
-    // }
+    public function messages(): array
+     {
+        return [
+            'type_id.required' => 'The Service Available field is required.',
+         ];
+    }
 
     protected function failedValidation(Validator $validator){
         $errors = [];

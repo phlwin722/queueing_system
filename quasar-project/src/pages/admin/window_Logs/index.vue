@@ -52,8 +52,6 @@
     <q-td :props="props"></q-td>
   </template>
 </q-table>
-
-
     </q-page>
   </template>
   
@@ -103,11 +101,18 @@
 };
 
   
-      let refreshInterval = null;
-      onMounted(() => {
-        refreshInterval = setInterval(getTableData, 5000);
-        getTableData();
-      });
+  let dataTimeout
+
+  const optimizedFecthData = async () => {
+      await getTableData()
+      dataTimeout = setTimeout(optimizedFecthData, 3000); // Recursive Timeout
+  };
+  onMounted(() => {
+      optimizedFecthData()
+  })
+  onUnmounted(() => {
+      clearTimeout(dataTimeout);
+  });
   
       return {
         rows,

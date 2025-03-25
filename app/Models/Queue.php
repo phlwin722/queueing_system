@@ -19,6 +19,7 @@ class Queue extends Model
         'teller_id',
         'queue_number', 
         'status',
-        'waiting_customer'
+        'waiting_customer',
+        'currency_selected'
     ];
 }
