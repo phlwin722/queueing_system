@@ -1,45 +1,69 @@
 <template>
-    <div class="row q-gutter-x-md q-mx-lg q-mt-lg">
-        <span class="text-bold">Filter by date:</span>
+    <q-page class="q-px-lg">
 
-        <!-- From Date -->
-        <q-input 
+        <div class="q-my-md bg-white q-pa-sm shadow-1">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Reports" icon="bar_chart" to="/admin/reports" />
+            </q-breadcrumbs>
+            </div>
+
+            <q-table
+  class="q-mt-md"
+  title="Data Reports"
+  :rows="filteredRows"
+  :columns="columns"
+  row-key="index"
+>
+  <!-- Custom Table Header -->
+  <template v-slot:top>
+    <q-toolbar class="q-gutter-md">
+      <!-- 📌 Table Title -->
+      <q-toolbar-title>Data Reports</q-toolbar-title>
+
+      <q-space /> <!-- Pushes inputs to the right -->
+
+      <span class="text-bold">Filter by date:</span>
+
+      <!-- From Date -->
+      <q-input 
         filled
-        class="bg-accent text-black" 
+        dense
+        outlined
+        class="bg-accent text-black"
         v-model="fromDate" 
         type="date"
         label="From"
         @update:model-value="getTableData"
-        />
+      />
 
-        <!-- To Date -->
-        <q-input 
+      <!-- To Date -->
+      <q-input 
         filled
-        class="bg-accent text-black" 
+        dense
+        outlined
+        class="bg-accent text-black"
         v-model="toDate" 
         type="date"
         label="To"
         @update:model-value="getTableData"
-        />
-    </div>
+      />
+    </q-toolbar>
+  </template>
 
-    <q-page>
-        <div class="q-pa-lg">
-        <q-table
-            title="Data Reports"
-            :rows="filteredRows"
-            :columns="columns"
-            row-key="index"
-        >
-            <template v-slot:body-cell-actions="props">
-            <q-td :props="props"></q-td>
-            </template>
-        </q-table>
-        </div>
+  <!-- Table Actions -->
+  <template v-slot:body-cell-actions="props">
+    <q-td :props="props"></q-td>
+  </template>
+</q-table>
+
+
 
     <!-- Bar Chart Component -->
 
-    <div class="q-px-lg q-mt-md">
+    <div class="q-mt-md">
         <div class="q-pa-md row justify-around bg-grey-2 rounded-borders shadow-2">
             <!-- Finished Customers -->
             <div class="column items-center text-center">

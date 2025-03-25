@@ -1,89 +1,90 @@
 <template>
   <q-page class="q-px-sm">
-  <div class="q-ma-md bg-white q-pa-sm shadow-1">
-            <q-breadcrumbs 
-                class="q-mx-sm"
-                >
-                <q-breadcrumbs-el icon="home" />
-                <q-breadcrumbs-el label="Customer logs" icon="description" to="/admin/customer-logs" />
-            </q-breadcrumbs>
-            </div>
-
-  <div class="row items-center">
-    
-    <!-- Search Input -->
-    <q-input
-      filled
-      class="bg-accent q-mx-md text-black col q-mr-md"
-      v-model="text"
-      label="Search"
-      :dense="dense"
-      dense
-      outlined
-    />
-    
-
-        <!-- Date Picker Input -->
-        <q-input
-      filled
-      class="bg-accent text-black q-mr-md"
-      v-model="selectedDate"
-      type="date"
-      label="Select Date"
-      @update:model-value="getTableData"
-      
-      outlined
-    />
-  </div>
+    <div class="q-ma-md bg-white q-pa-sm shadow-1">
+      <q-breadcrumbs class="q-mx-sm">
+        <q-breadcrumbs-el icon="home" />
+        <q-breadcrumbs-el label="Customer logs" icon="description" to="/admin/customer-logs" />
+      </q-breadcrumbs>
+    </div>
 
     <div class="q-px-md q-mt-md">
-      <q-table
-        title="Customer Logs"
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="index"
-      >
+      <q-table title="Customer Logs" :rows="filteredRows" :columns="columns" row-key="index">
+        <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
+        <template v-slot:top>
+          <q-toolbar class="q-gutter-md">
+            <!-- 📌 Add Title Manually -->
+            <q-toolbar-title>Customer Logs</q-toolbar-title>
+
+            <q-space /> <!-- Pushes items to the right -->
+
+            <!-- Search Input -->
+            <q-input 
+              filled 
+              dense 
+              outlined 
+              class="bg-accent text-black"
+              v-model="text" 
+              label="Search">
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+
+            <!-- Date Picker Input -->
+            <q-input 
+              filled 
+              dense 
+              outlined 
+              class="bg-accent text-black"
+              v-model="selectedDate" 
+              type="date" 
+              label="Select Date"
+              @update:model-value="getTableData"
+            />
+          </q-toolbar>
+        </template>
+
+
+        <!-- Table Actions -->
         <template v-slot:body-cell-actions="props">
           <q-td :props="props"></q-td>
         </template>
       </q-table>
     </div>
 
-     <!-- Bar Chart Component -->
-<div class="q-px-md q-mt-md">
-  <div class="q-pa-md row justify-around bg-grey-2 rounded-borders shadow-2">
-    <!-- Finished Customers -->
-    <div class="column items-center text-center">
-      <q-icon name="check_circle" color="positive" size="40px" />
-      <div class="text-h6 text-positive">Finished</div>
-      <div class="text-h5">{{ finishedCount }}</div>
+    <!-- Bar Chart Section -->
+    <div class="q-px-md q-mt-md">
+      <div class="q-pa-md row justify-around bg-grey-2 rounded-borders shadow-2">
+        <!-- Finished Customers -->
+        <div class="column items-center text-center">
+          <q-icon name="check_circle" color="positive" size="40px" />
+          <div class="text-h6 text-positive">Finished</div>
+          <div class="text-h5">{{ finishedCount }}</div>
+        </div>
+
+        <!-- Cancelled Customers -->
+        <div class="column items-center text-center">
+          <q-icon name="cancel" color="negative" size="40px" />
+          <div class="text-h6 text-negative">Cancelled</div>
+          <div class="text-h5">{{ cancelledCount }}</div>
+        </div>
+
+        <!-- Total Customers -->
+        <div class="column items-center text-center">
+          <q-icon name="people" color="primary" size="40px" />
+          <div class="text-h6 text-primary">Total</div>
+          <div class="text-h5">{{ total }}</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Cancelled Customers -->
-    <div class="column items-center text-center">
-      <q-icon name="cancel" color="negative" size="40px" />
-      <div class="text-h6 text-negative">Cancelled</div>
-      <div class="text-h5">{{ cancelledCount }}</div>
+    <!-- Bar Chart Component -->
+    <div class="q-px-lg q-mt-md">
+      <BarChart :cancelledPercent="cancelledPercent" :finishedPercent="finishedPercent" />
     </div>
-
-    <!-- Total Customers -->
-    <div class="column items-center text-center">
-      <q-icon name="people" color="primary" size="40px" />
-      <div class="text-h6 text-primary">Total</div>
-      <div class="text-h5">{{ total }}</div>
-    </div>
-  </div>
-</div>
-
-  <div class="q-px-lg q-mt-md">
-    <BarChart
-      :cancelledPercent="cancelledPercent"
-      :finishedPercent="finishedPercent"
-    />
-  </div>
-
   </q-page>
 </template>
+
 
   
     

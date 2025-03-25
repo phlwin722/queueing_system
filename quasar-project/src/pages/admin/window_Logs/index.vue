@@ -1,35 +1,59 @@
 <template>
-    <div class="row q-mx-lg q-mt-md items-center">
+  <q-page class="q-px-lg" style="height: auto; min-height: unset;">
+
+    <div class="q-my-md bg-white q-pa-sm shadow-1">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Window Logs" icon="upload_file" to="/admin/window-logs" />
+            </q-breadcrumbs>
+            </div>
+
+            <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id">
+  <!-- Custom Table Header -->
+  <template v-slot:top>
+    <q-toolbar class="q-gutter-md">
+      <!-- 📌 Table Title -->
+      <q-toolbar-title>Window Logs</q-toolbar-title>
+
+      <q-space /> <!-- Pushes inputs to the right -->
+
       <!-- Search Input -->
       <q-input
         filled
-        class="bg-accent text-black col q-mr-sm"
-        v-model="text"
-        label="Search"
         dense
         outlined
-      />
-  
+        class="bg-accent text-black"
+        v-model="text"
+        label="Search"
+      >
+        <template v-slot:append>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+
       <!-- Date Picker Input -->
       <q-input
         filled
+        dense
+        outlined
         class="bg-accent text-black"
         v-model="selectedDate"
         type="date"
         label="Select Date"
         @update:model-value="getTableData"
-        outlined
       />
-    </div>
-  
-    <q-page>
-      <div class="q-px-lg q-mt-md">
-        <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id">
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props"></q-td>
-          </template>
-        </q-table>
-      </div>
+    </q-toolbar>
+  </template>
+
+  <!-- Table Actions -->
+  <template v-slot:body-cell-actions="props">
+    <q-td :props="props"></q-td>
+  </template>
+</q-table>
+
+
     </q-page>
   </template>
   

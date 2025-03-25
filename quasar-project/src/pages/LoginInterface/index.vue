@@ -1,24 +1,20 @@
 <template>
-  <div
-    style="height: 40vh; width: 100%; position: absolute; z-index: -1"
-    class="bg-primary"
-  ></div>
-  <div class="column flex flex-center q-pa-md" style="min-height: 80vh">
+  <div class="bg-primary background-container"></div>
+  
+  <div class="column flex flex-center q-pa-md content-container">
     <q-img
       src="~assets/vrtlogowhite.webp"
       alt="Logo"
       fit="full"
-      style="max-width: 400px; margin: 0 auto"
+      class="logo"
     />
-    <q-card class="q-pa-lg q-mt-sm shadow-3 login-card" style="width: 25rem">
+
+    <q-card class="q-pa-lg shadow-3 login-card">
       <q-card-section class="text-center">
         <h2 class="text-primary welcome-heading">Login</h2>
       </q-card-section>
       <q-card-section>
-        <q-form
-          class="q-gutter-lg form-container"
-          @submit.prevent="goAdminValidation"
-        >
+        <q-form class="q-gutter-lg form-container" @submit.prevent="goAdminValidation">
           <q-input
             filled
             v-model="formData.Username"
@@ -26,7 +22,6 @@
             type="text"
             :error="formError.hasOwnProperty('Username')"
             :error-message="formError.Username"
-            class="none"
           />
 
           <q-input
@@ -36,7 +31,6 @@
             label="Password"
             :error="formError.hasOwnProperty('Password')"
             :error-message="formError.Password"
-            class="none"
           >
             <template v-slot:append>
               <q-icon
@@ -48,12 +42,7 @@
           </q-input>
 
           <div class="flex justify-center">
-            <q-btn
-              label="Login"
-              type="submit"
-              color="primary"
-              class="full-width"
-            />
+            <q-btn label="Login" type="submit" color="primary" class="full-width" />
           </div>
         </q-form>
       </q-card-section>
@@ -158,3 +147,44 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Background */
+.background-container {
+  position: absolute;
+  width: 100%;
+  min-height: 40vh;
+  z-index: -1;
+}
+
+/* Content layout */
+.content-container {
+  min-height: 80vh;
+  width: 100%;
+  padding: 2rem;
+}
+
+/* Logo */
+.logo {
+  max-width: 350px;
+  width: 80%;
+  margin-bottom: 1rem;
+}
+
+/* Login Card */
+.login-card {
+  width: 100%;
+  max-width: 25rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+  .content-container {
+    padding: 1rem;
+  }
+
+  .login-card {
+    max-width: 100%;
+  }
+}
+</style>

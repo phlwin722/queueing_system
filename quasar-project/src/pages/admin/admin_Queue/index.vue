@@ -1,5 +1,13 @@
 <template>
-  <q-page class="q-pa-lg">
+  <q-page class="q-px-lg">
+    <div class="q-my-md bg-white q-pa-sm shadow-1">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el label="Admin Queue" icon="admin_panel_settings" to="/admin/admin_Queue" />
+            </q-breadcrumbs>
+            </div>
 
     <!-- Service Type Selector -->
     <div class="q-mb-md row q-col-gutter-md">
