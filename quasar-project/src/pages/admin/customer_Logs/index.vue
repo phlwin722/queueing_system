@@ -92,7 +92,8 @@
       defineComponent ,
       ref,
       computed,
-      onMounted
+      onMounted,
+      onUnmounted
     } from 'vue'
     
     
@@ -213,10 +214,18 @@
           finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
 
         };
+        let dataTimeout
+
+        const optimizedFecthData = async () => {
+          await getTableData()
+          dataTimeout = setTimeout(optimizedFecthData, 3000); // Recursive Timeout
+        };
         onMounted(() => {
-          refreshInterval = setInterval(getTableData, 3000)
-          getTableData()
+          optimizedFecthData()
         })
+        onUnmounted(() => {
+          clearTimeout(dataTimeout);
+        });
     
         return{
           rows,

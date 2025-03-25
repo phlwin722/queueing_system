@@ -139,7 +139,11 @@ export default {
         if (isUsedToken.value) {
           $notify("negative", "error", "Invalid or already used QR code.");
         } else {
-          name.value = name.value.charAt(0).toUpperCase() + name.value.slice(1);
+          console.log(email.value);
+          name.value = name.value
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
           const response = await $axios.post("/customer-join", {
             token: token.value,
             name: name.value,
@@ -148,10 +152,6 @@ export default {
             type_id: type_id.value,
             currency: currencySelected.value
           });
-
-          localStorage.setItem("customer_id" + token.value, response.data.id);
-          localStorage.setItem("queue_number" + token.value, response.data.queue_number);
-          localStorage.setItem("customer_token" + token.value, token.value);
           window.location.href = "/customer-dashboard/" + token.value;
         }
       } catch (error) {

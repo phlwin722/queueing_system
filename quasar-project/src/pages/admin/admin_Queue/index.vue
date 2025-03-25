@@ -513,26 +513,29 @@ const paginatedQueueList = computed(() => {
 // Total pages for pagination
 const totalPages = computed(() => Math.ceil(queueList.value.length / itemsPerPage))
 
-onMounted(() => {
-  fetchQueue()
-  refreshInterval = setInterval(() => {
-  fetchQueue();
-   // Add more functions as needed
-}, 2000);
-  fetchWaitingtime()
-  const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
-  const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
-  if (startTime && duration) {
-    waiting.value = true;
-    startTimer();
-  }
-  fetchId()
-  fetchWindowTypes()
-  fetchPersonnel()
-  
-  
-  
-})
+let waitingQueue;
+
+    const optimizedFetchQueue = async () => {
+      await fetchQueue()
+      waitingQueue = setTimeout(optimizedFetchQueue, 3000); // Recursive Timeout
+    };
+  onMounted(() => {
+    optimizedFetchQueue()
+    fetchWaitingtime()
+    const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
+    const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
+    if (startTime && duration) {
+      waiting.value = true;
+      startTimer();
+    }
+    fetchId()
+    fetchWindowTypes()
+    fetchPersonnel()
+  })
+
+    onUnmounted(() => {
+      clearTimeout(waitingQueue);
+    });
 
 
 
