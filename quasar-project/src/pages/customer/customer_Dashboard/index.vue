@@ -186,12 +186,7 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
-import { useQuasar } from "quasar";          localStorage.setItem("customer_id" + token.value, response.data.id);
-          localStorage.setItem(
-            "queue_number" + token.value,
-            response.data.queue_number
-          );
-          localStorage.setItem("customer_token" + token.value, token.value);
+import { useQuasar } from "quasar";
 
 export default {
   setup() {
@@ -242,14 +237,14 @@ export default {
       const words = name.split(" "); // Split the name by spaces (e.g., "John Doe" -> ["John", "Doe"])
       return words
         .map((word,index) => {
-            if (index === 0) {
+            if (index === 0 ) {
               // Take first letter of each word and append "..."
               return word[0].toUpperCase() + "...";
             }
             // For all other words (e.g., last name), leave them as is
             return word;
         })
-        .join(" "); // Join back the abbreviated words  Output: "J... Dy"
+        .join(" "); // Join back the abbreviated words  Output: "J... D.."
     };
 
     // const putTellerId = async () => {

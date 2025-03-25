@@ -53,7 +53,8 @@ class QueueController extends Controller
             'email_status' => $request->email_status,
             'queue_number' => $nextQueueNumber,
             'status' => 'waiting',
-            'waiting_customer' => null,  
+            'waiting_customer' => null,
+            'currency_selected' => $request->currency  
         ]);
     
         // Log to ensure proper assignment

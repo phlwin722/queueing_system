@@ -17,6 +17,7 @@ class CurrencyRequest extends FormRequest
     {
         return [
             'currency_name' => ['required'],
+            'currency_symbol' => ['required'],
             'value' => ['required']
         ];
     }
