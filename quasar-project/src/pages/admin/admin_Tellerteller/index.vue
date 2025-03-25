@@ -1,5 +1,5 @@
 <template>
-    <q-page class="q-px-lg">
+    <q-page class="q-px-lg" style="height: auto; min-height: unset;">
         <div class="q-my-md bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
