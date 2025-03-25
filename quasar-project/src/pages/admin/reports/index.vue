@@ -37,38 +37,38 @@
         </q-table>
         </div>
 
-             <!-- Bar Chart Component -->
-  
-             <div class="q-px-lg q-mt-md">
-<div class="q-pa-md row justify-around bg-grey-2 rounded-borders shadow-2">
-    <!-- Finished Customers -->
-    <div class="column items-center text-center">
-        <q-icon name="check_circle" color="positive" size="40px" />
-        <div class="text-h6 text-positive">Finished</div>
-        <div class="text-h5">{{ finishedCount }}</div>
-    </div>
+    <!-- Bar Chart Component -->
 
-    <!-- Cancelled Customers -->
-    <div class="column items-center text-center">
-        <q-icon name="cancel" color="negative" size="40px" />
-        <div class="text-h6 text-negative">Cancelled</div>
-        <div class="text-h5">{{ cancelledCount }}</div>
-    </div>
-
-    <!-- Total Customers -->
-    <div class="column items-center text-center">
-        <q-icon name="people" color="primary" size="40px" />
-        <div class="text-h6 text-primary">Total</div>
-        <div class="text-h5">{{ total }}</div>
-    </div>
-    </div>
-</div>
-            <div class="q-px-lg q-mt-md">
-                <BarChart
-                :cancelledPercent="cancelledPercent"
-                :finishedPercent="finishedPercent"
-                />
+    <div class="q-px-lg q-mt-md">
+        <div class="q-pa-md row justify-around bg-grey-2 rounded-borders shadow-2">
+            <!-- Finished Customers -->
+            <div class="column items-center text-center">
+                <q-icon name="check_circle" color="positive" size="40px" />
+                <div class="text-h6 text-positive">Finished</div>
+                <div class="text-h5">{{ finishedCount }}</div>
             </div>
+
+            <!-- Cancelled Customers -->
+            <div class="column items-center text-center">
+                <q-icon name="cancel" color="negative" size="40px" />
+                <div class="text-h6 text-negative">Cancelled</div>
+                <div class="text-h5">{{ cancelledCount }}</div>
+            </div>
+
+            <!-- Total Customers -->
+            <div class="column items-center text-center">
+                <q-icon name="people" color="primary" size="40px" />
+                <div class="text-h6 text-primary">Total</div>
+                <div class="text-h5">{{ total }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="q-px-lg q-mt-md">
+        <BarChart
+        :cancelledPercent="cancelledPercent"
+        :finishedPercent="finishedPercent"
+        />
+    </div>
     </q-page>
 </template>
 
@@ -78,7 +78,8 @@ import {
     defineComponent ,
     ref,
     computed,
-    onMounted
+    onMounted,
+    onUnmounted
 } from 'vue'
 
 
@@ -171,6 +172,7 @@ export default defineComponent({
     const toDate = ref(""); // Holds the "To" date
 
     const getTableData = async () => {
+        
         try {
             // Send both dates as a payload
             const payload = {
@@ -203,10 +205,18 @@ export default defineComponent({
         finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
 
     };
+    let dataTimeout
+
+    const optimizedFecthData = async () => {
+        await getTableData()
+        dataTimeout = setTimeout(optimizedFecthData, 3000); // Recursive Timeout
+    };
     onMounted(() => {
-        refreshInterval = setInterval(getTableData, 2000)
-        getTableData()
+        optimizedFecthData()
     })
+    onUnmounted(() => {
+        clearTimeout(dataTimeout);
+    });
     
 
 

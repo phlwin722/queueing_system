@@ -366,6 +366,7 @@ class TellerController extends Controller
                 "t.teller_lastname",
                 "t.teller_username",
                 "t.teller_password",
+                "t.type_id",
                 "t.type_ids_selected",
                 "t.Image",
                 DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names

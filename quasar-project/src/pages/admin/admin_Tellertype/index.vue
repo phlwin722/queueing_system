@@ -1,12 +1,14 @@
 <template>
-    <q-page >
-        <div class="q-pa-md">
+    <q-page class="q-px-lg" style="height: auto; min-height: unset;">
+        <div class="q-my-md bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el label="Teller" icon="person"/>
                 <q-breadcrumbs-el label="Teller Types" icon="category" to="/admin/teller/types" />
             </q-breadcrumbs>
+            </div>
             <q-table
                 title="Types"
                 :rows="rows"
@@ -17,7 +19,7 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
-                class="q-mx-sm q-mt-md"
+                class="q-mt-md"
             >
 
             <template v-slot:top>
@@ -80,7 +82,6 @@
 
 
             </q-table>
-        </div>
         <my-form ref="dialogForm" :url="URL" :rows="rows" />
     </q-page>
     </template>
@@ -159,7 +160,13 @@
             },
             style: 'border-radius: 12px; padding: 16px;',
           }).onOk(async () => {
-                handleDelete(ids);
+            for (const id of ids) {
+                if (id === 1) {
+                    $notify('negative', 'error', 'Cannot delete foreign exchange');
+                    return;  // Stops further execution for this iteration, no handleDelete will be called
+                }
+            }
+             handleDelete(ids);
           }).onDismiss(() => {
             // console.log('I am triggered on both OK and Cancel')
           });

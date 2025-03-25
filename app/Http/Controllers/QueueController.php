@@ -53,7 +53,8 @@ class QueueController extends Controller
             'email_status' => $request->email_status,
             'queue_number' => $nextQueueNumber,
             'status' => 'waiting',
-            'waiting_customer' => null,  
+            'waiting_customer' => null,
+            'currency_selected' => $request->currency  
         ]);
     
         // Log to ensure proper assignment
@@ -245,8 +246,8 @@ class QueueController extends Controller
             ]);
         }
     }
-    
 
+    
     
 
     public function fetchReports(Request $request)
@@ -296,7 +297,7 @@ class QueueController extends Controller
         // Get type_id and teller_id from the queues table
         $queue = DB::table('queues')
             ->where('token', $token)
-            ->select('type_id', 'teller_id')
+            ->select('type_id', 'teller_id','queue_number','id',)
             ->first();
     
         // If the queue doesn't exist
@@ -319,7 +320,9 @@ class QueueController extends Controller
             ->first();
     
         return response()->json([
-            'row' => $newTeller
+            'row' => $newTeller,
+            'queue_number' => $queue->queue_number,
+            'id' => $queue->id,
         ]);
     }
     

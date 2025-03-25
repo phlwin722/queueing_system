@@ -194,15 +194,8 @@ export default {
     const route = useRoute();
     const $dialog = useQuasar();
     const tokenurl = ref(route.params.token);
-    const customerQueueNumber = ref(
-      localStorage.getItem("queue_number" + tokenurl.value) || null
-    );
-    const customerId = ref(
-      localStorage.getItem("customer_id" + tokenurl.value) || null
-    );
-    const token = ref(
-      localStorage.getItem("customer_token" + tokenurl.value) || null
-    );
+    const customerQueueNumber = ref(0);
+    const customerId = ref(0);
 
     const queueList = ref([]);
     const currentQueue = ref(null);
@@ -243,11 +236,15 @@ export default {
     const abbreviateName = (name) => {
       const words = name.split(" "); // Split the name by spaces (e.g., "John Doe" -> ["John", "Doe"])
       return words
-        .map((word) => {
-          // Take first letter of each word and append "..."
-          return word[0].toUpperCase() + "...";
+        .map((word,index) => {
+            if (index === 0 ) {
+              // Take first letter of each word and append "..."
+              return word[0].toUpperCase() + "...";
+            }
+            // For all other words (e.g., last name), leave them as is
+            return word;
         })
-        .join(" "); // Join back the abbreviated words
+        .join(" "); // Join back the abbreviated words  Output: "J... D.."
     };
 
     // const putTellerId = async () => {
@@ -326,11 +323,15 @@ export default {
             assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
             typeId.value = data.row.typeId
             tellerId.value = data.row.id
+            customerQueueNumber.value = data.queue_number
+            customerId.value = data.id
             fetchImage(tellerId.value)
           //putTellerId()
         }catch(error){
             console.log(error);
         }
+
+
     }
     // Start countdown timer
     // const startCountdown = () => {
@@ -542,21 +543,37 @@ export default {
         }
       }
     }
+    let waitingTimeout;
+    let queueTimeout;
+    let statusTimeout;
+
+    const optimizedFetchQueueData = async () => {
+    await fetchQueueData();
+    queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+    };
+
+    const optimizedFetchWaitingStatus = async () => {
+      await fetchWaitingStatus();
+      statusTimeout = setTimeout(optimizedFetchWaitingStatus, 2000); // Recursive Timeout
+    };
+
+    const optimizedFetchWaitingtime = async () => {
+      await fetchWaitingtime();
+      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
+    };
 
     onMounted(() => {
       getTableData();
-      fetchQueueData();
-      fetchWaitingtime();
-      refreshInterval = setInterval(fetchWaitingtime, 2000);
-      refreshInterval = setInterval(fetchQueueData, 2000); // Auto-refresh every 5 seconds
-      fetchWaitingStatus();
-      setInterval(fetchWaitingStatus, 2000);
+      optimizedFetchWaitingtime();
+      optimizedFetchQueueData();
+      optimizedFetchWaitingStatus();
     });
 
-    // onUnmounted(() => {
-    //   clearInterval(refreshInterval); // Stop auto-refresh
-    //   clearInterval(countdownInterval); // Stop countdown
-    // });
+    onUnmounted(() => {
+      clearTimeout(waitingTimeout);
+      clearTimeout(queueTimeout);
+      clearTimeout(statusTimeout);
+    });
 
     return {
       customerQueueNumber,

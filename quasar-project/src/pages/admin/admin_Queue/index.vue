@@ -1,56 +1,78 @@
 <template>
-  <q-page class="q-pa-md bg-grey-1">
-    <!-- Reset Queue Button -->
-    <q-card-actions align="center" class="q-mb-md">
-      <q-btn
-        :disable="(!isQueuelistEmpty || currentServing != null)"
-        color="positive"
-        label="Reset Queue Number"
-        @click="resetQueue()"
-        class="rounded-borders shadow-2"
-      />
-    </q-card-actions>
+  <q-page class="q-pa-lg">
 
     <!-- Service Type Selector -->
-    <div class="q-mb-md">
-      <q-select
-        outlined
-        v-model="type_id"
-        label="Service Type"
-        emit-value
-        map-options
-        dense
-        hide-bottom-space
-        :options="serviceTypeList"
-        option-label="name"
-        option-value="id"
-        class="rounded-borders shadow-2"
-      />
+    <div class="q-mb-md row q-col-gutter-md">
+  <!-- Window Type Select -->
+  <div class="col-6">
+    <q-select 
+      outlined 
+      v-model="type_id" 
+      :options="serviceTypeList" 
+      label="Window type" 
+      hide-bottom-space
+      dense
+      emit-value
+      map-options
+    />
+  </div>
+
+  <!-- Assigned Personnel Select -->
+  <div class="col-6">
+    <q-select 
+      outlined 
+      v-model="teller_id"
+      :options="personnelList"
+      label="Assigned personnel" 
+      dense
+      hide-bottom-space
+      emit-value
+      map-options
+    />
+  </div>
+</div>
+
+<q-card class="q-mb-md q-pa-md shadow-2 rounded-borders bg-primary text-white">
+  <q-card-section class="q-gutter-y-md">
+    <div class="row items-center justify-between">
+      <div class="text-h6">Assigned Personnel:</div>
+      <div class="text-subtitle2">{{ tellerFullName }}</div>
     </div>
-    <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
-    <q-card-section class="q-pb-sm">
-        <div class="text-bold">Assigned Personnel: {{ tellerFullName }}</div>
-        <div class="text-bold">Number of Queue in line: {{ noOfQueue }}</div>
-      </q-card-section>
-      </q-card>
+
+    <q-separator class="q-my-sm" color="white" />
+
+    <div class="row items-center justify-between">
+      <div class="text-h6">Queue in Line:</div>
+      <div class="text-subtitle2">{{ noOfQueue }}</div>
+    </div>
+  </q-card-section>
+</q-card>
+
 
     <!-- Current Serving Section -->
-    <q-card class="q-mb-md q-pa-md shadow-2 rounded-borders">
-      
 
-      <q-card-section class="text-center">
-        <div class="text-h5 text-bold text-primary">Now Serving</div>
-        <div v-if="servingStatus != null" class="text-h4 text-blue-7 q-mt-md">
-          Queue number: <br />{{ cusQueueNum }}
-        </div>
-        <div v-if="servingStatus != null" class="text-subtitle1 text-grey">
-          Name: <strong>{{ cusName }}</strong>
-        </div>
-        <div v-else class="text-grey">No one is being served</div>
-      </q-card-section>
+    <q-card class="q-mb-md q-pa-lg shadow-2 rounded-borders bg-white text-dark">
+  <q-card-section class="text-center">
+    <div class="text-h5 text-bold text-primary">Now Serving</div>
 
-      <!-- Action Buttons -->
-      <q-card-actions align="center" class="q-pt-md">
+    <q-separator class="q-my-md" color="primary" />
+
+    <div v-if="servingStatus !== null">
+      <div class="text-h4 text-blue-7 q-mt-md">Queue Number:</div>
+      <div class="text-h3 text-primary q-mt-xs"><strong>{{ cusQueueNum }}</strong></div>
+
+      <q-separator class="q-my-sm" color="primary" />
+
+      <div class="text-subtitle2 text-grey-8">
+        Name: <strong class="text-dark">{{ cusName }}</strong>
+      </div>
+    </div>
+
+    <div v-else class="text-subtitle1 text-grey-6 q-mt-md">No one is being served</div>
+  </q-card-section>
+
+   <!-- Action Buttons -->
+   <q-card-actions align="center" class="q-pt-md">
         <q-btn 
           v-if="currentServing && tempTimer == 0"
           color="negative"
@@ -76,42 +98,53 @@
           @click="finishCustomer(currentServing.id)"
         />
       </q-card-actions>
-    </q-card>
+</q-card>
+
 
     <!-- Waiting Queue List -->
-    <q-card class="q-pa-md shadow-2 rounded-borders">
-      <q-card-section class="text-h6 text-bold text-primary q-mb-sm">
-        Waiting Queue
-      </q-card-section>
+    <q-card class="q-pa-md shadow-3 rounded-borders bg-primary text-white">
+    <q-card-section class="text-h6 text-bold text-accent q-mb-sm text-center">
+      Waiting Queue
+    </q-card-section>
 
-      <q-separator />
+    <q-separator color="white" />
 
-      <q-list bordered separator>
-        <q-item v-for="customer in paginatedQueueList" :key="customer.id">
-          <q-item-section>
-            <q-item-label class="text-bold">Name: {{ customer.name }}</q-item-label>
-            <q-item-label class="text-bold">Queue No: {{ customer.queue_number }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+    <q-list bordered class="q-mb-md" dense>
+      <q-item 
+        v-for="customer in paginatedQueueList" 
+        :key="customer.id" 
+        class="bg-white text-primary rounded-borders q-my-xs shadow-1"
+      >
+        <q-item-section>
+          <q-item-label class="text-bold text-dark">
+            <span class="text-grey">Name:</span> {{ customer.name }}
+          </q-item-label>
+          <q-item-label class="text-bold text-dark">
+            <span class="text-grey">Queue No:</span> {{ customer.queue_number }}
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
 
-      <!-- Pagination -->
-      <q-card-actions align="center">
-        <q-pagination
-          v-model="currentPage"
-          :max="totalPages"
-          :max-pages="5"
-          boundary-numbers
-          color="primary"
-          class="q-mt-sm"
-        />
-      </q-card-actions>
-    </q-card>
+    <!-- Pagination -->
+    <q-card-actions align="center">
+      <q-pagination
+        v-model="currentPage"
+        :max="totalPages"
+        :max-pages="5"
+        boundary-numbers
+        color="accent"
+        input-style="width: 60px; text-align: center;"
+        class="text-white"
+      />
+    </q-card-actions>
+  </q-card>
+
   </q-page>
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick  } from 'vue'
 import { $axios, $notify,Dialog } from 'boot/app'
 import { useQuasar  } from 'quasar'
 
@@ -131,7 +164,9 @@ let refreshInterval = null
 const $dialog = useQuasar();
 const noOfQueue = ref();
 const type_id = ref()
+const teller_id = ref()
 const serviceTypeList = ref([]);
+const personnelList = ref([])
 const cusName = ref()
 const cusQueueNum = ref()
 const servingStatus = ref()
@@ -155,6 +190,7 @@ const fetchQueue = async () => {
   try {
     const response = await $axios.post("/teller/queue-list", {
           type_id: type_id.value,
+          teller_id: teller_id.value,
         });
     queueList.value = response.data.queue.filter(q => !['finished', 'cancelled'].includes(q.status))
     currentServing.value = response.data.current_serving
@@ -177,13 +213,43 @@ const fetchQueue = async () => {
   }
 }
 
-const fetchCategories = async () => {
+
+
+        const fetchWindowTypes = async () => { 
             try {
-                const { data } = await $axios.post('/types/index');
-              
-                serviceTypeList.value = data.rows; // Ensure this matches the API response structure
+                const response = await $axios.post('/types/dropdown');
+                    if (Array.isArray(response.data.rows)) {
+                    // Map id and section_name correctly
+                    serviceTypeList.value = response.data.rows.map(sec => ({
+                        label: sec.name, // This is what the user sees
+                        value: sec.id // This is what will be stored
+                    }));
+
+                } else {
+                    console.error('Expected "rows" to be an array, but got:', response.data.rows)
+                }   
+
             } catch (error) {
-                console.error('Error fetching categories:', error);
+                console.error('Error fetching sections:', error); 
+            }
+        };
+
+        const fetchPersonnel = async () => { 
+            try {
+                if (!type_id.value) return; // Stop if no grade level is selected
+                const response = await $axios.post('/tellers/dropdown', {
+                    type_id: type_id.value 
+                });
+
+                console.log(response.tellers)
+                if (Array.isArray(response.data.rows)) {
+                    personnelList.value = response.data.rows; // Response is already in { label, value } format
+                } else {
+                    console.error('Expected "rows" to be an array, but got:', response.data.rows);
+                }
+
+            } catch (error) {
+                console.error('Error fetching sections:', error); 
             }
         };
 
@@ -195,6 +261,32 @@ const fetchId = async () => {
     console.error(error)
   }
 }
+
+watch(() => type_id.value, async (newVal) => {
+            if (newVal) {
+                personnelList.value = []; // Clear previous personnel list
+
+                await fetchPersonnel(); // Fetch new personnel based on selected type
+
+                // Wait for Vue to update the list, then set the first teller
+                nextTick(() => {
+                    if (typeof type_id.value === 'string') {
+                        teller_id.value = teller_id.value // Assign first teller's ID
+                        fetchtypeId()
+                    }else{
+                        if(personnelList.value.length>0){
+                            teller_id.value = personnelList.value[0].value
+                            
+                        }else{
+                            teller_id.value = null
+                            return
+                        }
+                        
+                        fetchtypeId()
+                    }
+                });
+            }
+        });
 
 // Cater customer
 const caterCustomer = async (customerId) => {
@@ -421,30 +513,32 @@ const paginatedQueueList = computed(() => {
 // Total pages for pagination
 const totalPages = computed(() => Math.ceil(queueList.value.length / itemsPerPage))
 
-onMounted(() => {
-  fetchQueue()
-  refreshInterval = setInterval(() => {
-  fetchQueue();
-   // Add more functions as needed
-}, 2000);
-  fetchWaitingtime()
-  const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
-  const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
-  if (startTime && duration) {
-    waiting.value = true;
-    startTimer();
-  }
-  fetchId()
-  fetchCategories()
-  
-  
-  
-})
+let waitingQueue;
 
-// onUnmounted(() => {
-//   clearInterval(refreshInterval) // Stop interval when component is destroyed
-//   clearInterval(waitTimer) // Stop wait timer if it exists
-// })
+    const optimizedFetchQueue = async () => {
+      await fetchQueue()
+      waitingQueue = setTimeout(optimizedFetchQueue, 3000); // Recursive Timeout
+    };
+  onMounted(() => {
+    optimizedFetchQueue()
+    fetchWaitingtime()
+    const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
+    const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
+    if (startTime && duration) {
+      waiting.value = true;
+      startTimer();
+    }
+    fetchId()
+    fetchWindowTypes()
+    fetchPersonnel()
+  })
+
+    onUnmounted(() => {
+      clearTimeout(waitingQueue);
+    });
+
+
+
 
 return {
   queueList,
@@ -469,6 +563,8 @@ return {
   cusQueueNum,
   servingStatus,
   tellerFullName,
+  personnelList,
+  teller_id,
 
   // Pagination
   currentPage,

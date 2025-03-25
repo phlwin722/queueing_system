@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
-    <q-header bordered>
+    <q-header>
       <q-toolbar>
         <q-img
           src="~assets/vrtlogowhite1.png"
@@ -33,7 +33,7 @@
       bordered
       content-class="fit"
       :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
-      class="q-pa-sm"
+      class="q-px-sm shadow-1"
     >
       <q-scroll-area
         class="fit"
@@ -125,7 +125,6 @@
                     <q-item
                       clickable
                       v-ripple
-                      :disable="!isQueuelistEmpty || currentServing != null"
                       @click="resetQueue()"
                     >
                       <q-item-section avatar class="q-pl-xl">
@@ -157,7 +156,7 @@
       </q-scroll-area>
 
       <!-- Mini Drawer Toggle Button -->
-      <div class="q-mini-drawer-hide absolute" style="top: 575px; right: -17px">
+      <div class="q-mini-drawer-hide absolute" style="top: 20px; right: -17px">
         <q-btn
           dense
           round
@@ -213,7 +212,7 @@
         </q-btn-dropdown>
       </div>
     </q-drawer>
-    <q-page-container>
+    <q-page-container style="padding-bottom: 20px;">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -224,6 +223,7 @@ import { defineComponent, ref, onMounted } from "vue";
 import { date } from "quasar";
 import { useRouter } from "vue-router";
 import { $axios, $notify } from "src/boot/app";
+import { useQuasar } from "quasar";
 
 export default defineComponent({
   name: "MainLayout",
@@ -238,7 +238,7 @@ export default defineComponent({
     const previewAdminImage = ref(null);
     const currentServing = ref(null);
     const isQueuelistEmpty = ref(false);
-
+    const $dialog = useQuasar();
     const adminInformationContent = ref({
       id: "",
       Firstname: "",
@@ -421,8 +421,8 @@ export default defineComponent({
       try {
         $dialog
           .dialog({
-            title: "Confirm",
-            message: "Are you sure do you want reset queue?",
+            title: "Confirm Queue Reset",
+            message: "Please make sure all the queues are finished",
             cancel: true,
             persistent: true,
             color: "primary",
@@ -450,7 +450,7 @@ export default defineComponent({
           });
       } catch (error) {
         console.error(error);
-        $notify("negative", "error", "Failed to set waiting customer.");
+        $notify("negative", "error",error);
       }
     };
 
@@ -485,11 +485,11 @@ export default defineComponent({
           },
         ],
       },
-      {
+/*       {
         title: "Archive",
         icon: "archive",
         link: "/admin/archive",
-      },
+      }, */
       {
         title: "Admin Queue",
         icon: "admin_panel_settings",

@@ -140,11 +140,11 @@ export default {
         const response = await $axios.post("/generate-qr");
 
         const fullUrl = response.data.qr_code_url; // Example: "http://192.168.1.164:8000/scan-qr/abcd1234"
-        const token = fullUrl.slice(26)// Extract token from URL
+        const token = fullUrl.slice(22)// Extract token from URL
 
         localStorage.setItem("token", token);
         registrationLink.value =
-          "192.168.1.164:8080/customer-register/" + token;
+          "192.168.0.164:8080/customer-register/" + token;
 
         console.log("Token:", token);
       } catch (error) {
@@ -158,16 +158,18 @@ export default {
         console.log(val ? "In fullscreen now" : "Exited fullscreen");
       }
     );
+    let Qrtimeout;
+    const optimizedFecthQr = async () => {
+        await fetchQrCode()
+        Qrtimeout = setTimeout(optimizedFecthQr, 5000); // Recursive Timeout
+    };
 
     onMounted(() => {
-      fetchQrCode(); // Fetch QR code immediately on mount
-      intervalId = setInterval(fetchQrCode, 5000); // Run every 5 seconds
+      optimizedFecthQr()
     });
 
     onUnmounted(() => {
-      if (intervalId) {
-        clearInterval(intervalId); // Clear interval when component is destroyed
-      }
+      clearTimeout(Qrtimeout);
     });
 
     return { registrationLink, icons };

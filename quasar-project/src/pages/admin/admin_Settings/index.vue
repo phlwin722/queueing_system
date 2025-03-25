@@ -1,6 +1,16 @@
 <template>
-  <q-page class="q-pa-lg">
-  <div class="row q-col-gutter-xs">
+  <q-page class="q-px-lg" style="min-height: auto;">
+    <div class="q-my-md bg-white q-pa-sm shadow-1">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el label="Settings" icon="settings"/>
+                <q-breadcrumbs-el label="Account Settings" icon="computer" to="/admin/settings" />
+            </q-breadcrumbs>
+            </div>
+
+  <div class="row q-col-gutter-xs q-px-xs q-mt-sm">
       <!-- Profile Section -->
       <q-card class="col-12 col-sm-4 col-md-3 q-pa-md flex flex-center">
       <div class="column items-center q-ma-lg">
@@ -185,7 +195,7 @@
 </template>
   
   <script>
-  import { ref, onMounted, watch  } from 'vue';
+  import { ref, onMounted, watch, onUnmounted  } from 'vue';
   import { $axios, $notify } from 'src/boot/app';
   import { useQuasar } from 'quasar';
   
@@ -394,6 +404,11 @@
 
   
       // Fetch the data when the component is mounted
+      let imageTimeout;
+      const optimizedFetchImage = async () => {
+        await fetchingImage()
+        imageTimeout = setTimeout(optimizedFetchImage, 2000); // Recursive Timeout
+      };
       onMounted(() => {
         // check if have localStorage 
         const storedAdminfo = localStorage.getItem('adminInformation')
@@ -401,11 +416,14 @@
           const adminData = JSON.parse(storedAdminfo);
           idAdmin.value = adminData.id;  // Make sure you're only storing the ID here
           fetchAdminInfo()
-          setInterval(fetchingImage, 1000);
+          optimizedFetchImage()
         } else {
           console.error("No admin information found in localStorage");
         }
       });
+      onUnmounted(() => {
+      clearTimeout(imageTimeout);
+    });
   
       return {
         tab,

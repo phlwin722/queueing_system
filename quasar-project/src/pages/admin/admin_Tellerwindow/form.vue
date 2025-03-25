@@ -209,9 +209,8 @@
         const fetchPersonnel = async () => { 
             try {
                 if (!formData.value.type_id) return; // Stop if no grade level is selected
-                console.log(formData.value.type_id)
                 const response = await $axios.post('/tellers/dropdown', {
-                    type_id: formData.value.type_id // Send selected grade level
+                    type_id: formData.value.type_id 
                 });
 
                 console.log(response.tellers)
