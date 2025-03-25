@@ -2,7 +2,7 @@
   <q-layout>
     <div
       class="flex flex-center full-page column"
-      style="height: 90vh; width: 100vw"
+      style="height: 110vh; width: 100vw"
     >
       <q-img
         src="../../../assets/vrtlogowhite1.png"
@@ -46,10 +46,30 @@
             outlined
             emit-value
             map-options
+            @update:modelValue="fecthCurrencty"  
+            :error="formError.hasOwnProperty('type_id')"
+            :error-message="formError.type_id"
             dense
             class="q-mt-md"
             :options="categoriesList"
             option-label="name"
+            option-value="id"
+          />
+          <q-select
+            v-if="currentCiesList && currentCiesList.length > 0"
+            v-model="currencySelected"
+            label="Currency Available"
+            transition-show="flip-up"
+            transition-hide="flip-down"
+            outlined
+            emit-value
+            map-options
+            dense
+            class="q-mt-md"
+            :options="currentCiesList"
+            option-label="name"
+            :error="formError.hasOwnProperty('currency')"
+            :error-message="formError.currency"
             option-value="id"
           />
         </q-card-section>
@@ -78,22 +98,23 @@ export default {
     const name = ref("");
     const email = ref("");
     const email_status = ref("pending");
-    const type_id = ref();
+    const type_id = ref(null);
+    const currencySelected = ref ();
+    const categoryForeignExchange = ref();
     const categoriesList = ref([]);
+    const currentCiesList = ref ([]);
     const isLoading = ref(false);
     const formError = ref({});
 
     const route = useRoute(); // Use useRoute() correctly
     const token = ref(route.params.token); // Get token from URL
-    console.log(token.value);
     const isUsedToken = ref(false);
+
     const processQrCode = async () => {
       try {
-        const response = await $axios.post("/scan-qr", { token: token.value }); //  Correct way to send token
-
+        const response = await $axios.post("/scan-qr", { token: token.value });
         if (response.data.success) {
           $notify("positive", "check", "Please register to join the queue.");
-          console.log(isUsedToken.value);
         } else {
           isUsedToken.value = true;
           $notify("negative", "error", "Invalid or already used QR code.");
@@ -107,11 +128,17 @@ export default {
     const joinQueue = async () => {
       isLoading.value = true;
       try {
-        if (isUsedToken.value === true) {
-          console.log(isUsedToken.value);
+        // Check if the category is 'Foreign Exchange' and validate the currency selection
+        if (categoryForeignExchange.value === 1) {
+          if (currencySelected.value == null) {
+            formError.value.currency = "Currency field is required";
+            return;
+          }
+        }
+
+        if (isUsedToken.value) {
           $notify("negative", "error", "Invalid or already used QR code.");
         } else {
-          console.log(email.value);
           name.value = name.value.charAt(0).toUpperCase() + name.value.slice(1);
           const response = await $axios.post("/customer-join", {
             token: token.value,
@@ -119,21 +146,17 @@ export default {
             email: email.value,
             email_status: email_status.value,
             type_id: type_id.value,
+            currency: currencySelected.value
           });
 
           localStorage.setItem("customer_id" + token.value, response.data.id);
-          localStorage.setItem(
-            "queue_number" + token.value,
-            response.data.queue_number
-          );
+          localStorage.setItem("queue_number" + token.value, response.data.queue_number);
           localStorage.setItem("customer_token" + token.value, token.value);
           window.location.href = "/customer-dashboard/" + token.value;
         }
       } catch (error) {
         if (error.response.status === 422) {
           formError.value = error.response.data;
-        } else {
-          console.log("error", error);
         }
       } finally {
         isLoading.value = false;
@@ -141,20 +164,44 @@ export default {
     };
 
     const fetchCategories = async () => {
-            try {
-                const { data } = await $axios.post('/types/index');
-                categoriesList.value = data.rows; // Ensure this matches the API response structure
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-            }
-        };
+      try {
+        const { data } = await $axios.post("/types/index");
+        categoriesList.value = data.rows;
+        console.log("Categories loaded:", categoriesList.value); // Check categories
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
 
-    onMounted(processQrCode); // Runs on page load
+    const fecthCurrencty = async (selectedValue) => {
+      try {
+        categoryForeignExchange.value = selectedValue
+        if (selectedValue === 1) {
+          const { data } = await $axios.post('/currency/showData');
+
+          // Map the response to create the list of currencies with name and id
+          currentCiesList.value = data.rows.map(row => {
+            return {
+              id: row.id,  // Ensure each currency has an id
+              name: `${row.currency_symbol} ${row.currency_name}    (${row.value})`, // Format name
+            };
+          });
+        } else {
+          currentCiesList.value = [];  // Clear the currentCiesList if selectedValue is not 1
+          currencySelected.value = '';
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error.message)
+        }
+      }
+    };
+
 
     onMounted(() => {
-      processQrCode
-      fetchCategories()
-  })
+      processQrCode();
+      fetchCategories();
+    });
 
     return {
       name,
@@ -164,12 +211,16 @@ export default {
       formError,
       isLoading,
       token,
+      currencySelected,
       type_id,
       categoriesList,
+      fecthCurrencty,
+      currentCiesList,
     };
   },
 };
 </script>
+
 <style lang="scss" scoped>
 .full-page {
   height: 100vh;
