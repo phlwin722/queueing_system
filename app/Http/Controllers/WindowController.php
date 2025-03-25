@@ -223,7 +223,13 @@ class WindowController extends Controller
 
     try {
         DB::transaction(function () {
-            $windows = Window::all();
+            // Get only windows that have an assigned teller
+            $windows = Window::whereNotNull('teller_id')->get();
+
+            if ($windows->isEmpty()) {
+                Log::info("⚠ No assigned tellers to reset.");
+                throw new \Exception("No assigned tellers to reset.");
+            }
 
             foreach ($windows as $window) {
                 WindowArchive::create([
@@ -235,18 +241,20 @@ class WindowController extends Controller
                 ]);
             }
 
-            // Reset tellers after archiving
-            Window::query()->update(['teller_id' => null]);
-            Teller::query()->update(['type_id' => null]);
+            // Reset only affected rows
+            Window::whereNotNull('teller_id')->update(['teller_id' => null]);
+            Teller::whereIn('id', $windows->pluck('teller_id'))->update(['type_id' => null]);
+
+            Log::info("✅ Window Reset successfully.");
         });
 
-        Log::info("✅ Windows reset successfully.");
-        return response()->json(['message' => 'Windows reset successfully']);
+        return response()->json(['message' => 'Windows with assigned tellers reset successfully']);
     } catch (\Exception $e) {
         Log::error("❌ Error resetting windows: " . $e->getMessage());
-        return response()->json(['message' => 'Reset failed'], 500);
+        return response()->json(['message' => $e->getMessage()], 500);
     }
 }
+
 
     //For Automatic Call the Reset Settings 
     public function autoResetWindows()
