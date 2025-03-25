@@ -2,7 +2,7 @@
   <q-page class="q-px-sm">
     <div class="q-ma-md bg-white q-pa-sm shadow-1">
       <q-breadcrumbs class="q-mx-sm">
-        <q-breadcrumbs-el icon="home" />
+        <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
         <q-breadcrumbs-el label="Customer logs" icon="description" to="/admin/customer-logs" />
       </q-breadcrumbs>
     </div>

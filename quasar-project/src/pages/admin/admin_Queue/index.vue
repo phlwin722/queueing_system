@@ -4,7 +4,7 @@
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
                 <q-breadcrumbs-el label="Admin Queue" icon="admin_panel_settings" to="/admin/admin_Queue" />
             </q-breadcrumbs>
             </div>
