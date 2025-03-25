@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-px-lg q-pb-lg">
+  <q-page class="q-px-lg q-pb-lg" style="height: auto; min-height: unset;">
 
     <div class="q-my-md bg-white q-pa-sm shadow-1">
     <q-breadcrumbs 
@@ -64,6 +64,7 @@
           :rows="rowsWorkStation"
           :columns="columnsWorkStation"
           row-key="id"
+          
         >
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
@@ -206,6 +207,10 @@ export default {
   height: 125px; /* Adjust height to match your image */
   border-radius: 10px; /* Rounded corners */
   display: flex;
+}
+
+.q-table {
+  overflow: hidden !important;
 }
 
 </style>
