@@ -88,7 +88,8 @@ import {
   defineComponent ,
   ref,
   computed,
-  onMounted
+  onMounted,
+  onUnmounted
 } from 'vue'
 
 
@@ -181,15 +182,28 @@ export default {
             }
           };
 
+        let dataTimeout;
+        let workTimeout;
+
+        const optimizedFetchData = async () => {
+          await getTableData()
+          dataTimeout = setTimeout(optimizedFetchData, 5000); // Recursive Timeout
+        };
+
+          const optimizedFetchWork = async () => {
+            await fetchWorkStation()
+            workTimeout = setTimeout(optimizedFetchWork, 5000); // Recursive Timeout
+        };
+
         onMounted(() => {
-          getTableData()
-          fetchWorkStation()
-          setInterval(() => {
-          getTableData()
-          fetchWorkStation()
-          // Add more functions as needed
-        }, 5000);
+          optimizedFetchData()
+          optimizedFetchWork()
         })
+
+        onUnmounted(() => {
+          clearTimeout(dataTimeout);
+          clearTimeout(workTimeout);
+        });
 
     return {
       columnsWorkStation,
