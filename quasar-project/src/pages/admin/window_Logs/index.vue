@@ -56,7 +56,7 @@
   </template>
   
   <script>
-  import { defineComponent, ref, computed, onMounted } from 'vue';
+  import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
   import { $axios } from 'boot/app';
   
   export default defineComponent({
