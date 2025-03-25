@@ -144,7 +144,7 @@ export default {
 
         localStorage.setItem("token", token);
         registrationLink.value =
-          "192.168.1.164:8080/customer-register/" + token;
+          "192.168.0.164:8080/customer-register/" + token;
 
         console.log("Token:", token);
       } catch (error) {
