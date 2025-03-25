@@ -40,7 +40,7 @@ class QueueFactory  extends Factory
             // Generate a random queue number (usually numeric)
             'queue_number' => fake()->numberBetween(1,100),
             // Generate a random status from 'finished' or 'cancel'
-            'status' => fake()->randomElement(['finished', 'cancelled']),  // Changed 'cancel' to 'cancelled'
+            'status' => fake()->randomElement(['finished', 'finished', 'finished', 'finished', 'cancelled']),  // Changed 'cancel' to 'cancelled'
             // Generate random 'updated_at' from 2023 to present
             'updated_at' => fake()->dateTimeBetween('2023-01-01', Carbon::now())->format('Y-m-d H:i:s'),
         ];
