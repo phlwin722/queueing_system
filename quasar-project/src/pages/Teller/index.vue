@@ -346,7 +346,7 @@ export default {
           setTimeout(() => {
             caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
             startWait(queueList.value[0].id, queueList.value[0].queue_number);
-          }, 2000);
+          }, 1000);
         }
         isQueuelistEmpty.value = queueList.value.length == 0;
       } catch (error) {
@@ -356,7 +356,6 @@ export default {
 
     const fetchId = async () => {
       try {
-        
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
@@ -366,6 +365,8 @@ export default {
         console.error(error);
       }
     };
+
+
     // Cater customer
     const caterCustomer = async (customerId, type_id) => {
       try {
@@ -593,22 +594,37 @@ export default {
       }, 100);
     }
 
+    let waitingTimeout;
+    let queueTimeout;
+    let fetchIdTimeout;
+
+    const optimizedFetchQueueData = async () => {
+    await fetchQueue();
+    queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+    };
+
+    const optimizedFetchWaitingtime = async () => {
+      await fetchWaitingtime()
+      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
+    };
+
+    const optimizedFetchId = async () => {
+      await fetchId()
+      fetchIdTimeout = setTimeout(optimizedFetchId, 3000); // Recursive Timeout
+    };
+
     onMounted(() => {
       const storedTellerInfo = localStorage.getItem("tellerInformation");
       if (storedTellerInfo) {
-        fetchQueue();
-        refreshInterval = setInterval(fetchQueue, 2000); // Auto-refresh every 5 seconds
-        fetchWaitingtime()
-        refreshInterval = setInterval(fetchWaitingtime, 2000);
-        const startTime =
-          parseInt(localStorage.getItem("wait_start_time")) || 0;
+        optimizedFetchQueueData()
+        optimizedFetchWaitingtime()
+        optimizedFetchId()
+        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         if (startTime && duration) {
           waiting.value = true;
           startTimer();
         }
-        fetchId();
-        refreshInterval = setInterval(fetchId, 2000);
         tellerInformation.value = JSON.parse(storedTellerInfo);
         fetchType_idValue();
         fetch_Image();
@@ -617,10 +633,11 @@ export default {
       }
     });
 
-    // onUnmounted(() => {
-    //   clearInterval(refreshInterval) // Stop interval when component is destroyed
-    //   clearInterval(waitTimer) // Stop wait timer if it exists
-    // })
+    onUnmounted(() => {
+      clearTimeout(waitingTimeout);
+      clearTimeout(queueTimeout);
+      clearTimeout(fetchIdTimeout);
+    });
 
     return {
       queueList,
