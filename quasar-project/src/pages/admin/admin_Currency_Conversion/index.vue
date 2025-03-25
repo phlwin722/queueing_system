@@ -113,9 +113,9 @@ export default defineComponent({
 
         const columns = ref([
             { name: 'currency_name', label: 'Currency Name', align: 'left', field: 'currency_name', sortable: true },
+            { name: 'currency_symbol', label: 'Currency Symbol', align: 'left', field: 'currency_symbol', sortable: true },
             { name: 'value', label: 'Value', align: 'left', field: 'value', sortable: true },
-            { name: 'actions', label: 'Actions', align: 'left', sortable: false 
-            }
+            { name: 'actions', label: 'Actions', align: 'left', sortable: false}
         ]);
 
         const filteredRows = computed(() => {
