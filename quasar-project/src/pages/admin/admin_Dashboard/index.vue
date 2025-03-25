@@ -111,9 +111,7 @@ export default {
     const dateToday = new Date().toISOString().slice(0, 10);
 
     const getTableData = async () => {
-          try{
-          
-            
+          try{           
             const { data } = await $axios.post('/admin/queue-logs',{
               date: dateToday
             })

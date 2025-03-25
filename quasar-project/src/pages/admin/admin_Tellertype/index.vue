@@ -160,7 +160,13 @@
             },
             style: 'border-radius: 12px; padding: 16px;',
           }).onOk(async () => {
-                handleDelete(ids);
+            for (const id of ids) {
+                if (id === 1) {
+                    $notify('negative', 'error', 'Cannot delete foreign exchange');
+                    return;  // Stops further execution for this iteration, no handleDelete will be called
+                }
+            }
+             handleDelete(ids);
           }).onDismiss(() => {
             // console.log('I am triggered on both OK and Cancel')
           });

@@ -243,11 +243,15 @@ export default {
     const abbreviateName = (name) => {
       const words = name.split(" "); // Split the name by spaces (e.g., "John Doe" -> ["John", "Doe"])
       return words
-        .map((word) => {
-          // Take first letter of each word and append "..."
-          return word[0].toUpperCase() + "...";
+        .map((word,index) => {
+            if (index === 0) {
+              // Take first letter of each word and append "..."
+              return word[0].toUpperCase() + "...";
+            }
+            // For all other words (e.g., last name), leave them as is
+            return word;
         })
-        .join(" "); // Join back the abbreviated words
+        .join(" "); // Join back the abbreviated words  Output: "J... Dy"
     };
 
     // const putTellerId = async () => {
