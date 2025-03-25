@@ -186,7 +186,12 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
-import { useQuasar } from "quasar";
+import { useQuasar } from "quasar";          localStorage.setItem("customer_id" + token.value, response.data.id);
+          localStorage.setItem(
+            "queue_number" + token.value,
+            response.data.queue_number
+          );
+          localStorage.setItem("customer_token" + token.value, token.value);
 
 export default {
   setup() {

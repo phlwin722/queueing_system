@@ -212,7 +212,7 @@
         </q-btn-dropdown>
       </div>
     </q-drawer>
-    <q-page-container>
+    <q-page-container style="padding-bottom: 20px;">
       <router-view />
     </q-page-container>
   </q-layout>

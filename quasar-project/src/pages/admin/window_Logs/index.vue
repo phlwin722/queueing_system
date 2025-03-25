@@ -22,7 +22,7 @@
       />
     </div>
   
-    <q-page>
+    <q-page style="min-height: 480px;">
       <div class="q-px-lg q-mt-md">
         <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id">
           <template v-slot:body-cell-actions="props">
