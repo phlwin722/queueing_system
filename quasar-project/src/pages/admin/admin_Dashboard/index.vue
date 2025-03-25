@@ -5,7 +5,7 @@
     <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el icon="home" to="/" />
+                <q-breadcrumbs-el icon="home" />
                 <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
             </q-breadcrumbs>
       </div>
