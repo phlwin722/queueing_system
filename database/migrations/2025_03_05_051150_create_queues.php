@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('queue_number');
             $table->enum('status', ['waiting', 'serving', 'cancelled','finished'])->default('waiting');
             $table->string('waiting_customer')->nullable();
+            $table->string('currency_selected')->nullable();
             $table->timestamps();
         });
     }

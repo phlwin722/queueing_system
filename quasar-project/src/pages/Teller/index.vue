@@ -70,18 +70,15 @@
         <div class="q-pa-md full-width">
           <!-- Main Row Container -->
           <div class="row q-col-gutter-md justify-center full-height">
-
-
-
             <!-- First Item -->
             <div class="col-12 col-md-6">
               <q-card class="q-pa-md">
                 <q-card-section>
                   <q-item>
                     <q-item-section>
-                      <q-item-label class="text-h4 text-center"
-                        >Number of Queue in line: {{noOfQueue}}</q-item-label
-                      >
+                      <q-item-label class="text-h4 text-center">
+                        Number of Queue in line: {{ paginatedQueueList.length }}
+                      </q-item-label>
                     </q-item-section>
                   </q-item>
                   <q-separator />
@@ -109,33 +106,43 @@
                               <h5>Queue Empty</h5>
                             </q-item-section>
                           </q-item>
-                          <!-- Items of queue list -->
-                          <q-item
-                            class="bg-accent"
+
+                          <!-- Queue Items -->
+                          <template
                             v-for="(customer, index) in paginatedQueueList"
                             :key="customer.id"
                           >
-                            <q-item-section>
-                              <h5 class="q-mb-sm q-mt-sm">
-                                {{ customer.queue_number }}
-                              </h5>
-                              <p>{{ customer.name }}</p>
-                            </q-item-section>
-                            <q-item-section side>
-                              <q-badge
-                                v-if="index <= 4"
-                                color="orange"
-                                label="Up Next"
-                                class="custom-badge"
-                              />
-                              <q-badge
-                                v-else
-                                color="blue-grey"
-                                label="Waiting"
-                                class="custom-badge"
-                              />
-                            </q-item-section>
-                          </q-item>
+                            <q-item
+                              class="bg-accent draggable-item"
+                              :class="{ 'drag-over': dragOverIndex === index }"
+                              draggable="true"
+                              @dragstart="onDragStart($event, index)"
+                              @dragover.prevent="onDragOver(index)"
+                              @dragleave="onDragLeave"
+                              @drop="onDrop(index)"
+                            >
+                              <q-item-section>
+                                <h5 class="q-mb-sm q-mt-sm">
+                                  {{ customer.queue_number }}
+                                </h5>
+                                <p>{{ customer.name }}</p>
+                              </q-item-section>
+                              <q-item-section side>
+                                <q-badge
+                                  v-if="index <= 4"
+                                  color="orange"
+                                  label="Up Next"
+                                  class="custom-badge"
+                                />
+                                <q-badge
+                                  v-else
+                                  color="blue-grey"
+                                  label="Waiting"
+                                  class="custom-badge"
+                                />
+                              </q-item-section>
+                            </q-item>
+                          </template>
                         </q-list>
                       </q-scroll-area>
                     </q-item-section>
@@ -145,7 +152,6 @@
               </q-card>
             </div>
 
-            <!-- Second Item -->
             <div class="col-12 col-md-6">
               <q-card
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
@@ -154,7 +160,7 @@
                   <q-item>
                     <q-item-section class="text-center">
                       <span class="text-h4 text-bold text-uppercase q-pa-sm">
-                       {{`${tellerInformation?.type_name || 'Loading...'}`}}
+                        {{ `${tellerInformation?.type_name || "Loading..."}` }}
                       </span>
                     </q-item-section>
                   </q-item>
@@ -214,27 +220,33 @@
                             <q-item-section>
                               <div class="q-gutter-y-xs q-my-sm items-end">
                                 <q-btn
-                                    v-if="currentServing && tempTimer == 0"
-                                    label="Cancel"
-                                    color="red-9"
-                                    @click="beforeCancel(currentServing)" 
-                                  />
-  
-                                  <q-btn
-                                    v-if="currentServing"
-                                    color="orange"
-                                    class="q-ml-sm"
-                                    :label="waiting ? formatTime(tempTimer) : 'Wait'"
-                                    @click="startWait(cusId, currentServing.queue_number)"
-                                    :disable="waiting"
-                                    />
-                                  <q-btn
-                                    v-if="currentServing && tempTimer == 0"
-                                    label="Finished"
-                                    color="primary"
-                                    @click="finishCustomer(currentServing.id)"
-                                  />
+                                  v-if="currentServing && tempTimer == 0"
+                                  label="Cancel"
+                                  color="red-9"
+                                  @click="beforeCancel(currentServing)"
+                                />
 
+                                <q-btn
+                                  v-if="currentServing"
+                                  color="orange"
+                                  class="q-ml-sm"
+                                  :label="
+                                    waiting ? formatTime(tempTimer) : 'Wait'
+                                  "
+                                  @click="
+                                    startWait(
+                                      cusId,
+                                      currentServing.queue_number
+                                    )
+                                  "
+                                  :disable="waiting"
+                                />
+                                <q-btn
+                                  v-if="currentServing && tempTimer == 0"
+                                  label="Finished"
+                                  color="primary"
+                                  @click="finishCustomer(currentServing.id)"
+                                />
                               </div>
                             </q-item-section>
                           </q-item>
@@ -272,9 +284,8 @@
   </q-layout>
 </template>
 
-
 <script>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted  } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
@@ -283,7 +294,7 @@ export default {
   setup() {
     const cusId = ref();
     const queueList = ref([]);
-    const router = useRouter()
+    const router = useRouter();
     const currentServing = ref(null);
     const waiting = ref(false);
     const waitTime = ref(30);
@@ -315,48 +326,73 @@ export default {
       tellerFirstname: "",
       tellerLastname: "",
       type_id: "",
-      type_name: '',
+      type_name: "",
     });
 
     // Fetch queue data
     const fetchQueue = async () => {
-      // console.log("id: "+tellerInformation.value.id)
-      //   console.log("typeId: "+tellerInformation.value.type_id)
       try {
+        // Load locally stored queue order if available
+        const storedQueue = JSON.parse(localStorage.getItem("queueList")) || [];
+
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
         });
 
-        queueList.value = response.data.queue.filter(
+        const fetchedQueue = response.data.queue.filter(
           (q) => !["finished", "cancelled"].includes(q.status)
         );
+
+        // Update and store current serving
         currentServing.value = response.data.current_serving;
-        noOfQueue.value = queueList.value.length
-        // queuePosition.value = queueList.value.findIndex(q => q.queue_number == response.data.queue_numbers[0]) + 1
-        // console.log(queuePosition.value)
-        // console.log(response.data.queue_numbers)
+        localStorage.setItem(
+          "currentServing",
+          JSON.stringify(currentServing.value)
+        );
+
+        // Remove current serving from the queue list
+        const updatedQueue = fetchedQueue.filter(
+          (q) => q.id !== currentServing.value?.id
+        );
+
+        // Preserve the local order while updating new queue items
+        queueList.value = reorderQueue(storedQueue, updatedQueue);
+
+        // Save updated queue order
+        localStorage.setItem("queueList", JSON.stringify(queueList.value));
+
+        noOfQueue.value = queueList.value.length;
+
+        // Auto-serve next customer if queue has waiting ones
         if (
           queueList.value.length > 0 &&
           queueList.value[0].status === "waiting" &&
           currentServing.value == null
         ) {
-          
-
           setTimeout(() => {
             caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
             startWait(queueList.value[0].id, queueList.value[0].queue_number);
-          }, 2000);
+          }, 1000);
         }
+
         isQueuelistEmpty.value = queueList.value.length == 0;
       } catch (error) {
         console.error(error);
       }
     };
 
+    // Helper function to maintain the local order
+    const reorderQueue = (storedQueue, updatedQueue) => {
+      const orderMap = new Map(storedQueue.map((q, index) => [q.id, index]));
+      return updatedQueue.sort(
+        (a, b) =>
+          (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
+      );
+    };
+
     const fetchId = async () => {
       try {
-        
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
@@ -366,14 +402,24 @@ export default {
         console.error(error);
       }
     };
+
+
     // Cater customer
     const caterCustomer = async (customerId, type_id) => {
       try {
         await $axios.post("/teller/cater", {
           id: customerId,
           service_id: type_id,
-          teller_id: tellerInformation.value.id
+          teller_id: tellerInformation.value.id,
         });
+
+        // Update UI immediately
+        const customer = queueList.value.find((q) => q.id === customerId);
+        if (customer) {
+          customer.status = "serving";
+          currentServing.value = customer; // Set as the currently served customer
+        }
+
         fetchQueue();
         fetchId();
       } catch (error) {
@@ -489,7 +535,8 @@ export default {
 
       waitTimer = setInterval(() => {
         const now = Math.floor(Date.now() / 1000);
-        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
+        const startTime =
+          parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         const elapsed = now - startTime;
         const remaining = duration - elapsed;
@@ -498,7 +545,6 @@ export default {
           tempTimer.value = remaining;
           if (tempTimer.value === 0) {
             resetWait(cusId.value);
-            
           }
         } else {
           stopWait();
@@ -558,57 +604,126 @@ export default {
     // fetching the name of value of type id on service type
     const fetchType_idValue = async () => {
       try {
-        const { data } = await $axios.post('/teller/typeid-value',{
-          type_id: tellerInformation.value.type_id
-        })
+        const { data } = await $axios.post("/teller/typeid-value", {
+          type_id: tellerInformation.value.type_id,
+        });
         // Update the type_name inside the tellerInformation ref
         tellerInformation.value.type_name = data.servicename;
       } catch (error) {
         if (error.response.status === 422) {
-          console.log(error.response.data.message)
+          console.log(error.response.data.message);
         }
       }
-    }
-    
+    };
+
     const fetch_Image = async () => {
       try {
-        const { data } = await $axios.post('/teller/image-teller', {
-          id: tellerInformation.value.id
+        const { data } = await $axios.post("/teller/image-teller", {
+          id: tellerInformation.value.id,
         });
 
-        imageUrl.value = data.Image
+        imageUrl.value = data.Image;
       } catch (error) {
         if (error.response.status === 422) {
-          console.log(error)
+          console.log(error);
         }
       }
-    }
-    
+    };
+    let draggedIndex = null;
+    const dragOverIndex = ref(null);
+    const isDragging = ref(false);
+
+    const onDragStart = (event, index) => {
+      draggedIndex = index;
+      isDragging.value = true;
+
+      // Set a custom drag image (fixes transparency issues)
+      const dragImage = event.target.cloneNode(true);
+      Object.assign(dragImage.style, {
+        position: "absolute",
+        top: "-9999px",
+        width: `${event.target.offsetWidth}px`,
+        height: `${event.target.offsetHeight}px`,
+        opacity: "1",
+        background: "white",
+        border: "2px solid #1976d2",
+        boxShadow: "0px 4px 10px rgba(0,0,0,0.3)",
+      });
+
+      document.body.appendChild(dragImage);
+      event.dataTransfer.setDragImage(dragImage, 0, 0);
+
+      // Ensure the drag image is removed immediately
+      setTimeout(() => document.body.removeChild(dragImage), 0);
+    };
+
+    const onDragOver = async (index) => {
+      if (dragOverIndex.value !== index) {
+        dragOverIndex.value = index;
+        await nextTick(); // Force Vue to repaint for proper hint visibility
+      }
+    };
+
+    const onDragLeave = () => {
+      dragOverIndex.value = null;
+    };
+
+    const onDrop = (targetIndex) => {
+      if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+      // Swap positions in queueList
+      const item = queueList.value.splice(draggedIndex, 1)[0];
+      queueList.value.splice(targetIndex, 0, item);
+
+      // Save updated queue to localStorage
+      localStorage.setItem("queueList", JSON.stringify(queueList.value));
+
+      // Reset indexes
+      draggedIndex = null;
+      dragOverIndex.value = null;
+      isDragging.value = false;
+    };
+
     const logout = async () => {
-      localStorage.removeItem('authTokenTeller');
-      localStorage.removeItem('tellerInformation');
+      localStorage.removeItem("authTokenTeller");
+      localStorage.removeItem("tellerInformation");
       router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation
       }, 100);
-    }
+    };
+
+    let waitingTimeout;
+    let queueTimeout;
+    let fetchIdTimeout;
+
+    const optimizedFetchQueueData = async () => {
+    await fetchQueue();
+    queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+    };
+
+    const optimizedFetchWaitingtime = async () => {
+      await fetchWaitingtime()
+      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
+    };
+
+    const optimizedFetchId = async () => {
+      await fetchId()
+      fetchIdTimeout = setTimeout(optimizedFetchId, 3000); // Recursive Timeout
+    };
 
     onMounted(() => {
       const storedTellerInfo = localStorage.getItem("tellerInformation");
       if (storedTellerInfo) {
-        fetchQueue();
-        refreshInterval = setInterval(fetchQueue, 2000); // Auto-refresh every 5 seconds
-        fetchWaitingtime()
-        refreshInterval = setInterval(fetchWaitingtime, 2000);
-        const startTime =
-          parseInt(localStorage.getItem("wait_start_time")) || 0;
+        optimizedFetchQueueData()
+        optimizedFetchWaitingtime()
+        optimizedFetchId()
+        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         if (startTime && duration) {
           waiting.value = true;
           startTimer();
         }
-        fetchId();
-        refreshInterval = setInterval(fetchId, 2000);
         tellerInformation.value = JSON.parse(storedTellerInfo);
         fetchType_idValue();
         fetch_Image();
@@ -617,10 +732,11 @@ export default {
       }
     });
 
-    // onUnmounted(() => {
-    //   clearInterval(refreshInterval) // Stop interval when component is destroyed
-    //   clearInterval(waitTimer) // Stop wait timer if it exists
-    // })
+    onUnmounted(() => {
+      clearTimeout(waitingTimeout);
+      clearTimeout(queueTimeout);
+      clearTimeout(fetchIdTimeout);
+    });
 
     return {
       queueList,
@@ -649,6 +765,12 @@ export default {
       toggleFullscreen,
       fetch_Image,
       imageUrl,
+      dragOverIndex,
+      isDragging,
+      onDragStart,
+      onDragOver,
+      onDragLeave,
+      onDrop,
     };
   },
 };
@@ -664,6 +786,48 @@ export default {
   100% {
     opacity: 0.2;
   }
+}
+
+.draggable-item {
+  cursor: grab;
+  user-select: none;
+  transition: background 0.2s ease-in-out, transform 0.15s ease-in-out,
+    border 0.15s ease-in-out;
+  opacity: 1 !important;
+  border: 2px solid transparent; /* Default transparent border */
+}
+
+/* Highlight the item being dragged over */
+.draggable-item.drag-over {
+  background: rgba(25, 118, 210, 0.3);
+  border: 2px dashed #1976d2 !important;
+}
+
+/* Drop hint styling */
+.drop-hint {
+  height: 10px;
+  background: rgba(25, 118, 210, 0.4);
+  border-top: 2px dashed #1976d2 !important;
+  border-bottom: 2px dashed #1976d2 !important;
+  margin: 2px 0;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out, visibility 0.15s;
+}
+
+/* Show drop hint when dragging */
+.is-dragging .drop-hint {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Make the entire q-item and border fully visible when holding */
+.draggable-item:active,
+.draggable-item.is-dragging {
+  border: 2px solid #1976d2 !important;
+  background: rgba(25, 118, 210, 0.1); /* Subtle background highlight */
+  padding: 6px; /* Increase padding to make it more visible */
+  box-shadow: 0px 0px 8px rgba(25, 118, 210, 0.5); /* Slight glow effect */
 }
 
 .loading-dots span {

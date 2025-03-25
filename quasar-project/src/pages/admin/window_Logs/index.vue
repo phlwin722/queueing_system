@@ -52,13 +52,11 @@
     <q-td :props="props"></q-td>
   </template>
 </q-table>
-
-
     </q-page>
   </template>
   
   <script>
-  import { defineComponent, ref, computed, onMounted } from 'vue';
+  import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
   import { $axios } from 'boot/app';
   
   export default defineComponent({
@@ -103,11 +101,18 @@
 };
 
   
-      let refreshInterval = null;
-      onMounted(() => {
-        refreshInterval = setInterval(getTableData, 5000);
-        getTableData();
-      });
+  let dataTimeout
+
+  const optimizedFecthData = async () => {
+      await getTableData()
+      dataTimeout = setTimeout(optimizedFecthData, 3000); // Recursive Timeout
+  };
+  onMounted(() => {
+      optimizedFecthData()
+  })
+  onUnmounted(() => {
+      clearTimeout(dataTimeout);
+  });
   
       return {
         rows,
