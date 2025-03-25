@@ -4,7 +4,7 @@
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
                 <q-breadcrumbs-el label="Teller" icon="person"/>
                 <q-breadcrumbs-el label="Teller Personnel" icon="groups" to="/admin/teller/tellers" />
             </q-breadcrumbs>

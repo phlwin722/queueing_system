@@ -1,12 +1,12 @@
 <template>
-  <q-page class="q-px-lg" style="min-height: auto;">
+  <q-page class="q-px-lg" style="height: auto; min-height: unset;">
     <div class="q-my-md bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el icon="home" />
+                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
                 <q-breadcrumbs-el label="Settings" icon="settings"/>
-                <q-breadcrumbs-el label="Account Settings" icon="computer" to="/admin/settings" />
+                <q-breadcrumbs-el label="Personal Info" icon="computer" to="/admin/settings" />
             </q-breadcrumbs>
             </div>
 

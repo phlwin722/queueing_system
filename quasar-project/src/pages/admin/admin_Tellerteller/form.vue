@@ -1,4 +1,3 @@
-
 <template>
     <!-- Dialog Box -->
     <q-dialog @hide="closeDialog" v-model="isShow">
@@ -17,158 +16,155 @@
                 />
             </q-card-section>
 
-            <!-- Form Inputs -->
+            <!-- Form Inputs with Image Preview -->
             <q-card-section>
-                <div class="row q-col-gutter-md">
-                    <!-- First Name Input -->
-                    <div class="col-12">
-                        <q-input
-                            outlined 
-                            v-model="formData.teller_firstname" 
-                            label="First Name:" 
-                            dense
-                            hide-bottom-space
-                            :error="formError.hasOwnProperty('teller_firstname')"
-                            :error-message="formError.teller_firstname"
-                            autofocus
-                        />
-                    </div>
-                    <!-- Last Name Input -->
-                    <div class="col-12">
-                        <q-input 
-                            outlined 
-                            v-model="formData.teller_lastname" 
-                            label="Last Name:" 
-                            dense
-                            hide-bottom-space
-                            :error="formError.hasOwnProperty('teller_lastname')"
-                            :error-message="formError.teller_lastname"
-                        />
-                    </div>
-                    <!-- Username Input -->
-                    <div class="col-12">
-                        <q-input 
-                            outlined 
-                            v-model="formData.teller_username" 
-                            label="Username:" 
-                            dense
-                            hide-bottom-space
-                            :error="formError.hasOwnProperty('teller_username')" 
-                            :error-message="formError.teller_username"
-                        />
-                    </div>
+                <div class="row q-gutter-md">
                     
-                    <!-- Conditional Password Input (for Edit Mode) -->
-                    <div v-if="formMode === 'Edit'" class="col-12">
-                            <q-input 
-                                outlined 
-                                v-model="formDataPassword.teller_newPassword" 
-                                label="New Password:" 
-                                type="password"
-                                dense
-                                hide-bottom-space
-                                :error="formError.hasOwnProperty('teller_newpassword')" 
-                                :error-message="formError.teller_newpassword"
-                        />
-                        
-                        <div class="col-12 q-mt-md">
-                            <q-input 
-                                outlined 
-                                v-model="formDataPassword.teller_retypepassword" 
-                                label="Re-type password:" 
-                                type="password"
-                                dense
-                                hide-bottom-space
-                                :error="formError.hasOwnProperty('teller_retypepassword')" 
-                                :error-message="formError.teller_retypepassword"
-                        />
+                    <!-- Image Preview (Left Side) -->
+                    <div class="column items-center col-shrink justify-center q-gutter-md">
+                        <div v-if="imageUrl" class="flex flex-center column">
+                            <div class="text-subtitle2 q-mb-sm">Selected Image Preview</div>
+                            <q-img
+                                :src="imageUrl"
+                                spinner-color="primary"
+                                style="width: 100%; min-height: 150px; object-fit: contain; border: 1px solid black; border-radius: 5px;"
+                            />
                         </div>
+                        <div v-else class="text-grey q-mt-md">No image selected</div>
+                    </div>
+
+                    <div class="col-auto flex flex-center">
+                        <q-separator vertical class="q-mx-md" />
                     </div>
                     
-
-                    <!-- Default Password Input (for Create Mode) -->
-                    <div v-else class="col-12">
-                        <q-input 
-                            outlined 
-                            v-model="formData.teller_password" 
-                            label="Password:" 
-                            type="password"
-                            dense
-                            hide-bottom-space
-                            :error="formError.hasOwnProperty('teller_password')" 
-                            :error-message="formError.teller_password"
-                        />
-                    </div>
-
-                    <!-- Personnel Type Select -->
-                    <div class="col-12">
-                        <q-select
-                            outlined
-                            v-model="formData.type_ids_selected" 
-                            label="Personel Type"
-                            emit-value
-                            multiple
-                            use-chips
-                            map-options
-                            dense
-                            hide-bottom-space
-                            :error="formError.hasOwnProperty('type_ids_selected')"
-                            :error-message="formError.type_ids_selected"
-                            :options="categoriesList"
-                            option-label="name"
-                            option-value="id"
-                        />    
-                    </div>
-                    <div class="col-12">
-                        <q-file 
-                            outlined
-                            clearable
-                            dense
-                            v-model="selectedImage" 
-                            :error="formError.hasOwnProperty('Image')"
-                            :error-message="formError.Image"
-                            label="Attach your image" 
-                            accept="image/*"
-                            @update:model-value="previewImage"
-                            >
-                            <template v-slot:prepend>
-                            <q-icon name="attach_file" />
-                            </template>
-                            <template v-slot:append>
-                            <q-icon name="preview" class="cursor-pointer" @click="showPreview = true"/>
-                            <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
-                                        preview image
-                                    </q-tooltip>
-                            </template>
-                        </q-file>
-
-                        <!-- Image Preview Dialog -->
-                        <q-dialog v-model="showPreview">
-                            <q-card class="q-pa-md absulute-position"  style="width: 200px; max-width: 30vw; left: 420px; top: 0;">
-                                <q-card-section class="row justify-center">
-                                    <q-img
-                                        :src="imageUrl || require('assets/no-image.png')"
-                                        spinner-color="primary"
-                                        style="width: 100%; max-height: 500px; object-fit: contain; border-color: black; border-width: 1px; border-style: solid;"
-                                    />
-                                    
-                                </q-card-section>
+                    <!-- Form Content (Right Side) -->
+                    <div class="col">
+                        <div class="row q-col-gutter-md">
+                            <!-- First Name Input -->
+                            <div class="col-12">
+                                <q-input
+                                    outlined 
+                                    v-model="formData.teller_firstname" 
+                                    label="First Name:" 
+                                    dense
+                                    hide-bottom-space
+                                    :error="formError.hasOwnProperty('teller_firstname')"
+                                    :error-message="formError.teller_firstname"
+                                    autofocus
+                                />
+                            </div>
+                            <!-- Last Name Input -->
+                            <div class="col-12">
+                                <q-input 
+                                    outlined 
+                                    v-model="formData.teller_lastname" 
+                                    label="Last Name:" 
+                                    dense
+                                    hide-bottom-space
+                                    :error="formError.hasOwnProperty('teller_lastname')"
+                                    :error-message="formError.teller_lastname"
+                                />
+                            </div>
+                            <!-- Username Input -->
+                            <div class="col-12">
+                                <q-input 
+                                    outlined 
+                                    v-model="formData.teller_username" 
+                                    label="Username:" 
+                                    dense
+                                    hide-bottom-space
+                                    :error="formError.hasOwnProperty('teller_username')" 
+                                    :error-message="formError.teller_username"
+                                />
+                            </div>
+                            
+                            <!-- Conditional Password Input (for Edit Mode) -->
+                            <div v-if="formMode === 'Edit'" class="col-12">
+                                <q-input 
+                                    outlined 
+                                    v-model="formDataPassword.teller_newPassword" 
+                                    label="New Password:" 
+                                    type="password"
+                                    dense
+                                    hide-bottom-space
+                                    :error="formError.hasOwnProperty('teller_newpassword')" 
+                                    :error-message="formError.teller_newpassword"
+                                />
                                 
-                                <q-card-actions align="center">
-                                    <q-btn 
-                                    flat 
-                                    label="Close" 
-                                    v-close-popup
+                                <div class="col-12 q-mt-md">
+                                    <q-input 
+                                        outlined 
+                                        v-model="formDataPassword.teller_retypepassword" 
+                                        label="Re-type password:" 
+                                        type="password"
+                                        dense
+                                        hide-bottom-space
+                                        :error="formError.hasOwnProperty('teller_retypepassword')" 
+                                        :error-message="formError.teller_retypepassword"
                                     />
-                                </q-card-actions>
-                            </q-card>
-                        </q-dialog>                    
+                                </div>
+                            </div>
+
+                            <!-- Default Password Input (for Create Mode) -->
+                            <div v-else class="col-12">
+                                <q-input 
+                                    outlined 
+                                    v-model="formData.teller_password" 
+                                    label="Password:" 
+                                    type="password"
+                                    dense
+                                    hide-bottom-space
+                                    :error="formError.hasOwnProperty('teller_password')" 
+                                    :error-message="formError.teller_password"
+                                />
+                            </div>
+
+                            <!-- Personnel Type Select -->
+                            <div class="col-12">
+                                <q-select
+                                    outlined
+                                    v-model="formData.type_ids_selected" 
+                                    label="Personnel Type"
+                                    emit-value
+                                    multiple
+                                    use-chips
+                                    map-options
+                                    dense
+                                    hide-bottom-space
+                                    :error="formError.hasOwnProperty('type_ids_selected')"
+                                    :error-message="formError.type_ids_selected"
+                                    :options="categoriesList"
+                                    option-label="name"
+                                    option-value="id"
+                                />    
+                            </div>
+                            
+                            <!-- File Upload -->
+                            <div class="col-12">
+                                <q-file 
+                                    outlined
+                                    clearable
+                                    dense
+                                    v-model="selectedImage" 
+                                    :error="formError.hasOwnProperty('Image')"
+                                    :error-message="formError.Image"
+                                    label="Attach your image" 
+                                    accept="image/*"
+                                    @update:model-value="previewImage"
+                                >
+                                    <template v-slot:prepend>
+                                        <q-icon name="attach_file" />
+                                    </template>
+                                </q-file>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </q-card-section>
+            <q-separator/>
 
             <!-- Actions (Save Button) -->
-            <q-card-actions class="flex justify-center">
+            <q-card-actions class="justify-center">
                 <q-btn 
                     color="positive" 
                     label="Save" 
@@ -185,6 +181,7 @@
         </q-card>
     </q-dialog>
 </template>
+
 
 
 
@@ -314,12 +311,14 @@ export default defineComponent({
         // Image preview logic
         const previewImage = (file) => {
             if (file) {
-                imageUrl.value = URL.createObjectURL(file);
-                showPreview.value = true;
-            } else {
-                imageUrl.value = null;
-                showPreview.value = false;
-            }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imageUrl.value = e.target.result; // Convert file to base64 URL
+        };
+        reader.readAsDataURL(file);
+    } else {
+        imageUrl.value = null;
+    }
         };
 
         const handleSubmitForm = async () => {

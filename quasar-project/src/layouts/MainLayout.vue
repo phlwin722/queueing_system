@@ -33,7 +33,7 @@
       bordered
       content-class="fit"
       :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
-      class="q-px-sm shadow-1"
+      class="q-px-sm shadow-1 "
     >
       <q-scroll-area
         class="fit"
@@ -156,7 +156,7 @@
       </q-scroll-area>
 
       <!-- Mini Drawer Toggle Button -->
-      <div class="q-mini-drawer-hide absolute" style="top: 20px; right: -17px">
+      <div class="q-mini-drawer absolute" style="top: 10px; right: -17px">
         <q-btn
           dense
           round

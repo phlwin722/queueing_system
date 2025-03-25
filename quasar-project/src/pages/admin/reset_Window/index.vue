@@ -1,96 +1,106 @@
 <template>
-    <div>
-        <q-card class="q-pa-md">
-            <q-form @submit.prevent="submitForm">
-                <q-separator spaced />
+    <q-page class="q-px-lg">
+        <div class="q-my-md bg-white q-pa-sm shadow-1">
+            <q-breadcrumbs 
+                class="q-mx-sm"
+                >
+                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Reset window" icon="reset_tv" to="/admin/reset-window" />
+            </q-breadcrumbs>
+            </div>
+        <div>
+            <q-card class="q-pa-md">
+                <q-form @submit.prevent="submitForm">
+                    <q-separator spaced />
 
-                <q-item>
-                    <q-item-section>
-                        <q-item-label>Reset Window</q-item-label>
-                        <q-item-label caption>
-                            Enable this to automatically reset windows at a set interval.
-                        </q-item-label>
-                    </q-item-section>
-                    <q-item-section side>
-                        <q-checkbox v-model="form.auto_reset" />
-                    </q-item-section>
-                </q-item>
+                    <q-item>
+                        <q-item-section>
+                            <q-item-label>Reset Window</q-item-label>
+                            <q-item-label caption>
+                                Enable this to automatically reset windows at a set interval.
+                            </q-item-label>
+                        </q-item-section>
+                        <q-item-section side>
+                            <q-checkbox v-model="form.auto_reset" />
+                        </q-item-section>
+                    </q-item>
 
-                <div v-if="form.auto_reset">
-                    <q-select
-                        v-model="form.reset_type"
-                        :options="['Daily', 'Weekly', 'Monthly']"
-                        label="Reset Frequency"
-                        outlined
-                        class="q-mt-sm"
-                    />
-
-                    <q-card v-if="form.reset_type" flat bordered class="q-pa-md">
-                        <q-input
-                            v-model="form.reset_time"
-                            label="Time (HH:MM)"
+                    <div v-if="form.auto_reset">
+                        <q-select
+                            v-model="form.reset_type"
+                            :options="['Daily', 'Weekly', 'Monthly']"
+                            label="Reset Frequency"
                             outlined
                             class="q-mt-sm"
-                            placeholder="00:00"
-                            @update:model-value="formatTime"
-                            maxlength="5"
-                            inputmode="numeric"
-                        >
-                            <template v-slot:append>
-                                <q-icon name="access_time" class="cursor-pointer" @click="showTimePicker = true" />
-                            </template>
-                        </q-input>
+                        />
 
-                        <q-dialog v-model="showTimePicker">
-                            <q-card>
-                                <q-time v-model="form.reset_time" format24h @update:model-value="formatTime" />
-                                <q-card-actions align="right">
-                                    <q-btn flat label="OK" v-close-popup />
-                                </q-card-actions>
-                            </q-card>
-                        </q-dialog>
-                    </q-card>
-
-                    <div v-if="form.reset_type === 'Weekly'" class="q-mt-sm">
-                        <q-card flat bordered class="q-pa-md">
-                            <q-option-group
-                                v-model="form.reset_day"
-                                :options="weekDays"
-                                type="radio"
-                                label="Select Day"
-                                inline
-                            />
-                        </q-card>
-                    </div>
-
-                    <div v-if="form.reset_type === 'Monthly'" class="q-mt-sm">
-                        <q-card flat bordered class="q-pa-md">
+                        <q-card v-if="form.reset_type" flat bordered class="q-pa-md">
                             <q-input
-                                v-model="form.reset_date"
-                                label="Select Date"
+                                v-model="form.reset_time"
+                                label="Time (HH:MM)"
                                 outlined
                                 class="q-mt-sm"
-                                type="date"
-                                :min="minDate"
-                                :max="'9999-12-31'"
-                                @blur="validateDate"
-                            />
-                        </q-card>
-                    </div>
-                </div>
+                                placeholder="00:00"
+                                @update:model-value="formatTime"
+                                maxlength="5"
+                                inputmode="numeric"
+                            >
+                                <template v-slot:append>
+                                    <q-icon name="access_time" class="cursor-pointer" @click="showTimePicker = true" />
+                                </template>
+                            </q-input>
 
-                <q-btn
-                    color="primary"
-                    label="Save"
-                    icon="save"
-                    type="submit"
-                    class="q-mt-md"
-                    :loading="isSubmitting"
-                    :disable="isFormInvalid"
-                />
-            </q-form>
-        </q-card>
-    </div>
+                            <q-dialog v-model="showTimePicker">
+                                <q-card>
+                                    <q-time v-model="form.reset_time" format24h @update:model-value="formatTime" />
+                                    <q-card-actions align="right">
+                                        <q-btn flat label="OK" v-close-popup />
+                                    </q-card-actions>
+                                </q-card>
+                            </q-dialog>
+                        </q-card>
+
+                        <div v-if="form.reset_type === 'Weekly'" class="q-mt-sm">
+                            <q-card flat bordered class="q-pa-md">
+                                <q-option-group
+                                    v-model="form.reset_day"
+                                    :options="weekDays"
+                                    type="radio"
+                                    label="Select Day"
+                                    inline
+                                />
+                            </q-card>
+                        </div>
+
+                        <div v-if="form.reset_type === 'Monthly'" class="q-mt-sm">
+                            <q-card flat bordered class="q-pa-md">
+                                <q-input
+                                    v-model="form.reset_date"
+                                    label="Select Date"
+                                    outlined
+                                    class="q-mt-sm"
+                                    type="date"
+                                    :min="minDate"
+                                    :max="'9999-12-31'"
+                                    @blur="validateDate"
+                                />
+                            </q-card>
+                        </div>
+                    </div>
+
+                    <q-btn
+                        color="primary"
+                        label="Save"
+                        icon="save"
+                        type="submit"
+                        class="q-mt-md"
+                        :loading="isSubmitting"
+                        :disable="isFormInvalid"
+                    />
+                </q-form>
+            </q-card>
+        </div>
+    </q-page>
 </template>
 
 <script>

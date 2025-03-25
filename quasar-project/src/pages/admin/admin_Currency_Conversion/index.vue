@@ -1,13 +1,16 @@
 
 <template>
-    <q-page>
-        <div class="q-pa-md">
+    <q-page class="q-px-lg" style="height: auto; min-height: unset;">
+
+        <div class="q-my-md bg-white q-pa-sm shadow-1">
             <q-breadcrumbs 
                 class="q-mx-sm"
                 >
-                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
-                <q-breadcrumbs-el label="Currency Conversion" icon="category" to="/admin/currency_conversion" />
+                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
+                <q-breadcrumbs-el label="Currency Conversion" icon="currency_exchange" to="/admin/currency_conversion" />
             </q-breadcrumbs>
+            </div>
+
             <q-table
                 title="Currency"
                 :rows="filteredRows"
@@ -18,7 +21,7 @@
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
-                class="q-mx-sm q-mt-md"
+                class=" q-mt-md"
             >
                 <template v-slot:top>
                     <div class="row q-col-gutter-sm">
@@ -87,7 +90,6 @@
                     </q-td>
                 </template>
             </q-table>
-        </div>
     </q-page>
     <my-form ref="dialogForm" :url="URL" :rows="rows" />
 </template>
