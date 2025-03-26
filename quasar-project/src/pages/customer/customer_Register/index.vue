@@ -56,22 +56,41 @@
             option-value="id"
           />
           <q-select
-            v-if="currentCiesList && currentCiesList.length > 0"
-            v-model="currencySelected"
-            label="Currency Available"
-            transition-show="flip-up"
-            transition-hide="flip-down"
-            outlined
-            emit-value
-            map-options
-            dense
-            class="q-mt-md"
-            :options="currentCiesList"
-            option-label="name"
-            :error="formError.hasOwnProperty('currency')"
-            :error-message="formError.currency"
-            option-value="id"
-          />
+          v-if="currentCiesList && currentCiesList.length > 0"
+          v-model="currencySelected"
+          label="Currency Available"
+          transition-show="flip-up"
+          transition-hide="flip-down"
+          outlined
+          emit-value
+          map-options
+          dense
+          class="q-mt-md"
+          :options="currentCiesList"
+          option-label="name"
+          :error="formError.hasOwnProperty('currency')"
+          :error-message="formError.currency"
+          option-value="id"
+        >
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section avatar>
+                <span :class="['fi', scope.opt.flag]"></span>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ scope.opt.symbol }} - {{ scope.opt.name }}</q-item-label>
+                <q-item-label caption>Buy: {{ scope.opt.buy_value }} | Sell: {{ scope.opt.sell_value }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+          
+          <template v-slot:selected-item="scope">
+            <div class="flex items-center">
+              <span :class="['fi', scope.opt.flag]" style="margin-right: 8px;"></span>
+              {{ scope.opt.symbol }} - {{ scope.opt.name }}
+            </div>
+          </template>
+        </q-select>
         </q-card-section>
 
         <q-card-actions align="center">
@@ -175,28 +194,31 @@ export default {
     };
 
     const fecthCurrencty = async (selectedValue) => {
-      try {
-        categoryForeignExchange.value = selectedValue
-        if (selectedValue === 1) {
-          const { data } = await $axios.post('/currency/showData');
+    try {
+      categoryForeignExchange.value = selectedValue;
+      if (selectedValue === 1) {
+        const { data } = await $axios.post('/currency/showData');
 
-          // Map the response to create the list of currencies with name and id
-          currentCiesList.value = data.rows.map(row => {
-            return {
-              id: row.id,  // Ensure each currency has an id
-              name: `${row.currency_symbol} ${row.currency_name}    (${row.value})`, // Format name
-            };
-          });
-        } else {
-          currentCiesList.value = [];  // Clear the currentCiesList if selectedValue is not 1
-          currencySelected.value = '';
-        }
-      } catch (error) {
-        if (error.response.status === 422) {
-          console.log(error.message)
-        }
+        currentCiesList.value = data.rows
+          .map(row => ({
+            id: row.id,
+            name: row.currency_name,
+            symbol: row.currency_symbol,
+            flag: row.flag,
+            buy_value: row.buy_value,
+            sell_value: row.sell_value
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
+      } else {
+        currentCiesList.value = [];
+        currencySelected.value = '';
       }
-    };
+    } catch (error) {
+      if (error.response.status === 422) {
+        console.log(error.message);
+      }
+    }
+  };
 
 
     onMounted(() => {
@@ -228,4 +250,11 @@ export default {
   width: 100vw;
   background: linear-gradient(to bottom, $primary 50%, white 50%);
 }
+</style>
+
+<style>
+@import 'flag-icons/css/flag-icons.min.css';
+</style>
+<style>
+@import 'flag-icons/css/flag-icons.min.css';
 </style>

@@ -15,7 +15,7 @@ class QueueController extends Controller
         $type_id = $request->type_id;
     
         // Fetch all tellers assigned to this type_id
-        $tellers = DB::table('tellers')->where('type_id', $type_id)->pluck('id');
+        $tellers = DB::table('windows')->where('type_id', $type_id)->pluck('teller_id');
     
         if ($tellers->isEmpty()) {
             return response()->json(['message' => 'No tellers assigned to this window type'], 400);

@@ -128,6 +128,19 @@
                                 </h5>
                                 <p>{{ customer.name }}</p>
                               </q-item-section>
+                              <q-item-section>
+                                <q-btn
+                                  label="Cancel"
+                                  color="negative"
+                                  text-color="white"
+                                  icon="cancel"
+                                  unelevated
+                                  rounded
+                                  style ="width: 150px;"
+                                  class="q-my-xs q-mx-sm shadow-2 hover-opacity"
+                                  @click="beforeCancel(customer)"
+                                />
+                              </q-item-section>
                               <q-item-section side>
                                 <q-badge
                                   v-if="index <= 4"
@@ -442,7 +455,7 @@ export default {
       $dialog
         .dialog({
           title: "Confirm",
-          message: "Are you sure do you want cancel this queue?",
+          message: "Are you sure do you want to cancel "+row.name+" ?",
           cancel: true,
           persistent: true,
           ok: {
