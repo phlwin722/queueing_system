@@ -113,7 +113,7 @@
                             :key="customer.id"
                           >
                             <q-item
-                              style="height: 60px;"
+                              style="height: 60px"
                               class="bg-accent draggable-item"
                               :class="{ 'drag-over': dragOverIndex === index }"
                               draggable="true"
@@ -152,14 +152,48 @@
                 <q-separator />
               </q-card>
 
-              <div class="" style="margin-top: 15px;">
+              <div class="" style="margin-top: 15px">
                 <q-table
-                  style="height: 270px;"
-                  flat bordered
+                  class="modern-table my-sticky-header-table"
+                  flat
+                  bordered
+                  dense
                   :rows="rows"
                   :columns="columns"
                   row-key="name"
-                />
+                  :rows-per-page-options="[0]"
+                  virtual-scroll
+                  hide-bottom
+                  style="height: 200px"
+                >
+                  <template v-slot:header="props">
+                    <q-tr
+                      :props="props"
+                      class="bg-primary text-white sticky-header"
+                    >
+                      <q-th
+                        v-for="col in props.cols"
+                        :key="col.name"
+                        :props="props"
+                      >
+                        {{ col.label }}
+                      </q-th>
+                    </q-tr>
+                  </template>
+
+                  <!-- Custom Body with Scroll -->
+                  <template v-slot:body="props">
+                    <q-tr :props="props" class="custom-row">
+                      <q-td
+                        v-for="col in props.cols"
+                        :key="col.name"
+                        :props="props"
+                      >
+                        {{ col.value }}
+                      </q-td>
+                    </q-tr>
+                  </template>
+                </q-table>
               </div>
             </div>
 
@@ -296,7 +330,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted  } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
@@ -413,7 +447,6 @@ export default {
         console.error(error);
       }
     };
-
 
     // Cater customer
     const caterCustomer = async (customerId, type_id) => {
@@ -709,27 +742,28 @@ export default {
     let fetchIdTimeout;
 
     const optimizedFetchQueueData = async () => {
-    await fetchQueue();
-    queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+      await fetchQueue();
+      queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
     };
 
     const optimizedFetchWaitingtime = async () => {
-      await fetchWaitingtime()
+      await fetchWaitingtime();
       waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
     };
 
     const optimizedFetchId = async () => {
-      await fetchId()
+      await fetchId();
       fetchIdTimeout = setTimeout(optimizedFetchId, 3000); // Recursive Timeout
     };
 
     onMounted(() => {
       const storedTellerInfo = localStorage.getItem("tellerInformation");
       if (storedTellerInfo) {
-        optimizedFetchQueueData()
-        optimizedFetchWaitingtime()
-        optimizedFetchId()
-        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
+        optimizedFetchQueueData();
+        optimizedFetchWaitingtime();
+        optimizedFetchId();
+        const startTime =
+          parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         if (startTime && duration) {
           waiting.value = true;
@@ -750,26 +784,36 @@ export default {
     });
 
     const columns = [
-      { name: 'currency', align: 'center', label: 'Currency', field: 'currency', sortable: true },
-      { name: 'symbol', label: 'Symbol', field: 'symbol', sortable: true },
-      { name: 'buy', label: 'Buy', field: 'buy' },
-      { name: 'sell', label: 'Sell', field: 'sell' },
-    ]
+      {
+        name: "currency",
+        align: "left",
+        label: "Currency",
+        field: "currency",
+        sortable: true,
+      },
+      {
+        name: "symbol",
+        align: "left",
+        label: "Symbol",
+        field: "symbol",
+        sortable: true,
+      },
+      { name: "buy", align: "left", label: "Buy", field: "buy" },
+      { name: "sell", align: "left", label: "Sell", field: "sell" },
+    ];
 
     const rows = [
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: 24, sell: 4.0 },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
-      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' }
-    ]
-
-
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
+    ];
 
     return {
       queueList,
@@ -805,7 +849,7 @@ export default {
       onDragLeave,
       onDrop,
       columns,
-      rows
+      rows,
     };
   },
 };
