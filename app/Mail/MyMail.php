@@ -130,7 +130,7 @@ class MyMail extends Mailable
                         <p>{$this->data['message']}</p>
                         <p>We appreciate your time!</p>
                         
-                    <div class="button-container">
+                    <div class='button-container'>
                     <a href='http://192.168.0.164:8080/customer-dashboard/{$this->data['token']}' class='button'>Open my dashboard</a>
                     </div>
                 </div>
