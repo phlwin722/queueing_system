@@ -99,11 +99,36 @@ class TellercaterController extends Controller
         $type_id = $request->type_id;
         $teller_id = $request->teller_id;
     
-        $queue = Queue::where('type_id', $type_id)
-                    ->where('teller_id', $teller_id) // Fetch queue specific to teller
-                    ->where('status', 'waiting')
-                    ->orderBy('created_at')
-                    ->get();
+        // $queue = Queue::where('type_id', $type_id)
+        //             ->where('teller_id', $teller_id) // Fetch queue specific to teller
+        //             ->where('status', 'waiting')
+        //             ->orderBy('created_at')
+        //             ->get();
+
+        $queue = DB::table('queues as qs')
+                ->select(
+                    "qs.id",
+                    "qs.token",
+                    "qs.name",
+                    "qs.email",
+                    "qs.email_status",
+                    "qs.type_id",
+                    "qs.teller_id",
+                    "qs.queue_number",
+                    "qs.status",
+                    "qs.waiting_customer",
+                    "qs.created_at",
+                    "qs.updated_at",
+                    "cr.currency_name",
+                    "cr.flag",
+                    "cr.currency_symbol",
+                )
+                ->leftJoin("currencies as cr", "cr.id", "qs.currency_selected")
+                ->where('type_id', $type_id)
+                ->where('teller_id', $teller_id) // Fetch queue specific to teller
+                ->where('status', 'waiting')
+                ->orderBy('created_at')
+                ->get();
     
         $currentServing = Queue::where('type_id', $type_id)
                               ->where('teller_id', $teller_id)
@@ -131,7 +156,7 @@ class TellercaterController extends Controller
             'name' => $servingQueue->name ?? null,
             'queue_number' => $servingQueue->queue_number ?? null,
             'status' => $servingQueue->status ?? null,
-            'fullname' => $fullname
+            'fullname' => $fullname,
         ]);
     }
     
