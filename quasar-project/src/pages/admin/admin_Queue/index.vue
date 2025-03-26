@@ -9,6 +9,7 @@
             </q-breadcrumbs>
             </div>
 
+    <q-card class="q-pa-md">
     <!-- Service Type Selector -->
     <div class="q-mb-md row q-col-gutter-md">
   <!-- Window Type Select -->
@@ -40,7 +41,7 @@
   </div>
 </div>
 
-<q-card class="q-mb-md q-pa-md shadow-2 rounded-borders bg-primary text-white">
+<q-card class="q-mb-md q-pa-md shadow-2 bg-primary text-white">
   <q-card-section class="q-gutter-y-md">
     <div class="row items-center justify-between">
       <div class="text-h6">Assigned Personnel:</div>
@@ -59,7 +60,7 @@
 
     <!-- Current Serving Section -->
 
-    <q-card class="q-mb-md q-pa-lg shadow-2 rounded-borders bg-white text-dark">
+    <q-card class="q-mb-md q-pa-lg shadow-2 bg-white text-dark">
   <q-card-section class="text-center">
     <div class="text-h5 text-bold text-primary">Now Serving</div>
 
@@ -141,11 +142,12 @@
         :max="totalPages"
         :max-pages="5"
         boundary-numbers
-        color="accent"
+        color="positive"
         input-style="width: 60px; text-align: center;"
         class="text-white"
       />
     </q-card-actions>
+  </q-card>
   </q-card>
 
   </q-page>

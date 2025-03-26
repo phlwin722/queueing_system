@@ -76,6 +76,9 @@ class MyMail extends Mailable
                         font-size: 16px;
                         color: #333333;
                         line-height: 1.6;
+                        border-left: 1px solid #393C3F; /* Change color as needed */
+                        border-right: 1px solid #393C3F;
+                        border-bottom: 1px solid #393C3F;
                     }
 
                     /* Footer section */
@@ -85,12 +88,11 @@ class MyMail extends Mailable
                         text-align: center;
                         font-size: 14px;
                         color: #666666;
-                        border-top: 1px solid #dddddd;
                     }
 
                     /* Optional button styling */
                     .button {
-                        display: inline-block;
+                        display: flex;
                         background: #007bff;
                         color: #ffffff;
                         padding: 10px 20px;
@@ -98,7 +100,17 @@ class MyMail extends Mailable
                         font-size: 16px;
                         border-radius: 5px;
                         margin-top: 10px;
+                        justify-content: center;
+                        align-items: center;
+                        width: 150px;
                     }
+
+                    .button-container {
+                        display: flex;
+                        justify-content: center;
+                        margin-top: 10px;
+                    }
+
 
                     /* Button hover effect */
                     .button:hover {
@@ -117,9 +129,11 @@ class MyMail extends Mailable
                         <h2>Hello, {$this->data['name']}!</h2>
                         <p>{$this->data['message']}</p>
                         <p>We appreciate your time!</p>
-                    </div>
-
+                        
+                    <div class="button-container">
                     <a href='http://192.168.0.164:8080/customer-dashboard/{$this->data['token']}' class='button'>Open my dashboard</a>
+                    </div>
+                </div>
                     <!-- Email Footer -->
                     <div class='footer'>
                         &copy; " . date('Y') . " VRTSYSTEMS TECHNOLOGIES CORPORATION. All rights reserved.
