@@ -551,7 +551,6 @@ export default {
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-
         if (queuePosition.value === 1) {
           if (queueList.value.length > 0) {
             const { data } = await $axios.post("/send-fetchInfo", {
