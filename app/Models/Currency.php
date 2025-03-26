@@ -10,7 +10,9 @@ class Currency extends Model
     protected $fillable = [
         'currency_name', 
         'currency_symbol',
-        'value', 
+        'flag',
+        'buy_value',
+        'sell_value',
     ];
 
 }

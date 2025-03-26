@@ -710,17 +710,17 @@ export default {
 
     const optimizedFetchQueueData = async () => {
     await fetchQueue();
-    queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+    queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
     };
 
     const optimizedFetchWaitingtime = async () => {
       await fetchWaitingtime()
-      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
+      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000); // Recursive Timeout
     };
 
     const optimizedFetchId = async () => {
       await fetchId()
-      fetchIdTimeout = setTimeout(optimizedFetchId, 3000); // Recursive Timeout
+      fetchIdTimeout = setTimeout(optimizedFetchId, 2000); // Recursive Timeout
     };
 
     onMounted(() => {
