@@ -105,11 +105,14 @@ class WindowController extends Controller
                     "message"=>"window not found!"
                 ],404);
             }else{
+                DB::table('tellers')
+                    ->where('id', $request->id)
+                    ->update(['type_id' => null]);
+
                 Window::destroy($request->id);
                 return response()->json([
                 "message"=>"Window Succesfully Deleted!"
-    
-            ]);
+                ]);
             }
             
         }catch(\Exception $e){
