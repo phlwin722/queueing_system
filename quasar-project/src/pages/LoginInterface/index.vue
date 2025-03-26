@@ -1,12 +1,13 @@
 <template>
   <div class="bg-primary background-container"></div>
-  
+
   <div class="column flex flex-center q-pa-md content-container">
     <q-img
       src="~assets/vrtlogowhite.webp"
       alt="Logo"
       fit="full"
       class="logo"
+      style="width: 250px"
     />
 
     <q-card class="q-pa-lg shadow-3 login-card">
@@ -14,7 +15,10 @@
         <h2 class="text-primary welcome-heading">Login</h2>
       </q-card-section>
       <q-card-section>
-        <q-form class="q-gutter-lg form-container" @submit.prevent="goAdminValidation">
+        <q-form
+          class="q-gutter-lg form-container"
+          @submit.prevent="goAdminValidation"
+        >
           <q-input
             filled
             v-model="formData.Username"
@@ -42,7 +46,12 @@
           </q-input>
 
           <div class="flex justify-center">
-            <q-btn label="Login" type="submit" color="primary" class="full-width" />
+            <q-btn
+              label="Login"
+              type="submit"
+              color="primary"
+              class="full-width"
+            />
           </div>
         </q-form>
       </q-card-section>
@@ -153,7 +162,7 @@ export default {
 .background-container {
   position: absolute;
   width: 100%;
-  min-height: 40vh;
+  min-height: 45vh;
   z-index: -1;
 }
 
