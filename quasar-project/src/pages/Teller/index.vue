@@ -112,50 +112,55 @@
                             v-for="(customer, index) in paginatedQueueList"
                             :key="customer.id"
                           >
-                            <q-item
-                              style="height: 60px"
-                              class="bg-accent draggable-item"
-                              :class="{ 'drag-over': dragOverIndex === index }"
-                              draggable="true"
-                              @dragstart="onDragStart($event, index)"
-                              @dragover.prevent="onDragOver(index)"
-                              @dragleave="onDragLeave"
-                              @drop="onDrop(index)"
-                            >
-                              <q-item-section>
-                                <h5 class="q-mb-sm q-mt-sm">
-                                  {{ customer.queue_number }}
-                                </h5>
-                                <p>{{ customer.name }}</p>
-                              </q-item-section>
-                              <q-item-section>
-                                <q-btn
-                                  label="Cancel"
-                                  color="negative"
-                                  text-color="white"
-                                  icon="cancel"
-                                  unelevated
-                                  rounded
-                                  style ="width: 150px;"
-                                  class="q-my-xs q-mx-sm shadow-2 hover-opacity"
-                                  @click="beforeCancel(customer)"
-                                />
-                              </q-item-section>
-                              <q-item-section side>
-                                <q-badge
-                                  v-if="index <= 4"
-                                  color="orange"
-                                  label="Up Next"
-                                  class="custom-badge"
-                                />
-                                <q-badge
-                                  v-else
-                                  color="blue-grey"
-                                  label="Waiting"
-                                  class="custom-badge"
-                                />
-                              </q-item-section>
-                            </q-item>
+                          <q-item
+                          style="height: 80px; border-radius: 10px;"
+                          class="bg-white draggable-item shadow-2 q-mb-sm"
+                          :class="{ 'drag-over': dragOverIndex === index }"
+                          draggable="true"
+                          @dragstart="onDragStart($event, index)"
+                          @dragover.prevent="onDragOver(index)"
+                          @dragleave="onDragLeave"
+                          @drop="onDrop(index)"
+                        >
+                          <!-- Queue Number and Customer Name -->
+                          <q-item-section class="flex flex-col justify-center q-pr-md">
+                            <div class="text-primary text-bold text-h6 q-mb-xs">{{ customer.queue_number }}</div>
+                            <p class="text-body2 text-secondary q-mb-none">{{ customer.name }}</p>
+                          </q-item-section>
+
+                          <!-- Conditional Currency Info -->
+                          <q-item-section v-if="customer.currency_name && customer.currency_symbol && customer.flag" class="flex items-center justify-start q-pr-md">
+                            <span :class="['fi', customer.flag]" style="font-size: 1.8em; margin-right: 8px;"></span>
+                            <div class="text-body1">
+                              {{ customer.currency_symbol }} - {{ customer.currency_name }}
+                            </div>
+                          </q-item-section>
+
+                          <!-- Cancel Button -->
+                          <q-item-section side>
+                            <q-btn
+                              label="Cancel"
+                              color="negative"
+                              text-color="white"
+                              unelevated
+                              rounded
+                              dense
+                              style="width: 100px; height: 36px;"
+                              class="q-my-xs q-mx-sm shadow-2 hover-opacity"
+                              @click="beforeCancel(customer)"
+                            />
+                          </q-item-section>
+
+                          <!-- Status Badge -->
+                          <q-item-section side>
+                            <q-badge
+                              :color="index <= 4 ? 'orange' : 'blue-grey'"
+                              :label="index <= 4 ? 'Up Next' : 'Waiting'"
+                              class="text-white text-bold"
+                              style="min-width: 100px; padding: 4px 10px; border-radius: 12px; font-size: 1.1em;"
+                            />
+                          </q-item-section>
+                        </q-item>
                           </template>
                         </q-list>
                       </q-scroll-area>
@@ -989,4 +994,7 @@ export default {
   padding: 6px 12px;
   cursor: default;
 }
+</style>
+<style>
+@import 'flag-icons/css/flag-icons.min.css';
 </style>
