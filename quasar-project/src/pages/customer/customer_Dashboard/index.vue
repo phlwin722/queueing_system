@@ -211,7 +211,22 @@
                   :rows="moneyRates"
                   :columns="columns"
                   row-key="currency"
-                />
+                  :rows-per-page-options="[0]"
+                  hide-bottom
+                  virtual-scroll
+                >
+
+                <!-- Custom slot for rendering the content of the Currency column -->
+                 <template v-slot:body-cell-currency="props">
+                  <q-td :props="props">
+                    <!-- Display the flag icon -->
+                     <span :class="['fi', props.row.currency.flag]"  style="font-size: 1.5em; margin-right: 8px;"></span>
+                     <!-- Display the currency symbol and name-->
+                      <span>{{ props.row.currency.symbol }} - {{ props.row.currency.name }}</span>
+                  </q-td>
+
+                 </template>
+              </q-table>
               </q-card-section>
             </q-card>
           </q-dialog>
@@ -263,7 +278,7 @@ export default {
       subject: "",
       message: "",
     });
-
+    const moneyRates = ref([]);
     const currentPage = ref(1);
     const itemsPerPage = 5; // Number of items per page
 
@@ -601,19 +616,6 @@ export default {
       waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
     };
 
-    onMounted(() => {
-      getTableData();
-      optimizedFetchWaitingtime();
-      optimizedFetchQueueData();
-      optimizedFetchWaitingStatus();
-    });
-
-    onUnmounted(() => {
-      clearTimeout(waitingTimeout);
-      clearTimeout(queueTimeout);
-      clearTimeout(statusTimeout);
-    });
-
     const isMoneyRatesDialogOpen = ref(false);
 
     const columns = [
@@ -622,12 +624,41 @@ export default {
       { name: 'sell', required: true, label: 'Sell', align: 'right', field: row => row.sell, format: val => `${val}` },
     ];
 
-    const moneyRates = ref([
-      { currency: 'USD', buy: '56.30', sell:'12' },
-      { currency: 'EUR', buy: '56.30', sell:'12' },
-      { currency: 'JPY', buy: '56.30', sell:'12' },
-      { currency: 'GBP', buy: '56.30', sell:'12' }
-    ]);
+    const fetchCurrency = async() => {
+      try {
+        const { data } = await $axios.post('/currency/showData');
+
+        // map the api response to match the expected table structure
+        moneyRates.value = data.rows.map(row => ({
+          id: row.id,
+          currency: {
+            flag: row.flag,
+            symbol: row.currency_symbol,
+            name:row.currency_name
+          },
+          buy: `${row.buy_value}`,
+          sell: `${row.sell_value}`,
+        }))
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
+    onMounted(() => {
+      getTableData();
+      optimizedFetchWaitingtime();
+      optimizedFetchQueueData();
+      optimizedFetchWaitingStatus();
+      fetchCurrency();
+    });
+
+    onUnmounted(() => {
+      clearTimeout(waitingTimeout);
+      clearTimeout(queueTimeout);
+      clearTimeout(statusTimeout);
+    });
 
     return {
       customerQueueNumber,
@@ -659,6 +690,8 @@ export default {
 </script>
 
 <style>
+@import 'flag-icons/css/flag-icons.min.css';
+
 body {
   background-color: #1c5d99;
 }
