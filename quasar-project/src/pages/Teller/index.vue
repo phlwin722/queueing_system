@@ -76,7 +76,7 @@
                 <q-card-section>
                   <q-item>
                     <q-item-section>
-                      <q-item-label class="text-h4 text-center">
+                      <q-item-label class="text-h6 text-center">
                         Number of Queue in line: {{ paginatedQueueList.length }}
                       </q-item-label>
                     </q-item-section>
@@ -84,7 +84,7 @@
                   <q-separator />
                   <q-item>
                     <q-item-section>
-                      <q-item-label class="text-h4 text-center"
+                      <q-item-label class="text-h6 text-center"
                         >Waiting Queue</q-item-label
                       >
                     </q-item-section>
@@ -95,7 +95,7 @@
                     <q-item-section>
                       <q-scroll-area
                         class="my-scroll"
-                        style="height: 455px; overflow-y: auto"
+                        style="height: 200px; overflow-y: auto"
                       >
                         <q-list bordered separator>
                           <q-item
@@ -113,6 +113,7 @@
                             :key="customer.id"
                           >
                             <q-item
+                              style="height: 60px;"
                               class="bg-accent draggable-item"
                               :class="{ 'drag-over': dragOverIndex === index }"
                               draggable="true"
@@ -150,6 +151,16 @@
                 </q-card-section>
                 <q-separator />
               </q-card>
+
+              <div class="" style="margin-top: 15px;">
+                <q-table
+                  style="height: 270px;"
+                  flat bordered
+                  :rows="rows"
+                  :columns="columns"
+                  row-key="name"
+                />
+              </div>
             </div>
 
             <div class="col-12 col-md-6">
@@ -738,6 +749,28 @@ export default {
       clearTimeout(fetchIdTimeout);
     });
 
+    const columns = [
+      { name: 'currency', align: 'center', label: 'Currency', field: 'currency', sortable: true },
+      { name: 'symbol', label: 'Symbol', field: 'symbol', sortable: true },
+      { name: 'buy', label: 'Buy', field: 'buy' },
+      { name: 'sell', label: 'Sell', field: 'sell' },
+    ]
+
+    const rows = [
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: 24, sell: 4.0 },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' },
+      { currency: 'UDS', symbol: '$', buy: '42', sell: '4.0' }
+    ]
+
+
+
     return {
       queueList,
       currentServing,
@@ -771,6 +804,8 @@ export default {
       onDragOver,
       onDragLeave,
       onDrop,
+      columns,
+      rows
     };
   },
 };
