@@ -159,11 +159,11 @@
                   bordered
                   :rows="rowsCurrency"
                   :columns="columns"
-                  dense
                   hide-bottom
                   :rows-per-page-options="[0]"
                   virtual-scroll
                   row-key="id"
+                  class="modern-table my-sticky-header-table"
                 >
                   <!-- Custom slot for rendering the content of the Currency column -->
                   <template v-slot:body-cell-currency="props">

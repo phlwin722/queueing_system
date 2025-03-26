@@ -125,6 +125,55 @@ class QueueSeeder extends Seeder
             ],
         ]);
 
+        Currency::insert([
+            [
+                'currency_name' => 'US Dollar',
+                'currency_symbol' => '$',
+                'flag' => 'fi-ph',
+                'buy_value' => '12.00',
+                'sell_value' => '32.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Euro',
+                'currency_symbol' => '$',
+                'flag' => 'fi-eu',
+                'buy_value' => '59.00',
+                'sell_value' => '32.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Philippine Peso',
+                'currency_symbol' => '₱',
+                'flag' => 'fi-ph',
+                'buy_value' => '25.00',
+                'sell_value' => '32.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Hong Kong Dollar',
+                'currency_symbol' => 'HK$',
+                'flag' => 'fi-hk',
+                'buy_value' => '12.00',
+                'sell_value' => '32.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Egyptian Poun',
+                'currency_symbol' => 'E£',
+                'flag' => 'fi-eg',
+                'buy_value' => '10.00',
+                'sell_value' => '38.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            
+        ]);
+
 
         // Create 10 orders with random Customer logs 
         Queue::factory(1000)->create();
