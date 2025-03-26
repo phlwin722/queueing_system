@@ -110,74 +110,113 @@
       </q-card>
 
       <!-- Queue List -->
-      <q-card
-        class="col-12 col-md-6 full-width shadow-3 rounded-borders q-px-md q-pa-xs q-py-md"
-        style="margin-bottom: 20px"
-        flat
-      >
-        <q-card-section class="text-center">
-          <p class="text-bold text-primary text-h6">Queue List</p>
-        </q-card-section>
-
-        <q-separator inset />
-
-
-        <div
-          v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
-          class="text-center text-warning q-mb-md q-mt-md"
+        <q-card
+            class="col-12 col-md-6 full-width shadow-3 rounded-borders q-px-md q-pa-xs q-py-sm"
+            flat
         >
-          <q-icon name="warning" size="sm" /> You are near from being served.
-          Please standby!
-        </div>
+          <q-card-section class="row items-center">
+            <p class="text-bold text-primary text-h6 q-mb-none">Queue List</p>
+            <q-space /> <!-- Pushes the button to the right -->
 
-        <q-card-section
-          class="q-pa-md"
-          style="max-height: 300px; overflow-y: auto"
-        >
-          <q-list bordered separator class="queue-list">
-            <q-item
-              v-for="(customer, index) in queueList"
-              :key="index"
-              class="queue-item"
+            <q-btn color="yellow-8" icon="attach_money" 
+            @click="isMoneyRatesDialogOpen = true" 
+            dense 
+            class="q-ml-sm" 
+            style="min-width: 30px; max-width: 40px;"
+            size="sm"
             >
-              <q-item-section avatar>
-                <q-icon
-                  name="confirmation_number"
-                  size="sm"
-                  class="text-primary"
-                />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-bold text-grey-8">
-                  Queue: {{ customer.queue_number }} -
-                  {{ abbreviateName(customer.name) }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-badge
-                  v-if="index <= 4"
-                  color="orange"
-                  label="Up Next"
-                  class="custom-badge"
-                />
-                <q-badge
-                  v-else
-                  color="blue-grey"
-                  label="Waiting"
-                  class="custom-badge"
-                />
-              </q-item-section>
-            </q-item>
-          </q-list>
+            <q-tooltip anchor="top start" self="center right" :offset="[10, 10]" class="bg-secondary" style="font-size: 12px; padding: 4px 8px; max-width: 120px;">
+              Money Rates
+            </q-tooltip>
+            </q-btn>
+          </q-card-section>
+
+          <q-separator inset />
 
           <div
-            v-if="queueList.length === 0"
-            class="text-grey text-center q-mt-md"
+            v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
+            class="text-center text-warning q-mb-md q-mt-md"
           >
-            No more customers
+            <q-icon name="warning" size="sm" /> You are near from being served.
+            Please standby!
           </div>
-        </q-card-section>
-      </q-card>
+
+          <q-card-section
+            class="q-pa-md"
+            style="max-height: 300px; overflow-y: auto"
+          >
+            <q-list bordered separator class="queue-list">
+              <q-item
+                v-for="(customer, index) in queueList"
+                :key="index"
+                class="queue-item"
+              >
+                <q-item-section avatar>
+                  <q-icon
+                    name="confirmation_number"
+                    size="sm"
+                    class="text-primary"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-bold text-grey-8">
+                    Queue: {{ customer.queue_number }} -
+                    {{ abbreviateName(customer.name) }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-badge
+                    v-if="index <= 4"
+                    color="orange"
+                    label="Up Next"
+                    class="custom-badge"
+                  />
+                  <q-badge
+                    v-else
+                    color="blue-grey"
+                    label="Waiting"
+                    class="custom-badge"
+                  />
+                </q-item-section>
+              </q-item>
+            </q-list>
+
+            <div v-if="queueList.length === 0" class="text-grey text-center q-mt-md">
+              No more customers
+            </div>
+          </q-card-section>
+
+          <!-- "Money Rates" button in the lower right -->
+          
+
+          <!-- QDialog for Money Rates Table -->
+          <q-dialog v-model="isMoneyRatesDialogOpen">
+            <q-card class="q-dialog-plugin" style="width: 90vw; max-width: 500px;">
+              <q-card-section class="row items-center bg-primary">
+                <q-icon name="attach_money" size="sm" class="text-yellow q-mr-xs col-shrink" />
+                <span class="text-white col-grow text-no-wrap">
+                  Money Exchange Rates
+                </span>
+                <q-space />
+                <q-btn flat dens round icon="close" @click="isMoneyRatesDialogOpen = false" style="width: 24px; height: 24px;" class="text-accent" />
+              </q-card-section>
+
+              <q-separator />
+
+              <!-- q-table inside dialog -->
+              <q-card-section>
+                <q-table
+                  flat
+                  bordered
+                  :rows="moneyRates"
+                  :columns="columns"
+                  row-key="currency"
+                />
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+        </q-card>
+
     </div>
   </q-layout>
 </template>
@@ -575,6 +614,21 @@ export default {
       clearTimeout(statusTimeout);
     });
 
+    const isMoneyRatesDialogOpen = ref(false);
+
+    const columns = [
+      { name: 'currency', required: true, label: 'Currency', align: 'left', field: row => row.currency, format: val => `${val}` },
+      { name: 'buy', required: true, label: 'Buy', align: 'right', field: row => row.buy, format: val => `${val}` },
+      { name: 'sell', required: true, label: 'Sell', align: 'right', field: row => row.sell, format: val => `${val}` },
+    ];
+
+    const moneyRates = ref([
+      { currency: 'USD', buy: '56.30', sell:'12' },
+      { currency: 'EUR', buy: '56.30', sell:'12' },
+      { currency: 'JPY', buy: '56.30', sell:'12' },
+      { currency: 'GBP', buy: '56.30', sell:'12' }
+    ]);
+
     return {
       customerQueueNumber,
       queueList,
@@ -596,6 +650,9 @@ export default {
       beforeCancel,
       fetchImage,
       imageUrl,
+      isMoneyRatesDialogOpen,
+      columns,
+      moneyRates,
     };
   },
 };

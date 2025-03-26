@@ -113,7 +113,7 @@
                             :key="customer.id"
                           >
                             <q-item
-                              style="height: 60px;"
+                              style="height: 60px"
                               class="bg-accent draggable-item"
                               :class="{ 'drag-over': dragOverIndex === index }"
                               draggable="true"
@@ -152,13 +152,17 @@
                 <q-separator />
               </q-card>
 
-              <div class="" style="margin-top: 15px;">
+              <div class="" style="margin-top: 15px">
                 <q-table
-                  style="height: 270px;"
+                  style="height: 200px;"
                   flat
                   bordered
                   :rows="rowsCurrency"
                   :columns="columns"
+                  dense
+                  hide-bottom
+                  :rows-per-page-options="[0]"
+                  virtual-scroll
                   row-key="id"
                 >
                   <!-- Custom slot for rendering the content of the Currency column -->
@@ -307,7 +311,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted  } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
@@ -425,7 +429,6 @@ export default {
         console.error(error);
       }
     };
-
 
     // Cater customer
     const caterCustomer = async (customerId, type_id) => {
@@ -733,6 +736,7 @@ export default {
     const optimizedFetchId = async () => {
       await fetchId()
       fetchIdTimeout = setTimeout(optimizedFetchId, 2000); // Recursive Timeout
+
     };
 
     // Define the columns for the table, adjusting the 'currency' field
@@ -792,7 +796,6 @@ export default {
       clearTimeout(queueTimeout);
       clearTimeout(fetchIdTimeout);
     });
-
     return {
       fetchCurrency,
       queueList,
