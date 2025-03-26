@@ -154,44 +154,25 @@
 
               <div class="" style="margin-top: 15px">
                 <q-table
-                  class="modern-table my-sticky-header-table"
+                  style="height: 200px;"
                   flat
                   bordered
-                  dense
-                  :rows="rows"
+                  :rows="rowsCurrency"
                   :columns="columns"
-                  row-key="name"
+                  dense
+                  hide-bottom
                   :rows-per-page-options="[0]"
                   virtual-scroll
-                  hide-bottom
-                  style="height: 200px"
+                  row-key="id"
                 >
-                  <template v-slot:header="props">
-                    <q-tr
-                      :props="props"
-                      class="bg-primary text-white sticky-header"
-                    >
-                      <q-th
-                        v-for="col in props.cols"
-                        :key="col.name"
-                        :props="props"
-                      >
-                        {{ col.label }}
-                      </q-th>
-                    </q-tr>
-                  </template>
-
-                  <!-- Custom Body with Scroll -->
-                  <template v-slot:body="props">
-                    <q-tr :props="props" class="custom-row">
-                      <q-td
-                        v-for="col in props.cols"
-                        :key="col.name"
-                        :props="props"
-                      >
-                        {{ col.value }}
-                      </q-td>
-                    </q-tr>
+                  <!-- Custom slot for rendering the content of the Currency column -->
+                  <template v-slot:body-cell-currency="props">
+                    <q-td :props="props">
+                      <!-- Display the flag icon -->
+                      <span :class="['fi', props.row.currency.flag]" style="font-size: 1.5em; margin-right: 8px;"></span>
+                      <!-- Display the currency symbol and name -->
+                      <span>{{ props.row.currency.symbol }} - {{ props.row.currency.name }}</span>
+                    </q-td>
                   </template>
                 </q-table>
               </div>
@@ -350,6 +331,7 @@ export default {
     let waitTimer = null;
     const noOfQueue = ref();
     const imageUrl = ref();
+    const rowsCurrency = ref([])
 
     // const waitProgress = ref(0);
     let refreshInterval = null;
@@ -757,14 +739,45 @@ export default {
 
     };
 
+    // Define the columns for the table, adjusting the 'currency' field
+    const columns = ref([
+      { name: 'currency', align: 'left', label: 'Currency', field: 'currency', sortable: true },
+      { name: 'buy', align: 'left', label: 'Buy', field: 'buy' },
+      { name: 'sell', align: 'left', label: 'Sell', field: 'sell' },
+    ]);
+
+      // Fetch the currency data from the API
+      const fetchCurrency = async () => {
+        try {
+          const { data } = await $axios.post('/currency/showData');
+          console.log(data.rows);  // Debugging to check the structure
+
+          // Map the API response to match the expected table structure
+          rowsCurrency.value = data.rows.map(row => ({
+            id: row.id,  // Ensure 'id' is unique for row-key
+            currency: {
+              flag: row.flag,  // The flag class (e.g., "fi-us")
+              symbol: row.currency_symbol,
+              name: row.currency_name,
+            },
+            buy: `${row.buy_value}`,  // You might want to format this as a currency if needed
+            sell: `${row.sell_value}`, // Similarly, format this as needed
+          }));
+        } catch (error) {
+          if (error.response && error.response.status === 422) {
+            console.error(error);
+          }
+        }
+      };
+
     onMounted(() => {
       const storedTellerInfo = localStorage.getItem("tellerInformation");
       if (storedTellerInfo) {
-        optimizedFetchQueueData();
-        optimizedFetchWaitingtime();
-        optimizedFetchId();
-        const startTime =
-          parseInt(localStorage.getItem("wait_start_time")) || 0;
+        optimizedFetchQueueData()
+        optimizedFetchWaitingtime()
+        optimizedFetchId()
+        fetchCurrency()
+        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         if (startTime && duration) {
           waiting.value = true;
@@ -783,40 +796,8 @@ export default {
       clearTimeout(queueTimeout);
       clearTimeout(fetchIdTimeout);
     });
-
-    const columns = [
-      {
-        name: "currency",
-        align: "left",
-        label: "Currency",
-        field: "currency",
-        sortable: true,
-      },
-      {
-        name: "symbol",
-        align: "left",
-        label: "Symbol",
-        field: "symbol",
-        sortable: true,
-      },
-      { name: "buy", align: "left", label: "Buy", field: "buy" },
-      { name: "sell", align: "left", label: "Sell", field: "sell" },
-    ];
-
-    const rows = [
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-      { currency: "UDS", symbol: "$", buy: "42", sell: "4.0" },
-    ];
-
     return {
+      fetchCurrency,
       queueList,
       currentServing,
       caterCustomer,
@@ -850,12 +831,16 @@ export default {
       onDragLeave,
       onDrop,
       columns,
-      rows,
+      rowsCurrency
     };
   },
 };
 </script>
+ 
 <style>
+
+@import 'flag-icons/css/flag-icons.min.css';
+
 @keyframes queueDots {
   0% {
     opacity: 0.2;
