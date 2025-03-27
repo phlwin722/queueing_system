@@ -9,8 +9,8 @@
         <q-img
           src="~assets/vrtlogoblack.webp"
           alt="Logo"
-          fit="contain"
-          :style="{ maxWidth: $q.screen.lt.md ? '120px' : '200px' }"
+          fit="full"
+          :style="{ width: $q.screen.lt.md ? '180px' : '200px' }"
           class="q-mb-md"
         /> 
 
