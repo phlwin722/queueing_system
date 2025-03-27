@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Queue;
+use App\Models\Teller;
 use App\Http\Requests\QueueRequest;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class QueueController extends Controller
         }
     
         // Determine the last assigned teller for this type_id
-        $lastAssigned = Queue::where('type_id', $type_id)->orderBy('created_at', 'desc')->first();
+        $lastAssigned = Teller::where('type_id', $type_id)->orderBy('created_at', 'desc')->first();
 
     
         // Get the next teller in a round-robin manner
