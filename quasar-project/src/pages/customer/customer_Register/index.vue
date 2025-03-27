@@ -180,6 +180,8 @@ export default {
           formError.value = error.response.data;
         }else if (error.response.status === 400) {
           $notify('negative','error','No tellers assigned to this service type')
+        }else if (error.response.status === 500) {
+          $notify('negative','error','No tellers assigned to this service type')
         }
       } finally {
         isLoading.value = false;
