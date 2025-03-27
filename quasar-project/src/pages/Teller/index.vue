@@ -124,6 +124,7 @@
                         >
                           <!-- Queue Number and Customer Name -->
                           <q-item-section class="flex flex-col justify-center q-pr-md">
+                            
                             <div class="text-primary text-bold text-h6 q-mb-xs">{{ customer.queue_number }}</div>
                             <p class="text-body2 text-secondary q-mb-none">{{ customer.name }}</p>
                           </q-item-section>
@@ -329,7 +330,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
@@ -415,6 +416,7 @@ export default {
           queueList.value[0].status === "waiting" &&
           currentServing.value == null
         ) {
+          updateServe()
           setTimeout(() => {
             caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
             startWait(queueList.value[0].id, queueList.value[0].queue_number);
@@ -640,6 +642,15 @@ export default {
     // Computed property for paginated queue list
     const paginatedQueueList = computed(() => queueList.value);
 
+    watch(
+    () => queueList.value.length,
+    (newLength, oldLength) => {
+      if (newLength !== oldLength) {
+        updateQueuePositions();
+      }
+    }
+  );
+
     // Total pages for pagination
     const totalPages = computed(() =>
       Math.ceil(queueList.value.length / itemsPerPage)
@@ -712,7 +723,35 @@ export default {
       dragOverIndex.value = null;
     };
 
-    const onDrop = (targetIndex) => {
+
+
+    const updateQueuePositions = async () => {
+      const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
+        id: customer.id,
+        position: index + 1,
+      }));
+
+      try {
+        await $axios.post("/update-queue-positions", { positions: updatedPositions });
+      } catch (error) {
+        console.error("Error updating positions:", error);
+      }
+    };
+
+    const updateServe = async () => {
+      const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
+        id: customer.id,
+        position: 0,
+      }));
+
+      try {
+        await $axios.post("/update-queue-positions", { positions: updatedPositions });
+      } catch (error) {
+        console.error("Error updating positions:", error);
+      }
+    };
+
+    const onDrop = async  (targetIndex) => {
       if (draggedIndex === null || draggedIndex === targetIndex) return;
 
       // Swap positions in queueList
@@ -726,6 +765,7 @@ export default {
       draggedIndex = null;
       dragOverIndex.value = null;
       isDragging.value = false;
+      await updateQueuePositions()
     };
 
     const logout = async () => {
