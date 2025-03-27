@@ -17,23 +17,24 @@ class WindowRequest extends FormRequest
     {
         return [
             'window_name' => ['required'],
-            'teller_id' => ['required','unique:windows,teller_id'],
+            'teller_id' => ['required'],
             'type_id' => ['required'],
         ];
     }
+    public function messages(): array
+    {
+       return [
+           'teller_id.required' => 'The assign personel field is required',
+           'type_id.required' => 'The window type field is required'
+        ];
+     }
+ 
     protected function failedValidation(Validator $validator){
         $errors = [];
         $messages = $validator->getMessageBag();
-
-                // Add custom message if the unique constraint fails
-                if ($messages->has('teller_id')) {
-                    $errors['teller_id'] = 'Already Assigned';
-                } else {
-                    foreach ($messages->keys() as $key) {
-                        $errors[$key] = $messages->get($key, $this->messageFormat)[0];
-                    }
-                }
-
+            foreach ($messages->keys() as $key) {
+                $errors[$key] = $messages->get($key, $this->messageFormat)[0];
+            }
         throw new HttpResponseException(response()->json($errors, 422));
     }
 }

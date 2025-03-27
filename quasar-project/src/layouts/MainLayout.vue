@@ -469,9 +469,9 @@ export default defineComponent({
         icon: "person",
         children: [
           {
-            title: "Window",
-            icon: "computer",
-            link: "/admin/teller/window",
+            title: "Service Types",
+            icon: "category",
+            link: "/admin/teller/types",
           },
           {
             title: "Personnel",
@@ -479,9 +479,9 @@ export default defineComponent({
             link: "/admin/teller/tellers",
           },
           {
-            title: "Service Types",
-            icon: "category",
-            link: "/admin/teller/types",
+            title: "Window",
+            icon: "computer",
+            link: "/admin/teller/window",
           },
         ],
       },

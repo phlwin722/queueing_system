@@ -26,6 +26,15 @@ class WindowController extends Controller
     {
         
         try{
+            $tller_id = DB::table('windows')
+                        -> where ('teller_id',$request->teller_id)
+                        ->first();
+            if ($tller_id) {
+                return response()->json([
+                    'message' => 'The teller is already assigned'
+                ],400);
+            }
+
             $res = Window::create($request->all());
             $row = $this->getData($res ->id);
             
@@ -35,8 +44,6 @@ class WindowController extends Controller
             DB::table('tellers')
                 ->where('id', $teller_id)
                 ->update(['type_id' => $type_id]);
-        
-
 
             return response()->json([
                 "row"=> $row,
@@ -53,12 +60,16 @@ class WindowController extends Controller
         }
     }
 
-   
-
- 
-
     public function update(WindowRequest $request){
         try {
+            $tller_id = DB::table('windows')
+                        -> where ('teller_id',$request->teller_id)
+                        ->first();
+            if ($tller_id) {
+                return response()->json([
+                    'message' => 'The teller is already assigned'
+                ],400);
+            }
             // Find the student
             $window = Window::find($request->id);
     
@@ -106,7 +117,7 @@ class WindowController extends Controller
                 ],404);
             }else{
                 DB::table('tellers')
-                    ->where('id', $request->id)
+                    ->whereIn('id', $request->id)
                     ->update(['type_id' => null]);
 
                 Window::destroy($request->id);
