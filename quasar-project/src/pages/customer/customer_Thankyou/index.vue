@@ -60,7 +60,7 @@ export default defineComponent({
 
   setup() {
     const goToPage = () => {
-      window.open("https://www.facebook.com/vrtsystems", "_blank");
+      window.open("https://www.facebook.com/fil.labs.2025", "_blank");
     };
     return {
       goToPage,
