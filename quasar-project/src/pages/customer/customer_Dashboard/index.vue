@@ -70,7 +70,7 @@
           </div>
           <div class="column items-center">
             <div class="text-bold text-grey-7 text-caption">
-              Your Remaining Position
+              Your Position in Queue
             </div>
             <div class="text-h5 text-indigo-10 text-bold">
               {{ queuePosition || "N/A" }}
@@ -321,10 +321,8 @@ export default {
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
         // Determine customer position in queue
-        queuePosition.value =
-          queueList.value.findIndex(
-            (q) => q.queue_number == customerQueueNumber.value
-          ) + 1;
+        
+        
 
         // If admin pressed "Wait" for the first in queue, start countdown
         // if (
@@ -347,6 +345,7 @@ export default {
         const customer = response.data.queue.find(
           (q) => q.id == customerId.value
         );
+        queuePosition.value = customer.position
         if (customer.status === "finished" && !hasNotified.value) {
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");

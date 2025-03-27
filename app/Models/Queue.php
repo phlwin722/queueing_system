@@ -18,6 +18,7 @@ class Queue extends Model
         'type_id',
         'teller_id',
         'queue_number', 
+        'position',
         'status',
         'waiting_customer',
         'currency_selected'

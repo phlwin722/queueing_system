@@ -23,6 +23,7 @@ class QueueController extends Controller
     
         // Determine the last assigned teller for this type_id
         $lastAssigned = Queue::where('type_id', $type_id)->orderBy('created_at', 'desc')->first();
+
     
         // Get the next teller in a round-robin manner
         $nextTellerIndex = $lastAssigned ? ($tellers->search($lastAssigned->teller_id) + 1) % $tellers->count() : 0;
@@ -109,9 +110,11 @@ class QueueController extends Controller
 
         // Get all queue numbers for the specified type_id
         $queueList = Queue::where('type_id', $typeId)
-            ->where('teller_id', $tellerId)
-            ->orderBy('queue_number')
-            ->get();
+        ->where('teller_id', $tellerId)
+        ->orderBy('position', 'asc') // Sort in ascending order
+        ->get();
+    
+    
 
         // Get the currently serving queue number for the specified type_id
         $currentServing = Queue::where('status', 'serving')
@@ -210,6 +213,14 @@ class QueueController extends Controller
                 "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
             ], 500);
         }
+    }
+
+    public function updatePositions(Request $request)
+    {
+        foreach ($request->positions as $positionData) {
+            Queue::where('id', $positionData['id'])->update(['position' => $positionData['position']]);
+        }
+        return response()->json(['message' => 'Queue positions updated successfully']);
     }
 
     public function queueLogs(Request $request)
