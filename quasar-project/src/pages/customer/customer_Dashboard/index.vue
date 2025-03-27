@@ -691,7 +691,7 @@ export default {
       optimizedFetchWaitingtime();
       optimizedFetchQueueData();
       optimizedFetchWaitingStatus();
-      fetchCurrency();
+      setInterval(fetchCurrency(),30000);
     });
 
     onUnmounted(() => {

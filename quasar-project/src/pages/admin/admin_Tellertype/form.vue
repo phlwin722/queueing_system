@@ -83,6 +83,11 @@ export default defineComponent({
         const handleSubmitForm = async () => {
             isLoading.value = true;
             try {
+                formData.value.name = formData.value.name
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+
                 const mode = formMode.value === 'New' ? '/create' : '/update';
                 const { data } = await $axios.post(props.url + mode, formData.value);
                 const rows = toRefs(props).rows;
