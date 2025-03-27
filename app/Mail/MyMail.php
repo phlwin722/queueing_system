@@ -92,7 +92,6 @@ class MyMail extends Mailable
 
                     /* Optional button styling */
                     .button {
-                        display: flex;
                         background: #007bff;
                         color: #ffffff;
                         padding: 10px 20px;
@@ -100,8 +99,6 @@ class MyMail extends Mailable
                         font-size: 16px;
                         border-radius: 5px;
                         margin-top: 10px;
-                        justify-content: center;
-                        align-items: center;
                         width: 150px;
                     }
 
