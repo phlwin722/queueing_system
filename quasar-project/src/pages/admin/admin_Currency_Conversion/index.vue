@@ -62,7 +62,7 @@
                             @click="handleShowForm('edit', props.row)" 
                         >
                             <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="bg-secondary">
-                                Edit Window
+                                Edit Currency
                             </q-tooltip>
                         </q-btn>
                         
@@ -76,7 +76,7 @@
                             @click="beforeDelete(false, props.row)"
                         >
                             <q-tooltip anchor="center right" self="center left" :offset="[10, 10]" class="bg-secondary">
-                                Delete Window
+                                Delete Currency
                             </q-tooltip>
                         </q-btn>
                     </div>
