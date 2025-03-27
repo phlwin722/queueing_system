@@ -41,6 +41,18 @@ class TellerRequest extends FormRequest
      * @param Validator $validator
      * @throws HttpResponseException
      */
+
+     public function messages(): array
+     {
+        return [
+            'teller_firstname.required' => 'The firstname field is required.',
+            'teller_firstname.regex' => 'Invalid firstname! Only letters and spaces are allowed.',
+            'teller_lastname.required' => 'The lastname field is required',
+            'teller_lastname.regex' => 'Invalid lastname! Only letters and spaces are allowed.',
+            'teller_username.required' => 'The username field is required',
+            'teller_password.required' => 'The password field is requierd',
+         ];
+    }
     protected function failedValidation(Validator $validator)
     {
         $errors = [];

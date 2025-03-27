@@ -244,6 +244,11 @@
             style: 'border-radius: 12px; padding: 16px;',
           }).onOk(async () => {
             try {
+              // Capitalize each string field individually
+              adminInfo.value.Username = capitalizeWords(adminInfo.value.Username);
+              adminInfo.value.Firstname = capitalizeWords(adminInfo.value.Firstname);
+              adminInfo.value.Lastname = capitalizeWords(adminInfo.value.Lastname);
+
               const { data } = await $axios.post('/admin/updateInformation', adminInfo.value);
               formError.value = {}; // Reset form errors after successful submission
               if (data) {
@@ -260,7 +265,15 @@
             // console.log('I am triggered on both OK and Cancel')
           });
       };
-  
+
+      // Capitalize each word in the string 
+      const capitalizeWords = (str) => {
+        return str
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      }; 
+    
       const updatePassword = async () => {
             $dialog.dialog({
             title: 'Confirm',

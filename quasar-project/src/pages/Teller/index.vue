@@ -794,7 +794,7 @@ export default {
         optimizedFetchQueueData()
         optimizedFetchWaitingtime()
         optimizedFetchId()
-        fetchCurrency()
+        setInterval(fetchCurrency(),30000);
         const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
         const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
         if (startTime && duration) {
