@@ -92,7 +92,6 @@ class MyMail extends Mailable
 
                     /* Optional button styling */
                     .button {
-                        display: flex;
                         background: #007bff;
                         color: #ffffff;
                         padding: 10px 20px;
@@ -100,8 +99,6 @@ class MyMail extends Mailable
                         font-size: 16px;
                         border-radius: 5px;
                         margin-top: 10px;
-                        justify-content: center;
-                        align-items: center;
                         width: 150px;
                     }
 
@@ -130,7 +127,7 @@ class MyMail extends Mailable
                         <p>{$this->data['message']}</p>
                         <p>We appreciate your time!</p>
                         
-                    <div class="button-container">
+                    <div class='button-container'>
                     <a href='http://192.168.0.164:8080/customer-dashboard/{$this->data['token']}' class='button'>Open my dashboard</a>
                     </div>
                 </div>
