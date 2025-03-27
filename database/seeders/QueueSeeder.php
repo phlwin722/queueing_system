@@ -137,7 +137,7 @@ class QueueSeeder extends Seeder
             ],
             [
                 'currency_name' => 'Euro',
-                'currency_symbol' => '$',
+                'currency_symbol' => '€',
                 'flag' => 'fi-eu',
                 'buy_value' => '59.00',
                 'sell_value' => '32.00',
