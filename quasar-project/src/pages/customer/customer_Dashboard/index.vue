@@ -414,7 +414,7 @@ export default {
     try {
           const { data } = await $axios.post('/customer-check-waiting', { token: tokenurl.value });
 
-          if (data.waiting_customer === "yes") {
+          if (data.waiting_customer == "yes") {
               if (!isWaiting.value) { // Start countdown only if not already waiting
                   isWaiting.value = true;
                   startCountdown();
