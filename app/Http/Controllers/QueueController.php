@@ -364,7 +364,6 @@ class QueueController extends Controller
 
         return response()->json([
             'message' => 'Customer is being waited.'
-            
         ]);
     }
 
@@ -373,8 +372,6 @@ class QueueController extends Controller
         $queue = DB::table('queues')
             ->where('token', $request->input('token'))
             ->first();
-
-       
 
         return response()->json([
             'waiting_customer' => $queue->waiting_customer,
