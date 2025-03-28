@@ -124,7 +124,7 @@
                         >
                           <!-- Queue Number and Customer Name -->
                           <q-item-section class="flex flex-col justify-center q-pr-md">
-                            
+                            {{customer.id}}
                             <div class="text-primary text-bold text-h6 q-mb-xs">{{ customer.queue_number }}</div>
                             <p class="text-body2 text-secondary q-mb-none">{{ customer.name }}</p>
                           </q-item-section>
@@ -330,10 +330,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
+import { debounce } from 'quasar'
 
 export default {
   setup() {
@@ -345,14 +346,14 @@ export default {
     const waitTime = ref(30);
     const tempTimer = ref();
     const prepared = ref();
-    const originalWaitTime = ref(0); // Store the original wait time
+    const originalWaitTime = ref(0);
     const isQueuelistEmpty = ref(false);
     let waitTimer = null;
     const noOfQueue = ref();
     const imageUrl = ref();
-    const rowsCurrency = ref([])
+    const rowsCurrency = ref([]);
+    const isLoading = ref(false);
 
-    // const waitProgress = ref(0);
     let refreshInterval = null;
     const $dialog = useQuasar();
 
@@ -366,7 +367,8 @@ export default {
     const toggleFullscreen = () => {
       $q.fullscreen.toggle();
     };
-    // CONTAINTER OF TELLER INFORMATION
+
+    // Teller Information
     const tellerInformation = ref({
       id: "",
       tellerFirstname: "",
@@ -375,12 +377,14 @@ export default {
       type_name: "",
     });
 
-    // Fetch queue data
+    // Fetch queue data with error handling
     const fetchQueue = async () => {
       try {
+        isLoading.value = true;
+        
         // Load locally stored queue order if available
         const storedQueue = JSON.parse(localStorage.getItem("queueList")) || [];
-
+        
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
@@ -411,21 +415,27 @@ export default {
         noOfQueue.value = queueList.value.length;
 
         // Auto-serve next customer if queue has waiting ones
-        if (
-          queueList.value.length > 0 &&
-          queueList.value[0].status === "waiting" &&
-          currentServing.value == null
+        if (queueList.value.length > 0 &&
+            queueList.value[0].status === "waiting" &&
+            currentServing.value == null
         ) {
-          updateServe()
-          setTimeout(() => {
-            caterCustomer(queueList.value[0].id, queueList.value[0].type_id);
-            startWait(queueList.value[0].id, queueList.value[0].queue_number);
-          }, 1000);
+          updateServe();
+          
+          const nextCustomer = queueList.value[0];
+          if (nextCustomer) {
+            setTimeout(() => {
+              caterCustomer(nextCustomer.id, nextCustomer.type_id);
+              startWait(nextCustomer.id, nextCustomer.queue_number);
+            }, 3000);
+          }
         }
 
         isQueuelistEmpty.value = queueList.value.length == 0;
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching queue:", error);
+        $notify("negative", "error", "Failed to fetch queue data");
+      } finally {
+        isLoading.value = false;
       }
     };
 
@@ -444,13 +454,15 @@ export default {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
         });
-        cusId.value = response.data.current_serving.id;
+        if (response.data.current_serving) {
+          cusId.value = response.data.current_serving.id;
+        }
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching customer ID:", error);
       }
     };
 
-    // Cater customer
+    // Cater customer with error handling
     const caterCustomer = async (customerId, type_id) => {
       try {
         await $axios.post("/teller/cater", {
@@ -463,32 +475,30 @@ export default {
         const customer = queueList.value.find((q) => q.id === customerId);
         if (customer) {
           customer.status = "serving";
-          currentServing.value = customer; // Set as the currently served customer
+          currentServing.value = customer;
         }
-
-        fetchQueue();
-        fetchId();
       } catch (error) {
-        console.error(error);
+        console.error("Error catering customer:", error);
       }
     };
-    //cancel dialog
+
+    // Cancel dialog with confirmation
     const beforeCancel = (row) => {
       $dialog
         .dialog({
           title: "Confirm",
-          message: "Are you sure do you want to cancel "+row.name+" ?",
+          message: `Are you sure you want to cancel ${row.name}?`,
           cancel: true,
           persistent: true,
           ok: {
             label: "Yes",
-            color: "primary", // Make confirm button red
-            unelevated: true, // Flat button style
+            color: "primary",
+            unelevated: true,
             style: "width: 125px;",
           },
           cancel: {
             label: "Cancel",
-            color: "red-8", // Make cancel button grey
+            color: "red-8",
             unelevated: true,
             style: "width: 125px;",
           },
@@ -496,48 +506,44 @@ export default {
         })
         .onOk(() => {
           cancelCustomer(row.id);
-        })
-        .onDismiss(() => {
-          // console.log('I am triggered on both OK and Cancel')
         });
     };
 
-    // Cancel customer
+    // Cancel customer with error handling
     const cancelCustomer = async (customerId) => {
       try {
         await $axios.post("/teller/cancel", { id: customerId });
-        fetchQueue();
+        await fetchQueue();
         $notify(
           "positive",
           "check",
           "Customer has been removed from the queue."
         );
-        stopWait(); // Stop wait if customer is canceled
+        stopWait();
       } catch (error) {
-        console.error(error);
+        console.error("Error canceling customer:", error);
         $notify("negative", "error", "Failed to cancel customer.");
       }
     };
 
-    // Finish serving customer
+    // Finish serving customer with error handling
     const finishCustomer = async (customerId) => {
       try {
         await $axios.post("/teller/finish", { id: customerId });
-        fetchQueue();
-
+        await fetchQueue();
         $notify("positive", "check", "Customer has been marked as finished.");
       } catch (error) {
-        console.error(error);
+        console.error("Error finishing customer:", error);
         $notify("negative", "error", "Failed to finish serving.");
       }
     };
 
-    // Start waiting process
+    // Start waiting process with error handling
     const startWait = async (customerId, queueNumber) => {
       try {
-        await $axios.post("/waitCustomer", { id: customerId });
+        if (waiting.value) return;
 
-        if (waiting.value) return; // Prevent multiple clicks while waiting
+        await $axios.post("/waitCustomer", { id: customerId });
 
         waiting.value = true;
 
@@ -548,7 +554,7 @@ export default {
         }
 
         // Set the start time in localStorage
-        const startTime = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+        const startTime = Math.floor(Date.now() / 1000);
         localStorage.setItem("wait_start_time", startTime);
         localStorage.setItem("wait_duration", originalWaitTime.value);
 
@@ -566,17 +572,21 @@ export default {
 
         startTimer(customerId);
       } catch (error) {
-        console.error(error);
+        console.error("Error starting wait:", error);
         $notify("negative", "error", "Failed to set waiting customer.");
       }
     };
 
     const resetWait = async (id) => {
-      await $axios.post("/waitCustomerReset", { id: id });
+      try {
+        await $axios.post("/waitCustomerReset", { id: id });
+      } catch (error) {
+        console.error("Error resetting wait:", error);
+      }
     };
 
     // Start the countdown timer
-    const startTimer = (id) => {
+    const startTimer = () => {
       if (waitTimer) clearInterval(waitTimer);
 
       waitTimer = setInterval(() => {
@@ -601,40 +611,37 @@ export default {
       }, 1000);
     };
 
-    // Fetch the data from the backend when the component is mounted
+    // Fetch waiting time with error handling
     const fetchWaitingtime = async () => {
       try {
         const { data } = await $axios.post("/admin/waiting_Time-fetch");
-        // Ensure that data.dataValue is available before trying to assign it to formData
-        if (data && data.dataValue && data.dataValue.length > 0) {
-          waitTime.value = data.dataValue[0].Waiting_time; // Assign the first object in dataValue to formData
+        if (data?.dataValue?.length > 0) {
+          waitTime.value = data.dataValue[0].Waiting_time;
           prepared.value = data.dataValue[0].Prepared;
-        } else {
-          console.log("No data available");
         }
       } catch (error) {
-        console.log("Error fetching data:", error);
+        console.error("Error fetching waiting time:", error);
       }
     };
 
     // Format time as MM:SS
     const formatTime = (seconds) => {
-      if (seconds == null) {
-        return `.....`;
-      }
+      if (seconds == null) return ".....";
       if (seconds >= 60) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
-        return `${minutes} m ${remainingSeconds} s`;
+        return `${minutes}m ${remainingSeconds}s`;
       }
-
-      return `${seconds} s`;
+      return `${seconds}s`;
     };
 
     // Stop waiting process
     const stopWait = () => {
       waiting.value = false;
-      clearInterval(waitTimer);
+      if (waitTimer) {
+        clearInterval(waitTimer);
+        waitTimer = null;
+      }
       localStorage.removeItem("wait_start_time");
       localStorage.removeItem("wait_duration");
     };
@@ -642,48 +649,41 @@ export default {
     // Computed property for paginated queue list
     const paginatedQueueList = computed(() => queueList.value);
 
-    watch(
-    () => queueList.value.length,
-    (newLength, oldLength) => {
-      if (newLength !== oldLength) {
-        updateQueuePositions();
-      }
-    }
-  );
+    // Debounced queue position updates
+    const debouncedUpdateQueuePositions = debounce(async () => {
+      const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
+        id: customer.id,
+        position: index + 1,
+      }));
 
-    // Total pages for pagination
-    const totalPages = computed(() =>
-      Math.ceil(queueList.value.length / itemsPerPage)
+      try {
+        await $axios.post("/update-queue-positions", { positions: updatedPositions });
+      } catch (error) {
+        console.error("Error updating positions:", error);
+      }
+    }, 500);
+
+    watch(
+      () => queueList.value.length,
+      () => {
+        debouncedUpdateQueuePositions();
+      }
     );
 
-    // fetching the name of value of type id on service type
-    const fetchType_idValue = async () => {
+    const updateServe = async () => {
       try {
-        const { data } = await $axios.post("/teller/typeid-value", {
-          type_id: tellerInformation.value.type_id,
+        await $axios.post("/update-queue-positions", { 
+          positions: paginatedQueueList.value.map(customer => ({
+            id: customer.id,
+            position: 0
+          }))
         });
-        // Update the type_name inside the tellerInformation ref
-        tellerInformation.value.type_name = data.servicename;
       } catch (error) {
-        if (error.response.status === 422) {
-          console.log(error.response.data.message);
-        }
+        console.error("Error updating serve positions:", error);
       }
     };
 
-    const fetch_Image = async () => {
-      try {
-        const { data } = await $axios.post("/teller/image-teller", {
-          id: tellerInformation.value.id,
-        });
-
-        imageUrl.value = data.Image;
-      } catch (error) {
-        if (error.response.status === 422) {
-          console.log(error);
-        }
-      }
-    };
+    // Drag and drop functionality
     let draggedIndex = null;
     const dragOverIndex = ref(null);
     const isDragging = ref(false);
@@ -692,7 +692,7 @@ export default {
       draggedIndex = index;
       isDragging.value = true;
 
-      // Set a custom drag image (fixes transparency issues)
+      // Set a custom drag image
       const dragImage = event.target.cloneNode(true);
       Object.assign(dragImage.style, {
         position: "absolute",
@@ -707,15 +707,13 @@ export default {
 
       document.body.appendChild(dragImage);
       event.dataTransfer.setDragImage(dragImage, 0, 0);
-
-      // Ensure the drag image is removed immediately
       setTimeout(() => document.body.removeChild(dragImage), 0);
     };
 
     const onDragOver = async (index) => {
       if (dragOverIndex.value !== index) {
         dragOverIndex.value = index;
-        await nextTick(); // Force Vue to repaint for proper hint visibility
+        await nextTick();
       }
     };
 
@@ -723,35 +721,7 @@ export default {
       dragOverIndex.value = null;
     };
 
-
-
-    const updateQueuePositions = async () => {
-      const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
-        id: customer.id,
-        position: index + 1,
-      }));
-
-      try {
-        await $axios.post("/update-queue-positions", { positions: updatedPositions });
-      } catch (error) {
-        console.error("Error updating positions:", error);
-      }
-    };
-
-    const updateServe = async () => {
-      const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
-        id: customer.id,
-        position: 0,
-      }));
-
-      try {
-        await $axios.post("/update-queue-positions", { positions: updatedPositions });
-      } catch (error) {
-        console.error("Error updating positions:", error);
-      }
-    };
-
-    const onDrop = async  (targetIndex) => {
+    const onDrop = async (targetIndex) => {
       if (draggedIndex === null || draggedIndex === targetIndex) return;
 
       // Swap positions in queueList
@@ -765,95 +735,153 @@ export default {
       draggedIndex = null;
       dragOverIndex.value = null;
       isDragging.value = false;
-      await updateQueuePositions()
+      
+      await debouncedUpdateQueuePositions();
     };
 
     const logout = async () => {
-      localStorage.removeItem("authTokenTeller");
-      localStorage.removeItem("tellerInformation");
-      router.push("/login"); // Redirect to login page
-      setTimeout(() => {
-        window.location.reload(); // Prevent back navigation
-      }, 100);
+      try {
+        localStorage.removeItem("authTokenTeller");
+        localStorage.removeItem("tellerInformation");
+        router.push("/login");
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      } catch (error) {
+        console.error("Error during logout:", error);
+      }
     };
 
-    let waitingTimeout;
-    let queueTimeout;
-    let fetchIdTimeout;
-
-    const optimizedFetchQueueData = async () => {
-    await fetchQueue();
-    queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
-    };
-
-    const optimizedFetchWaitingtime = async () => {
-      await fetchWaitingtime()
-      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000); // Recursive Timeout
-    };
-
-    const optimizedFetchId = async () => {
-      await fetchId()
-      fetchIdTimeout = setTimeout(optimizedFetchId, 2000); // Recursive Timeout
-
-    };
-
-    // Define the columns for the table, adjusting the 'currency' field
+    // Table columns for currency
     const columns = ref([
       { name: 'currency', align: 'left', label: 'Currency', field: 'currency', sortable: true },
       { name: 'buy', align: 'left', label: 'Buy', field: 'buy' },
       { name: 'sell', align: 'left', label: 'Sell', field: 'sell' },
     ]);
 
-      // Fetch the currency data from the API
-      const fetchCurrency = async () => {
-        try {
-          const { data } = await $axios.post('/currency/showData');
-          console.log(data.rows);  // Debugging to check the structure
+    // Fetch currency data with error handling
+    const fetchCurrency = async () => {
+      try {
+        const { data } = await $axios.post('/currency/showData');
+        rowsCurrency.value = data.rows.map(row => ({
+          id: row.id,
+          currency: {
+            flag: row.flag,
+            symbol: row.currency_symbol,
+            name: row.currency_name,
+          },
+          buy: `${row.buy_value}`,
+          sell: `${row.sell_value}`,
+        }));
+      } catch (error) {
+        console.error("Error fetching currency data:", error);
+      }
+    };
 
-          // Map the API response to match the expected table structure
-          rowsCurrency.value = data.rows.map(row => ({
-            id: row.id,  // Ensure 'id' is unique for row-key
-            currency: {
-              flag: row.flag,  // The flag class (e.g., "fi-us")
-              symbol: row.currency_symbol,
-              name: row.currency_name,
-            },
-            buy: `${row.buy_value}`,  // You might want to format this as a currency if needed
-            sell: `${row.sell_value}`, // Similarly, format this as needed
-          }));
-        } catch (error) {
-          if (error.response && error.response.status === 422) {
-            console.error(error);
-          }
-        }
-      };
+    // Fetch the name of value of type id on service type
+    const fetchType_idValue = async () => {
+      try {
+        const { data } = await $axios.post("/teller/typeid-value", {
+          type_id: tellerInformation.value.type_id,
+        });
+        tellerInformation.value.type_name = data.servicename;
+      } catch (error) {
+        console.error("Error fetching service type:", error);
+      }
+    };
+
+    const fetch_Image = async () => {
+      try {
+        const { data } = await $axios.post("/teller/image-teller", {
+          id: tellerInformation.value.id,
+        });
+        imageUrl.value = data.Image;
+      } catch (error) {
+        console.error("Error fetching teller image:", error);
+      }
+    };
+
+    // Timer references for cleanup
+    let waitingTimeout;
+    let queueTimeout;
+    let fetchIdTimeout;
+    let currencyInterval;
+
+    // Optimized fetch functions with error handling
+    const optimizedFetchQueueData = async () => {
+      try {
+        await fetchQueue();
+      } catch (error) {
+        console.error("Error in queue data fetch:", error);
+      } finally {
+        queueTimeout = setTimeout(optimizedFetchQueueData, 2000);
+      }
+    };
+
+    const optimizedFetchWaitingtime = async () => {
+      try {
+        await fetchWaitingtime();
+      } catch (error) {
+        console.error("Error in waiting time fetch:", error);
+      } finally {
+        waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000);
+      }
+    };
+
+    const optimizedFetchId = async () => {
+      try {
+        await fetchId();
+      } catch (error) {
+        console.error("Error in customer ID fetch:", error);
+      } finally {
+        fetchIdTimeout = setTimeout(optimizedFetchId, 2000);
+      }
+    };
 
     onMounted(() => {
-      const storedTellerInfo = localStorage.getItem("tellerInformation");
-      if (storedTellerInfo) {
-        optimizedFetchQueueData()
-        optimizedFetchWaitingtime()
-        optimizedFetchId()
-        setInterval(fetchCurrency(),30000);
-        const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
-        const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
-        if (startTime && duration) {
-          waiting.value = true;
-          startTimer();
+      try {
+        const storedTellerInfo = localStorage.getItem("tellerInformation");
+        if (storedTellerInfo) {
+          tellerInformation.value = JSON.parse(storedTellerInfo);
+          fetchType_idValue();
+          fetch_Image();
+
+          // Start periodic data fetching
+          optimizedFetchQueueData();
+          optimizedFetchWaitingtime();
+          optimizedFetchId();
+
+          // Start currency data fetching
+          fetchCurrency();
+          currencyInterval = setInterval(fetchCurrency, 30000);
+
+          // Restore wait timer if exists
+          const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
+          const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
+          if (startTime && duration) {
+            waiting.value = true;
+            startTimer();
+          }
+        } else {
+          console.error("No teller information found");
+          router.push("/login");
         }
-        tellerInformation.value = JSON.parse(storedTellerInfo);
-        fetchType_idValue();
-        fetch_Image();
-      } else {
-        console.error("No teller information found in localStorage");
+      } catch (error) {
+        console.error("Initialization error:", error);
+        router.push("/login");
       }
     });
 
     onUnmounted(() => {
+      // Cleanup all timers and intervals
       clearTimeout(waitingTimeout);
       clearTimeout(queueTimeout);
       clearTimeout(fetchIdTimeout);
+      clearInterval(currencyInterval);
+      if (waitTimer) clearInterval(waitTimer);
+      if (refreshInterval) clearInterval(refreshInterval);
     });
+
     return {
       fetchCurrency,
       queueList,
@@ -877,7 +905,6 @@ export default {
       currentPage,
       itemsPerPage,
       paginatedQueueList,
-      totalPages,
       menuOpen,
       toggleFullscreen,
       fetch_Image,
@@ -889,14 +916,14 @@ export default {
       onDragLeave,
       onDrop,
       columns,
-      rowsCurrency
+      rowsCurrency,
+      isLoading
     };
   },
 };
 </script>
- 
-<style>
 
+<style>
 @import 'flag-icons/css/flag-icons.min.css';
 
 @keyframes queueDots {
@@ -917,16 +944,14 @@ export default {
   transition: background 0.2s ease-in-out, transform 0.15s ease-in-out,
     border 0.15s ease-in-out;
   opacity: 1 !important;
-  border: 2px solid transparent; /* Default transparent border */
+  border: 2px solid transparent;
 }
 
-/* Highlight the item being dragged over */
 .draggable-item.drag-over {
   background: rgba(25, 118, 210, 0.3);
   border: 2px dashed #1976d2 !important;
 }
 
-/* Drop hint styling */
 .drop-hint {
   height: 10px;
   background: rgba(25, 118, 210, 0.4);
@@ -938,19 +963,17 @@ export default {
   transition: opacity 0.15s ease-in-out, visibility 0.15s;
 }
 
-/* Show drop hint when dragging */
 .is-dragging .drop-hint {
   visibility: visible;
   opacity: 1;
 }
 
-/* Make the entire q-item and border fully visible when holding */
 .draggable-item:active,
 .draggable-item.is-dragging {
   border: 2px solid #1976d2 !important;
-  background: rgba(25, 118, 210, 0.1); /* Subtle background highlight */
-  padding: 6px; /* Increase padding to make it more visible */
-  box-shadow: 0px 0px 8px rgba(25, 118, 210, 0.5); /* Slight glow effect */
+  background: rgba(25, 118, 210, 0.1);
+  padding: 6px;
+  box-shadow: 0px 0px 8px rgba(25, 118, 210, 0.5);
 }
 
 .loading-dots span {
@@ -980,6 +1003,32 @@ export default {
   border-width: 50px;
   margin: 5px 0;
 }
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .q-card {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .text-h4 {
+    font-size: 1.5rem;
+  }
+  .q-btn {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .q-toolbar {
+    flex-wrap: wrap;
+  }
+  .q-img {
+    max-width: 80px !important;
+  }
+}
+
 @media (max-width: 320px) {
   .text-left,
   .text-right {
@@ -997,36 +1046,34 @@ export default {
     gap: 8px;
   }
 }
+
 .q-gutter-y-xs {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-/* Ensure buttons are full-width */
 .q-btn.full-width {
   width: 100%;
 }
 
 .my-scroll {
-  /* Customize scrollbars */
   scrollbar-width: thin;
-  scrollbar-color: #4caf50 #f1f1f1; /* thumb color and track color */
+  scrollbar-color: #4caf50 #f1f1f1;
 }
 
-/* Webkit Browsers (Chrome, Safari, etc.) */
 .my-scroll::-webkit-scrollbar {
-  width: 8px; /* vertical scrollbar width */
-  height: 8px; /* horizontal scrollbar height */
+  width: 8px;
+  height: 8px;
 }
 
 .my-scroll::-webkit-scrollbar-thumb {
-  background-color: #4caf50; /* thumb color */
-  border-radius: 10px; /* round the corners */
+  background-color: #4caf50;
+  border-radius: 10px;
 }
 
 .my-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1; /* track color */
+  background: #f1f1f1;
 }
 
 .custom-badge {
@@ -1034,7 +1081,18 @@ export default {
   padding: 6px 12px;
   cursor: default;
 }
-</style>
-<style>
-@import 'flag-icons/css/flag-icons.min.css';
+
+/* Loading state */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
 </style>
