@@ -1,20 +1,20 @@
 <template>
-  <q-layout>
+  <q-layout class="flex flex-center">
     <div
-      class="flex flex-center full-page column"
-      style="height: 110vh; width: 100vw"
+      class="flex flex-center full-page"
+      style="height: 100vh;"
     >
       <q-img
         src="../../../assets/vrtlogowhite1.png"
         alt="Logo"
         fit="full"
-        :style="{ maxWidth: $q.screen.lt.sm ? '250px' : '300px' }"
+        :style="{ maxWidth: $q.screen.lt.sm ? '170px' : '180px', marginTop: '-450px' }"
         class="q-mb-xl"
       />
-
-      <q-card
+    </div>
+    <q-card
         class="q-pa-md shadow-2 bg-accent"
-        style="width: 350px; max-width: 90vw"
+        style="width: 350px; max-width: 90vw; margin-top: -550px;"
       >
         <q-card-section>
           <div class="text-h6 text-center">Join the Queue</div>
@@ -103,7 +103,6 @@
           label-style="font-size: 1.1em"
         />
       </q-card>
-    </div>
   </q-layout>
 </template>
 
