@@ -124,7 +124,6 @@
                         >
                           <!-- Queue Number and Customer Name -->
                           <q-item-section class="flex flex-col justify-center q-pr-md">
-                            {{customer.id}}
                             <div class="text-primary text-bold text-h6 q-mb-xs">{{ customer.queue_number }}</div>
                             <p class="text-body2 text-secondary q-mb-none">{{ customer.name }}</p>
                           </q-item-section>
