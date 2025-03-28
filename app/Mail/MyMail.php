@@ -61,7 +61,7 @@ class MyMail extends Mailable
 
                     /* Header styles */
                     .header {
-                        background: #007bff;
+                        background: #1c5d99;
                         color: #ffffff;
                         padding: 15px;
                         text-align: left;
@@ -92,7 +92,7 @@ class MyMail extends Mailable
 
                     /* Optional button styling */
                     .button {
-                        background: #007bff;
+                        background: #1c5d99;
                         color: #ffffff;
                         padding: 10px 20px;
                         text-decoration: none;
@@ -102,16 +102,9 @@ class MyMail extends Mailable
                         width: 150px;
                     }
 
-                    .button-container {
-                        display: flex;
-                        justify-content: center;
-                        margin-top: 10px;
-                    }
-
-
                     /* Button hover effect */
                     .button:hover {
-                        background: #0056b3;
+                        background: #007bff;
                         color: #ffffff;
                     }
                 </style>
@@ -127,9 +120,21 @@ class MyMail extends Mailable
                         <p>{$this->data['message']}</p>
                         <p>We appreciate your time!</p>
                         
-                    <div class='button-container'>
-                    <a href='http://192.168.0.164:8080/customer-dashboard/{$this->data['token']}' class='button'>Open my dashboard</a>
-                    </div>
+                        <table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0'>
+                            <tr>
+                                <td align='center'>
+                                    <a href='http://192.168.0.164:8080/customer-dashboard/{$this->data['token']}' 
+                                        class='button' 
+                                        style='display: inline-block; background: #007bff; color: #ffffff; 
+                                                padding: 10px 20px; text-decoration: none; font-size: 16px; 
+                                                border-radius: 5px; margin-top: 10px;'>
+                                        Open my dashboard
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                        
+
                 </div>
                     <!-- Email Footer -->
                     <div class='footer'>
