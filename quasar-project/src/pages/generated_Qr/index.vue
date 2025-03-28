@@ -161,7 +161,7 @@ export default {
     let Qrtimeout;
     const optimizedFecthQr = async () => {
         await fetchQrCode()
-        Qrtimeout = setTimeout(optimizedFecthQr, 5000); // Recursive Timeout
+        Qrtimeout = setTimeout(optimizedFecthQr, 3000); // Recursive Timeout
     };
 
     onMounted(() => {
