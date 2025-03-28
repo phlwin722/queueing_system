@@ -57,15 +57,23 @@
         <q-separator />
 
         <q-card-section
-          v-if="queuePosition > 0"
+          v-if="queuePosition == 0 && customerStatus == 'serving'"
           class="row justify-around q-pa-md"
         >
+          <div class="column items-center">
+            <div class="text-center text-h5 text-bold text-positive q-mb-md">
+              You Are Currently Being Served
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else class="row justify-around q-pa-md">
           <div class="column items-center">
             <div class="text-bold text-grey-7 text-caption">
               Currently Serving
             </div>
             <div class="text-h5 text-blue-10 text-bold">
-              {{ currentQueue || "None" }}
+              {{ currentQueue || "..." }}
             </div>
           </div>
           <div class="column items-center">
@@ -73,15 +81,7 @@
               Your Position in Queue
             </div>
             <div class="text-h5 text-indigo-10 text-bold">
-              {{ queuePosition || "N/A" }}
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-section v-else class="row justify-around q-pa-md">
-          <div class="column items-center">
-            <div class="text-center text-h5 text-bold text-positive q-mb-md">
-              You Are Currently Being Served
+              {{ queuePosition || "..." }}
             </div>
           </div>
         </q-card-section>
@@ -257,6 +257,7 @@ export default {
     const assignedTeller = ref("");
     const typeId = ref();
     const queuePosition = ref(null);
+    const customerStatus = ref("");
     const isBeingServed = ref(false);
     const isWaiting = ref(false);
     const hasNotified = ref(false); // Prevents repeat notifications
@@ -346,6 +347,7 @@ export default {
           (q) => q.id == customerId.value
         );
         queuePosition.value = customer.position
+        customerStatus.value = customer.status;
         if (customer.status === "finished" && !hasNotified.value) {
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
@@ -601,7 +603,7 @@ export default {
 
     const optimizedFetchQueueData = async () => {
     await fetchQueueData();
-    queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+    queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
     };
 
     const optimizedFetchWaitingStatus = async () => {
@@ -611,7 +613,7 @@ export default {
 
     const optimizedFetchWaitingtime = async () => {
       await fetchWaitingtime();
-      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
+      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000); // Recursive Timeout
     };
 
     const isMoneyRatesDialogOpen = ref(false);
@@ -663,6 +665,7 @@ export default {
       queueList,
       currentQueue,
       queuePosition,
+      customerStatus,
       isBeingServed,
       isWaiting,
       countdown,
