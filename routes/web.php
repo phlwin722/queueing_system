@@ -66,7 +66,7 @@ Route::post('/teller/typeid-value',[TellerController::class,'valueTypeid']);
 Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
 Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
 Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
-Route::post('/teller/cater', [TellercaterController::class, 'WaitCustomer']);
+Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
 Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
 Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
 
