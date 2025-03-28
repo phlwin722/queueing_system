@@ -146,6 +146,7 @@ export default {
 
     const joinQueue = async () => {
       isLoading.value = true;
+      formError.value = [];
       try {
         // Check if the category is 'Foreign Exchange' and validate the currency selection
         if (categoryForeignExchange.value === 1) {
@@ -177,6 +178,13 @@ export default {
       } catch (error) {
         if (error.response.status === 422) {
           formError.value = error.response.data;
+        }else if (error.response.status === 400) {
+          $notify('negative','error','No tellers assigned to this service type')
+        }else if (error.response.status === 500) {
+          $notify('negative','error','No tellers assigned to this service type')
+        }
+        else if (error.response.status === 500) {
+          $notify('negative','error','No tellers assigned to this service type')
         }
       } finally {
         isLoading.value = false;
@@ -187,7 +195,6 @@ export default {
       try {
         const { data } = await $axios.post("/types/index");
         categoriesList.value = data.rows;
-        console.log("Categories loaded:", categoriesList.value); // Check categories
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -219,7 +226,6 @@ export default {
       }
     }
   };
-
 
     onMounted(() => {
       processQrCode();

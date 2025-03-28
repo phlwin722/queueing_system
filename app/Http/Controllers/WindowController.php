@@ -26,6 +26,15 @@ class WindowController extends Controller
     {
         
         try{
+            $tller_id = DB::table('windows')
+                        -> where ('teller_id',$request->teller_id)
+                        ->first();
+            if ($tller_id) {
+                return response()->json([
+                    'message' => 'The teller is already assigned'
+                ],400);
+            }
+
             $res = Window::create($request->all());
             $row = $this->getData($res ->id);
             
@@ -35,8 +44,6 @@ class WindowController extends Controller
             DB::table('tellers')
                 ->where('id', $teller_id)
                 ->update(['type_id' => $type_id]);
-        
-
 
             return response()->json([
                 "row"=> $row,
@@ -53,12 +60,26 @@ class WindowController extends Controller
         }
     }
 
-   
-
- 
-
     public function update(WindowRequest $request){
         try {
+            $teller_id = DB::table('windows')
+            // Look for a row where the teller_id is the same as the one provided in the request
+            ->where('teller_id', $request->teller_id)
+            
+            // Exclude the current window being updated by comparing IDs. This prevents the check from affecting the window being updated itself.
+            ->where('id', '!=', $request->id) 
+            
+            // Use 'exists()' to check if there is any matching row. If a row is found, it returns true; otherwise, it returns false.
+            ->exists();  
+        
+        // If the teller_id is already assigned to another window (excluding the current window), return an error response
+        if ($teller_id) {
+            // Return a JSON response with an error message if a conflict is found.
+            return response()->json([
+                'message' => 'The teller is already assigned to another window.' // Error message for conflicting teller_id
+            ], 400); // HTTP 400 status code for bad request
+        }
+        
             // Find the student
             $window = Window::find($request->id);
     
@@ -106,7 +127,7 @@ class WindowController extends Controller
                 ],404);
             }else{
                 DB::table('tellers')
-                    ->where('id', $request->id)
+                    ->whereIn('id', $request->id)
                     ->update(['type_id' => null]);
 
                 Window::destroy($request->id);

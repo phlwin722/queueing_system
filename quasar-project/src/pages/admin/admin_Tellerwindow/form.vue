@@ -145,6 +145,11 @@
             const mode = formMode.value === 'New' ? '/create' : '/update'
             isLoading.value = true
             try{
+                formError.value = {}
+                formData.value.window_name = formData.value.window_name
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ')
             if(mode === '/create'){
                 const {data} = await $axios.post(props.url +mode, formData.value)
                 const rows = toRefs(props).rows
@@ -177,8 +182,8 @@
             if(error.response.status === 422){
                 formError.value = error.response.data
                 
-            }else{
-                console.log('error',error)
+            }else if (error.response.status === 400) {
+                formError.value.teller_id = error.response.data.message
             }
 
             }finally{
