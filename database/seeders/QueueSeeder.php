@@ -30,11 +30,12 @@ class QueueSeeder extends Seeder
         // insert types records that match your factory data (1-5)
         //You are inserting multiple records at once.
         Type::insert([
-            ['name' => 'Foreign Exchange', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Deposit', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'WithDrawal', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Money Tranfer', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Customer Service', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Foreign Exchange', 'code' => 'FE', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Online Application', 'code' => 'OA', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Deposit', 'code' => 'DP', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'WithDrawal', 'code' => 'WD',  'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Money Tranfer', 'code' => 'MT',  'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Customer Service', 'code' => 'CS',  'created_at' => now(), 'updated_at' => now()],
         ]);
 
         // insert teller records that match your factory data (1-5)

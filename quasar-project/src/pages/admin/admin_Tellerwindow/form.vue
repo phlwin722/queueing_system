@@ -138,9 +138,6 @@
             icon.value = true;
         };
 
-
-
-
         const handleSubmitForm = async () =>{
             const mode = formMode.value === 'New' ? '/create' : '/update'
             isLoading.value = true

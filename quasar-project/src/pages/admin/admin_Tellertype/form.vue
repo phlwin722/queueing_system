@@ -28,6 +28,17 @@
                             autofocus
                         />
                     </div>
+                    <div class="col-12">
+                        <q-input 
+                            outlined 
+                            v-model="formData.code " 
+                            label="Acronym symbol:" 
+                            dense
+                            hide-bottom-space
+                            :error="formError.hasOwnProperty('code')"
+                            :error-message="formError.code "
+                        />
+                    </div>
                 </div>
             </q-card-section>
 
@@ -61,7 +72,11 @@ export default defineComponent({
     setup(props) {
         const isShow = ref(false);
         const isLoading = ref(false);
-        const initFormData = () => ({ id: null, name: '' });
+        const initFormData = () => ({ 
+            id: null, 
+            name: '',
+            code: '',
+        });
         const formData = ref(initFormData());
         const formError = ref({});
         const formMode = ref('New');
