@@ -25,7 +25,8 @@ class TypeRequest extends FormRequest
     {
         $id = $this->id ?: 'NULL'; 
         return [
-            'name' => ['required','max:255','unique:types,name,' . $id . ',id']
+            'name' => ['required','max:255','unique:types,name,' . $id . ',id'],
+            'code' =>['required','unique:types,code']
         ];
     }
     protected function failedValidation(Validator $validator){
