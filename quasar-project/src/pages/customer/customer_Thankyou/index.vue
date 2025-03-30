@@ -20,8 +20,6 @@
           <q-icon name="mood" size="md" class="q-ml-xs" />
         </div>
 
-
-
       </q-card-section>
 
       <q-card-section>

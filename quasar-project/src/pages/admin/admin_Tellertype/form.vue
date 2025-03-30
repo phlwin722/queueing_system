@@ -31,12 +31,12 @@
                     <div class="col-12">
                         <q-input 
                             outlined 
-                            v-model="formData.code " 
-                            label="Acronym symbol:" 
+                            v-model="formData.indicator " 
+                            label="Indicator symbol" 
                             dense
                             hide-bottom-space
-                            :error="formError.hasOwnProperty('code')"
-                            :error-message="formError.code "
+                            :error="formError.hasOwnProperty('indicator')"
+                            :error-message="formError.indicator "
                         />
                     </div>
                 </div>
@@ -75,7 +75,7 @@ export default defineComponent({
         const initFormData = () => ({ 
             id: null, 
             name: '',
-            code: '',
+            indicator: '',
         });
         const formData = ref(initFormData());
         const formError = ref({});
