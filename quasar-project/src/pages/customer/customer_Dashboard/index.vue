@@ -8,6 +8,25 @@
       <q-card
         class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
+      <q-btn
+            color="yellow-8"
+            icon="download"
+            @click="isMoneyRatesDialogOpen = true"
+            dense
+            class="q-ml-sm"
+            style="min-width: 30px; max-width: 40px;"
+            size="sm"
+          >
+            <q-tooltip
+              anchor="top start"
+              self="center right"
+              :offset="[10, 10]"
+              class="bg-secondary"
+              style="font-size: 12px; padding: 4px 8px; max-width: 120px"
+            >
+              Download PDF
+            </q-tooltip>
+          </q-btn>
         <!-- Modernized Service Type & Personnel with Glass Effect -->
         <q-card
           class="q-pa-md glass-card text-dark flex row justify-evenly items-end"
@@ -292,6 +311,12 @@ export default {
     const imageUrl = ref();
     let refreshInterval = null;
     let countdownInterval = null;
+    let waitingTimeout;
+    let queueTimeout;
+    let statusTimeout;
+    const moneyRates = ref([]);
+    const currentPage = ref(1);
+    const itemsPerPage = 5; // Number of items per page
 
     const waitTime = ref(30); // Default wait time (can be fetched dynamically)
     const prepared = ref("");
@@ -305,9 +330,6 @@ export default {
       subject: "",
       message: "",
     });
-    const moneyRates = ref([]);
-    const currentPage = ref(1);
-    const itemsPerPage = 5; // Number of items per page
 
     const totalPages = computed(() =>
       Math.ceil(queueList.value.length / itemsPerPage)
@@ -347,9 +369,7 @@ export default {
         currentQueue.value = response.data.current_serving;
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
-        // Determine customer position in queue
-        
-        
+        // Determine customer position in queue  
 
         // If admin pressed "Wait" for the first in queue, start countdown
         // if (
@@ -375,6 +395,13 @@ export default {
         queuePosition.value = customer.position
         customerStatus.value = customer.status;
         if (customer.status === "finished" && !hasNotified.value) {
+
+          await $axios.post('/sent-email-finish',{
+            id : customerId.value,
+            email :  customer.email,
+            subject : 'Thankyou for visit' 
+          })
+
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
           setTimeout(() => router.push("/customer-thankyou/"), 2000); // Delay redirect for a smooth transition
@@ -386,6 +413,12 @@ export default {
             "error",
             "The Admin cancelled your queueing number."
           );
+          
+          await $axios.post('/sent-email-finish',{
+              id : customerId.value,
+              email :  customer.email,
+              subject : 'Thankyou for visit' 
+            })
           setTimeout(() => router.push("/customer-thankyou/"), 2000);
         }
         checkingQueueNumber(); // Call the function to check queue number after updating data
@@ -565,6 +598,34 @@ export default {
       }
     };
 
+    // sending link to access the dashboard
+    const sendingDashboard = async () => {
+      try {
+        const { data } = await $axios.post("/send-fetchInfo", {
+          token: tokenurl.value,
+            });
+        if (data.InformationFromToken.email_status == 'sending_customer') {
+          await $axios.post('sent-email-dashboard',{
+            id : data.InformationFromToken.id,
+            token: data.InformationFromToken.token,
+            queue_number: data.InformationFromToken.queue_number,
+            email: data.InformationFromToken.email,
+            name: data.InformationFromToken.name,
+            subject: "Queue Alert", // Email subject
+            message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
+                      we’ve implemented a queue system that helps manage customer flow. 
+                      Our system is designed to prioritize your needs and minimize waiting times. 
+                      You are free to go about your activities, and once your turn is approaching, 
+                      you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
+          });
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log('error sending dashboard', error)
+        }
+      }
+    }
+
     // Function to check if the user's queue number is 5, then send an email notification
     const checkingQueueNumber = async () => {
       try {
@@ -574,12 +635,12 @@ export default {
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-        if (queuePosition.value === 1) {
+        if (queuePosition.value === 5) {
           if (queueList.value.length > 0) {
             const { data } = await $axios.post("/send-fetchInfo", {
               id: queueList.value[0].id,
             });
-            if (data.Information.email_status === "pending") {
+            if (data.Information.email_status === "pending_alert") {
               // Assign email data with the recipient's details and email content
               emailData.value = {
                 id: data.Information.id, // Recipient's id
@@ -587,11 +648,12 @@ export default {
                 name: data.Information.name, // Recipient's name
                 email: data.Information.email, // Recipient's email address
                 subject: "Queue Alert", // Email subject
-                message: "You are near from being served. Please standby!", // Email message body
+                message: `You are just a few steps away from being served! 
+                          Please remain on standby, as your turn is approaching soon.`, // Email message body
               };
 
               // Send a POST request to the '/send-email' endpoint with emailData as payload
-              const { emailContent } = await $axios.post(
+              await $axios.post(
                 "/send-email",
                 emailData.value
               );
@@ -604,6 +666,7 @@ export default {
       }
     };
 
+    // fetching image of teller 
     const fetchImage = async (tellerId) => {
       try {
         const { data } = await $axios.post("/teller/image-fetch-csdashboard", {
@@ -617,9 +680,6 @@ export default {
         }
       }
     };
-    let waitingTimeout;
-    let queueTimeout;
-    let statusTimeout;
 
     const optimizedFetchQueueData = async () => {
     await fetchQueueData();
@@ -684,14 +744,19 @@ export default {
         if (error.response.status === 422) {
           console.log(error);
         }
-      }
+      } 
     };
+
+    const sendEmailDashBoard = async() => {
+      
+    }
 
     onMounted(() => {
       getTableData();
       optimizedFetchWaitingtime();
       optimizedFetchQueueData();
       optimizedFetchWaitingStatus();
+      sendingDashboard();
       setInterval(fetchCurrency(),30000);
     });
 

@@ -115,7 +115,7 @@ export default {
   setup() {
     const name = ref("");
     const email = ref("");
-    const email_status = ref("pending");
+    const email_status = ref("sending_customer");
     const type_id = ref(null);
     const currencySelected = ref ();
     const categoryForeignExchange = ref();

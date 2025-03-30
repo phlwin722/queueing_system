@@ -196,17 +196,23 @@ class QueueController extends Controller
         try {
             // Get queue number from request
             $id = $request->input('id');
+            $token = $request->token;
     
             // Find the queue by queue_number (exact match)
             $queue = Queue::where('id', $id)->first();
+
+            $tokenFetch = DB::table('queues')
+                            ->where('token',$token)
+                            ->first();
     
-            if (!$queue) {
+/*             if (!$queue) {
                 return response()->json(['message' => 'Queue not found'], 404);
-            }
+            } */
     
             // Return user data as JSON
             return response()->json([
-                'Information' => $queue
+                'Information' => $queue,
+                'InformationFromToken' =>$tokenFetch
             ]);
     
         } catch (\Exception $e) {
