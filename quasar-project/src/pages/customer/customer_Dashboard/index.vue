@@ -93,7 +93,7 @@
               Currently Serving
             </div>
             <div class="text-h5 text-blue-10 text-bold">
-              {{ currentQueue || "..." }}
+              {{ `${indicator}#-${String(currentQueue || "..." ).padStart(3, '0')}` }}
             </div>
           </div>
           <div class="column items-center">
@@ -105,6 +105,20 @@
             </div>
           </div>
         </q-card-section>
+        <div
+          v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
+          class="text-center text-warning q-mb-md q-mt-md"
+        >
+          <q-icon name="warning" size="sm" /> You are near from being served.
+          Please standby!
+        </div>
+      
+        <div
+          v-if="queuePosition && queuePosition > 0 && !isBeingServed"
+          class="text-center text-warning q-mb-md q-mt-md"
+        >
+          Expected cater time: {{timeCater}}
+        </div>
 
         <q-separator />
 
@@ -162,13 +176,6 @@
 
         <q-separator inset />
 
-        <div
-          v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
-          class="text-center text-warning q-mb-md q-mt-md"
-        >
-          <q-icon name="warning" size="sm" /> You are near from being served.
-          Please standby!
-        </div>
 
         <q-card-section
           class="q-pa-md"
@@ -286,7 +293,7 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
-import { useQuasar } from "quasar";
+import { useQuasar, date } from "quasar";
 import { jsPDF } from "jspdf"; // Import jsPDF for PDF generation
 import autoTable from 'jspdf-autotable'; // Import the autoTable plugin explicitly
 import QRCode from 'qrcode'; // Import the qrcode package
@@ -300,6 +307,7 @@ export default {
     const customerQueueNumber = ref(0);
     const customerId = ref(0);
     const indicator = ref("");
+    const serving_time = ref(0);
 
     const queueList = ref([]);
     const currentQueue = ref(null);
@@ -445,7 +453,9 @@ export default {
         });
         serviceType.value = data.row.name;
         indicator.value = data.row.indicator;
-        assignedTeller.value = data.row.teller_firstname + " " + data.row.teller_lastname;
+        serving_time.value = data.row.serving_time;
+        assignedTeller.value =
+          data.row.teller_firstname + " " + data.row.teller_lastname;
         typeId.value = data.row.typeId;
         tellerId.value = data.row.id;
         customerQueueNumber.value = data.userInfo.queue_number;
@@ -468,6 +478,38 @@ export default {
         console.log(error);
       }
     };
+    const approximateCaterTime = ref();
+    const timeCater = ref ("")
+
+    const approximateWaitTime = computed(() => {
+      if (queuePosition.value === null || !serving_time.value) return "N/A";
+
+      const estimatedTimeInMinutes = queuePosition.value * serving_time.value;
+      approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
+
+      return estimatedTimeInMinutes;
+    });
+
+    watch(approximateCaterTime, (newTime) => {
+      if (newTime) {
+        timeCater.value = date.formatDate(newTime, "hh:mm A"); // Convert to readable time
+        console.log("Updated Cater Time:", timeCater.value);
+        console.log("Updated Cater Time:", approximateWaitTime.value);
+      }
+    });
+
+    watch(
+      () => queuePosition.value,
+      (newValue) => {
+        if (newValue !== null && newValue !== 0) {
+          $notify(
+            "info",
+            "hourglass_empty",
+            `Your approximate wait time is ${approximateWaitTime.value} minutes. Expected cater time: ${date.formatDate(approximateCaterTime.value, "hh:mm A")}`
+          );
+        }
+      }
+    );
     // Start countdown timer
     // const startCountdown = () => {
     //   if (!countdownInterval) {
@@ -656,7 +698,7 @@ export default {
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-        if (queuePosition.value == 5) {
+        if (approximateWaitTime.value <= 45) {
           
           if (queueList.value.length > 0) {  
               await $axios.post(
@@ -913,6 +955,7 @@ export default {
       isMoneyRatesDialogOpen,
       columns,
       moneyRates,
+      timeCater
     };
   },
 };

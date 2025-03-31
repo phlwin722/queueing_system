@@ -139,6 +139,7 @@ export default defineComponent({
         field: "indicator",
         sortable: false,
       },
+      { name:'serving_time',label:'Serving Time',align: 'left', field: 'serving_time', sortable: false},
       { name: "actions", label: "Actions", align: "left", sortable: false },
     ]);
 

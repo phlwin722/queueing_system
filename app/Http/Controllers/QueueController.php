@@ -23,7 +23,7 @@ class QueueController extends Controller
         }
     
         // Determine the last assigned teller for this type_id
-        $lastAssigned = Teller::where('type_id', $type_id)->orderBy('created_at', 'desc')->first();
+        $lastAssigned = Queue::where('type_id', $type_id)->orderBy('created_at', 'desc')->first();
 
     
         // Get the next teller in a round-robin manner
@@ -331,7 +331,8 @@ class QueueController extends Controller
                 "t.teller_lastname",
                 "tp.name",
                 "tp.id as typeId",
-                "tp.indicator"
+                "tp.indicator",
+                "tp.serving_time",
             )
             ->leftJoin("types as tp", "tp.id", "=", "t.type_id")
             ->where("t.type_id", $queue->type_id) // Corrected to match the queue's type_id

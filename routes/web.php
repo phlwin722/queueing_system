@@ -78,6 +78,7 @@ Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchIm
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
+Route::post('/types/filteredTypes', [TypeController::class, 'filteredTypes']);
 Route::post('/types/create', [TypeController::class, 'create']);
 Route::post('/types/update', [TypeController::class, 'update']);
 Route::post('/types/delete', [TypeController::class, 'delete']);

@@ -10,6 +10,7 @@ class Type extends Model
     use HasFactory;
     protected $fillable = [
         'name',
-        'indicator'
+        'indicator',
+        'serving_time'
     ];
 }

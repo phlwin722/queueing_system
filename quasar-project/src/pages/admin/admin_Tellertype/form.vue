@@ -39,6 +39,20 @@
                             :error-message="formError.indicator "
                         />
                     </div>
+                    <div class="col-12">
+                        <q-input 
+                            outlined 
+                            v-model="formData.serving_time " 
+                            label="Serving Time" 
+                            placeholder="Minutes"
+                            dense
+                            hide-bottom-space
+                            :error="formError.hasOwnProperty('serving_time')"
+                            :error-message="formError.serving_time"
+                            type="number"
+                            min="1"
+                        />
+                    </div>
                 </div>
             </q-card-section>
 
@@ -76,6 +90,7 @@ export default defineComponent({
             id: null, 
             name: '',
             indicator: '',
+            serving_time: '',
         });
         const formData = ref(initFormData());
         const formError = ref({});

@@ -174,6 +174,11 @@ class TellercaterController extends Controller
                 ->where('id', $request->id)
                 ->update(['status' => 'serving']);
 
+        Queue::where('type_id', $request->service_id)
+                ->where('teller_id', $request->teller_id)
+                ->where('id', $request->id)
+                ->update(['position' => 0]);
+
         return response()->json(['message' => 'Customer is now being served']);
     }
 
