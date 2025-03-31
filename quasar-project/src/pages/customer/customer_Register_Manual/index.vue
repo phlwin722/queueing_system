@@ -124,24 +124,8 @@ export default {
     const isLoading = ref(false);
     const formError = ref({});
 
-    const route = useRoute(); // Use useRoute() correctly
-    const token = ref(route.params.token); // Get token from URL
-    const isUsedToken = ref(false);
+    const token = ref(); // Get token from URL
 
-    const processQrCode = async () => {
-      try {
-        const response = await $axios.post("/scan-qr", { token: token.value });
-        if (response.data.success) {
-          $notify("positive", "check", "Please register to join the queue.");
-        } else {
-          isUsedToken.value = true;
-          $notify("negative", "error", "Invalid or already used QR code.");
-        }
-      } catch (error) {
-        isUsedToken.value = true;
-        $notify("negative", "error", "Invalid or already used QR code.");
-      }
-    };
 
     const joinQueue = async () => {
       isLoading.value = true;
@@ -154,11 +138,6 @@ export default {
             return;
           }
         }
-
-        if (isUsedToken.value) {
-          $notify("negative", "error", "Invalid or already used QR code.");
-        } else {
-          console.log(email.value);
           name.value = name.value
           .split(' ')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -172,8 +151,8 @@ export default {
             type_id: type_id.value,
             currency: currencySelected.value
           });
-          window.location.href = "/customer-dashboard/" + token.value;
-        }
+         
+
       } catch (error) {
         if (error.response.status === 422) {
           formError.value = error.response.data;
@@ -191,27 +170,16 @@ export default {
     };
 
     const fetchCategories = async () => {
-    try {
-      const { data } = await $axios.post("/types/filteredTypes");
-
-      // Filter rows where type_id is NOT null
-      const filteredRows = data.rows.filter(row => row.type_id !== null);
-
-      // Log filtered type_id values
-      filteredRows.forEach(row => console.log(row.type_id));
-
-      // Assign only valid rows to categoriesList.value
-      categoriesList.value = filteredRows;
-      
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
-
+      try {
+        const { data } = await $axios.post("/types/index");
+        categoriesList.value = data.rows;
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
 
     const fecthCurrencty = async (selectedValue) => {
     try {
-      
       categoryForeignExchange.value = selectedValue;
       if (selectedValue === 1) {
         const { data } = await $axios.post('/currency/showData');
@@ -238,7 +206,6 @@ export default {
   };
 
     onMounted(() => {
-      processQrCode();
       fetchCategories();
     });
 

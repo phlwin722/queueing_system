@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-px-lg q-pb-lg" style="height: auto; min-height: unset;">
+  <q-page class="q-px-lg" style="height: auto; min-height: unset;">
 
     <div class="q-my-md bg-white q-pa-sm shadow-1">
     <q-breadcrumbs 
@@ -9,13 +9,14 @@
                 <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
             </q-breadcrumbs>
       </div>
+
     <!-- Queue Summary Cards -->
     <div class="row q-gutter-md">
       <!-- Total Customers -->
       <q-card class="stat-card bg-white text-secondary">
         <q-card-section>
           <div>
-          <q-icon name="people" size="24px" class="text-primary q-mr-xs"/>
+          <q-icon name="people" size="24px" class="text-warning q-mr-xs"/>
           Number of Customers</div>
           <div class="text-h4 q-mt-lg">{{ total }}</div>
         </q-card-section>
@@ -42,9 +43,6 @@
         </q-card-section>
       </q-card>
 
-      
-
-    
   <div class="q-pa-md q-mt-xs shadow-1 q-mt-md" style="width: 63%;">
     <BarChart
       :cancelledPercent="cancelledPercent"
@@ -61,6 +59,7 @@
       <q-table
           flat
           bordered
+          virtual-scroll
           :rows="rowsWorkStation"
           :columns="columnsWorkStation"
           row-key="id"

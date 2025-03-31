@@ -315,7 +315,7 @@ class QueueController extends Controller
         // Get type_id and teller_id from the queues table
         $queue = DB::table('queues')
             ->where('token', $token)
-            ->select('type_id', 'teller_id','queue_number','id',)
+            ->select('type_id', 'teller_id','queue_number','email','name','email_status','token','id',)
             ->first();
     
         // If the queue doesn't exist
@@ -338,11 +338,16 @@ class QueueController extends Controller
             ->where("t.type_id", $queue->type_id) // Corrected to match the queue's type_id
             ->where("t.id", $queue->teller_id) // Corrected teller ID
             ->first();
-    
+
+        $windowName = DB::table('windows')
+                    ->where('teller_id',$newTeller->id)
+                    ->select('window_name')
+                    ->first();
+
         return response()->json([
             'row' => $newTeller,
-            'queue_number' => $queue->queue_number,
-            'id' => $queue->id,
+            'userInfo' => $queue,
+            'window' => $windowName,
         ]);
     }
     

@@ -24,6 +24,10 @@ const routes = [
     component: () => import('pages/customer/customer_Register/index.vue')
   },
   {
+    path: '/customer-register-queueing' ,
+    component: () => import('pages/customer/customer_Register_Manual/index.vue')
+  },
+  {
     path: '/customer-thankyou' ,
     component: () => import('pages/customer/customer_Thankyou/index.vue')
   },
