@@ -424,7 +424,7 @@ export default {
             queueList.value[0].status === "waiting" &&
             currentServing.value == null
         ) {
-          updateServe();
+        
           
           const nextCustomer = queueList.value[0];
           if (nextCustomer) {
@@ -654,95 +654,98 @@ export default {
     // Computed property for paginated queue list
     const paginatedQueueList = computed(() => queueList.value);
 
-    // Debounced queue position updates
-    const debouncedUpdateQueuePositions = debounce(async () => {
-      const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
-        id: customer.id,
-        position: index + 1,
-      }));
+ 
+  const debouncedUpdateQueuePositions = debounce(async () => {
+    const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
+      id: customer.id,
+      position: index + 1,
+    }));
 
-      try {
-        await $axios.post("/update-queue-positions", { positions: updatedPositions });
-      } catch (error) {
-        console.error("Error updating positions:", error);
-      }
-    }, 500);
+    try {
+      await $axios.post("/update-queue-positions", { positions: updatedPositions });
+      // Consider adding success feedback
+    } catch (error) {
+      console.error("Error updating positions:", error);
+      // Add user feedback here (e.g., toast notification)
+    }
+  }, 300); // Reduced debounce time
 
-    watch(
-      () => queueList.value.length,
-      () => {
-        debouncedUpdateQueuePositions();
-      }
-    );
+  // Watch both length and array reference
+  watch(
+    () => [...queueList.value], // Creates a new array reference to trigger on reordering
+    () => {
+      debouncedUpdateQueuePositions();
+    },
+    { deep: false } // We're creating a new reference so deep isn't needed
+  );
 
-    const updateServe = async () => {
-      try {
-        await $axios.post("/update-queue-positions", { 
-          positions: paginatedQueueList.value.map(customer => ({
-            id: customer.id,
-            position: 0
-          }))
-        });
-      } catch (error) {
-        console.error("Error updating serve positions:", error);
-      }
-    };
+  // Drag and drop improvements
+  let draggedIndex = null;
+  const dragOverIndex = ref(null);
+  const isDragging = ref(false);
+  let dragImage = null; // Track the drag image
 
-    // Drag and drop functionality
-    let draggedIndex = null;
-    const dragOverIndex = ref(null);
-    const isDragging = ref(false);
+  const onDragStart = (event, index) => {
+    draggedIndex = index;
+    isDragging.value = true;
 
-    const onDragStart = (event, index) => {
-      draggedIndex = index;
-      isDragging.value = true;
+    // Clean up any existing drag image
+    if (dragImage && document.body.contains(dragImage)) {
+      document.body.removeChild(dragImage);
+    }
 
-      // Set a custom drag image
-      const dragImage = event.target.cloneNode(true);
-      Object.assign(dragImage.style, {
-        position: "absolute",
-        top: "-9999px",
-        width: `${event.target.offsetWidth}px`,
-        height: `${event.target.offsetHeight}px`,
-        opacity: "1",
-        background: "white",
-        border: "2px solid #1976d2",
-        boxShadow: "0px 4px 10px rgba(0,0,0,0.3)",
-      });
+    dragImage = event.target.cloneNode(true);
+    Object.assign(dragImage.style, {
+      position: "absolute",
+      top: "-9999px",
+      width: `${event.target.offsetWidth}px`,
+      height: `${event.target.offsetHeight}px`,
+      opacity: "1",
+      background: "white",
+      border: "2px solid #1976d2",
+      boxShadow: "0px 4px 10px rgba(0,0,0,0.3)",
+    });
 
-      document.body.appendChild(dragImage);
-      event.dataTransfer.setDragImage(dragImage, 0, 0);
-      setTimeout(() => document.body.removeChild(dragImage), 0);
-    };
+    document.body.appendChild(dragImage);
+    event.dataTransfer.setDragImage(dragImage, 0, 0);
+  };
 
-    const onDragOver = async (index) => {
-      if (dragOverIndex.value !== index) {
-        dragOverIndex.value = index;
-        await nextTick();
-      }
-    };
+  const cleanupDrag = () => {
+    if (dragImage && document.body.contains(dragImage)) {
+      document.body.removeChild(dragImage);
+    }
+    dragImage = null;
+  };
 
-    const onDragLeave = () => {
-      dragOverIndex.value = null;
-    };
+  const onDragOver = async (index) => {
+    if (dragOverIndex.value !== index) {
+      dragOverIndex.value = index;
+      await nextTick();
+    }
+  };
 
-    const onDrop = async (targetIndex) => {
-      if (draggedIndex === null || draggedIndex === targetIndex) return;
+  const onDragLeave = () => {
+    dragOverIndex.value = null;
+    cleanupDrag();
+  };
 
-      // Swap positions in queueList
-      const item = queueList.value.splice(draggedIndex, 1)[0];
-      queueList.value.splice(targetIndex, 0, item);
+  const onDrop = async (targetIndex) => {
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
 
-      // Save updated queue to localStorage
-      localStorage.setItem("queueList", JSON.stringify(queueList.value));
+    const item = queueList.value.splice(draggedIndex, 1)[0];
+    queueList.value.splice(targetIndex, 0, item);
 
-      // Reset indexes
-      draggedIndex = null;
-      dragOverIndex.value = null;
-      isDragging.value = false;
-      
-      await debouncedUpdateQueuePositions();
-    };
+    localStorage.setItem("queueList", JSON.stringify(queueList.value));
+
+    draggedIndex = null;
+    dragOverIndex.value = null;
+    isDragging.value = false;
+    cleanupDrag();
+    
+    // Immediately update positions without waiting for debounce
+    await debouncedUpdateQueuePositions();
+    debouncedUpdateQueuePositions.flush(); // Force immediate execution
+  };
 
     const logout = async () => {
       try {

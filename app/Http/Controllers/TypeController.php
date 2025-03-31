@@ -24,6 +24,33 @@ class TypeController extends Controller
             ]);
         }
     }
+
+    public function filteredTypes(Request $request) 
+    {
+        try {
+            $res = DB::table('types as tp')
+                ->select(
+                    "tp.id",
+                    "tp.name",
+                    "tp.indicator",
+                    "tp.serving_time",
+                    "ts.type_id",
+
+                )
+                ->leftJoin("tellers as ts", "ts.type_id", "tp.id");
+    
+
+    
+            return response()->json([
+                'rows' => $res->get()
+            ]);
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $message : "Something went wrong!"
+            ]);
+        }
+    }
     
     public function viewTypesDropdown(Request $request){
         try {

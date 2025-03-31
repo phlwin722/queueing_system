@@ -191,16 +191,27 @@ export default {
     };
 
     const fetchCategories = async () => {
-      try {
-        const { data } = await $axios.post("/types/index");
-        categoriesList.value = data.rows;
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
+    try {
+      const { data } = await $axios.post("/types/filteredTypes");
+
+      // Filter rows where type_id is NOT null
+      const filteredRows = data.rows.filter(row => row.type_id !== null);
+
+      // Log filtered type_id values
+      filteredRows.forEach(row => console.log(row.type_id));
+
+      // Assign only valid rows to categoriesList.value
+      categoriesList.value = filteredRows;
+      
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
 
     const fecthCurrencty = async (selectedValue) => {
     try {
+      
       categoryForeignExchange.value = selectedValue;
       if (selectedValue === 1) {
         const { data } = await $axios.post('/currency/showData');
