@@ -1,9 +1,10 @@
 <template>
-  <q-layout view="lHh lpr lFf" class="flex flex-center shadow-2">
+  <q-layout view="lHh lpr lFf" class="flex flex-center shadow-2 bg-primary">
     <div
       class="row wrap col-md-6 justify-center items-center flex q-gutter-md q-pa-md"
       style="width: 100%; max-width: 600px; margin: auto"
     >
+
       <!-- User Queue Status -->
       <q-card
         class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
@@ -69,7 +70,7 @@
               Your Queue Number
             </div>
             <div class="text-h2 text-primary text-bold q-mt-sm">
-              {{ customerQueueNumber || "N/A" }}
+              {{ `${indicator}#-${String(customerQueueNumber || "N/A").padStart(3, '0')}` }}
             </div>
           </div>
         </q-card-section>
@@ -188,7 +189,7 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label class="text-bold text-grey-8">
-                  Queue: {{ customer.queue_number }} -
+                  Queue: {{ `${indicator}#-${String(customer.queue_number || "N/A").padStart(3, '0')}` }} -
                   {{ abbreviateName(customer.name) }}
                 </q-item-label>
               </q-item-section>
@@ -286,8 +287,9 @@ import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
 import { useQuasar } from "quasar";
-import { jsPDF } from "jspdf";
+import { jsPDF } from "jspdf"; // Import jsPDF for PDF generation
 import autoTable from 'jspdf-autotable'; // Import the autoTable plugin explicitly
+import QRCode from 'qrcode'; // Import the qrcode package
 
 export default {
   setup() {
@@ -297,6 +299,7 @@ export default {
     const tokenurl = ref(route.params.token);
     const customerQueueNumber = ref(0);
     const customerId = ref(0);
+    const indicator = ref("");
 
     const queueList = ref([]);
     const currentQueue = ref(null);
@@ -324,13 +327,18 @@ export default {
     const prepared = ref("");
     const remainingTime = ref(0);
     let waitInterval = null;
+    const generatedQrValue = ref('http://192.168.0.164:8080/customer-dashboard/' + tokenurl.value); // User input (for the bank name)
 
-    const emailData = ref({
-      // Email data list
+    const userInformation = ref({
+      id: "",
+      token: "",
+      queue_number: "",
       name: "",
       email: "",
-      subject: "",
-      message: "",
+      email_status: "",
+      teller_id: "",
+      type_id: "",
+      window_name: "",
     });
 
     const totalPages = computed(() =>
@@ -399,8 +407,8 @@ export default {
         if (customer.status === "finished" && !hasNotified.value) {
 
           await $axios.post('/sent-email-finish',{
-            id : customerId.value,
-            email :  customer.email,
+            id :  userInformation.value.id,
+            email :   userInformation.value.email,
             subject : 'Thankyou for visit' 
           })
 
@@ -431,18 +439,31 @@ export default {
 
     const getTableData = async () => {
       try {
+        // fetching specific customer
         const { data } = await $axios.post("/customer-fetch", {
           token: tokenurl.value,
         });
         serviceType.value = data.row.name;
-        assignedTeller.value =
-          data.row.teller_firstname + " " + data.row.teller_lastname;
+        indicator.value = data.row.indicator;
+        assignedTeller.value = data.row.teller_firstname + " " + data.row.teller_lastname;
         typeId.value = data.row.typeId;
         tellerId.value = data.row.id;
-        customerQueueNumber.value = data.queue_number;
-        customerId.value = data.id;
+        customerQueueNumber.value = data.userInfo.queue_number;
+        customerId.value = data.userInfo.id;
+
+        userInformation.value.id = data.userInfo.id
+        userInformation.value.name = data.userInfo.name
+        userInformation.value.token = data.userInfo.token
+        userInformation.value.email_status = data.userInfo.email_status
+        userInformation.value.email = data.userInfo.email
+        userInformation.value.teller_id = data.userInfo.teller_id
+        userInformation.value.type_id = data.userInfo.type_id
+        userInformation.value.window_name = data.window.window_name
+
         fetchImage(tellerId.value);
+        sendingDashboard(); // trigger sendingDashboard
         //putTellerId()
+        console.log('buratka',data)
       } catch (error) {
         console.log(error);
       }
@@ -603,16 +624,13 @@ export default {
     // sending link to access the dashboard
     const sendingDashboard = async () => {
       try {
-        const { data } = await $axios.post("/send-fetchInfo", {
-          token: tokenurl.value,
-            });
-        if (data.InformationFromToken.email_status == 'sending_customer') {
+        if (userInformation.value.email_status ===  'sending_customer') {
           await $axios.post('sent-email-dashboard',{
-            id : data.InformationFromToken.id,
-            token: data.InformationFromToken.token,
-            queue_number: data.InformationFromToken.queue_number,
-            email: data.InformationFromToken.email,
-            name: data.InformationFromToken.name,
+            id : userInformation.value.id,
+            token: userInformation.value.token,
+            queue_number: `${indicator.value}#-${String(customerQueueNumber.value || "N/A").padStart(3, '0')}`,
+            email: userInformation.value.email,
+            name: userInformation.value.name,
             subject: "Queue Alert", // Email subject
             message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
                       we’ve implemented a queue system that helps manage customer flow. 
@@ -621,6 +639,7 @@ export default {
                       you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
           });
         }
+
       } catch (error) {
         if (error.response.status === 422) {
           console.log('error sending dashboard', error)
@@ -637,29 +656,21 @@ export default {
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-        if (queuePosition.value === 5) {
-          if (queueList.value.length > 0) {
-            const { data } = await $axios.post("/send-fetchInfo", {
-              id: queueList.value[0].id,
-            });
-            if (data.Information.email_status === "pending_alert") {
-              // Assign email data with the recipient's details and email content
-              emailData.value = {
-                id: data.Information.id, // Recipient's id
-                token: data.Information.token, // Recipient's token
-                name: data.Information.name, // Recipient's name
-                email: data.Information.email, // Recipient's email address
-                subject: "Queue Alert", // Email subject
-                message: `You are just a few steps away from being served! 
-                          Please remain on standby, as your turn is approaching soon.`, // Email message body
-              };
-
-              // Send a POST request to the '/send-email' endpoint with emailData as payload
+        if (queuePosition.value == 5) {
+          
+          if (queueList.value.length > 0) {  
               await $axios.post(
-                "/send-email",
-                emailData.value
+                "/send-email",{
+                  id: userInformation.value.id, // Recipient's id
+                  token:  userInformation.value.token, // Recipient's token
+                  name:  userInformation.value.name, // Recipient's name
+                  email:  userInformation.value.email, // Recipient's email address
+                  subject: "Queue Alert", // Email subject
+                  message: `You are just a few steps away from being served! 
+                            Please remain on standby, as your turn is approaching soon.`, // Email message body
+              }
               );
-            }
+            
           }
         }
       } catch (error) {
@@ -749,76 +760,122 @@ export default {
       } 
     };
 
-    // generate pdf
-    const generatePDF = async() => {
-      // npm install jspdf jspdf-autotable
-      try { 
-        // Create a new jsPDF instance
-        const doc = new jsPDF();
-        
-         // Import image asset - use Quasar's path system
-        const logoPath = require('assets/vrtlogoblack.png');  // This will resolve correctly with Quasar Webpack setup
-        // get the dimension of the image
-        const pageWidth = doc.internal.pageSize.width;
-        // Get the dimensions of the image
-        const imgWidth = 100;
-        const imgHeight = 15;
-        // Calculate the position to center the image
-        const centerImage = (pageWidth - imgWidth) / 2; // Horizontal center
-        // Set the Y position closer to the top (e.g., 10px from top)
-        const y = 10;  // Top margin pf image (can be adjusted as needed)
-        doc.addImage(logoPath,'PNG',centerImage, y, imgWidth, imgHeight);  // Position the image at (10, 10)
+      // Start of the function to generate a PDF
+      const generatePDF = async () => {
+        // Try-catch block for error handling
+        try {
+          // Create a new jsPDF instance, which will be used to generate the PDF
+          const doc = new jsPDF();
 
-        // set the text you 
-        const title = "Queueing System";
-        // Set font size for "header" text (e.g., equivalent to h1)
-        doc.setFontSize(17); // Set font size to 20
-        doc.setFont("helvetica", "bold");// Set font to Helvetica, bold style
-        const textWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
-        const titleCenter = (pageWidth - textWidth) / 2; // Center horizontally
-        const top_PositionTitle = 50;
-        doc.text(title, titleCenter, top_PositionTitle);  // Add some text after the image
-        
-        // table content
-        const tableData = [
-          ['Queue number: ', 'FE#01'],
-          ['Name: ', 'Dexter Jamero'],
-          ['Email: ', 'jamero@gmail.com'],
-          ['Service type: ', 'Foreign exchange'],
-        ];
+          // Path to the logo image; this is specific to Quasar's Webpack setup
+          const logoPath = require('assets/vrtlogoblack.png'); 
+          
+          // Get the page width of the generated PDF document
+          const pageWidth = doc.internal.pageSize.width;
+          
+          // Set dimensions for the logo image that will be added to the PDF
+          const imgWidth = 100;
+          const imgHeight = 15;
+          
+          // Calculate the horizontal position to center the image on the page
+          const centerImage = (pageWidth - imgWidth) / 2;  // Horizontal center
+          
+          // Set the vertical position for the logo image
+          const y = 10;  // Top margin of image (can be adjusted as needed)
+          
+          // Add the logo image to the PDF at the calculated position
+          doc.addImage(logoPath, 'PNG', centerImage, y, imgWidth, imgHeight);
 
-      // Generate the table with header background color and custom body font style
-      autoTable(doc, {
-          head: [['Description', 'Details']], // Header row
-          body: tableData,  // Table body data
-          theme: 'grid', // Add a grid theme for the table
-          startY: 60, // Start the table a bit lower to avoid overlap with other content
-          headStyles: {
-            fillColor: [33, 150, 243], // Set background color of header (e.g., blue)
-            textColor: [255, 255, 255], // Set text color of header (white)
-            fontStyle: 'bold', // Set font style of header (bold)
-          },
-          styles: {
-        /*  fontSize: 12,  Set font size for body text
-            font: 'times',  Set font to Times for body text */
-            cellPadding: 5, // Set padding inside each cell
-          },
-          margin: { top: 60 }, // Set top margin for the table
-        });
+          // Set the title text for the PDF
+          const title = "Queueing System";
+          
+          // Set the font size for the title text
+          doc.setFontSize(17);
+          
+          // Set the font style to Helvetica, bold
+          doc.setFont("helvetica", "bold");
+          
+          // Calculate the width of the title text in order to center it horizontally
+          const textWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+          
+          // Calculate the x-coordinate to center the title on the page
+          const titleCenter = (pageWidth - textWidth) / 2;
+          
+          // Set the vertical position for the title text
+          const top_PositionTitle = 50;
+          
+          // Add the title text to the PDF at the calculated position
+          doc.text(title, titleCenter, top_PositionTitle);
 
-        doc.save(`Customer_queueing_information.pdf`)
-      }
-        catch (error) {
-          console.log(error)
-      }
-    }
+          // Data for the table to be included in the PDF
+          const tableData = [
+            ['Queue number: ', `${indicator.value}#-${String(customerQueueNumber.value || "N/A").padStart(3, '0')}`],
+            ['Name: ',  userInformation.value.name],
+            ['Email: ',  userInformation.value.email],
+            ['Service type: ', serviceType.value],
+            ['Window: ', userInformation.value.window_name]
+          ];
+
+          // Use jsPDF's autoTable plugin to create a table in the PDF
+          autoTable(doc, {
+            head: [['Description', 'Details']],  // Column headers for the table
+            body: tableData,  // The body data for the table
+            theme: 'grid',  // Grid style for the table (adds borders around cells)
+            startY: 60,  // Starting Y position for the table
+            headStyles: {
+              fillColor: [33, 150, 243], // Set background color of table headers to blue
+              textColor: [255, 255, 255], // Set text color of table headers to white
+              fontStyle: 'bold', // Set the font style of table headers to bold
+            },
+            styles: {
+              cellPadding: 5, // Set padding inside each table cell
+            },
+            margin: { top: 60 }, // Set the top margin for the table
+          });
+
+          // Add the title for QR code generation
+          const titleGenerateQr = 'Generated Qr Code';
+
+          // Calculate the width of the title text
+          const textWidthGenerateQr = doc.getStringUnitWidth(titleGenerateQr) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+
+          // Calculate the x-coordinate to center the title on the page
+          const titleCenterQr = (pageWidth - textWidthGenerateQr) / 2;
+
+          // Set the vertical position for the title text (below the table)
+          const top_PositionTitleQR = doc.lastAutoTable.finalY + 15
+          doc.text(titleGenerateQr, titleCenterQr, top_PositionTitleQR);
+
+          // Ensure the QR code value is set correctly
+          const qrValue = generatedQrValue.value; // Assuming this contains the value you want to encode
+
+          // Generate the QR code image
+          const qrCodeDataUrl = await QRCode.toDataURL(qrValue, { errorCorrectionLevel: 'H', type: 'image/png' });
+
+          // Set the size of the QR code
+          const qrSize = 80; // Adjust size as needed
+
+          // Position the QR code on the PDF (centered below the table)
+          const qrX = (pageWidth - qrSize) / 2; // Center horizontally
+          const qrY = doc.lastAutoTable.finalY + 17; // Position below the table
+
+          // Add the QR code image to the PDF
+          doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+
+          // Save the generated PDF file with the name 'Customer_queueing_information.pdf'
+          doc.save('Customer_queueing_information.pdf');
+    
+        } catch (error) {
+          // Log any errors that occur during the PDF generation process
+          console.log(error);
+        }
+      };
 
     onMounted(() => {
       getTableData();
       optimizedFetchWaitingtime();
       optimizedFetchQueueData();
       optimizedFetchWaitingStatus();
-      sendingDashboard();
       setInterval(fetchCurrency(),30000);
     });
 
@@ -829,18 +886,20 @@ export default {
     });
 
     return {
+      generatedQrValue, // Return the generated QR value to be used in the template
       generatePDF,
       customerQueueNumber,
       queueList,
       currentQueue,
       queuePosition,
+      indicator,
       customerStatus,
       isBeingServed,
       isWaiting,
       countdown,
       leaveQueue,
       checkingQueueNumber,
-      emailData,
+      userInformation,
       customerId,
       serviceType,
       assignedTeller,
@@ -859,12 +918,12 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 @import "flag-icons/css/flag-icons.min.css";
 
-body {
+/* body {
   background-color: #1c5d99;
-}
+} */
 
 .rounded-borders {
   border-radius: 16px;

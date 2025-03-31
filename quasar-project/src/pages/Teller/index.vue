@@ -124,7 +124,13 @@
                         >
                           <!-- Queue Number and Customer Name -->
                           <q-item-section class="flex flex-col justify-center q-pr-md">
-                            <div class="text-primary text-bold text-h6 q-mb-xs">{{ customer.queue_number }}</div>
+                            <div class="text-primary text-bold text-h6 q-mb-xs">
+                              <div class="text-primary text-bold text-h6 q-mb-xs">
+                                {{ `${tellerInformation.indicator}#-${String(customer.queue_number).padStart(3, '0')}` }}
+                              </div>
+
+                            </div>
+
                             <p class="text-body2 text-secondary q-mb-none">{{ customer.name }}</p>
                           </q-item-section>
 
@@ -250,7 +256,7 @@
                               <h1
                                 class="q-mb-sm q-mt-sm text-center text-white"
                               >
-                                {{ currentServing.queue_number }}
+                                {{ `${tellerInformation.indicator}#-${String(currentServing.queue_number).padStart(3, '0')}` }}
                               </h1>
                               <p
                                 class="text-center text-h6 text-grey-6 text-white"
@@ -425,7 +431,7 @@ export default {
             setTimeout(() => {
               caterCustomer(nextCustomer.id, nextCustomer.type_id);
               startWait(nextCustomer.id, nextCustomer.queue_number);
-            }, 3000);
+            }, 2000);
           }
         }
 
@@ -784,6 +790,8 @@ export default {
           type_id: tellerInformation.value.type_id,
         });
         tellerInformation.value.type_name = data.servicename;
+        tellerInformation.value.indicator = data.indicator;
+        console.log(tellerInformation.value.indicator)
       } catch (error) {
         console.error("Error fetching service type:", error);
       }
