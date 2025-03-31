@@ -28,6 +28,17 @@
                             autofocus
                         />
                     </div>
+                    <div class="col-12">
+                        <q-input 
+                            outlined 
+                            v-model="formData.indicator " 
+                            label="Indicator symbol" 
+                            dense
+                            hide-bottom-space
+                            :error="formError.hasOwnProperty('indicator')"
+                            :error-message="formError.indicator "
+                        />
+                    </div>
                 </div>
             </q-card-section>
 
@@ -61,7 +72,11 @@ export default defineComponent({
     setup(props) {
         const isShow = ref(false);
         const isLoading = ref(false);
-        const initFormData = () => ({ id: null, name: '' });
+        const initFormData = () => ({ 
+            id: null, 
+            name: '',
+            indicator: '',
+        });
         const formData = ref(initFormData());
         const formError = ref({});
         const formMode = ref('New');

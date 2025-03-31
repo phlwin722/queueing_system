@@ -49,6 +49,7 @@ Route::post('/resetQueue', [QueueController::class, 'resetTodayQueueNumbers']);
 Route::post('/waitCustomer', [QueueController::class, 'WaitCustomer']);
 Route::post('/customer-check-waiting', [QueueController::class, 'checkWaitingCustomer']);
 Route::post('/waitCustomerReset', [QueueController::class, 'WaitingCustomerReset']);
+Route::post('/update-queue-positions', [QueueController::class, 'updatePositions']);
 
 Route::post('/admin/waiting_Time',[Waiting_timeController::class,'store']);
 Route::post('/admin/waiting_Time-fetch',[Waiting_timeController::class,'index']);
@@ -120,6 +121,8 @@ Route::post('/generate-qr', [QrCodeController::class, 'generateQrCode']);
 Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
 
 Route::post('/send-email', [MailController::class, 'sendEmail']);
+Route::post('/sent-email-finish', [MailController::class, 'sendEmailFinish']);
+Route::post('/sent-email-dashboard',[MailController::class,'sentEmailDashboard']);
 
 //Waiting-Time 
 Route::post('/waiting_Time',[Waiting_timeController::class,'store']); 

@@ -101,7 +101,8 @@
         const rows = ref([]);
         const columns = ref([
             { name: 'name', label: 'Type Name', align: 'left', field: 'name', sortable: true },
-            { name: 'actions', label: 'Actions', align: 'left', sortable: false }
+            { name:'indicator',label:'Indicator',align: 'left', field: 'indicator', sortable: false},
+            { name: 'actions', label: 'Actions', align: 'left', sortable: false },
         ]);
         
         const selected = ref([]);

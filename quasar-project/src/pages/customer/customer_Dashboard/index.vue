@@ -8,6 +8,25 @@
       <q-card
         class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
+      <q-btn
+            color="yellow-8"
+            icon="download"
+            @click="generatePDF"
+            dense
+            class="q-ml-sm"
+            style="min-width: 30px; max-width: 40px;"
+            size="sm"
+          >
+            <q-tooltip
+              anchor="top start"
+              self="center right"
+              :offset="[10, 10]"
+              class="bg-secondary"
+              style="font-size: 12px; padding: 4px 8px; max-width: 120px"
+            >
+              Download PDF
+            </q-tooltip>
+          </q-btn>
         <!-- Modernized Service Type & Personnel with Glass Effect -->
         <q-card
           class="q-pa-md glass-card text-dark flex row justify-evenly items-end"
@@ -57,31 +76,31 @@
         <q-separator />
 
         <q-card-section
-          v-if="queuePosition > 0"
+          v-if="queuePosition == 0 && customerStatus == 'serving'"
           class="row justify-around q-pa-md"
         >
           <div class="column items-center">
-            <div class="text-bold text-grey-7 text-caption">
-              Currently Serving
-            </div>
-            <div class="text-h5 text-blue-10 text-bold">
-              {{ currentQueue || "None" }}
-            </div>
-          </div>
-          <div class="column items-center">
-            <div class="text-bold text-grey-7 text-caption">
-              Your Remaining Position
-            </div>
-            <div class="text-h5 text-indigo-10 text-bold">
-              {{ queuePosition || "N/A" }}
+            <div class="text-center text-h5 text-bold text-positive q-mb-md">
+              You Are Currently Being Served
             </div>
           </div>
         </q-card-section>
 
         <q-card-section v-else class="row justify-around q-pa-md">
           <div class="column items-center">
-            <div class="text-center text-h5 text-bold text-positive q-mb-md">
-              You Are Currently Being Served
+            <div class="text-bold text-grey-7 text-caption">
+              Currently Serving
+            </div>
+            <div class="text-h5 text-blue-10 text-bold">
+              {{ currentQueue || "..." }}
+            </div>
+          </div>
+          <div class="column items-center">
+            <div class="text-bold text-grey-7 text-caption">
+              Your Position in Queue
+            </div>
+            <div class="text-h5 text-indigo-10 text-bold">
+              {{ queuePosition || "..." }}
             </div>
           </div>
         </q-card-section>
@@ -267,6 +286,8 @@ import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
 import { useQuasar } from "quasar";
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable'; // Import the autoTable plugin explicitly
 
 export default {
   setup() {
@@ -283,6 +304,7 @@ export default {
     const assignedTeller = ref("");
     const typeId = ref();
     const queuePosition = ref(null);
+    const customerStatus = ref("");
     const isBeingServed = ref(false);
     const isWaiting = ref(false);
     const hasNotified = ref(false); // Prevents repeat notifications
@@ -291,6 +313,12 @@ export default {
     const imageUrl = ref();
     let refreshInterval = null;
     let countdownInterval = null;
+    let waitingTimeout;
+    let queueTimeout;
+    let statusTimeout;
+    const moneyRates = ref([]);
+    const currentPage = ref(1);
+    const itemsPerPage = 5; // Number of items per page
 
     const waitTime = ref(30); // Default wait time (can be fetched dynamically)
     const prepared = ref("");
@@ -304,9 +332,6 @@ export default {
       subject: "",
       message: "",
     });
-    const moneyRates = ref([]);
-    const currentPage = ref(1);
-    const itemsPerPage = 5; // Number of items per page
 
     const totalPages = computed(() =>
       Math.ceil(queueList.value.length / itemsPerPage)
@@ -346,11 +371,7 @@ export default {
         currentQueue.value = response.data.current_serving;
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
-        // Determine customer position in queue
-        queuePosition.value =
-          queueList.value.findIndex(
-            (q) => q.queue_number == customerQueueNumber.value
-          ) + 1;
+        // Determine customer position in queue  
 
         // If admin pressed "Wait" for the first in queue, start countdown
         // if (
@@ -373,7 +394,16 @@ export default {
         const customer = response.data.queue.find(
           (q) => q.id == customerId.value
         );
+        queuePosition.value = customer.position
+        customerStatus.value = customer.status;
         if (customer.status === "finished" && !hasNotified.value) {
+
+          await $axios.post('/sent-email-finish',{
+            id : customerId.value,
+            email :  customer.email,
+            subject : 'Thankyou for visit' 
+          })
+
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
           setTimeout(() => router.push("/customer-thankyou/"), 2000); // Delay redirect for a smooth transition
@@ -385,6 +415,12 @@ export default {
             "error",
             "The Admin cancelled your queueing number."
           );
+          
+          await $axios.post('/sent-email-finish',{
+              id : customerId.value,
+              email :  customer.email,
+              subject : 'Thankyou for visit' 
+            })
           setTimeout(() => router.push("/customer-thankyou/"), 2000);
         }
         checkingQueueNumber(); // Call the function to check queue number after updating data
@@ -564,6 +600,34 @@ export default {
       }
     };
 
+    // sending link to access the dashboard
+    const sendingDashboard = async () => {
+      try {
+        const { data } = await $axios.post("/send-fetchInfo", {
+          token: tokenurl.value,
+            });
+        if (data.InformationFromToken.email_status == 'sending_customer') {
+          await $axios.post('sent-email-dashboard',{
+            id : data.InformationFromToken.id,
+            token: data.InformationFromToken.token,
+            queue_number: data.InformationFromToken.queue_number,
+            email: data.InformationFromToken.email,
+            name: data.InformationFromToken.name,
+            subject: "Queue Alert", // Email subject
+            message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
+                      we’ve implemented a queue system that helps manage customer flow. 
+                      Our system is designed to prioritize your needs and minimize waiting times. 
+                      You are free to go about your activities, and once your turn is approaching, 
+                      you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
+          });
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log('error sending dashboard', error)
+        }
+      }
+    }
+
     // Function to check if the user's queue number is 5, then send an email notification
     const checkingQueueNumber = async () => {
       try {
@@ -573,12 +637,12 @@ export default {
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-        if (queuePosition.value === 1) {
+        if (queuePosition.value === 5) {
           if (queueList.value.length > 0) {
             const { data } = await $axios.post("/send-fetchInfo", {
               id: queueList.value[0].id,
             });
-            if (data.Information.email_status === "pending") {
+            if (data.Information.email_status === "pending_alert") {
               // Assign email data with the recipient's details and email content
               emailData.value = {
                 id: data.Information.id, // Recipient's id
@@ -586,11 +650,12 @@ export default {
                 name: data.Information.name, // Recipient's name
                 email: data.Information.email, // Recipient's email address
                 subject: "Queue Alert", // Email subject
-                message: "You are near from being served. Please standby!", // Email message body
+                message: `You are just a few steps away from being served! 
+                          Please remain on standby, as your turn is approaching soon.`, // Email message body
               };
 
               // Send a POST request to the '/send-email' endpoint with emailData as payload
-              const { emailContent } = await $axios.post(
+              await $axios.post(
                 "/send-email",
                 emailData.value
               );
@@ -603,6 +668,7 @@ export default {
       }
     };
 
+    // fetching image of teller 
     const fetchImage = async (tellerId) => {
       try {
         const { data } = await $axios.post("/teller/image-fetch-csdashboard", {
@@ -616,13 +682,10 @@ export default {
         }
       }
     };
-    let waitingTimeout;
-    let queueTimeout;
-    let statusTimeout;
 
     const optimizedFetchQueueData = async () => {
-      await fetchQueueData();
-      queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+    await fetchQueueData();
+    queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
     };
 
     const optimizedFetchWaitingStatus = async () => {
@@ -632,7 +695,7 @@ export default {
 
     const optimizedFetchWaitingtime = async () => {
       await fetchWaitingtime();
-      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
+      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000); // Recursive Timeout
     };
 
     const isMoneyRatesDialogOpen = ref(false);
@@ -683,14 +746,79 @@ export default {
         if (error.response.status === 422) {
           console.log(error);
         }
-      }
+      } 
     };
+
+    // generate pdf
+    const generatePDF = async() => {
+      // npm install jspdf jspdf-autotable
+      try { 
+        // Create a new jsPDF instance
+        const doc = new jsPDF();
+        
+         // Import image asset - use Quasar's path system
+        const logoPath = require('assets/vrtlogoblack.png');  // This will resolve correctly with Quasar Webpack setup
+        // get the dimension of the image
+        const pageWidth = doc.internal.pageSize.width;
+        // Get the dimensions of the image
+        const imgWidth = 100;
+        const imgHeight = 15;
+        // Calculate the position to center the image
+        const centerImage = (pageWidth - imgWidth) / 2; // Horizontal center
+        // Set the Y position closer to the top (e.g., 10px from top)
+        const y = 10;  // Top margin pf image (can be adjusted as needed)
+        doc.addImage(logoPath,'PNG',centerImage, y, imgWidth, imgHeight);  // Position the image at (10, 10)
+
+        // set the text you 
+        const title = "Queueing System";
+        // Set font size for "header" text (e.g., equivalent to h1)
+        doc.setFontSize(17); // Set font size to 20
+        doc.setFont("helvetica", "bold");// Set font to Helvetica, bold style
+        const textWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        const titleCenter = (pageWidth - textWidth) / 2; // Center horizontally
+        const top_PositionTitle = 50;
+        doc.text(title, titleCenter, top_PositionTitle);  // Add some text after the image
+        
+        // table content
+        const tableData = [
+          ['Queue number: ', 'FE#01'],
+          ['Name: ', 'Dexter Jamero'],
+          ['Email: ', 'jamero@gmail.com'],
+          ['Service type: ', 'Foreign exchange'],
+        ];
+
+      // Generate the table with header background color and custom body font style
+      autoTable(doc, {
+          head: [['Description', 'Details']], // Header row
+          body: tableData,  // Table body data
+          theme: 'grid', // Add a grid theme for the table
+          startY: 60, // Start the table a bit lower to avoid overlap with other content
+          headStyles: {
+            fillColor: [33, 150, 243], // Set background color of header (e.g., blue)
+            textColor: [255, 255, 255], // Set text color of header (white)
+            fontStyle: 'bold', // Set font style of header (bold)
+          },
+          styles: {
+        /*  fontSize: 12,  Set font size for body text
+            font: 'times',  Set font to Times for body text */
+            cellPadding: 5, // Set padding inside each cell
+          },
+          margin: { top: 60 }, // Set top margin for the table
+        });
+
+        doc.save(`Customer_queueing_information.pdf`)
+      }
+        catch (error) {
+          console.log(error)
+      }
+    }
 
     onMounted(() => {
       getTableData();
       optimizedFetchWaitingtime();
       optimizedFetchQueueData();
       optimizedFetchWaitingStatus();
+      sendingDashboard();
       setInterval(fetchCurrency(),30000);
     });
 
@@ -701,10 +829,12 @@ export default {
     });
 
     return {
+      generatePDF,
       customerQueueNumber,
       queueList,
       currentQueue,
       queuePosition,
+      customerStatus,
       isBeingServed,
       isWaiting,
       countdown,
