@@ -8,6 +8,25 @@
       <q-card
         class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
+      <q-btn
+            color="yellow-8"
+            icon="download"
+            @click="generatePDF"
+            dense
+            class="q-ml-sm"
+            style="min-width: 30px; max-width: 40px;"
+            size="sm"
+          >
+            <q-tooltip
+              anchor="top start"
+              self="center right"
+              :offset="[10, 10]"
+              class="bg-secondary"
+              style="font-size: 12px; padding: 4px 8px; max-width: 120px"
+            >
+              Download PDF
+            </q-tooltip>
+          </q-btn>
         <!-- Modernized Service Type & Personnel with Glass Effect -->
         <q-card
           class="q-pa-md glass-card text-dark flex row justify-evenly items-end"
@@ -29,8 +48,8 @@
           <q-card-section class="row items-center">
             <q-img
               :src="imageUrl || require('assets/no-image.png')"
-              width="30px"
-              height="30px"
+              width="60px"
+              height="60px"
               class="text-secondary q-mr-md shadow-1"
             />
             <div class="column">
@@ -57,31 +76,31 @@
         <q-separator />
 
         <q-card-section
-          v-if="queuePosition > 0"
+          v-if="queuePosition == 0 && customerStatus == 'serving'"
           class="row justify-around q-pa-md"
         >
           <div class="column items-center">
-            <div class="text-bold text-grey-7 text-caption">
-              Currently Serving
-            </div>
-            <div class="text-h5 text-blue-10 text-bold">
-              {{ currentQueue || "None" }}
-            </div>
-          </div>
-          <div class="column items-center">
-            <div class="text-bold text-grey-7 text-caption">
-              Your Remaining Position
-            </div>
-            <div class="text-h5 text-indigo-10 text-bold">
-              {{ queuePosition || "N/A" }}
+            <div class="text-center text-h5 text-bold text-positive q-mb-md">
+              You Are Currently Being Served
             </div>
           </div>
         </q-card-section>
 
         <q-card-section v-else class="row justify-around q-pa-md">
           <div class="column items-center">
-            <div class="text-center text-h5 text-bold text-positive q-mb-md">
-              You Are Currently Being Served
+            <div class="text-bold text-grey-7 text-caption">
+              Currently Serving
+            </div>
+            <div class="text-h5 text-blue-10 text-bold">
+              {{ currentQueue || "..." }}
+            </div>
+          </div>
+          <div class="column items-center">
+            <div class="text-bold text-grey-7 text-caption">
+              Your Position in Queue
+            </div>
+            <div class="text-h5 text-indigo-10 text-bold">
+              {{ queuePosition || "..." }}
             </div>
           </div>
         </q-card-section>
@@ -110,128 +129,154 @@
       </q-card>
 
       <!-- Queue List -->
-        <q-card
-            class="col-12 col-md-6 full-width shadow-3 rounded-borders q-px-md q-pa-xs q-py-sm"
-            flat
-        >
-          <q-card-section class="row items-center">
-            <p class="text-bold text-primary text-h6 q-mb-none">Queue List</p>
-            <q-space /> <!-- Pushes the button to the right -->
+      <q-card
+        class="col-12 col-md-6 full-width shadow-3 rounded-borders q-px-md q-pa-xs q-py-sm"
+        flat
+      >
+        <q-card-section class="row items-center">
+          <p class="text-bold text-primary text-h6 q-mb-none">Queue List</p>
+          <q-space />
+          <!-- Pushes the button to the right -->
 
-            <q-btn color="yellow-8" icon="attach_money" 
-            @click="isMoneyRatesDialogOpen = true" 
-            dense 
-            class="q-ml-sm" 
-            style="min-width: 30px; max-width: 40px;"
+          <q-btn
+            color="yellow-8"
+            icon="attach_money"
+            @click="isMoneyRatesDialogOpen = true"
+            dense
+            class="q-ml-sm"
+            style="min-width: 30px; max-width: 40px"
             size="sm"
+          >
+            <q-tooltip
+              anchor="top start"
+              self="center right"
+              :offset="[10, 10]"
+              class="bg-secondary"
+              style="font-size: 12px; padding: 4px 8px; max-width: 120px"
             >
-            <q-tooltip anchor="top start" self="center right" :offset="[10, 10]" class="bg-secondary" style="font-size: 12px; padding: 4px 8px; max-width: 120px;">
               Money Rates
             </q-tooltip>
-            </q-btn>
-          </q-card-section>
+          </q-btn>
+        </q-card-section>
 
-          <q-separator inset />
+        <q-separator inset />
+
+        <div
+          v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
+          class="text-center text-warning q-mb-md q-mt-md"
+        >
+          <q-icon name="warning" size="sm" /> You are near from being served.
+          Please standby!
+        </div>
+
+        <q-card-section
+          class="q-pa-md"
+          style="max-height: 300px; overflow-y: auto"
+        >
+          <q-list bordered separator class="queue-list">
+            <q-item
+              v-for="(customer, index) in queueList"
+              :key="index"
+              class="queue-item"
+            >
+              <q-item-section avatar>
+                <q-icon
+                  name="confirmation_number"
+                  size="sm"
+                  class="text-primary"
+                />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label class="text-bold text-grey-8">
+                  Queue: {{ customer.queue_number }} -
+                  {{ abbreviateName(customer.name) }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-badge
+                  v-if="index <= 4"
+                  color="orange"
+                  label="Up Next"
+                  class="custom-badge"
+                />
+                <q-badge
+                  v-else
+                  color="blue-grey"
+                  label="Waiting"
+                  class="custom-badge"
+                />
+              </q-item-section>
+            </q-item>
+          </q-list>
 
           <div
-            v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
-            class="text-center text-warning q-mb-md q-mt-md"
+            v-if="queueList.length === 0"
+            class="text-grey text-center q-mt-md"
           >
-            <q-icon name="warning" size="sm" /> You are near from being served.
-            Please standby!
+            No more customers
           </div>
+        </q-card-section>
 
-          <q-card-section
-            class="q-pa-md"
-            style="max-height: 300px; overflow-y: auto"
-          >
-            <q-list bordered separator class="queue-list">
-              <q-item
-                v-for="(customer, index) in queueList"
-                :key="index"
-                class="queue-item"
+        <!-- "Money Rates" button in the lower right -->
+
+        <!-- QDialog for Money Rates Table -->
+        <q-dialog v-model="isMoneyRatesDialogOpen">
+          <q-card class="q-dialog-plugin" style="width: 90vw; max-width: 500px">
+            <q-card-section class="row items-center bg-primary">
+              <q-icon
+                name="attach_money"
+                size="sm"
+                class="text-yellow q-mr-xs col-shrink"
+              />
+              <span class="text-white col-grow text-no-wrap">
+                Money Exchange Rates
+              </span>
+              <q-space />
+              <q-btn
+                flat
+                dens
+                round
+                icon="close"
+                @click="isMoneyRatesDialogOpen = false"
+                style="width: 24px; height: 24px"
+                class="text-accent"
+              />
+            </q-card-section>
+
+            <q-separator />
+
+            <!-- q-table inside dialog -->
+            <q-card-section>
+              <q-table
+                flat
+                bordered
+                :rows="moneyRates"
+                :columns="columns"
+                row-key="currency"
+                :rows-per-page-options="[0]"
+                hide-bottom
+                virtual-scroll
               >
-                <q-item-section avatar>
-                  <q-icon
-                    name="confirmation_number"
-                    size="sm"
-                    class="text-primary"
-                  />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-bold text-grey-8">
-                    Queue: {{ customer.queue_number }} -
-                    {{ abbreviateName(customer.name) }}
-                  </q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-badge
-                    v-if="index <= 4"
-                    color="orange"
-                    label="Up Next"
-                    class="custom-badge"
-                  />
-                  <q-badge
-                    v-else
-                    color="blue-grey"
-                    label="Waiting"
-                    class="custom-badge"
-                  />
-                </q-item-section>
-              </q-item>
-            </q-list>
-
-            <div v-if="queueList.length === 0" class="text-grey text-center q-mt-md">
-              No more customers
-            </div>
-          </q-card-section>
-
-          <!-- "Money Rates" button in the lower right -->
-          
-
-          <!-- QDialog for Money Rates Table -->
-          <q-dialog v-model="isMoneyRatesDialogOpen">
-            <q-card class="q-dialog-plugin" style="width: 90vw; max-width: 500px;">
-              <q-card-section class="row items-center bg-primary">
-                <q-icon name="attach_money" size="sm" class="text-yellow q-mr-xs col-shrink" />
-                <span class="text-white col-grow text-no-wrap">
-                  Money Exchange Rates
-                </span>
-                <q-space />
-                <q-btn flat dens round icon="close" @click="isMoneyRatesDialogOpen = false" style="width: 24px; height: 24px;" class="text-accent" />
-              </q-card-section>
-
-              <q-separator />
-
-              <!-- q-table inside dialog -->
-              <q-card-section>
-                <q-table
-                  flat
-                  bordered
-                  :rows="moneyRates"
-                  :columns="columns"
-                  row-key="currency"
-                  :rows-per-page-options="[0]"
-                  hide-bottom
-                  virtual-scroll
-                >
-
                 <!-- Custom slot for rendering the content of the Currency column -->
-                 <template v-slot:body-cell-currency="props">
+                <template v-slot:body-cell-currency="props">
                   <q-td :props="props">
                     <!-- Display the flag icon -->
-                     <span :class="['fi', props.row.currency.flag]"  style="font-size: 1.5em; margin-right: 8px;"></span>
-                     <!-- Display the currency symbol and name-->
-                      <span>{{ props.row.currency.symbol }} - {{ props.row.currency.name }}</span>
+                    <span
+                      :class="['fi', props.row.currency.flag]"
+                      style="font-size: 1.5em; margin-right: 8px"
+                    ></span>
+                    <!-- Display the currency symbol and name-->
+                    <span
+                      >{{ props.row.currency.symbol }} -
+                      {{ props.row.currency.name }}</span
+                    >
                   </q-td>
-
-                 </template>
+                </template>
               </q-table>
-              </q-card-section>
-            </q-card>
-          </q-dialog>
-        </q-card>
-
+            </q-card-section>
+          </q-card>
+        </q-dialog>
+      </q-card>
     </div>
   </q-layout>
 </template>
@@ -241,6 +286,8 @@ import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
 import { useQuasar } from "quasar";
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable'; // Import the autoTable plugin explicitly
 
 export default {
   setup() {
@@ -257,14 +304,21 @@ export default {
     const assignedTeller = ref("");
     const typeId = ref();
     const queuePosition = ref(null);
+    const customerStatus = ref("");
     const isBeingServed = ref(false);
     const isWaiting = ref(false);
     const hasNotified = ref(false); // Prevents repeat notifications
     const countdown = ref(); // 60 seconds countdown
-    const tellerId = ref()
-    const imageUrl = ref()
+    const tellerId = ref();
+    const imageUrl = ref();
     let refreshInterval = null;
     let countdownInterval = null;
+    let waitingTimeout;
+    let queueTimeout;
+    let statusTimeout;
+    const moneyRates = ref([]);
+    const currentPage = ref(1);
+    const itemsPerPage = 5; // Number of items per page
 
     const waitTime = ref(30); // Default wait time (can be fetched dynamically)
     const prepared = ref("");
@@ -278,9 +332,6 @@ export default {
       subject: "",
       message: "",
     });
-    const moneyRates = ref([]);
-    const currentPage = ref(1);
-    const itemsPerPage = 5; // Number of items per page
 
     const totalPages = computed(() =>
       Math.ceil(queueList.value.length / itemsPerPage)
@@ -290,13 +341,13 @@ export default {
     const abbreviateName = (name) => {
       const words = name.split(" "); // Split the name by spaces (e.g., "John Doe" -> ["John", "Doe"])
       return words
-        .map((word,index) => {
-            if (index === 0 ) {
-              // Take first letter of each word and append "..."
-              return word[0].toUpperCase() + "...";
-            }
-            // For all other words (e.g., last name), leave them as is
-            return word;
+        .map((word, index) => {
+          if (index === 0) {
+            // Take first letter of each word and append "..."
+            return word[0].toUpperCase() + "...";
+          }
+          // For all other words (e.g., last name), leave them as is
+          return word;
         })
         .join(" "); // Join back the abbreviated words  Output: "J... D.."
     };
@@ -320,11 +371,7 @@ export default {
         currentQueue.value = response.data.current_serving;
         // Check if the customer is currently being served
         isBeingServed.value = currentQueue.value == customerQueueNumber.value;
-        // Determine customer position in queue
-        queuePosition.value =
-          queueList.value.findIndex(
-            (q) => q.queue_number == customerQueueNumber.value
-          ) + 1;
+        // Determine customer position in queue  
 
         // If admin pressed "Wait" for the first in queue, start countdown
         // if (
@@ -347,7 +394,16 @@ export default {
         const customer = response.data.queue.find(
           (q) => q.id == customerId.value
         );
+        queuePosition.value = customer.position
+        customerStatus.value = customer.status;
         if (customer.status === "finished" && !hasNotified.value) {
+
+          await $axios.post('/sent-email-finish',{
+            id : customerId.value,
+            email :  customer.email,
+            subject : 'Thankyou for visit' 
+          })
+
           hasNotified.value = true; // Mark as notified
           $notify("positive", "check", "Your turn is finished. Thank you!");
           setTimeout(() => router.push("/customer-thankyou/"), 2000); // Delay redirect for a smooth transition
@@ -359,34 +415,38 @@ export default {
             "error",
             "The Admin cancelled your queueing number."
           );
-          setTimeout(
-            () => router.push("/customer-thankyou/"),
-            2000
-          );
+          
+          await $axios.post('/sent-email-finish',{
+              id : customerId.value,
+              email :  customer.email,
+              subject : 'Thankyou for visit' 
+            })
+          setTimeout(() => router.push("/customer-thankyou/"), 2000);
         }
         checkingQueueNumber(); // Call the function to check queue number after updating data
       } catch (error) {
         console.error(error);
       }
     };
-    
+
     const getTableData = async () => {
-        try{
-            const { data } = await $axios.post('/customer-fetch',{token: tokenurl.value})
-            serviceType.value = data.row.name
-            assignedTeller.value = data.row.teller_firstname +" "+data.row.teller_lastname
-            typeId.value = data.row.typeId
-            tellerId.value = data.row.id
-            customerQueueNumber.value = data.queue_number
-            customerId.value = data.id
-            fetchImage(tellerId.value)
-          //putTellerId()
-        }catch(error){
-            console.log(error);
-        }
-
-
-    }
+      try {
+        const { data } = await $axios.post("/customer-fetch", {
+          token: tokenurl.value,
+        });
+        serviceType.value = data.row.name;
+        assignedTeller.value =
+          data.row.teller_firstname + " " + data.row.teller_lastname;
+        typeId.value = data.row.typeId;
+        tellerId.value = data.row.id;
+        customerQueueNumber.value = data.queue_number;
+        customerId.value = data.id;
+        fetchImage(tellerId.value);
+        //putTellerId()
+      } catch (error) {
+        console.log(error);
+      }
+    };
     // Start countdown timer
     // const startCountdown = () => {
     //   if (!countdownInterval) {
@@ -412,22 +472,24 @@ export default {
 
     // Fetch the waiting status from the backend
     const fetchWaitingStatus = async () => {
-    try {
-          const { data } = await $axios.post('/customer-check-waiting', { token: tokenurl.value });
+      try {
+        const { data } = await $axios.post("/customer-check-waiting", {
+          token: tokenurl.value,
+        });
 
-          if (data.waiting_customer === "yes") {
-              if (!isWaiting.value) { // Start countdown only if not already waiting
-                  isWaiting.value = true;
-                  startCountdown();
-              }
-          } else {
-              stopCountdown();
+        if (data.waiting_customer === "yes") {
+          if (!isWaiting.value) {
+            // Start countdown only if not already waiting
+            isWaiting.value = true;
+            startCountdown();
           }
+        } else {
+          stopCountdown();
+        }
       } catch (error) {
-          console.error("Error fetching waiting status:", error);
+        console.error("Error fetching waiting status:", error);
       }
-  };
-
+    };
 
     const fetchWaitingtime = async () => {
       try {
@@ -449,44 +511,44 @@ export default {
       }
     };
 
-  const startCountdown = () => {
+    const startCountdown = () => {
       if (remainingTime.value > 0) return; // Prevent resetting the countdown
-      
+
       const storedTime = localStorage.getItem("waitStartTime" + tokenurl.value);
 
       if (storedTime) {
-          // Calculate remaining time after refresh
-          const startTime = parseInt(storedTime);
-          const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-          remainingTime.value = Math.max(waitTime.value - elapsedTime, 0);
+        // Calculate remaining time after refresh
+        const startTime = parseInt(storedTime);
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        remainingTime.value = Math.max(waitTime.value - elapsedTime, 0);
       } else {
-          // First time starting countdown
-          localStorage.setItem("waitStartTime" + tokenurl.value, Date.now());
-          remainingTime.value = waitTime.value;
+        // First time starting countdown
+        localStorage.setItem("waitStartTime" + tokenurl.value, Date.now());
+        remainingTime.value = waitTime.value;
       }
 
       if (waitInterval) clearInterval(waitInterval);
 
       waitInterval = setInterval(() => {
-          if (remainingTime.value > 0) {
-              remainingTime.value--;
-          } else {
-              stopCountdown();
-          }
+        if (remainingTime.value > 0) {
+          remainingTime.value--;
+        } else {
+          stopCountdown();
+        }
       }, 1000);
-  };
+    };
 
     const stopCountdown = () => {
       isWaiting.value = false;
       clearInterval(waitInterval);
       localStorage.removeItem("waitStartTime" + tokenurl.value);
       remainingTime.value = 0; // Reset to avoid negative values
-  };
+    };
 
     const formatTime = (seconds) => {
-      if(seconds == null){
-          return `.....`;
-        }
+      if (seconds == null) {
+        return `.....`;
+      }
       if (seconds >= 60) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
@@ -518,13 +580,12 @@ export default {
           style: "border-radius: 12px; padding: 16px;",
         })
         .onOk(() => {
-          leaveQueue()
+          leaveQueue();
         })
         .onDismiss(() => {
           // console.log('I am triggered on both OK and Cancel')
         });
     };
-
 
     // Leave the queue
     const leaveQueue = async () => {
@@ -532,15 +593,40 @@ export default {
         await $axios.post("/customer-leave", { id: customerId.value });
         hasNotified.value = true; // Mark as notified
         $notify("positive", "check", "You have left the queue.");
-        setTimeout(
-            () => router.push("/customer-thankyou/"),
-            1000
-          );
+        setTimeout(() => router.push("/customer-thankyou/"), 1000);
       } catch (error) {
         console.error(error);
         $notify("negative", "error", "Failed to leave queue.");
       }
     };
+
+    // sending link to access the dashboard
+    const sendingDashboard = async () => {
+      try {
+        const { data } = await $axios.post("/send-fetchInfo", {
+          token: tokenurl.value,
+            });
+        if (data.InformationFromToken.email_status == 'sending_customer') {
+          await $axios.post('sent-email-dashboard',{
+            id : data.InformationFromToken.id,
+            token: data.InformationFromToken.token,
+            queue_number: data.InformationFromToken.queue_number,
+            email: data.InformationFromToken.email,
+            name: data.InformationFromToken.name,
+            subject: "Queue Alert", // Email subject
+            message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
+                      we’ve implemented a queue system that helps manage customer flow. 
+                      Our system is designed to prioritize your needs and minimize waiting times. 
+                      You are free to go about your activities, and once your turn is approaching, 
+                      you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
+          });
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log('error sending dashboard', error)
+        }
+      }
+    }
 
     // Function to check if the user's queue number is 5, then send an email notification
     const checkingQueueNumber = async () => {
@@ -551,12 +637,12 @@ export default {
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-        if (queuePosition.value === 1) {
+        if (queuePosition.value === 5) {
           if (queueList.value.length > 0) {
             const { data } = await $axios.post("/send-fetchInfo", {
               id: queueList.value[0].id,
             });
-            if (data.Information.email_status === "pending") {
+            if (data.Information.email_status === "pending_alert") {
               // Assign email data with the recipient's details and email content
               emailData.value = {
                 id: data.Information.id, // Recipient's id
@@ -564,16 +650,15 @@ export default {
                 name: data.Information.name, // Recipient's name
                 email: data.Information.email, // Recipient's email address
                 subject: "Queue Alert", // Email subject
-                message: "You are near from being served. Please standby!", // Email message body
+                message: `You are just a few steps away from being served! 
+                          Please remain on standby, as your turn is approaching soon.`, // Email message body
               };
 
               // Send a POST request to the '/send-email' endpoint with emailData as payload
-              const { emailContent } = await $axios.post(
+              await $axios.post(
                 "/send-email",
                 emailData.value
               );
-
-            
             }
           }
         }
@@ -583,26 +668,24 @@ export default {
       }
     };
 
+    // fetching image of teller 
     const fetchImage = async (tellerId) => {
       try {
-        const { data } = await $axios.post('/teller/image-fetch-csdashboard',{
+        const { data } = await $axios.post("/teller/image-fetch-csdashboard", {
           id: tellerId,
-        })
+        });
 
-        imageUrl.value = data.Image
+        imageUrl.value = data.Image;
       } catch (error) {
         if (error.response.status === 422) {
-          console.log(error)
+          console.log(error);
         }
       }
-    }
-    let waitingTimeout;
-    let queueTimeout;
-    let statusTimeout;
+    };
 
     const optimizedFetchQueueData = async () => {
     await fetchQueueData();
-    queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+    queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
     };
 
     const optimizedFetchWaitingStatus = async () => {
@@ -612,36 +695,121 @@ export default {
 
     const optimizedFetchWaitingtime = async () => {
       await fetchWaitingtime();
-      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000); // Recursive Timeout
+      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000); // Recursive Timeout
     };
 
     const isMoneyRatesDialogOpen = ref(false);
 
     const columns = [
-      { name: 'currency', required: true, label: 'Currency', align: 'left', field: row => row.currency, format: val => `${val}` },
-      { name: 'buy', required: true, label: 'Buy', align: 'right', field: row => row.buy, format: val => `${val}` },
-      { name: 'sell', required: true, label: 'Sell', align: 'right', field: row => row.sell, format: val => `${val}` },
+      {
+        name: "currency",
+        required: true,
+        label: "Currency",
+        align: "left",
+        field: (row) => row.currency,
+        format: (val) => `${val}`,
+      },
+      {
+        name: "buy",
+        required: true,
+        label: "Buy",
+        align: "right",
+        field: (row) => row.buy,
+        format: (val) => `${val}`,
+      },
+      {
+        name: "sell",
+        required: true,
+        label: "Sell",
+        align: "right",
+        field: (row) => row.sell,
+        format: (val) => `${val}`,
+      },
     ];
 
-    const fetchCurrency = async() => {
+    const fetchCurrency = async () => {
       try {
-        const { data } = await $axios.post('/currency/showData');
+        const { data } = await $axios.post("/currency/showData");
 
         // map the api response to match the expected table structure
-        moneyRates.value = data.rows.map(row => ({
+        moneyRates.value = data.rows.map((row) => ({
           id: row.id,
           currency: {
             flag: row.flag,
             symbol: row.currency_symbol,
-            name:row.currency_name
+            name: row.currency_name,
           },
           buy: `${row.buy_value}`,
           sell: `${row.sell_value}`,
-        }))
+        }));
       } catch (error) {
         if (error.response.status === 422) {
-          console.log(error)
+          console.log(error);
         }
+      } 
+    };
+
+    // generate pdf
+    const generatePDF = async() => {
+      // npm install jspdf jspdf-autotable
+      try { 
+        // Create a new jsPDF instance
+        const doc = new jsPDF();
+        
+         // Import image asset - use Quasar's path system
+        const logoPath = require('assets/vrtlogoblack.png');  // This will resolve correctly with Quasar Webpack setup
+        // get the dimension of the image
+        const pageWidth = doc.internal.pageSize.width;
+        // Get the dimensions of the image
+        const imgWidth = 100;
+        const imgHeight = 15;
+        // Calculate the position to center the image
+        const centerImage = (pageWidth - imgWidth) / 2; // Horizontal center
+        // Set the Y position closer to the top (e.g., 10px from top)
+        const y = 10;  // Top margin pf image (can be adjusted as needed)
+        doc.addImage(logoPath,'PNG',centerImage, y, imgWidth, imgHeight);  // Position the image at (10, 10)
+
+        // set the text you 
+        const title = "Queueing System";
+        // Set font size for "header" text (e.g., equivalent to h1)
+        doc.setFontSize(17); // Set font size to 20
+        doc.setFont("helvetica", "bold");// Set font to Helvetica, bold style
+        const textWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        const titleCenter = (pageWidth - textWidth) / 2; // Center horizontally
+        const top_PositionTitle = 50;
+        doc.text(title, titleCenter, top_PositionTitle);  // Add some text after the image
+        
+        // table content
+        const tableData = [
+          ['Queue number: ', 'FE#01'],
+          ['Name: ', 'Dexter Jamero'],
+          ['Email: ', 'jamero@gmail.com'],
+          ['Service type: ', 'Foreign exchange'],
+        ];
+
+      // Generate the table with header background color and custom body font style
+      autoTable(doc, {
+          head: [['Description', 'Details']], // Header row
+          body: tableData,  // Table body data
+          theme: 'grid', // Add a grid theme for the table
+          startY: 60, // Start the table a bit lower to avoid overlap with other content
+          headStyles: {
+            fillColor: [33, 150, 243], // Set background color of header (e.g., blue)
+            textColor: [255, 255, 255], // Set text color of header (white)
+            fontStyle: 'bold', // Set font style of header (bold)
+          },
+          styles: {
+        /*  fontSize: 12,  Set font size for body text
+            font: 'times',  Set font to Times for body text */
+            cellPadding: 5, // Set padding inside each cell
+          },
+          margin: { top: 60 }, // Set top margin for the table
+        });
+
+        doc.save(`Customer_queueing_information.pdf`)
+      }
+        catch (error) {
+          console.log(error)
       }
     }
 
@@ -650,6 +818,7 @@ export default {
       optimizedFetchWaitingtime();
       optimizedFetchQueueData();
       optimizedFetchWaitingStatus();
+      sendingDashboard();
       setInterval(fetchCurrency(),30000);
     });
 
@@ -660,10 +829,12 @@ export default {
     });
 
     return {
+      generatePDF,
       customerQueueNumber,
       queueList,
       currentQueue,
       queuePosition,
+      customerStatus,
       isBeingServed,
       isWaiting,
       countdown,
@@ -689,7 +860,7 @@ export default {
 </script>
 
 <style>
-@import 'flag-icons/css/flag-icons.min.css';
+@import "flag-icons/css/flag-icons.min.css";
 
 body {
   background-color: #1c5d99;

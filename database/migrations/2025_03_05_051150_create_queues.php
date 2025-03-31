@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('token');
             $table->string('name');
             $table->string('email');
-            $table->string('email_status');
+            $table->enum('email_status',['sending_customer','pending_alert','sending_alert','thankyou_sending']);
             $table->integer('queue_number');
             $table->enum('status', ['waiting', 'serving', 'cancelled','finished'])->default('waiting');
             $table->string('waiting_customer')->nullable();

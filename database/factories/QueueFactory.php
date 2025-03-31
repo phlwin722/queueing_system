@@ -32,7 +32,7 @@ class QueueFactory  extends Factory
             // Generate a fake email
             'email' => fake()->unique()->safeEmail,
             // Generate a random email status (e.g., 'verified' or 'unverified')
-            'email_status' => fake()->randomElement(['Pending','Sending']),
+            'email_status' => fake()->randomElement(['pending_alert','sending_alert','thankyou_sending']),
             // Generate a random type_id (assuming it's an integer, can be any number
             'type_id' => fake()->numberBetween(1, 5), // Adjust range to match valid IDs
              // Generate a random teller_id (assuming it's an integer, can be any number)
