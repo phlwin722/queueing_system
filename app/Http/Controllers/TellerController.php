@@ -438,7 +438,8 @@ class TellerController extends Controller
                             ->first();
 
             return response()->json([
-                'servicename' =>  $serviceType ? $serviceType->name : null
+                'servicename' =>  $serviceType ? $serviceType->name : null,
+                'indicator' => $serviceType ? $serviceType->indicator : null,
             ]);
 
         } catch(\Exception $e) {

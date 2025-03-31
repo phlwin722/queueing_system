@@ -330,7 +330,8 @@ class QueueController extends Controller
                 "t.teller_firstname",
                 "t.teller_lastname",
                 "tp.name",
-                "tp.id as typeId"
+                "tp.id as typeId",
+                "tp.indicator"
             )
             ->leftJoin("types as tp", "tp.id", "=", "t.type_id")
             ->where("t.type_id", $queue->type_id) // Corrected to match the queue's type_id

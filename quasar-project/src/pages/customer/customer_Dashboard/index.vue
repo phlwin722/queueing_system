@@ -69,7 +69,7 @@
               Your Queue Number
             </div>
             <div class="text-h2 text-primary text-bold q-mt-sm">
-              {{ customerQueueNumber || "N/A" }}
+              {{ `${indicator}#-${String(customerQueueNumber || "N/A").padStart(3, '0')}` }}
             </div>
           </div>
         </q-card-section>
@@ -188,7 +188,7 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label class="text-bold text-grey-8">
-                  Queue: {{ customer.queue_number }} -
+                  Queue: {{ `${indicator}#-${String(customer.queue_number || "N/A").padStart(3, '0')}` }} -
                   {{ abbreviateName(customer.name) }}
                 </q-item-label>
               </q-item-section>
@@ -297,6 +297,7 @@ export default {
     const tokenurl = ref(route.params.token);
     const customerQueueNumber = ref(0);
     const customerId = ref(0);
+    const indicator = ref("");
 
     const queueList = ref([]);
     const currentQueue = ref(null);
@@ -435,6 +436,7 @@ export default {
           token: tokenurl.value,
         });
         serviceType.value = data.row.name;
+        indicator.value = data.row.indicator;
         assignedTeller.value =
           data.row.teller_firstname + " " + data.row.teller_lastname;
         typeId.value = data.row.typeId;
@@ -637,18 +639,20 @@ export default {
         queueList.value = response.data.queue.filter(
           (q) => !["finished", "cancelled", "serving"].includes(q.status)
         );
-        if (queuePosition.value === 5) {
+        if (queuePosition.value == 5) {
+          
           if (queueList.value.length > 0) {
+            
             const { data } = await $axios.post("/send-fetchInfo", {
-              id: queueList.value[0].id,
+              token: tokenurl.value,
             });
-            if (data.Information.email_status === "pending_alert") {
+          
               // Assign email data with the recipient's details and email content
               emailData.value = {
-                id: data.Information.id, // Recipient's id
-                token: data.Information.token, // Recipient's token
-                name: data.Information.name, // Recipient's name
-                email: data.Information.email, // Recipient's email address
+                id: data.InformationFromToken.id, // Recipient's id
+                token: data.InformationFromToken.token, // Recipient's token
+                name: data.InformationFromToken.name, // Recipient's name
+                email: data.InformationFromToken.email, // Recipient's email address
                 subject: "Queue Alert", // Email subject
                 message: `You are just a few steps away from being served! 
                           Please remain on standby, as your turn is approaching soon.`, // Email message body
@@ -659,7 +663,7 @@ export default {
                 "/send-email",
                 emailData.value
               );
-            }
+            
           }
         }
       } catch (error) {
@@ -834,6 +838,7 @@ export default {
       queueList,
       currentQueue,
       queuePosition,
+      indicator,
       customerStatus,
       isBeingServed,
       isWaiting,
