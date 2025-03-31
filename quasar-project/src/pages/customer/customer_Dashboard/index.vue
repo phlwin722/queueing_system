@@ -329,12 +329,16 @@ export default {
     let waitInterval = null;
     const generatedQrValue = ref('http://192.168.0.164:8080/customer-dashboard/' + tokenurl.value); // User input (for the bank name)
 
-    const emailData = ref({
-      // Email data list
+    const userInformation = ref({
+      id: "",
+      token: "",
+      queue_number: "",
       name: "",
       email: "",
-      subject: "",
-      message: "",
+      email_status: "",
+      teller_id: "",
+      type_id: "",
+      window_name: "",
     });
 
     const totalPages = computed(() =>
@@ -403,8 +407,8 @@ export default {
         if (customer.status === "finished" && !hasNotified.value) {
 
           await $axios.post('/sent-email-finish',{
-            id : customerId.value,
-            email :  customer.email,
+            id :  userInformation.value.id,
+            email :   userInformation.value.email,
             subject : 'Thankyou for visit' 
           })
 
@@ -435,19 +439,31 @@ export default {
 
     const getTableData = async () => {
       try {
+        // fetching specific customer
         const { data } = await $axios.post("/customer-fetch", {
           token: tokenurl.value,
         });
         serviceType.value = data.row.name;
         indicator.value = data.row.indicator;
-        assignedTeller.value =
-          data.row.teller_firstname + " " + data.row.teller_lastname;
+        assignedTeller.value = data.row.teller_firstname + " " + data.row.teller_lastname;
         typeId.value = data.row.typeId;
         tellerId.value = data.row.id;
-        customerQueueNumber.value = data.queue_number;
-        customerId.value = data.id;
+        customerQueueNumber.value = data.userInfo.queue_number;
+        customerId.value = data.userInfo.id;
+
+        userInformation.value.id = data.userInfo.id
+        userInformation.value.name = data.userInfo.name
+        userInformation.value.token = data.userInfo.token
+        userInformation.value.email_status = data.userInfo.email_status
+        userInformation.value.email = data.userInfo.email
+        userInformation.value.teller_id = data.userInfo.teller_id
+        userInformation.value.type_id = data.userInfo.type_id
+        userInformation.value.window_name = data.window.window_name
+
         fetchImage(tellerId.value);
+        sendingDashboard(); // trigger sendingDashboard
         //putTellerId()
+        console.log('buratka',data)
       } catch (error) {
         console.log(error);
       }
@@ -608,16 +624,13 @@ export default {
     // sending link to access the dashboard
     const sendingDashboard = async () => {
       try {
-        const { data } = await $axios.post("/send-fetchInfo", {
-          token: tokenurl.value,
-            });
-        if (data.InformationFromToken.email_status == 'sending_customer') {
+        if (userInformation.value.email_status ===  'sending_customer') {
           await $axios.post('sent-email-dashboard',{
-            id : data.InformationFromToken.id,
-            token: data.InformationFromToken.token,
-            queue_number: data.InformationFromToken.queue_number,
-            email: data.InformationFromToken.email,
-            name: data.InformationFromToken.name,
+            id : userInformation.value.id,
+            token: userInformation.value.token,
+            queue_number: `${indicator.value}#-${String(customerQueueNumber.value || "N/A").padStart(3, '0')}`,
+            email: userInformation.value.email,
+            name: userInformation.value.name,
             subject: "Queue Alert", // Email subject
             message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
                       we’ve implemented a queue system that helps manage customer flow. 
@@ -626,6 +639,7 @@ export default {
                       you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
           });
         }
+
       } catch (error) {
         if (error.response.status === 422) {
           console.log('error sending dashboard', error)
@@ -644,27 +658,17 @@ export default {
         );
         if (queuePosition.value == 5) {
           
-          if (queueList.value.length > 0) {
-            
-            const { data } = await $axios.post("/send-fetchInfo", {
-              token: tokenurl.value,
-            });
-          
-              // Assign email data with the recipient's details and email content
-              emailData.value = {
-                id: data.InformationFromToken.id, // Recipient's id
-                token: data.InformationFromToken.token, // Recipient's token
-                name: data.InformationFromToken.name, // Recipient's name
-                email: data.InformationFromToken.email, // Recipient's email address
-                subject: "Queue Alert", // Email subject
-                message: `You are just a few steps away from being served! 
-                          Please remain on standby, as your turn is approaching soon.`, // Email message body
-              };
-
-              // Send a POST request to the '/send-email' endpoint with emailData as payload
+          if (queueList.value.length > 0) {  
               await $axios.post(
-                "/send-email",
-                emailData.value
+                "/send-email",{
+                  id: userInformation.value.id, // Recipient's id
+                  token:  userInformation.value.token, // Recipient's token
+                  name:  userInformation.value.name, // Recipient's name
+                  email:  userInformation.value.email, // Recipient's email address
+                  subject: "Queue Alert", // Email subject
+                  message: `You are just a few steps away from being served! 
+                            Please remain on standby, as your turn is approaching soon.`, // Email message body
+              }
               );
             
           }
@@ -805,10 +809,11 @@ export default {
 
           // Data for the table to be included in the PDF
           const tableData = [
-            ['Queue number: ', 'FE#01'],
-            ['Name: ', 'Dexter Jamero'],
-            ['Email: ', 'jamero@gmail.com'],
-            ['Service type: ', 'Foreign exchange'],
+            ['Queue number: ', `${indicator.value}#-${String(customerQueueNumber.value || "N/A").padStart(3, '0')}`],
+            ['Name: ',  userInformation.value.name],
+            ['Email: ',  userInformation.value.email],
+            ['Service type: ', serviceType.value],
+            ['Window: ', userInformation.value.window_name]
           ];
 
           // Use jsPDF's autoTable plugin to create a table in the PDF
@@ -871,7 +876,6 @@ export default {
       optimizedFetchWaitingtime();
       optimizedFetchQueueData();
       optimizedFetchWaitingStatus();
-      sendingDashboard();
       setInterval(fetchCurrency(),30000);
     });
 
@@ -895,7 +899,7 @@ export default {
       countdown,
       leaveQueue,
       checkingQueueNumber,
-      emailData,
+      userInformation,
       customerId,
       serviceType,
       assignedTeller,

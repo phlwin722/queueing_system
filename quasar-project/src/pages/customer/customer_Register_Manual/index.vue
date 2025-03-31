@@ -124,24 +124,8 @@ export default {
     const isLoading = ref(false);
     const formError = ref({});
 
-    const route = useRoute(); // Use useRoute() correctly
-    const token = ref(route.params.token); // Get token from URL
-    const isUsedToken = ref(false);
+    const token = ref(); // Get token from URL
 
-    const processQrCode = async () => {
-      try {
-        const response = await $axios.post("/scan-qr", { token: token.value });
-        if (response.data.success) {
-          $notify("positive", "check", "Please register to join the queue.");
-        } else {
-          isUsedToken.value = true;
-          $notify("negative", "error", "Invalid or already used QR code.");
-        }
-      } catch (error) {
-        isUsedToken.value = true;
-        $notify("negative", "error", "Invalid or already used QR code.");
-      }
-    };
 
     const joinQueue = async () => {
       isLoading.value = true;
@@ -154,11 +138,6 @@ export default {
             return;
           }
         }
-
-        if (isUsedToken.value) {
-          $notify("negative", "error", "Invalid or already used QR code.");
-        } else {
-          console.log(email.value);
           name.value = name.value
           .split(' ')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -172,8 +151,8 @@ export default {
             type_id: type_id.value,
             currency: currencySelected.value
           });
-          window.location.href = "/customer-dashboard/" + token.value;
-        }
+         
+
       } catch (error) {
         if (error.response.status === 422) {
           formError.value = error.response.data;
@@ -227,7 +206,6 @@ export default {
   };
 
     onMounted(() => {
-      processQrCode();
       fetchCategories();
     });
 
