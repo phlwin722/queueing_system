@@ -15,11 +15,38 @@
           class="q-ml-sm"
         />
         <q-space />
-        <!-- <q-toolbar-title class="text-center">QUEUING SYSTEM</q-toolbar-title> -->
-        <div class="row items-center">
+
+        <!-- <div class="row items-center">
           <q-spinner-clock color="white" size="1.5em" class="q-mr-xs" />
           {{ formattedString }}
-        </div>
+        </div> -->
+        <!-- Admin Account Dropdown (Moved from Drawer to Here) -->
+    <q-btn-dropdown flat dense no-caps dropdown-icon="keyboard_arrow_down" style="max-width: 200px;">
+      <template v-slot:label>
+          <q-avatar size="25px" class="bg-white">
+            <img :src="previewAdminImage"/>
+          </q-avatar>
+          <span class="q-ml-sm">
+            {{
+              adminInformationContent && adminInformationContent.Firstname
+                ? adminInformationContent.Firstname +
+                  " " +
+                  adminInformationContent.Lastname
+                : "Loading..."
+            }}
+          </span>
+      </template>
+
+      <q-list>
+        <q-item clickable v-ripple @click="logout">
+          <q-item-section avatar>
+            <q-icon name="logout" color="red" />
+          </q-item-section>
+          <q-item-section class="text-red">Logout</q-item-section>
+        </q-item>
+      </q-list>
+    </q-btn-dropdown>
+
       </q-toolbar>
     </q-header>
 
@@ -168,7 +195,7 @@
       </div>
 
       <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
-      <div
+      <!-- <div
         class="q-pa-xs absolute-bottom full-width q-mt-md bg-accent"
         style="border-top: 1px solid #ccc"
       >
@@ -210,11 +237,29 @@
             </q-item>
           </q-list>
         </q-btn-dropdown>
-      </div>
+      </div> -->
+
     </q-drawer>
     <q-page-container style="padding-bottom: 20px;">
       <router-view />
     </q-page-container>
+
+    <q-footer class="bg-secondary text-grey-4 q-pa-sm fixed-bottom">
+      <div class="row items-center justify-between full-width">
+        <!-- Left Side: Copyright Text -->
+        <span class="text-caption">
+          © 2025 VRTSystems Technologies Corporation.
+        </span>
+
+        <!-- Right Side: Formatted Time -->
+        <div class="row items-center">
+          <q-icon name="calendar_today" color="white" size="1em" class="q-mr-xs" />
+          <span class="text-caption">{{ formattedString }}</span>
+        </div>
+      </div>
+    </q-footer>
+
+
   </q-layout>
 </template>
 

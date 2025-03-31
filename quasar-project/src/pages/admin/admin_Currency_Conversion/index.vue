@@ -13,14 +13,15 @@
             :columns="columns"
             row-key="id"
             virtual-scroll
+            dense
             v-model:pagination="pagination"
             selection="multiple"
             v-model:selected="selected"
             :rows-per-page-options="[0]"
-            class="q-mt-md"
+            class="q-mt-md q-py-sm"
         >
             <template v-slot:top>
-                <div class="row q-col-gutter-sm">
+                <div class="row q-col-gutter-sm q-mb-xs">
                     <div class="col-auto">
                         <q-btn 
                             color="primary" 
