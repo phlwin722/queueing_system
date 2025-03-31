@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh lpr lFf" class="flex flex-center shadow-2">
+  <q-layout view="lHh lpr lFf" class="flex flex-center shadow-2 bg-primary">
     <div
       class="row wrap col-md-6 justify-center items-center flex q-gutter-md q-pa-md"
       style="width: 100%; max-width: 600px; margin: auto"
@@ -918,12 +918,12 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 @import "flag-icons/css/flag-icons.min.css";
 
-body {
+/* body {
   background-color: #1c5d99;
-}
+} */
 
 .rounded-borders {
   border-radius: 16px;

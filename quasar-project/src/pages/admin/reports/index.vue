@@ -87,7 +87,7 @@
             </div>
         </div>
     </div>
-    <div class="q-px-lg q-mt-md">
+    <div class="q-px-lg q-my-md">
         <BarChart
         :cancelledPercent="cancelledPercent"
         :finishedPercent="finishedPercent"

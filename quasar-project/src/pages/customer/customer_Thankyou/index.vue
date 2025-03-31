@@ -1,7 +1,7 @@
 <template>
-  <div class="full-width bg-primary header-background"></div>
+  <div class="bg-primary" style="height: 30vh; position: relative;">
 
-  <div class="q-py-md flex flex-center">
+  <div class="q-py-md flex flex-center" style="position: relative;">
     <q-card class="q-pa-md q-mt-xl text-center shadow-3 bg-white rounded-card" bordered>
       
       <q-card-section class="column items-center">
@@ -48,6 +48,7 @@
       
     </q-card>
   </div>
+  </div>
 </template>
 
 <script>
@@ -68,12 +69,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Background Styling */
-.header-background {
-  height: 30vh;
-  position: absolute;
-  z-index: -1;
-}
 
 /* Custom Button Styling */
 .custom-btn {

@@ -15,15 +15,16 @@
                 :columns="columns"
                 row-key="id"
                 virtual-scroll
+                dense
                 v-model:pagination="pagination"
                 selection="multiple"
                 v-model:selected="selected"
                 :rows-per-page-options="[0]"
-                class="q-mt-md"
+                class="q-mt-md q-py-sm"
             >
 
             <template v-slot:top>
-                <div class="row q-col-gutter-sm">
+                <div class="row q-col-gutter-sm q-mb-sm">
                     <div class="col-auto">
                     <q-btn 
                         color="primary" 
@@ -48,13 +49,13 @@
                 
                 <template v-slot:body-cell-actions="props">
                     <q-td :props="props">
-                        <div class="q-gutter-x-sm"> 
+                        <div class="q-gutter-x-sm q-pa-xs"> 
                             <q-btn
                                 square 
                                 color="positive" 
                                 icon="edit" 
                                 dense
-                                glossy
+                                size="sm"
                                 class="custom-btn2"
                                 @click="handleShowForm('edit', props.row)"
                             >
@@ -68,7 +69,7 @@
                                 color="red" 
                                 icon="delete" 
                                 dense
-                                glossy
+                                size="sm"
                                 class="custom-btn2"
                                 @click="beforeDelete(false, props.row)"
                             >
@@ -195,7 +196,8 @@
     }
 
 .custom-btn2 {
-    width: 35px; /* Adjust as needed */
+    width: 25px; /* Adjust as needed */
+    height: 25px;
     margin-left: 5px;
     border-radius: 5px;
 }
