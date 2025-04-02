@@ -1,6 +1,6 @@
 <template>
-  <q-page class="q-px-md" style="height: auto; min-height: unset">
-    <div class="q-my-md bg-white q-pa-sm shadow-1">
+  <q-page class="q-px-sm" style="height: auto; min-height: unset">
+    <div class="q-ma-md bg-white q-pa-sm shadow-1">
       <q-breadcrumbs class="q-mx-sm">
         <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
         <q-breadcrumbs-el label="Teller" icon="person" />
@@ -17,21 +17,23 @@
       :columns="columns"
       row-key="id"
       virtual-scroll
+      dense
       v-model:pagination="pagination"
       selection="multiple"
       v-model:selected="selected"
       :rows-per-page-options="[0]"
-      class="q-mt-md"
+      class="q-ma-md q-mt-sm q-pt-xs"
     >
       <template v-slot:top>
-        <div class="row q-col-gutter-sm">
+        <div class="row q-col-gutter-sm q-pb-xs">
           <div class="col-auto">
             <q-btn
               color="primary"
               icon="add"
               @click="handleShowForm('new')"
-              class="custom-btn2"
+              class="custom-btn"
               glossy
+              size="sm"
             >
               <q-tooltip
                 anchor="center left"
@@ -48,8 +50,9 @@
               icon="delete"
               :disable="selected.length === 0"
               @click="beforeDelete(true)"
-              class="custom-btn2"
+              class="custom-btn"
               glossy
+              size="sm"
             >
               <q-tooltip
                 anchor="top middle"
@@ -65,8 +68,9 @@
               color="warning"
               icon="reset_tv"
               @click="beforeReset(true)"
-              class="custom-btn2"
-              glossy=""
+              class="custom-btn"
+              glossy
+              size="sm"
               :disable="rows.length === 0"
             >
               <q-tooltip
@@ -83,13 +87,13 @@
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <div class="q-gutter-x-md">
+          <div class="q-gutter-x-sm">
             <q-btn
               square
               color="positive"
               icon="edit"
               dense
-              glossy
+              size="sm"
               class="custom-btn2"
               @click="handleShowForm('edit', props.row)"
             >
@@ -108,7 +112,7 @@
               color="negative"
               icon="delete"
               dense
-              glossy
+              size="sm"
               class="custom-btn2"
               @click="beforeDelete(false, props.row)"
             >
@@ -378,13 +382,15 @@ export default defineComponent({
 
 <style scoped>
 .custom-btn {
-  min-width: 150px;
-  height: 35px;
+  width: 30px;
+  height: 30px;
   text-align: center;
+  border-radius: 5px;
 }
 
 .custom-btn2 {
-  width: 35px;
+  width: 25px;
+  height: 25px;
   margin-left: 5px;
   border-radius: 5px;
 }
