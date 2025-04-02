@@ -91,6 +91,31 @@
             </div>
           </template>
         </q-select>
+          <q-checkbox
+            v-model="customModel"
+            color="green"
+            label="Priority services"
+            true-value="yes"
+            false-value="no"
+          />
+
+          <q-select
+            v-if="customModel === 'yes'"
+            v-model="prioritySelected"
+            label="Priority Service"
+            transition-show="flip-up"
+            transition-hide="flip-down"
+            outlined
+            emit-value
+            map-options
+            dense
+            class="q-mt-md"
+            :options="categoriesPriority"
+            :error="formError.hasOwnProperty('priority')"
+            :error-message="formError.priority"
+            option-label="name"
+            option-value="id"
+          />
         </q-card-section>
 
         <q-card-actions align="center">
@@ -120,9 +145,11 @@ export default {
     const currencySelected = ref ();
     const categoryForeignExchange = ref();
     const categoriesList = ref([]);
+    const prioritySelected = ref();
     const currentCiesList = ref ([]);
     const isLoading = ref(false);
     const formError = ref({});
+    const customModel = ref('no')
 
     const route = useRoute(); // Use useRoute() correctly
     const token = ref(route.params.token); // Get token from URL
@@ -155,6 +182,13 @@ export default {
           }
         }
 
+        if (customModel.value == 'yes'){
+          if (prioritySelected.value == null) {
+            formError.value.priority = "Priority service field is required"
+            return
+          }
+        }
+
         if (isUsedToken.value) {
           $notify("negative", "error", "Invalid or already used QR code.");
         } else {
@@ -170,7 +204,8 @@ export default {
             email: email.value,
             email_status: email_status.value,
             type_id: type_id.value,
-            currency: currencySelected.value
+            currency: currencySelected.value,
+            priority_service: prioritySelected.value
           });
           window.location.href = "/customer-dashboard/" + token.value;
         }
@@ -243,6 +278,7 @@ export default {
     });
 
     return {
+      customModel,
       name,
       email,
       email_status,
@@ -255,6 +291,16 @@ export default {
       categoriesList,
       fecthCurrencty,
       currentCiesList,
+      prioritySelected,
+
+      categoriesPriority: [
+        'Elderly Customers', 
+        'Pregnant Women', 
+        'People with Disabilities', 
+        'Premium Customers', 
+        'Parents with Young Children', 
+        'Queue-Free Services'
+      ]
     };
   },
 };

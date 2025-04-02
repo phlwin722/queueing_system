@@ -56,7 +56,8 @@ class QueueController extends Controller
             'queue_number' => $nextQueueNumber,
             'status' => 'waiting',
             'waiting_customer' => null,
-            'currency_selected' => $request->currency  
+            'currency_selected' => $request->currency,
+            'priority_service' => $request->priority_service
         ]);
     
         // Log to ensure proper assignment

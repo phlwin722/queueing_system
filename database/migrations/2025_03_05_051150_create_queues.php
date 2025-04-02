@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('status', ['waiting', 'serving', 'cancelled','finished'])->default('waiting');
             $table->string('waiting_customer')->nullable();
             $table->unsignedBigInteger('currency_selected')->nullable();
+            $table->string('priority_service')->nullable();
             $table->timestamps();
         });
     }
