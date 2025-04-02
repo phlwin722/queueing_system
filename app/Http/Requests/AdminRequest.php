@@ -25,7 +25,7 @@ class AdminRequest extends FormRequest
         return [
             'Username'=> [
                 'required',
-                
+                'regex:/^[a-zA-Z0-9_-]{3,16}$/', // Allows alphanumeric characters, underscores, and hyphens. Length between 3 to 16 characters.
             ],
             'Password' => [
                 'required'
