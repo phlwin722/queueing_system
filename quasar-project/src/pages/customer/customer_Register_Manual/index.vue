@@ -94,7 +94,7 @@
         </q-card-section>
 
         <q-card-actions align="center">
-          <q-btn label="Proceed" color="primary" @click="joinQueue" />
+          <q-btn label="Print" color="primary" @click="joinQueue" />
         </q-card-actions>
         <q-inner-loading
           :showing="isLoading"
@@ -108,8 +108,8 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
 import { $axios, $notify } from "boot/app";
+import QrCode from 'qrcode'; // import the qrcode package
 
 export default {
   setup() {
@@ -123,49 +123,203 @@ export default {
     const currentCiesList = ref ([]);
     const isLoading = ref(false);
     const formError = ref({});
+    const indicator = ref('')
+    const generatedQrValue = ref ('');
+    const ServiceAvail = ref('');
 
     const token = ref(); // Get token from URL
 
+    const generateRandomString = async (length = 10) => {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      const charactersLength = characters.length;
+      // Loop to create a random string
+      for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
+        // Assign the generated string to the token ref
+        token.value = result;
+    }
 
     const joinQueue = async () => {
       isLoading.value = true;
       formError.value = [];
-      try {
-        // Check if the category is 'Foreign Exchange' and validate the currency selection
-        if (categoryForeignExchange.value === 1) {
-          if (currencySelected.value == null) {
-            formError.value.currency = "Currency field is required";
-            return;
-          }
-        }
-          name.value = name.value
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ');
-    
-          await $axios.post("/customer-join", {
-            token: token.value,
-            name: name.value,
-            email: email.value,
-            email_status: email_status.value,
-            type_id: type_id.value,
-            currency: currencySelected.value
-          });
-         
+      await generateRandomString();  // Generate random token before the submission
 
-      } catch (error) {
-        if (error.response.status === 422) {
-          formError.value = error.response.data;
-        }else if (error.response.status === 400) {
-          $notify('negative','error','No tellers assigned to this service type')
-        }else if (error.response.status === 500) {
-          $notify('negative','error','No tellers assigned to this service type')
+      try {
+          // Check if the category is 'Foreign Exchange' and validate the currency selection
+          if (categoryForeignExchange.value === 1) {
+            if (currencySelected.value == null) {
+              formError.value.currency = "Currency field is required";
+              return;
+            }
+          }
+            // Capitalize the name properly
+            name.value = name.value
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+      
+            const { data } = await $axios.post("/customer-join", {
+              token: token.value,
+              name: name.value,
+              email: email.value,
+              email_status: email_status.value,
+              type_id: type_id.value,
+              currency: currencySelected.value
+            });
+          
+            const response = await $axios.post('sent-email-dashboard',{
+              id : data.id,
+              token: token.value,
+              queue_number: `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`,
+              email:  email.value,
+              name: name.value,
+              subject: "Queue Alert", // Email subject
+              message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
+                        we’ve implemented a queue system that helps manage customer flow. 
+                        Our system is designed to prioritize your needs and minimize waiting times. 
+                        You are free to go about your activities, and once your turn is approaching, 
+                        you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
+            });  
+
+            if (response.data.message) {
+                 // set the qr code value
+                generatedQrValue.value = `http://192.168.0.164:8080/customer-dashboard/${token.value}`
+
+                // generate the qr code image
+                const qrCodeDataUrl = await QrCode.toDataURL(generatedQrValue.value, {errorCorrectionLevel: 'H', type: 'image/png'});
+
+                // Notify the user that the email was successfully sent
+                //$notify('positive', 'check', response.data.message);
+
+                const queuenumber = `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`
+
+                // Trigger the print function with the queue details and QR code
+                printQueueDetails(queuenumber, name.value,  ServiceAvail.value, data.window_name, qrCodeDataUrl);
+
+                // Reset form values after successful submission
+                name.value = "";
+                email.value = "";
+                type_id.value = "";
+                currencySelected.value = "";
+                token.value = ""; 
+            }
+      } catch (error) { 
+        if (error.response) {
+           // If the error response exists, check for the status
+          if (error.response.status === 422) {
+            formError.value = error.response.data;
+          }else if (error.response.status === 400) {
+            $notify('negative','error','No tellers assigned to this service type')
+          }else if (error.response.status === 500) {
+            $notify('negative','error','No tellers assigned to this service type')
+          }
+          else if (error.response.status === 500) {
+            $notify('negative','error','No tellers assigned to this service type')
+          }
+        }else {
+          console.log(error)
         }
-        else if (error.response.status === 500) {
-          $notify('negative','error','No tellers assigned to this service type')
-        }
-      } finally {
+      }
+      finally{
         isLoading.value = false;
+      }
+    };
+
+    const printQueueDetails = async (queueNumber, customerName, serviceType, window_name, qrCodeDataUrl) => {
+      try {
+        const printWindow = window.open('', '', 'height=400,width=450');
+
+        // Write the content of the print window
+        printWindow.document.write('<html>');
+        printWindow.document.write('<head>');
+        printWindow.document.write('<meta charset="UTF-8">');
+        printWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+        printWindow.document.write('<title>Customer Queue Details</title>');
+        printWindow.document.write('<style>');
+        
+        // General Body styles
+        printWindow.document.write('body {');
+        printWindow.document.write('font-family: Arial, sans-serif;');
+        printWindow.document.write('margin: 0;');
+        printWindow.document.write('padding: 0;');
+        printWindow.document.write('display: flex;');
+        printWindow.document.write('flex-direction: column;');
+        printWindow.document.write('justify-content: center;');
+        printWindow.document.write('align-items: center;');
+        printWindow.document.write('text-align: center;');
+        printWindow.document.write('margin-top: 20px;');
+        printWindow.document.write('}');
+
+        // Outer container styles
+        printWindow.document.write('.container1 {');
+        printWindow.document.write('width: 100%;');
+        printWindow.document.write('max-width: 400px; /* Set to 400px to fit in the 450px window width */');
+        printWindow.document.write('padding: 5px;');
+        printWindow.document.write('box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);');
+        printWindow.document.write('text-align: center;');
+        printWindow.document.write('}');
+
+        // Grid container for content
+        printWindow.document.write('.container {');
+        printWindow.document.write('margin-left: 15px;');
+        printWindow.document.write('display: grid;');
+        printWindow.document.write('grid-template-columns: auto auto;');
+        printWindow.document.write('width: 100%;');
+        printWindow.document.write('}');
+
+        printWindow.document.write('.container > div {');
+        printWindow.document.write('background-color: #ffffff;');
+        printWindow.document.write('font-size: 12px;');
+        printWindow.document.write('text-align: left;');
+        printWindow.document.write('}');
+
+        // Optional: Styling for the QR Code image
+        printWindow.document.write('img {');
+        printWindow.document.write('display: block;');
+        printWindow.document.write('margin-left: auto;');
+        printWindow.document.write('margin-right: auto;');
+        printWindow.document.write('}');
+
+        // Styling for headers (h1, h2, h3)
+        printWindow.document.write('h1, h2, h3 {');
+        printWindow.document.write('margin: 10px 0;');
+        printWindow.document.write('}');
+
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head>');
+        
+        // Body content
+        printWindow.document.write('<body>');
+        printWindow.document.write('<div class="container1">');
+        printWindow.document.write('<strong><h5">VRTSYSTEMS TECHNOLOGIES</h5></strong> <br>');
+        printWindow.document.write('<strong> <h4">Customer Queue Details</h4> </strong>');
+        printWindow.document.write('<h2 style="margin-top:25px;">' + queueNumber + '</h2>');
+        printWindow.document.write('<hr> <!-- Divider between sections -->');
+        printWindow.document.write('<div class="container">');
+        printWindow.document.write('<div><p><strong>Name:</strong></p></div>');
+        printWindow.document.write('<div><p>' + customerName + '</p></div>');
+        printWindow.document.write('<div><p><strong>Service Type:</strong></p></div>');
+        printWindow.document.write('<div><p>' + serviceType + '</p></div>');
+        printWindow.document.write('<div><p><strong>Window name:</strong></p></div>');
+        printWindow.document.write('<div><p>' + window_name + '</p></div>');
+        printWindow.document.write('</div>');
+        printWindow.document.write('<hr> <!-- Divider between sections -->');
+        printWindow.document.write('<h3>QR Code for Customer Dashboard</h3>');
+        printWindow.document.write('<img src="' + qrCodeDataUrl + '" width="150" height="150" alt="QR Code">');
+        printWindow.document.write('</div>');
+        printWindow.document.write('</body>');
+        printWindow.document.write('</html>');
+        
+        // Close the document to render the content
+        printWindow.document.close();
+        
+        // Open the print dialog
+        printWindow.print();
+        $notify('positive', 'check', 'Successfully registered');
+      } catch (error) {
+        console.error('Error during print process:', error);
       }
     };
 
@@ -173,6 +327,7 @@ export default {
       try {
         const { data } = await $axios.post("/types/index");
         categoriesList.value = data.rows;
+        console.log(data.rows)
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -180,6 +335,12 @@ export default {
 
     const fecthCurrencty = async (selectedValue) => {
     try {
+     // Find the category from the list that matches the selected type_id
+      const selectedCategory = categoriesList.value.find(category => category.id === type_id.value);
+      // Once the category is found, update the indicator with the corresponding indicator value
+      indicator.value = selectedCategory.indicator
+      ServiceAvail.value = selectedCategory.name
+
       categoryForeignExchange.value = selectedValue;
       if (selectedValue === 1) {
         const { data } = await $axios.post('/currency/showData');
@@ -209,11 +370,15 @@ export default {
       fetchCategories();
     });
 
-    return {
+    return { 
+      ServiceAvail,
+      generatedQrValue,
       name,
       email,
+      indicator,
       email_status,
       joinQueue,
+      generateRandomString,
       formError,
       isLoading,
       token,

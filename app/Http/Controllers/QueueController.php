@@ -68,11 +68,17 @@ class QueueController extends Controller
             'type_id' => $type_id,
             'teller_id' =>  $assignedTellerId
         ]);
+
+        $windowName = DB::table('windows')
+        ->where('teller_id',$queue->teller_id)
+        ->select('window_name')
+        ->first();
     
         return response()->json([
             'message' => 'Successfully joined queue',
             'id' => $queue->id,
-            'queue_number' => $queue->queue_number
+            'queue_number' => $queue->queue_number,
+            'window_name' => $windowName->window_name
         ]);
     }
     
