@@ -91,6 +91,32 @@
             </div>
           </template>
         </q-select>
+
+        <q-checkbox
+            v-model="customModel"
+            color="green"
+            label="Priority services"
+            true-value="yes"
+            false-value="no"
+          />
+
+          <q-select
+            v-if="customModel === 'yes'"
+            v-model="prioritySelected"
+            label="Priority Service"
+            transition-show="flip-up"
+            transition-hide="flip-down"
+            outlined
+            emit-value
+            map-options
+            dense
+            class="q-mt-md"
+            :options="categoriesPriority"
+            :error="formError.hasOwnProperty('priority')"
+            :error-message="formError.priority"
+            option-label="name"
+            option-value="id"
+          />
         </q-card-section>
 
         <q-card-actions align="center">
@@ -126,6 +152,8 @@ export default {
     const indicator = ref('')
     const generatedQrValue = ref ('');
     const ServiceAvail = ref('');
+    const customModel = ref('no')
+    const prioritySelected = ref();
 
     const token = ref(); // Get token from URL
 
@@ -154,6 +182,13 @@ export default {
               return;
             }
           }
+          if (customModel.value == 'yes'){
+            if (prioritySelected.value == null) {
+              formError.value.priority = "Priority service field is required"
+              return
+            }
+          }
+
             // Capitalize the name properly
             name.value = name.value
             .split(' ')
@@ -166,7 +201,8 @@ export default {
               email: email.value,
               email_status: email_status.value,
               type_id: type_id.value,
-              currency: currencySelected.value
+              currency: currencySelected.value,
+              priority_service: prioritySelected.value
             });
           
             const response = await $axios.post('sent-email-dashboard',{
@@ -324,14 +360,22 @@ export default {
     };
 
     const fetchCategories = async () => {
-      try {
-        const { data } = await $axios.post("/types/index");
-        categoriesList.value = data.rows;
-        console.log(data.rows)
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
+    try {
+      const { data } = await $axios.post("/types/filteredTypes");
+
+      // Filter rows where type_id is NOT null
+      const filteredRows = data.rows.filter(row => row.type_id !== null);
+
+      // Log filtered type_id values
+      filteredRows.forEach(row => console.log(row.type_id));
+
+      // Assign only valid rows to categoriesList.value
+      categoriesList.value = filteredRows;
+      
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
     const fecthCurrencty = async (selectedValue) => {
     try {
@@ -371,6 +415,8 @@ export default {
     });
 
     return { 
+      prioritySelected,
+      customModel,
       ServiceAvail,
       generatedQrValue,
       name,
@@ -387,6 +433,15 @@ export default {
       categoriesList,
       fecthCurrencty,
       currentCiesList,
+
+      categoriesPriority: [
+        'Elderly Customers', 
+        'Pregnant Women', 
+        'People with Disabilities', 
+        'Premium Customers', 
+        'Parents with Young Children', 
+        'Queue-Free Services'
+      ]
     };
   },
 };

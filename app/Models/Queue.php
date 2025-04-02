@@ -21,6 +21,7 @@ class Queue extends Model
         'position',
         'status',
         'waiting_customer',
-        'currency_selected'
+        'currency_selected',
+        'priority_service',
     ];
 }
