@@ -69,6 +69,11 @@ Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueue
 Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
 Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
 Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
+//Limit Queue Route
+Route::post('/set-queue-limit', [TellercaterController::class, 'setQueueLimit']);
+Route::post('/is-queue-full', [TellercaterController::class, 'isQueueFull']);
+
+
 
 Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/teller/image',[TellerController::class,'fetchImage']);

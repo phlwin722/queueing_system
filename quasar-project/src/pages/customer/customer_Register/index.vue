@@ -171,59 +171,121 @@ export default {
     };
 
     const joinQueue = async () => {
-      isLoading.value = true;
-      formError.value = [];
-      try {
+    isLoading.value = true;
+    formError.value = [];
+
+    try {
         // Check if the category is 'Foreign Exchange' and validate the currency selection
         if (categoryForeignExchange.value === 1) {
-          if (currencySelected.value == null) {
-            formError.value.currency = "Currency field is required";
-            return;
-          }
+            if (currencySelected.value == null) {
+                formError.value.currency = "Currency field is required";
+                return;
+            }
         }
 
         if (customModel.value == 'yes'){
-          if (prioritySelected.value == null) {
-            formError.value.priority = "Priority service field is required"
-            return
-          }
+            if (prioritySelected.value == null) {
+                formError.value.priority = "Priority service field is required"
+                return
+            }
         }
 
         if (isUsedToken.value) {
-          $notify("negative", "error", "Invalid or already used QR code.");
+            $notify("negative", "error", "Invalid or already used QR code.");
         } else {
-          console.log(email.value);
-          name.value = name.value
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ');
-    
-          await $axios.post("/customer-join", {
-            token: token.value,
-            name: name.value,
-            email: email.value,
-            email_status: email_status.value,
-            type_id: type_id.value,
-            currency: currencySelected.value,
-            priority_service: prioritySelected.value
-          });
-          window.location.href = "/customer-dashboard/" + token.value;
+            console.log(email.value);
+            name.value = name.value
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+
+            // Check if the queue is full
+            const queueFullResponse = await $axios.post("/is-queue-full");
+
+            if (queueFullResponse.data.is_full) {
+                $notify("negative", "error", "The queue for this service has reached its limit. Please wait for an available slot to proceed.");
+                return; // Stop further execution if the queue is full
+            }
+
+            await $axios.post("/customer-join", {
+                token: token.value,
+                name: name.value,
+                email: email.value,
+                email_status: email_status.value,
+                type_id: type_id.value,
+                currency: currencySelected.value,
+                priority_service: prioritySelected.value
+            });
+
+            window.location.href = "/customer-dashboard/" + token.value;
         }
-      } catch (error) {
+    } catch (error) {
         if (error.response.status === 422) {
-          formError.value = error.response.data;
-        }else if (error.response.status === 400) {
-          $notify('negative','error','No tellers assigned to this service type')
-        }else if (error.response.status === 500) {
-          $notify('negative','error','No tellers assigned to this service type')
+            formError.value = error.response.data;
+        } else if (error.response.status === 400) {
+            $notify('negative', 'error', 'No tellers assigned to this service type');
+        } else if (error.response.status === 500) {
+            $notify('negative', 'error', 'Server error');
         }
-        else if (error.response.status === 500) {
-          $notify('negative','error','No tellers assigned to this service type')
-        }
-      } finally {
+    } finally {
         isLoading.value = false;
-      }
-    };
+    }
+};
+  //code alvin
+    // const joinQueue = async () => {
+    //   isLoading.value = true;
+    //   formError.value = [];
+    //   try {
+    //     // Check if the category is 'Foreign Exchange' and validate the currency selection
+    //     if (categoryForeignExchange.value === 1) {
+    //       if (currencySelected.value == null) {
+    //         formError.value.currency = "Currency field is required";
+    //         return;
+    //       }
+    //     }
+
+    //     if (customModel.value == 'yes'){
+    //       if (prioritySelected.value == null) {
+    //         formError.value.priority = "Priority service field is required"
+    //         return
+    //       }
+    //     }
+
+    //     if (isUsedToken.value) {
+    //       $notify("negative", "error", "Invalid or already used QR code.");
+    //     } else {
+    //       console.log(email.value);
+    //       name.value = name.value
+    //       .split(' ')
+    //       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    //       .join(' ');
+    
+    //       await $axios.post("/customer-join", {
+    //         token: token.value,
+    //         name: name.value,
+    //         email: email.value,
+    //         email_status: email_status.value,
+    //         type_id: type_id.value,
+    //         currency: currencySelected.value,
+    //         priority_service: prioritySelected.value
+    //       });
+    //       window.location.href = "/customer-dashboard/" + token.value;
+    //     }
+    //   } catch (error) {
+    //     if (error.response.status === 422) {
+    //       formError.value = error.response.data;
+    //     }else if (error.response.status === 400) {
+    //       $notify('negative','error','No tellers assigned to this service type')
+    //     }else if (error.response.status === 500) {
+    //       $notify('negative','error','No tellers assigned to this service type')
+    //     }
+    //     else if (error.response.status === 500) {
+    //       $notify('negative','error','No tellers assigned to this service type')
+    //     }
+    //   } finally {
+    //     isLoading.value = false;
+    //   }
+    // };
 
     const fetchCategories = async () => {
     try {

@@ -149,6 +149,50 @@
                       </q-menu>
                     </q-item>
 
+                   <!-- Limit Queue -->
+  <q-item clickable v-ripple>
+    <q-item-section avatar class="q-pl-xl">
+      <q-icon name="filter_list" :color="isMenuOpen ? 'primary' : 'secondary'" />
+    </q-item-section>
+    <q-item-section class="text-left" :class="{ 'text-primary': isMenuOpen }">
+      Limit Queue
+    </q-item-section>
+    <q-menu
+      fit
+      anchor="top right"
+      self="top left"
+      transition-show="jump-down"
+      transition-hide="jump-up"
+    >
+      <q-card class="q-pa-md">
+        <q-form @submit.prevent="saveQueueLimit">
+          <q-input
+  v-model="queueLimit"
+  type="text"
+  label="Enter Queue Limit"
+  placeholder="000"
+  :error="queueLimitError !== ''"
+  :error-message="queueLimitError"
+  hint="Set the maximum number of users in the queue (000-999)."
+  outlined
+  class="q-mb-md text-h6"
+  maxlength="3"
+  @update:model-value="handleInput"
+/>
+
+          <div class="row justify-center">
+            <q-btn
+              color="primary"
+              label="Save"
+              icon="save"
+              @click="saveQueueLimit"
+            />
+          </div>
+        </q-form>
+      </q-card>
+    </q-menu>
+  </q-item>
+                    
                     <q-item
                       clickable
                       v-ripple
@@ -427,8 +471,70 @@ export default defineComponent({
       }
     };
 
-    // Resetting Queue Number
+    //Limit Queue Function Section 
+    const queueLimit = ref("");
+const queueLimitError = ref("");
+const isFull = ref(false);
 
+// Handle user input (only allow numbers, max 3 digits)
+const handleInput = (value) => {
+  let numericValue = value.replace(/\D/g, "").slice(0, 3); // Only numbers, max 3 digits
+  queueLimit.value = numericValue;
+};
+
+// Validate queue limit input
+const validateQueueLimit = () => {
+  if (!queueLimit.value || parseInt(queueLimit.value, 10) > 999 || parseInt(queueLimit.value, 10) < 1) {
+    queueLimitError.value = "Please enter a valid 3-digit number (001-999).";
+  } else {
+    queueLimitError.value = "";
+  }
+};
+
+// Save the queue limit to the server
+const saveQueueLimit = async () => {
+  validateQueueLimit();
+  if (queueLimitError.value) return;
+
+  try {
+    const response = await $axios.post("/set-queue-limit", { limit: parseInt(queueLimit.value) });
+    console.log("Queue Limit Saved:", response.data);
+
+    // Show success notification (simplified)
+    $notify({
+      type: "positive", // Success notification
+      message: response.data.message, // Server response message
+      position: "top-right", // Position of the notification
+    });
+
+    // Fetch updated queue status after saving the limit
+    await checkQueueStatus();
+  } catch (error) {
+    console.error("Error saving queue limit:", error.response ? error.response.data : error);
+    
+    // Show error notification
+    $notify({
+      type: "negative", // Error notification
+      message: "Failed to save queue limit.", // Error message
+      position: "top-right", // Position of the notification
+    });
+
+    queueLimitError.value = "Failed to save queue limit.";
+  }
+};
+
+
+// Check if the queue is full by sending a POST request
+const checkQueueStatus = async () => {
+  try {
+    const response = await $axios.post("/is-queue-full");
+    isFull.value = response.data.is_full;
+    console.log("Queue Status:", response.data);
+  } catch (error) {
+    console.error("Error checking queue status:", error);
+  }
+};
+    // Resetting Queue Number
     // Reset Queue Number
 
     const fetchQueue = async () => {
@@ -600,6 +706,14 @@ export default defineComponent({
       process,
       isLoading,
       formError,
+
+      //Limit Queue function
+      queueLimit,
+      queueLimitError,
+      isFull,
+      handleInput,
+      saveQueueLimit,
+      checkQueueStatus,
 
       // reset queue number functions
       currentServing,

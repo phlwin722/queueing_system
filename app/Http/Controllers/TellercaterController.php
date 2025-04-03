@@ -9,45 +9,88 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class TellercaterController extends Controller
-{
+{   
     public function joinQueue(QueueRequest $request)
+{   
+    // Call isQueueFull to check if queue limit is reached
+    $queueFullResponse = $this->isQueueFull()->getData();
 
-    {
-        // Check if there are active (not finished) queue entries
-        
-
-        $lastQueue = DB::table('queue_numbers')
-                        ->where('status', '!=', 'finished')
-                        ->orderBy('queue_number', 'desc')
-                        ->first();
-
-        // If there's no active queue, start from 1
-        $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
-        
-        // Create queue entry
-        $queue = Queue::create([
-            'token' => $request->token,
-            'name' => $request->name,
-            'email' => $request->email,
-            'type_id' => $request->type_id,
-            'email_status' => $request->email_status,
-            'queue_number' => $nextQueueNumber,
-            'status' => 'waiting',
-            'waiting_customer' => null
-        ]);
-
-        DB::table('queue_numbers')->insert([
-            'status' => 'waiting',
-            'queue_number' => $nextQueueNumber
-        ]);
-        
-        // Return response with queue ID and queue number
+    if ($queueFullResponse->is_full) {
         return response()->json([
-            'message' => 'Successfully joined queue',
-            'id' => $queue->id, // ✅ Include the queue ID
-            'queue_number' => $queue->queue_number
-        ]);
+            'message' => 'Queue is full. Please try again later.'
+        ], 403);
     }
+
+    // Check if there are active (not finished) queue entries
+    $lastQueue = DB::table('queue_numbers')
+                    ->where('status', '!=', 'finished')
+                    ->orderBy('queue_number', 'desc')
+                    ->first();
+
+    // If there's no active queue, start from 1
+    $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+    
+    // Create queue entry
+    $queue = Queue::create([
+        'token' => $request->token,
+        'name' => $request->name,
+        'email' => $request->email,
+        'type_id' => $request->type_id,
+        'email_status' => $request->email_status,
+        'queue_number' => $nextQueueNumber,
+        'status' => 'waiting',
+        'waiting_customer' => null
+    ]);
+
+    DB::table('queue_numbers')->insert([
+        'status' => 'waiting',
+        'queue_number' => $nextQueueNumber
+    ]);
+    
+    // Return response with queue ID and queue number
+    return response()->json([
+        'message' => 'Successfully joined queue',
+        'id' => $queue->id,
+        'queue_number' => $queue->queue_number
+    ]);
+
+}
+    //code alvin
+    // public function joinQueue(QueueRequest $request)
+
+    //     // Check if there are active (not finished) queue entries
+    //     $lastQueue = DB::table('queue_numbers')
+    //                     ->where('status', '!=', 'finished')
+    //                     ->orderBy('queue_number', 'desc')
+    //                     ->first();
+
+    //     // If there's no active queue, start from 1
+    //     $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+        
+    //     // Create queue entry
+    //     $queue = Queue::create([
+    //         'token' => $request->token,
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'type_id' => $request->type_id,
+    //         'email_status' => $request->email_status,
+    //         'queue_number' => $nextQueueNumber,
+    //         'status' => 'waiting',
+    //         'waiting_customer' => null
+    //     ]);
+
+    //     DB::table('queue_numbers')->insert([
+    //         'status' => 'waiting',
+    //         'queue_number' => $nextQueueNumber
+    //     ]);
+        
+    //     // Return response with queue ID and queue number
+    //     return response()->json([
+    //         'message' => 'Successfully joined queue',
+    //         'id' => $queue->id, // ✅ Include the queue ID
+    //         'queue_number' => $queue->queue_number
+    //     ]);
+    // }
 
 
     // public function startWait(Request $request)
@@ -304,5 +347,62 @@ class TellercaterController extends Controller
         ]);
     }
 
+
+    //Limit Queue Function
+    public function setQueueLimit(Request $request)
+{
+    $validated = $request->validate([
+        'limit' => 'required|integer|min:1|max:999'
+    ]);
+
+    try {
+        DB::table('limit_queues')->updateOrInsert(
+            ['id' => 1], 
+            ['limit' => $validated['limit'], 'updated_at' => now()]
+        );
+
+        return response()->json([
+            'message' => 'Queue limit updated successfully',
+            'queue_limit' => $validated['limit']
+        ]);
+    } catch (\Exception $e) {
+        Log::error("Failed to set queue limit: " . $e->getMessage());
+        return response()->json(['message' => 'Error saving queue limit.'], 500);
+    }
 }
+
+public function isQueueFull(Request $request)
+{
+    try {
+        // Get the current queue limit
+        $queueLimit = DB::table('limit_queues')->value('limit');
+
+        if ($queueLimit === null) {
+            return response()->json([
+                'status' => 'success',
+                'is_full' => false,
+                'message' => 'No queue limit set.'
+            ]);
+        }
+
+        // Count the number of active queues (not finished)
+        $activeQueueCount = DB::table('queue_numbers')
+            ->where('status', '!=', 'finished')
+            ->count();
+
+        return response()->json([
+            'status' => 'success',
+            'is_full' => $activeQueueCount >= $queueLimit,
+            'current_count' => $activeQueueCount,
+            'queue_limit' => $queueLimit
+        ]);
+    } catch (\Exception $e) {
+        Log::error("Failed to check queue status: " . $e->getMessage());
+        return response()->json(['message' => 'Error checking queue status.'], 500);
+    }
+}
+
+}
+
+
 
