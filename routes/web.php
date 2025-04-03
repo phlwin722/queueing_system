@@ -13,6 +13,7 @@ use App\Http\Controllers\WindowController;
 use App\Http\Controllers\ResetSettingController;
 use App\Http\Controllers\WindowArchiveController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\BreakTimeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,9 @@ Route::post('/admin/waiting_Time',[Waiting_timeController::class,'store']);
 Route::post('/admin/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/admin/waiting_Time-update',[Waiting_timeController::class,'update']);
 Route::post('/upload-image', [AdminController::class, 'uploadImage']);
+
+Route::post('/admin/break_time',[BreakTimeController::class,'storeBreakTime']);
+Route::post('/admin/fetch_break_time',[BreakTimeController::class,'fetchBreakTime']);
 
 // adminside
 // Teller Routes

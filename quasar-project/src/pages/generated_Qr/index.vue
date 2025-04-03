@@ -39,7 +39,27 @@
         class="q-mb-xl"
       />
       <!-- First Item -->
-      <div class="col q-mb-xl">
+      <div v-if="newFormattedTime >= newTime && newFormattedTime < originalFromBreak" class="col q-mb-xl">
+        <q-card class="shadow-2" style="width: 350px; text-align: center">
+          <q-card-section>
+            <div class="text-h6">Taking a break soon...</div>
+          </q-card-section>
+
+        </q-card>
+      </div>
+      <div v-if="newFormattedTime >= newTime && formattedCurrentTime < toBreak" class="col q-mb-xl">
+        <q-card class="shadow-2" style="width: 350px; text-align: center">
+          <q-card-section>
+            <div class="text-h6">Break Time</div>
+          </q-card-section>
+
+          <q-card-section>
+            <p>From: {{ formatTo12Hour(fromBreak) }}</p>
+            <p>To: {{ formatTo12Hour(toBreak) }}</p>
+          </q-card-section>
+        </q-card>
+      </div>
+      <div v-else class="col q-mb-xl">
         <q-card class="shadow-2" style="width: 350px; text-align: center">
           <q-card-section>
             <div class="text-h6">Scan to Join the Queue</div>
@@ -134,6 +154,9 @@ export default {
       },
     ]);
     const $q = useQuasar();
+    const fromBreak = ref("");
+    const toBreak = ref("");
+    const formattedCurrentTime = ref("");
 
     // Fetch a new QR code link from the backend
     const fetchQrCode = async () => {
@@ -152,6 +175,57 @@ export default {
         console.error("Error fetching QR code:", error);
       }
     };
+    const newTime = ref("")
+    const newFormattedTime = ref("")
+    const originalFromBreak = ref("")
+    const fetchBreakTime = async () => {
+      try {
+        const { data } = await $axios.post("/admin/fetch_break_time");
+        // ✅ Correctly assign break start & end times
+        fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
+        toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
+        // ✅ Get current time in HH:mm format
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours().toString().padStart(2, "0");
+        const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+        formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
+        const totalMinutes = parseTime(fromBreak.value)-5
+        newTime.value = formatTime(totalMinutes);
+        const OrgtotalMinutes = parseTime(fromBreak.value)
+        originalFromBreak.value = formatTime(OrgtotalMinutes);
+        const totalFormatMinutes = parseTime(formattedCurrentTime.value)
+        newFormattedTime.value = formatTime(totalFormatMinutes);
+        console.log("from break time: "+newTime.value)
+        console.log("current time: "+newFormattedTime.value)
+        console.log("org time: "+originalFromBreak.value)
+      } catch (error) {
+        console.error("Error fetching break time:", error);
+      }
+    }
+    
+
+    const formatTo12Hour = (time) => {
+        const [hour, minute] = time.split(":").map(Number);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const formattedHour = hour % 12 || 12; // Convert 0 or 12 to 12, 13 to 1, etc.
+        return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+      };
+
+      function parseTime(timeString) {
+        // Make sure we're working with a string (access .value if it's a Vue ref)
+        const timeStr = typeof timeString === 'object' && 'value' in timeString 
+            ? timeString.value 
+            : timeString;
+        
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    function formatTime(totalMinutes) {
+        const hours = Math.floor(totalMinutes / 60) % 24;
+        const minutes = totalMinutes % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
 
     watch(
       () => $q.fullscreen.isActive,
@@ -167,13 +241,26 @@ export default {
 
     onMounted(() => {
       optimizedFecthQr();
+      fetchBreakTime();
+      intervalId = setInterval(() => {
+        fetchBreakTime();
+      }, 30000); 
     });
 
     onUnmounted(() => {
       clearTimeout(Qrtimeout);
     });
 
-    return { registrationLink, icons };
+    return { registrationLink,
+       icons,
+        fromBreak,
+        toBreak,
+        formattedCurrentTime,
+        formatTo12Hour,
+        newTime,
+        newFormattedTime,
+        originalFromBreak,
+       };
   },
 };
 </script>
