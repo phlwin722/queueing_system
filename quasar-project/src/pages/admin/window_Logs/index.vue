@@ -10,7 +10,7 @@
             </q-breadcrumbs>
             </div>
 
-            <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id">
+            <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id" dense>
   <!-- Custom Table Header -->
   <template v-slot:top>
     <q-toolbar class="q-gutter-md">
@@ -24,7 +24,7 @@
         filled
         dense
         outlined
-        class="bg-accent text-black"
+        class="bg-accent text-black col-2"
         v-model="text"
         label="Search"
       >
@@ -38,7 +38,7 @@
         filled
         dense
         outlined
-        class="bg-accent text-black"
+        class="bg-accent text-black col-1.5"
         v-model="selectedDate"
         type="date"
         label="Select Date"

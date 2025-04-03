@@ -16,6 +16,7 @@
   :rows="filteredRows"
   :columns="columns"
   row-key="index"
+  dense
 >
   <!-- Custom Table Header -->
   <template v-slot:top>
@@ -32,7 +33,7 @@
         filled
         dense
         outlined
-        class="bg-accent text-black"
+        class="bg-accent text-black col-1.5"
         v-model="fromDate" 
         type="date"
         label="From"
@@ -44,7 +45,7 @@
         filled
         dense
         outlined
-        class="bg-accent text-black"
+        class="bg-accent text-black col-1.5"
         v-model="toDate" 
         type="date"
         label="To"
