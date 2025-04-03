@@ -14,37 +14,37 @@ class QueueController extends Controller
     public function joinQueue(QueueRequest $request)
     {
         $type_id = $request->type_id;
-    
+
         // Fetch all tellers assigned to this type_id
         $tellers = DB::table('windows')->where('type_id', $type_id)->pluck('teller_id');
-    
+
         if ($tellers->isEmpty()) {
             return response()->json(['message' => 'No tellers assigned to this window type'], 400);
         }
-    
+
         // Determine the last assigned teller for this type_id
         $lastAssigned = Queue::where('type_id', $type_id)->orderBy('created_at', 'desc')->first();
 
-    
+
         // Get the next teller in a round-robin manner
         $nextTellerIndex = $lastAssigned ? ($tellers->search($lastAssigned->teller_id) + 1) % $tellers->count() : 0;
         $assignedTellerId = $tellers[$nextTellerIndex];
-    
+
         // Double-check assignedTellerId
         if (!$assignedTellerId) {
             return response()->json(['message' => 'Failed to assign teller'], 500);
         }
-    
+
         // Get the next queue number
         $lastQueue = DB::table('queue_numbers')
-                        ->where('type_id', $type_id)
-                        ->where('teller_id',  $assignedTellerId)
-                        ->where('status', '!=', 'finished')
-                        ->orderBy('queue_number', 'desc')
-                        ->first();
-    
+            ->where('type_id', $type_id)
+            ->where('teller_id', $assignedTellerId)
+            ->where('status', '!=', 'finished')
+            ->orderBy('queue_number', 'desc')
+            ->first();
+
         $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
-    
+
         // Create a new queue entry with explicit teller_id
         $queue = Queue::create([
             'token' => $request->token,
@@ -59,22 +59,22 @@ class QueueController extends Controller
             'currency_selected' => $request->currency,
             'priority_service' => $request->priority_service
         ]);
-    
+
         // Log to ensure proper assignment
         logger()->info("Queue Created: ", $queue->toArray());
-    
+
         DB::table('queue_numbers')->insert([
             'status' => 'waiting',
             'queue_number' => $nextQueueNumber,
             'type_id' => $type_id,
-            'teller_id' =>  $assignedTellerId
+            'teller_id' => $assignedTellerId
         ]);
 
         $windowName = DB::table('windows')
-        ->where('teller_id',$queue->teller_id)
-        ->select('window_name')
-        ->first();
-    
+            ->where('teller_id', $queue->teller_id)
+            ->select('window_name')
+            ->first();
+
         return response()->json([
             'message' => 'Successfully joined queue',
             'id' => $queue->id,
@@ -82,10 +82,10 @@ class QueueController extends Controller
             'window_name' => $windowName->window_name
         ]);
     }
-    
-    
-    
-    
+
+
+
+
 
     // public function startWait(Request $request)
     // {
@@ -100,7 +100,8 @@ class QueueController extends Controller
             ->update(['waiting_customer' => $request->queue_number]);
 
         return response()->json([
-            'message' => 'Customer is now being waited on.', 'waiting_customer' => $request->queue_number
+            'message' => 'Customer is now being waited on.',
+            'waiting_customer' => $request->queue_number
         ]);
     }
 
@@ -118,11 +119,11 @@ class QueueController extends Controller
 
         // Get all queue numbers for the specified type_id
         $queueList = Queue::where('type_id', $typeId)
-        ->where('teller_id', $tellerId)
-        ->orderBy('position', 'asc') // Sort in ascending order
-        ->get();
-    
-    
+            ->where('teller_id', $tellerId)
+            ->orderBy('position', 'asc') // Sort in ascending order
+            ->get();
+
+
 
         // Get the currently serving queue number for the specified type_id
         $currentServing = Queue::where('status', 'serving')
@@ -135,7 +136,7 @@ class QueueController extends Controller
             'current_serving' => $currentServing,
         ]);
     }
-    
+
 
 
     public function leaveQueue(Request $request)
@@ -146,8 +147,8 @@ class QueueController extends Controller
             'message' => 'Queue left successfully'
         ]);
     }
-        // this get the admin queue list
-        public function getCQueueList()
+    // this get the admin queue list
+    public function getCQueueList()
     {
         $queue = Queue::where('status', 'waiting')
             ->orderBy('created_at')
@@ -165,10 +166,10 @@ class QueueController extends Controller
     {
 
         Queue::where('status', 'serving')
-                ->update(['status' => 'served']);
+            ->update(['status' => 'served']);
 
         Queue::where('id', $request->id)
-                ->update(['status' => 'serving']);
+            ->update(['status' => 'serving']);
 
         return response()->json(['message' => 'Customer is now being served']);
     }
@@ -176,7 +177,7 @@ class QueueController extends Controller
     public function cancelCustomer(Request $request)
     {
         Queue::where('id', $request->id)
-                ->update(['status' => 'cancelled']);
+            ->update(['status' => 'cancelled']);
 
         return response()->json([
             'message' => 'Customer removed from queue'
@@ -199,29 +200,30 @@ class QueueController extends Controller
     }
 
     // fetch the specific data on queuenumber
-    public function fetchData(Request $request) {
+    public function fetchData(Request $request)
+    {
         try {
             // Get queue number from request
             $id = $request->input('id');
             $token = $request->token;
-    
+
             // Find the queue by queue_number (exact match)
             $queue = Queue::where('id', $id)->first();
 
             $tokenFetch = DB::table('queues')
-                            ->where('token',$token)
-                            ->first();
-    
-/*             if (!$queue) {
-                return response()->json(['message' => 'Queue not found'], 404);
-            } */
-    
+                ->where('token', $token)
+                ->first();
+
+            /*             if (!$queue) {
+                            return response()->json(['message' => 'Queue not found'], 404);
+                        } */
+
             // Return user data as JSON
             return response()->json([
                 'Information' => $queue,
-                'InformationFromToken' =>$tokenFetch
+                'InformationFromToken' => $tokenFetch
             ]);
-    
+
         } catch (\Exception $e) {
             return response()->json([
                 "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
@@ -238,7 +240,7 @@ class QueueController extends Controller
     }
 
     public function queueLogs(Request $request)
-    { 
+    {
         try {
             $res = DB::table('queues as qs')
                 ->select(
@@ -254,13 +256,13 @@ class QueueController extends Controller
                 ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
                 ->whereNotIn('qs.status', ['serving', 'waiting']) // Add 'qs.' to the status column
                 ->orderBy('qs.updated_at', 'desc');
-    
+
             // Check if a date filter is provided
             if ($request->has('date') && $request->input('date')) {
-                $date = $request->input('date'); 
+                $date = $request->input('date');
                 $res->whereDate('qs.updated_at', $date); // Use the alias 'qs'
             }
-    
+
             return response()->json([
                 'rows' => $res->get()
             ]);
@@ -272,41 +274,41 @@ class QueueController extends Controller
         }
     }
 
-    
-    
+
+
 
     public function fetchReports(Request $request)
-    { 
+    {
         try {
             $res = DB::table('queues as qs')
-            ->select(
-                "qs.name",
-                "qs.email",
-                "qs.queue_number",
-                "tp.name as type_id",
-                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
-                "qs.status",
-                "qs.updated_at"
-            )
-            ->leftJoin("types as tp", "tp.id", "qs.type_id")
-            ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
-            ->whereNotIn('qs.status', ['serving', 'waiting'])
-            ->orderBy('qs.updated_at', 'asc');
-    
+                ->select(
+                    "qs.name",
+                    "qs.email",
+                    "qs.queue_number",
+                    "tp.name as type_id",
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                    "qs.status",
+                    "qs.updated_at"
+                )
+                ->leftJoin("types as tp", "tp.id", "qs.type_id")
+                ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+                ->whereNotIn('qs.status', ['serving', 'waiting'])
+                ->orderBy('qs.updated_at', 'asc');
+
             // Filter by "From" date
             if ($request->has('from_date') && !empty($request->input('from_date'))) {
                 $res->whereDate('qs.updated_at', '>=', $request->input('from_date'));
             }
-    
+
             // Filter by "To" date
             if ($request->has('to_date') && !empty($request->input('to_date'))) {
                 $res->whereDate('qs.updated_at', '<=', $request->input('to_date'));
             }
-    
+
             return response()->json([
                 'rows' => $res->get()
             ]);
-    
+
         } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json([
@@ -318,19 +320,41 @@ class QueueController extends Controller
     public function customerData(Request $request)
     {
         $token = $request->input('token');
-    
+
         // Get type_id and teller_id from the queues table
         $queue = DB::table('queues')
             ->where('token', $token)
-            ->select('type_id', 'teller_id','queue_number','email','name','email_status','token','id',)
+            ->select('type_id', 'teller_id', 'queue_number', 'email', 'name', 'email_status', 'token', 'id', )
             ->first();
-    
+
         // If the queue doesn't exist
         if (!$queue) {
             return response()->json(['row' => null], 404);
         }
-    
-        // Fetch teller details
+
+        // Fetch type_ids_selected from Teller table as an array (since it's a JSON field)
+        $selectedTypeIds = Teller::pluck('type_ids_selected')->toArray();
+
+        // Flatten the array of arrays and decode the JSON data to arrays
+        $typeIdsArray = [];
+        foreach ($selectedTypeIds as $typeIds) {
+            $typeIdsArray = array_merge($typeIdsArray, json_decode($typeIds));
+        }
+
+        // Find tellers with matching type_id in type_ids_selected
+        $matchingTypeIds = array_values(array_filter($typeIdsArray, function ($typeId) use ($queue) {
+            return $typeId == $queue->type_id;
+        }));
+
+        if (empty($matchingTypeIds)) {
+            return response()->json([
+                'message' => 'Teller not found',
+                'userInfo' => $queue,
+                'window' => null
+            ]);
+        }
+
+        // Fetch the specific teller details (the one assigned to the queue)
         $newTeller = DB::table('tellers as t')
             ->select(
                 "t.id",
@@ -347,17 +371,46 @@ class QueueController extends Controller
             ->first();
 
         $windowName = DB::table('windows')
-                    ->where('teller_id',$newTeller->id)
-                    ->select('window_name')
-                    ->first();
+            ->where('teller_id', $newTeller->id)
+            ->select('window_name')
+            ->first();
+
+        // Now fetch all tellers who have the matching type_id (from type_ids_selected)
+        $matchingTellers = DB::table('tellers as t')
+            ->select(
+                "t.id",
+                "t.teller_firstname",
+                "t.teller_lastname",
+                "t.type_id",
+                "tp.name",
+                "tp.indicator",
+                "tp.serving_time"
+            )
+            ->leftJoin("types as tp", "tp.id", "=", "t.type_id")
+            ->whereIn("t.type_id", $matchingTypeIds) // Match multiple type_ids
+            ->get();
+
+        // Add full name and window name for each matching teller
+        foreach ($matchingTellers as $teller) {
+            $teller->full_name = $teller->teller_firstname . ' ' . $teller->teller_lastname;
+
+            // Fetch the window name for each teller
+            $windowName = DB::table('windows')
+                ->where('teller_id', $teller->id)
+                ->select('window_name')
+                ->first();
+
+            $teller->window_name = $windowName ? $windowName->window_name : null;
+        }
 
         return response()->json([
             'row' => $newTeller,
+            'matchingTellers' => $matchingTellers, // Return the matching tellers
             'userInfo' => $queue,
             'window' => $windowName,
         ]);
     }
-    
+
 
     public function resetTodayQueueNumbers()
     {
@@ -380,7 +433,7 @@ class QueueController extends Controller
                 'updated_at' => now()
             ]);
         }
-      
+
 
         return response()->json([
             'message' => 'Customer is being waited.'
@@ -395,11 +448,11 @@ class QueueController extends Controller
 
         return response()->json([
             'waiting_customer' => $queue->waiting_customer,
-           
+
         ]);
     }
 
-    
+
     public function WaitingCustomerReset(Request $request)
     {
         $queue = Queue::find($request->id);
@@ -415,13 +468,14 @@ class QueueController extends Controller
         ]);
     }
 
-    public function updateTellerId(Request $request){
+    public function updateTellerId(Request $request)
+    {
         $token = $request->token;
         $tellerId = $request->teller_id;
 
         DB::table('queues')
-        ->where('token', $token)
-        ->update(['teller_id' => $tellerId]);
+            ->where('token', $token)
+            ->update(['teller_id' => $tellerId]);
     }
 
 }
