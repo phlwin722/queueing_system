@@ -161,6 +161,73 @@
                         >Reset Queue</q-item-section
                       >
                     </q-item>
+
+                    <q-item clickable v-ripple>
+                      <q-item-section avatar class="q-pl-xl">
+                        <q-icon name="schedule" :color="isMenuOpen ? 'primary' : 'secondary'" />
+                      </q-item-section>
+                      <q-item-section class="text-left" :class="{ 'text-primary': isMenuOpen }">
+                        Break Time
+                      </q-item-section>
+
+                      <!-- Break Time seamless dialog -->
+                      <q-menu
+                        fit
+                        anchor="top right"
+                        self="top left"
+                        transition-show="jump-down"
+                        transition-hide="jump-up"
+                      >
+                        <q-card class="q-pa-md">
+                          <q-form @submit.prevent="saveBreakTime">
+                            <q-item>
+                              <q-item-section>
+                                <q-item-label class="text-h6">From:</q-item-label>
+                                <q-btn
+                                  color="primary"
+                                  icon="schedule"
+                                  :label="formDataBreak.break_from || 'Select Time'"
+                                  :error="formError.hasOwnProperty('break_from')"
+                                  :error-message="formError.break_from"
+                                  @click="showFromPicker = true"
+                                />
+                                <q-time
+                                  v-model="formDataBreak.break_from"
+                                  format12h
+                                  v-if="showFromPicker"
+                                  @update:model-value="showFromPicker = false"
+                                />
+                              </q-item-section>
+                            </q-item>
+
+                            <q-item>
+                              <q-item-section>
+                                <q-item-label class="text-h6">To:</q-item-label>
+                                <q-btn
+                                  color="primary"
+                                  icon="schedule"
+                                  :label="formDataBreak.break_to || 'Select Time'"
+                                  :error="formError.hasOwnProperty('break_to')"
+                                  :error-message="formError.break_to"
+                                  @click="showToPicker = true"
+                                />
+                                <q-time
+                                  v-model="formDataBreak.break_to"
+                                  format12h
+                                  v-if="showToPicker"
+                                  @update:model-value="showToPicker = false"
+                                />
+                              </q-item-section>
+                            </q-item>
+
+                            <div class="row justify-center q-mt-md">
+                              <q-btn color="primary" label="Save" icon="save" @click="saveBreakTime" />
+                            </div>
+                          </q-form>
+                        </q-card>
+                      </q-menu>
+                    </q-item>
+
                   </template>
                 </template>
               </q-list>
@@ -301,6 +368,7 @@ export default defineComponent({
       );
     };
 
+
     const toggleMiniState = () => {
       miniState.value = !miniState.value;
     };
@@ -377,6 +445,13 @@ export default defineComponent({
     });
     const timeData = ref(null);
     const formError = ref({});
+    const formDataBreak = ref ({
+      id: "", // Store ID if it exists
+      break_from: "", // Stores start time
+      break_to: "",   // Stores end time
+    });
+    const showFromPicker = ref(false)
+    const showToPicker= ref(false)
 
     // Fetch saved time
     const formatTime = (seconds) => {
@@ -403,6 +478,25 @@ export default defineComponent({
         console.error("Error fetching waiting time:", error);
       }
     };
+    
+
+    const fetchBreakTime = async () => {
+      try {
+        const { data } = await $axios.post("/admin/fetch_break_time");
+        console.log("Fetched Data:", data);
+
+        if (data?.dataValue) {
+          formDataBreak.break_to = data.dataValue.break_to.slice(0, 5)
+          formDataBreak.break_from = data.dataValue.break_from.slice(0, 5)
+          console.log("Updated break time:", formDataBreak.break_from, formDataBreak.break_to);
+        } else {
+          console.warn("No break time found");
+        }
+      } catch (error) {
+        console.error("Error fetching break time:", error);
+      }
+    }
+
 
     const process = async () => {
       isLoading.value = true;
@@ -421,6 +515,30 @@ export default defineComponent({
           formError.value = error.response.data; // Handle validation errors
         } else {
           console.error("Error", error);
+        }
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const saveBreakTime = async () => {
+      isLoading.value = true;
+      try {
+        const endpoint = "/admin/break_time"; // Always use the same endpoint
+
+        const { data } = await $axios.post(endpoint, formDataBreak.value);
+        formError.value = {}; // Reset form errors
+
+        if (data) {
+          $notify("positive", "done", data.message);
+          fetchBreakTime()
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          formError.value = error.response.data; // Handle validation errors
+        } else {
+          $notify("negative", "error", 'The "From" time must be earlier than the "To" time.');
+          console.error("Error", error.response ? error.response.data : error); // ✅ Prevent undefined errors
         }
       } finally {
         isLoading.value = false;
@@ -501,6 +619,7 @@ export default defineComponent({
 
     onMounted(() => {
       fetchWaitingtime();
+      fetchBreakTime()
     });
 
     const linksList = [
@@ -598,14 +717,20 @@ export default defineComponent({
       formData,
       timeData,
       process,
+      saveBreakTime,
       isLoading,
       formError,
+      formDataBreak,
+      showFromPicker,
+      showToPicker,
+
 
       // reset queue number functions
       currentServing,
       isQueuelistEmpty,
       fetchQueue,
       resetQueue,
+      
 
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
