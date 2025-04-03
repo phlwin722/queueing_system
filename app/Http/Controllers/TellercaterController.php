@@ -117,6 +117,7 @@ class TellercaterController extends Controller
                     "qs.queue_number",
                     "qs.status",
                     "qs.waiting_customer",
+                    "qs.priority_service",
                     "qs.created_at",
                     "qs.updated_at",
                     "cr.currency_name",

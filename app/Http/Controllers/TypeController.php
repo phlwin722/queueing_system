@@ -37,9 +37,8 @@ class TypeController extends Controller
                     "ts.type_id",
 
                 )
-                ->leftJoin("tellers as ts", "ts.type_id", "tp.id");
-    
-
+                ->leftJoin("tellers as ts", "ts.type_id", "tp.id")
+                ->distinct(); // This ensures unique rows;
     
             return response()->json([
                 'rows' => $res->get()

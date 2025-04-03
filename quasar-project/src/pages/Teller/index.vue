@@ -122,6 +122,29 @@
                           @dragleave="onDragLeave"
                           @drop="onDrop(index)"
                         >
+                        
+                        <div 
+                          class="text-white text-bold"
+                          :style="customer.priority_service ? 
+                            {
+                              'background-color': 'yellow',
+                              'padding': '5px',
+                              'height': '30px',
+                              'margin-top': '18px',
+                              'margin-right': '8px'
+                            } : {}">
+                            <!-- Content goes here -->
+                            {{ customer.priority_service ? "VIP" : "" }}
+                            <q-tooltip
+                              anchor="center right"
+                              self="center left"
+                              :offset="[10, 10]"
+                              class="bg-secondary"
+                            >
+                              {{ customer.priority_service }}
+                            </q-tooltip>
+                          </div>
+
                           <!-- Queue Number and Customer Name -->
                           <q-item-section class="flex flex-col justify-center q-pr-md">
                             <div class="text-primary text-bold text-h6 q-mb-xs">
@@ -398,6 +421,7 @@ export default {
         const fetchedQueue = response.data.queue.filter(
           (q) => !["finished", "cancelled"].includes(q.status)
         );
+        console.log(response.data.queue)
 
         // Update and store current serving
         currentServing.value = response.data.current_serving;
@@ -794,7 +818,6 @@ export default {
         });
         tellerInformation.value.type_name = data.servicename;
         tellerInformation.value.indicator = data.indicator;
-        console.log(tellerInformation.value.indicator)
       } catch (error) {
         console.error("Error fetching service type:", error);
       }

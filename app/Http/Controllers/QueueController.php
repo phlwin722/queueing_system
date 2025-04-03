@@ -56,7 +56,8 @@ class QueueController extends Controller
             'queue_number' => $nextQueueNumber,
             'status' => 'waiting',
             'waiting_customer' => null,
-            'currency_selected' => $request->currency  
+            'currency_selected' => $request->currency,
+            'priority_service' => $request->priority_service
         ]);
     
         // Log to ensure proper assignment
@@ -68,11 +69,17 @@ class QueueController extends Controller
             'type_id' => $type_id,
             'teller_id' =>  $assignedTellerId
         ]);
+
+        $windowName = DB::table('windows')
+        ->where('teller_id',$queue->teller_id)
+        ->select('window_name')
+        ->first();
     
         return response()->json([
             'message' => 'Successfully joined queue',
             'id' => $queue->id,
-            'queue_number' => $queue->queue_number
+            'queue_number' => $queue->queue_number,
+            'window_name' => $windowName->window_name
         ]);
     }
     
