@@ -8,7 +8,7 @@
     </div>
 
     <div class="q-px-md q-mt-md">
-      <q-table title="Customer Logs" :rows="filteredRows" :columns="columns" row-key="index" >
+      <q-table title="Customer Logs" :rows="filteredRows" :columns="columns" row-key="index">
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-md">
