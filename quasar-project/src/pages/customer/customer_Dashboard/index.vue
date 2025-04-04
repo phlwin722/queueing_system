@@ -43,6 +43,7 @@
               self="center right"
               :offset="[10, 10]"
               class="bg-secondary"
+              @click="fetchType()"
               style="font-size: 12px; padding: 4px 8px; max-width: 120px"
             >
               Switch Teller
@@ -50,24 +51,33 @@
           </q-btn>
 
           <q-dialog v-model="showDialog">
-            <q-card class="q-pa-md" style="width: 300px">
+            <q-card class="q-pa-md" style="min-width: 310px">
               <q-card-section>
-                <q-select
-                  v-model="selectedTeller"
-                  :options="serviceTypeId"
-                  option-label="label"
-                  option-value="value"
-                  emit-value
-                  map-options
-                  label="Select Teller"
-                  filled
-                />
+                <!-- Loop through serviceTypeId and create a div for each item -->
+                <div 
+                  v-for="item in serviceTypeId" 
+                  :key="item.value" 
+                  @click="changeTeller(item), showDialog = false" 
+                  :id="`item-${item.value}`" 
+                  class="item-div col"
+                  >
+                  <div class="row">
+                    <div class="col-4">
+                      <q-img
+                        :src="item.teller_image || require('assets/no-image.png')"
+                        width="60px"
+                        height="60px"
+                        class="text-secondary q-mr-md shadow-1"
+                      />
+                    </div>
+                    <div class="col">
+                        <!-- Display item.value (or item.label) inside the p tag -->
+                        <p>{{ item.name }}</p>
+                        <p class="service-name">{{ item.service_name }}</p>
+                    </div>
+                </div>
+                </div>
               </q-card-section>
-
-              <q-card-actions align="right" class="row">
-                <q-btn label="Cancel" color="red" @click="showDialog = false" />
-                <q-btn label="Confirm" color="green" @click="" />
-              </q-card-actions>
             </q-card>
           </q-dialog>
         </q-card-section>
@@ -427,8 +437,12 @@ export default {
           .filter((teller) => teller.id !== currentTellerId) // Exclude the current teller
           .map((teller) => {
             return {
-              label: teller.full_name, // full name ng teller
-              value: teller.id, // The id of the teller 
+              name: teller.full_name, // full name ng teller
+              teller_id: teller.id, // The id of the teller 
+              image: teller.Image,
+              service_name: teller.name,
+              teller_image: teller.teller_image,
+              type_id_teller: teller.type_id,
             };
           });
 
@@ -561,8 +575,7 @@ export default {
         serviceType.value = data.row.name;
         indicator.value = data.row.indicator;
         serving_time.value = data.row.serving_time;
-        assignedTeller.value =
-          data.row.teller_firstname + " " + data.row.teller_lastname;
+        assignedTeller.value = data.row.teller_firstname + " " + data.row.teller_lastname;
         typeId.value = data.row.typeId;
         tellerId.value = data.row.id;
         customerQueueNumber.value = data.userInfo.queue_number;
@@ -1035,6 +1048,47 @@ export default {
       }
     };
 
+    // switching teller
+    const changeTeller = async (item) => {    
+      
+      $dialog
+        .dialog({
+          title: "Confirm",
+          message: "Are you sure you want to switch to these personel?",
+          cancel: true,
+          persistent: true,
+          ok: {
+            label: "Yes",
+            color: "primary",
+            unelevated: true,
+            style: "width: 125px;",
+          },
+          cancel: {
+            label: "Cancel",
+            color: "red-8",
+            unelevated: true,
+            style: "width: 125px;",
+          },
+          style: "border-radius: 12px; padding: 16px;",
+        })
+        .onOk(async () => {
+          try{
+             await $axios.post('/customer-join-switch-teller',{
+              teller_id: item.teller_id,
+              type_id_teller: item.type_id_teller,
+              userId: userInformation.value.id, // Recipient's id
+            });
+            window.location.reload();
+          } catch (error) {
+            console.log(error)
+          }
+        })
+        .onDismiss(() => {
+          // console.log('I am triggered on both OK and Cancel')
+        });
+  
+    }
+
     onMounted(() => {
       getTableData();
       optimizedFetchWaitingtime();
@@ -1051,6 +1105,7 @@ export default {
     });
 
     return {
+      changeTeller,
       generatedQrValue, // Return the generated QR value to be used in the template
       generatePDF,
       customerQueueNumber,
@@ -1096,6 +1151,33 @@ export default {
 /* body {
   background-color: #1c5d99;
 } */
+ /* Style for each item div */
+.item-div {
+  margin: 5px;
+  padding: 15px;
+  border: 2px solid #ccc; /* Adds border */
+  border-radius: 8px; /* Adds rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s; /* Smooth transition for hover effect */
+}
+
+/* Hover effect: Change background and slightly enlarge the div */
+.item-div:hover {
+  background-color: #f0f0f0; /* Light background color on hover */
+  transform: scale(1.05); /* Slightly enlarge the div on hover */
+}
+
+/* Style the paragraph (item name) inside the div */
+.item-div p {
+  margin: 0;
+  font-size: 13px;
+  color: #333; /* Text color */
+}
+
+.service-name{
+  font-size: 9px;
+  color: #333; /* Text color */
+}
 
 .rounded-borders {
   border-radius: 16px;

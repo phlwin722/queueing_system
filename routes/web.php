@@ -34,6 +34,7 @@ Route::post('/admin/updatePassword',[AdminController::class,"updatePassword"]);
 Route::post('/createAdmin',[AdminController::class,'createAdmin'] );
 
 Route::post('/customer-join',[QueueController::class, 'joinQueue']);
+Route::post('/customer-join-switch-teller', [QueueController::class, 'joinSwitchQueue']);
 Route::post('/customer-list',[QueueController::class, 'getQueueList']);
 Route::post('/customer-leave',[QueueController::class, 'leaveQueue']);
 Route::post('/customer-fetch',[QueueController::class, 'customerData']);

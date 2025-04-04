@@ -67,7 +67,8 @@ class QueueController extends Controller
             'status' => 'waiting',
             'queue_number' => $nextQueueNumber,
             'type_id' => $type_id,
-            'teller_id' => $assignedTellerId
+            'teller_id' => $assignedTellerId,
+            'customer_id' => $queue->id
         ]);
 
         $windowName = DB::table('windows')
@@ -82,10 +83,57 @@ class QueueController extends Controller
             'window_name' => $windowName->window_name
         ]);
     }
+    
+    public function joinSwitchQueue (Request $request) {
+        $customerID = $request->userId;
+        $assignedTellerId = $request->teller_id;
+        $type_id_teller = $request->type_id_teller;
 
+        try {
+            // Get the next queue number
+            $lastQueue = DB::table('queue_numbers')
+                ->where('type_id', $type_id_teller)
+                ->where('teller_id', $assignedTellerId)
+                ->where('status', '!=', 'finished')
+                ->orderBy('queue_number', 'desc')
+                ->first();
 
+            $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
+            DB::table('queues')
+                ->where('id',$customerID)
+                ->update([
+                    'queue_number' => $nextQueueNumber,
+                    'email_status' => 'sending_customer',
+                    'teller_id' => $assignedTellerId
+                ]);
 
+            DB::table('queue_numbers')
+                ->where('customer_id', $customerID)
+                ->update([
+                'status' => 'waiting',
+                'queue_number' => $nextQueueNumber,
+                'type_id' => $type_id_teller,
+                'teller_id' => $assignedTellerId
+            ]);
+            
+            $windowName = DB::table('windows')
+                ->where('teller_id', $assignedTellerId)
+                ->select('window_name')
+                ->first();
+
+        return response()->json([
+            'message' => 'Successfully joined queue',
+            'id' => $customerID ,
+            'queue_number' => $nextQueueNumber,
+            'window_name' => $windowName->window_name
+        ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
+            ]);
+        }
+    }
 
     // public function startWait(Request $request)
     // {
@@ -379,6 +427,7 @@ class QueueController extends Controller
                 "t.teller_firstname",
                 "t.teller_lastname",
                 "t.type_id",
+                "t.Image",
                 "tp.name",
                 "tp.indicator",
                 "tp.serving_time"
@@ -390,7 +439,7 @@ class QueueController extends Controller
         // Add full name and window name for each matching teller
         foreach ($matchingTellers as $teller) {
             $teller->full_name = $teller->teller_firstname . ' ' . $teller->teller_lastname;
-
+            $teller->teller_image =  $teller->Image ? asset($teller->Image) : asset('assets/no-image-user.png');
             // Fetch the window name for each teller
             $windowName = DB::table('windows')
                 ->where('teller_id', $teller->id)

@@ -78,32 +78,6 @@
       </q-table>
     </div>
 
-        <!-- Bar Chart Section -->
-        <div class="q-px-md q-mt-md">
-      <div class="q-pa-md row justify-around rounded-borders" id="chartCodeContainer"  >
-        <!-- Finished Customers -->
-        <div class="column items-center text-center">
-          <q-icon name="check_circle" color="positive" size="40px" />
-          <div class="text-h6 text-positive">Finished</div>
-          <div class="text-h5">{{ finishedCount }}</div>
-        </div>
-
-        <!-- Cancelled Customers -->
-        <div class="column items-center text-center">
-          <q-icon name="cancel" color="negative" size="40px" />
-          <div class="text-h6 text-negative">Cancelled</div>
-          <div class="text-h5">{{ cancelledCount }}</div>
-        </div>
-
-        <!-- Total Customers -->
-        <div class="column items-center text-center">
-          <q-icon name="people" color="primary" size="40px" />
-          <div class="text-h6 text-primary">Total</div>
-          <div class="text-h5">{{ total }}</div>
-        </div>
-      </div>
-    </div>
-
     <!-- Bar Chart Section -->
     <div class="q-px-md q-mt-md">
       <div class="q-pa-md row justify-around bg-white-2 rounded-borders shadow-2">
@@ -131,7 +105,7 @@
     </div>
 
     <!-- Bar Chart Component -->
-    <div class="q-px-lg q-my-md">
+    <div class="q-px-lg q-my-md" id="chartCodeContainer">
       <BarChart :cancelledPercent="cancelledPercent" :finishedPercent="finishedPercent" />
     </div>
   </q-page>
@@ -160,7 +134,7 @@
     import jsPDF from 'jspdf'; // Import jsPDF for PDF generation
     import autoTable from 'jspdf-autotable'; // Import the autoTable plugin explicitly
     import html2canvas from 'html2canvas';
-
+ 
     export default defineComponent({
       name: 'IndexPage',
       components: { BarChart },
@@ -288,19 +262,10 @@
           }
         };
 
-        // Define a debounced version of getTableData to optimize performance
-        const debouncedGetTableData = debounce(() => {
-          getTableData();
-        }, 300); // Adjust debounce delay as needed
-
-        // Watch for changes in both 'type_id' and 'selectedDate'
-        watch([type_id, selectedDate], () => {
-          debouncedGetTableData(); // Only call getTableData once when either value changes
-        });
-
+        // generating pdf
         const generatePDF = async () => {
           try {
-            console.log(filteredRows.value)
+ 
             if (filteredRows.value.length === 0) {
               $notify('negative','error','No data available. Please check your filters.')
               return
@@ -347,20 +312,46 @@
             // add the title to the pdf
             doc.text(title, titleCenter, top_PositionTitle)
 
-            // Capture the chart as an image using html2canvas
-            const chartElement = document.querySelector('#chartCodeContainer'); // the div containing the chart
+            // Define some margin and positioning for content
+            const marginHorizontal = 30;
+            const iconSize = 8; // Icon size (for simplicity, we can just draw a rectangle to represent an icon)
+            
+            const iconFinished = require('assets/check_png.png');
+            const iconCancelled = require('assets/cancel_png.png');
+            const iconGroup = require('assets/groups_png.png');
 
-            // Temporarily set background color to white
-            chartElement.style.backgroundColor = 'white';
+            // Set font for text
+            doc.setFont("helvetica", "normal");
+            
+            // "Finished" Section
+            doc.setFontSize(13);
+            doc.addImage(iconFinished, 'PNG', marginHorizontal, 63, iconSize, iconSize); // Add check icon (X, Y, width, height)
+            doc.setTextColor('#11ff00');
+            doc.text("Finished", marginHorizontal + 10, 68); // horizontal margin, vertical margin
+            doc.setTextColor('#000000')
+            doc.text(finishedCount.value.toString(), marginHorizontal + 40, 68); // value, horizontal margin, vertical margin
+            
+            // "Cancelled" Section
+            doc.setTextColor('#f50018');
+            doc.addImage(iconCancelled, 'PNG', marginHorizontal, 81, iconSize, iconSize); // Add check icon (X, Y, width, height)
+            doc.text("Cancelled", marginHorizontal + 10, 86); // value, horizontal margin, vertical margin
+            doc.setTextColor('#000000')
+            doc.text(cancelledCount.value.toString(), marginHorizontal + 40, 86); // value, horizontal margin, vertical margin
+          
+            // "Total" Section
+            doc.setTextColor('#0082e6');
+            doc.addImage(iconGroup, 'PNG', marginHorizontal, 97, iconSize, iconSize); // Add check icon (X, Y, width, height)
+            doc.text("Total", marginHorizontal + 10, 103); // horizontal margin, vertical margin
+            doc.setTextColor('#000000')
+            doc.text(total.value.toString(), marginHorizontal + 40, 103); // value, horizontal margin, vertical margin
+            
+            // bar graph
+            const chartElement = document.querySelector('#chartCodeContainer'); // the div containing the chart
 
             const canvas = await html2canvas(chartElement);
             const chartImageData = canvas.toDataURL("image/png");
+            doc.addImage(chartImageData, 'PNG', marginHorizontal + 60, 55, 100, 55) // Add the chart image to the PDF x position y position width and height
 
-            // Add the chart image to the PDF
-            const chartYPosition = top_PositionTitle + 20; // Set the Y position after the title
-            const chartWidth = 170;  // Set the width of the chart
-            const chartHeight = 30;
-            doc.addImage(chartImageData, 'PNG', 10, chartYPosition, chartWidth, chartHeight);
             // Extract the labels from the columns array
             const columnLabels = columns.value.map(column => column.label);
 
@@ -387,7 +378,35 @@
                   textColor: [255, 255, 255], // Set text color of table headers to white
                   fontStyle: 'bold', // Set the font style of table headers to bold
                 },
-                margin: { top: 60 }, // Set the top margin for the table              // starting y position for the table
+                margin: { top: 120, bottom: 20}, // Default top margin for the first page // starting y position for the table
+                didDrawPage: function (data) {
+                  // check if we're on the second or subsequent pages
+                  if (data.pageNumber > 1) {
+                    // for subsequent pages, reduce the margintop
+                     autoTable(doc,{
+                      head: [columnLabels],
+                      body: unwrappedRows.map(row => {
+                        return columnLabels.map(label => {
+                          const column =columns.value.find(c => c.label === label);
+                          return column ? row[column.field] || '' : '';
+                        });
+                      }),
+                      theme: 'grid',
+                      headStyles: {
+                        fillColor: [33, 150, 243],
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                      },
+                      margin: { top: 20, bottom: 20 }, // set op margin for subsequent pages to 30
+                    });
+                  }
+                    // Add page number to the bottom-right corner
+                    doc.setFontSize(10)
+                    doc.text(`Page ${data.pageNumber}`, 
+                    pageWidth - 15, // Position the page number near the right side
+                    doc.internal.pageSize.height - 10, // Position the page number near the bottom
+                    { align: 'right' }); // Align the text to the right
+                }
               });
 
             // save the generted PDF
@@ -396,6 +415,16 @@
             console.log(error)
           }
         }
+
+        // Define a debounced version of getTableData to optimize performance
+        const debouncedGetTableData = debounce(() => {
+          getTableData();
+        }, 300); // Adjust debounce delay as needed
+
+        // Watch for changes in both 'type_id' and 'selectedDate'
+        watch([type_id, selectedDate], () => {
+          debouncedGetTableData(); // Only call getTableData once when either value changes
+        });
 
         onMounted(() => {
           fetchTeller();

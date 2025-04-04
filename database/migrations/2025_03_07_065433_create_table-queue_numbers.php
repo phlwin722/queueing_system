@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('status') // Update the column name
                 ->default('waiting'); // Add a default value
             $table->integer('queue_number');
+            $table->integer('customer_id')->nullable();
             $table->string('type_id'); // Update the column name
             $table->timestamps();
         });

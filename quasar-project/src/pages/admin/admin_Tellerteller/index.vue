@@ -201,7 +201,7 @@ export default defineComponent({
     };
 
     const beforeDelete = (isMany, row) => {
-      const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
+     const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
 
       $dialog
         .dialog({
