@@ -106,7 +106,7 @@
           </div>
         </q-card-section>
         <div
-          v-if="queuePosition && queuePosition <= 5 && !isBeingServed"
+          v-if="approximateWaitTime <= 30 && !isBeingServed && !isNotBeingCatered"
           class="text-center text-warning q-mb-md q-mt-md"
         >
           <q-icon name="warning" size="sm" /> You are near from being served.
@@ -114,10 +114,23 @@
         </div>
       
         <div
-          v-if="queuePosition && queuePosition > 0 && !isBeingServed"
+          v-if="queuePosition && queuePosition > 0 && !isBeingServed && !isNotBeingCatered"
           class="text-center text-warning q-mb-md q-mt-md"
         >
           Expected cater time: {{timeCater}}
+        </div>
+        <div
+          v-if="convertExpectedCaterTime >= newTime && newFormattedTime < originalFromBreak && !isBeingServed "
+          class="text-center text-warning q-mb-md q-mt-md"
+        >
+        Warning: you might not be catered, break time soon at: {{ tempFromBreak }}
+        </div>
+
+        <div
+          v-if="newFormattedTime >= originalFromBreak && newFormattedTime < convertedToBreak && !isBeingServed"
+          class="text-center text-warning q-mb-md q-mt-md"
+        >
+        We are on break, We will be back at: {{ tempToBreak }}
         </div>
 
         <q-separator />
@@ -307,7 +320,7 @@ export default {
     const customerQueueNumber = ref(0);
     const customerId = ref(0);
     const indicator = ref("");
-    const serving_time = ref(0);
+    const serving_time = ref(10);
 
     const queueList = ref([]);
     const currentQueue = ref(null);
@@ -327,6 +340,7 @@ export default {
     let waitingTimeout;
     let queueTimeout;
     let statusTimeout;
+    let breakTimeout
     const moneyRates = ref([]);
     const currentPage = ref(1);
     const itemsPerPage = 5; // Number of items per page
@@ -375,6 +389,7 @@ export default {
     //   });
     // }
     // Fetch queue list and current serving number
+
     const fetchQueueData = async () => {
       try {
         const response = await $axios.post("/customer-list", {
@@ -410,8 +425,12 @@ export default {
         const customer = response.data.queue.find(
           (q) => q.id == customerId.value
         );
+        console.log("status: "+customer.status);
         queuePosition.value = customer.position
         customerStatus.value = customer.status;
+        if(customerStatus.value == 'serving'){
+          queuePosition.value = 0
+        }
         if (customer.status === "finished" && !hasNotified.value) {
 
           await $axios.post('/sent-email-finish',{
@@ -455,7 +474,7 @@ export default {
         indicator.value = data.row.indicator;
         serving_time.value = data.row.serving_time;
         assignedTeller.value =
-          data.row.teller_firstname + " " + data.row.teller_lastname;
+        data.row.teller_firstname + " " + data.row.teller_lastname;
         typeId.value = data.row.typeId;
         tellerId.value = data.row.id;
         customerQueueNumber.value = data.userInfo.queue_number;
@@ -472,8 +491,7 @@ export default {
 
         fetchImage(tellerId.value);
         sendingDashboard(); // trigger sendingDashboard
-        //putTellerId()
-        console.log('buratka',data)
+        //putTellerId(
       } catch (error) {
         console.log(error);
       }
@@ -486,28 +504,116 @@ export default {
 
       const estimatedTimeInMinutes = queuePosition.value * serving_time.value;
       approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
-
       return estimatedTimeInMinutes;
     });
 
-    watch(approximateCaterTime, (newTime) => {
-      if (newTime) {
-        timeCater.value = date.formatDate(newTime, "hh:mm A"); // Convert to readable time
-        console.log("Updated Cater Time:", timeCater.value);
-        console.log("Updated Cater Time:", approximateWaitTime.value);
+    const newTime = ref("")
+    const newFormattedTime = ref("")
+    const originalFromBreak = ref("")
+    const fromBreak = ref("")
+    const toBreak = ref("")
+    const formattedCurrentTime = ref("")
+    const convertedToBreak = ref("")
+    const convertExpectedCaterTime = ref()
+    const tempFromBreak = ref()
+    const tempToBreak = ref()
+    const fetchBreakTime = async () => {
+      try {
+        const { data } = await $axios.post("/admin/fetch_break_time");
+        // ✅ Correctly assign break start & end times
+        fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
+        tempFromBreak.value = formatTo12Hour(fromBreak.value)
+        toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
+        tempToBreak.value = formatTo12Hour(toBreak.value)
+        // ✅ Get current time in HH:mm format
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours().toString().padStart(2, "0");
+        const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+        formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
+        const totalMinutes = parseTime(fromBreak.value)-10
+        newTime.value = formatTime2(totalMinutes);
+        const OrgtotalMinutes = parseTime(fromBreak.value)
+        originalFromBreak.value = formatTime2(OrgtotalMinutes);
+        const convertToBreak = parseTime(toBreak.value)
+        convertedToBreak.value = formatTime2(convertToBreak);
+        const totalFormatMinutes = parseTime(formattedCurrentTime.value)
+        newFormattedTime.value = formatTime2(totalFormatMinutes);
+        if(newFormattedTime.value >= originalFromBreak.value && newFormattedTime.value < convertedToBreak.value && !isBeingServed.value || convertExpectedCaterTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && !isBeingServed.value){
+          isNotBeingCatered.value = true
+
+        }else{
+          isNotBeingCatered.value = false
+        }
+      } catch (error) {
+        console.error("Error fetching break time:", error);
+      }
+    }
+
+    function parseTime(timeString) {
+        // Make sure we're working with a string (access .value if it's a Vue ref)
+        const timeStr = typeof timeString === 'object' && 'value' in timeString 
+            ? timeString.value 
+            : timeString;
+        
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    function formatTime2(totalMinutes) {
+        const hours = Math.floor(totalMinutes / 60) % 24;
+        const minutes = totalMinutes % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+    const formatTo12Hour = (time) => {
+        const [hour, minute] = time.split(":").map(Number);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const formattedHour = hour % 12 || 12; // Convert 0 or 12 to 12, 13 to 1, etc.
+        return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+      };
+
+
+      const isNotBeingCatered = ref(false)
+      
+    watch(approximateCaterTime, (newTimes) => {
+      if (newTimes) {
+        timeCater.value = date.formatDate(newTimes, "hh:mm A");
+        const timePart = date.formatDate(newTimes)
+        convertExpectedCaterTime.value = timePart.split("T")[1].split(":").slice(0, 2).join(":");
+        convertExpectedCaterTime.value= parseTime(convertExpectedCaterTime.value) // Convert to readable time
+        convertExpectedCaterTime.value= formatTime2(convertExpectedCaterTime.value)
+        // console.log("convertExpectedCaterTime:", convertExpectedCaterTime.value);
+        // console.log("newTime:", newTime.value);
+        // console.log("originalFromBreak:", originalFromBreak.value);
+        // console.log("convertedToBreak:", convertedToBreak.value);
+        // console.log("time now: ", newFormattedTime.value)
+        // console.log("Condition 1:", convertExpectedCaterTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && !isBeingServed.value);
+        // console.log("Condition 2:", newFormattedTime.value >= originalFromBreak.value && newFormattedTime.value < convertedToBreak.value && !isBeingServed.value);
+        if(newFormattedTime.value >= originalFromBreak.value && newFormattedTime.value < convertedToBreak.value && !isBeingServed.value || convertExpectedCaterTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && !isBeingServed.value){
+          isNotBeingCatered.value = true
+
+        }else{
+          isNotBeingCatered.value = false
+        }
+        fetchBreakTime()
       }
     });
 
     watch(
       () => queuePosition.value,
       (newValue) => {
+        
+        if(isNotBeingCatered.value == false){
         if (newValue !== null && newValue !== 0) {
-          $notify(
+          
+            $notify(
             "info",
             "hourglass_empty",
             `Your approximate wait time is ${approximateWaitTime.value} minutes. Expected cater time: ${date.formatDate(approximateCaterTime.value, "hh:mm A")}`
           );
+          
+
         }
+      }
       }
     );
     // Start countdown timer
@@ -750,6 +856,10 @@ export default {
       await fetchWaitingtime();
       waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000); // Recursive Timeout
     };
+    const optimizedFetchBreakTime = async () => {
+      await fetchBreakTime();
+      breakTimeout = setTimeout(optimizedFetchBreakTime, 5000); // Recursive Timeout
+    };
 
     const isMoneyRatesDialogOpen = ref(false);
 
@@ -918,6 +1028,7 @@ export default {
       optimizedFetchWaitingtime();
       optimizedFetchQueueData();
       optimizedFetchWaitingStatus();
+      optimizedFetchBreakTime()
       setInterval(fetchCurrency(),30000);
     });
 
@@ -925,6 +1036,7 @@ export default {
       clearTimeout(waitingTimeout);
       clearTimeout(queueTimeout);
       clearTimeout(statusTimeout);
+      clearTimeout(breakTimeout);
     });
 
     return {
@@ -955,7 +1067,19 @@ export default {
       isMoneyRatesDialogOpen,
       columns,
       moneyRates,
-      timeCater
+      timeCater,
+      newTime,
+      newFormattedTime,
+      originalFromBreak,
+      fromBreak,
+      toBreak,
+      convertExpectedCaterTime,
+      convertedToBreak,
+      formatTo12Hour,
+      tempToBreak,
+      tempFromBreak,
+      approximateWaitTime,
+      isNotBeingCatered,
     };
   },
 };

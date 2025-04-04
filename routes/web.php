@@ -14,6 +14,7 @@ use App\Http\Controllers\ResetSettingController;
 use App\Http\Controllers\WindowArchiveController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\BreakTimeController;
+use App\Http\Controllers\ServingTimeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,6 +111,12 @@ Route::post('/currency/showData', [CurrencyController::class, 'showData']);
 Route::post('/currency/create', [CurrencyController::class, 'create']);
 Route::post('/currency/update', [CurrencyController::class, 'update']);
 Route::post('/currency/delete', [CurrencyController::class, 'delete']);
+
+//Serving Time Routes
+Route::post('/teller/save-serving-time', [ServingTimeController::class, 'saveServingTime']);
+Route::post('/teller/today-serving-stats', [ServingTimeController::class, 'getTodayServingStats']);
+Route::post('/teller/update-serving-time', [ServingTimeController::class, 'updateServingTime']);
+Route::post('/teller/update-all-serving-time', [ServingTimeController::class, 'updateAllServingTime']);
 
 
 //Reset-Window

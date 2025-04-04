@@ -123,6 +123,20 @@ export default {
             console.log(error);
           }
         }
+    const updateAllServingTime = async () => {
+      try {
+        const { data } = await $axios.post('/teller/update-all-serving-time');
+        console.log(data.status);
+        if (data.status === 'success') {
+          $notify("positive", "check", "Updated Successfully.");
+        } else {
+          $notify("negative", "error", "Update Error.");
+        }
+      } catch (error) {
+        console.error(error);
+        $notify("negative", "error", "Update Errors.");
+      }
+    }
 
         const computePercentages = () => {
           total.value = rows.value.length;
@@ -195,6 +209,7 @@ export default {
         onMounted(() => {
           optimizedFetchData()
           optimizedFetchWork()
+          updateAllServingTime()
         })
 
         onUnmounted(() => {
