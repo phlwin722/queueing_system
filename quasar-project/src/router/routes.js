@@ -74,6 +74,10 @@ const routes = [
         component: () => import("pages/admin/customer_Logs/index.vue"), // Load the QR code page
       },
       {
+        path: "/admin/teller-customer-logs",
+        component: () => import("pages/admin/admin_teller_customer_logs/index.vue"),
+      },
+      {
         path: "/admin/window-logs", // Path for the QR Code management page
         component: () => import("pages/admin/window_Logs/index.vue"), // Load the QR code page
       },

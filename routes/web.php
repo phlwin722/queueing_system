@@ -63,22 +63,23 @@ Route::post('/admin/fetch_break_time',[BreakTimeController::class,'fetchBreakTim
 // adminside
 // Teller Routes
 Route::post('/tellers/index', [TellerController::class, 'index']);
+Route::post('/tellers/indexx', [TellerController::class, 'windowFetch']);
 Route::post('/tellers/create', [TellerController::class, 'create']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
 Route::post('/teller/typeid-value',[TellerController::class,'valueTypeid']);
 Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
 Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
-Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
-Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
-Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
-Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
-
+Route::post('/teller/queue-logs', [TellerController::class, 'queueLogs']);
 Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/teller/image',[TellerController::class,'fetchImage']);
 Route::post('/teller/image-teller',[TellerController::class,'fetchImageTeller']);
 Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchImageTellerCsDashboaard']);
 
+Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
+Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
+Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
+Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
