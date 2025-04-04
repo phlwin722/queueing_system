@@ -14,6 +14,7 @@ use App\Http\Controllers\ResetSettingController;
 use App\Http\Controllers\WindowArchiveController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\BreakTimeController;
+use App\Http\Controllers\SurveyResponseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,3 +135,6 @@ Route::post('/sent-email-dashboard',[MailController::class,'sentEmailDashboard']
 Route::post('/waiting_Time',[Waiting_timeController::class,'store']); 
 Route::post('/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
+
+//thank you page (survey)
+Route::post('/survey', [SurveyResponseController::class, 'store']);
