@@ -274,9 +274,6 @@ class QueueController extends Controller
         }
     }
 
-
-
-
     public function fetchReports(Request $request)
     {
         try {
