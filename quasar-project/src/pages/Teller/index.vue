@@ -229,6 +229,15 @@
               <q-card
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
               >
+              <q-card-section class="row items-center">
+                <q-toggle v-model="autoServing" label="Auto Serving" color="green" />
+                <q-chip v-if="autoServing" color="green" text-color="white" class="q-ml-md">
+                  Auto Serving ON
+                </q-chip>
+                <q-chip v-else color="red" text-color="white" class="q-ml-md">
+                  Auto Serving OFF
+                </q-chip>
+              </q-card-section>
                 <q-card-section class="flex flex-center">
                   <q-item>
                     <q-item-section class="text-center">
@@ -358,7 +367,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, onBeforeUnmount } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
@@ -381,7 +390,7 @@ export default {
     const imageUrl = ref();
     const rowsCurrency = ref([]);
     const isLoading = ref(false);
-
+    const autoServing = ref(false);
     let refreshInterval = null;
     const $dialog = useQuasar();
 
@@ -421,7 +430,6 @@ export default {
         const fetchedQueue = response.data.queue.filter(
           (q) => !["finished", "cancelled"].includes(q.status)
         );
-        console.log(response.data.queue)
 
         // Update and store current serving
         currentServing.value = response.data.current_serving;
@@ -442,22 +450,20 @@ export default {
         localStorage.setItem("queueList", JSON.stringify(queueList.value));
 
         noOfQueue.value = queueList.value.length;
-
-        // Auto-serve next customer if queue has waiting ones
-        if (queueList.value.length > 0 &&
-            queueList.value[0].status === "waiting" &&
-            currentServing.value == null
-        ) {
-        
-          
-          const nextCustomer = queueList.value[0];
-          if (nextCustomer) {
-            setTimeout(() => {
-              caterCustomer(nextCustomer.id, nextCustomer.type_id);
-              startWait(nextCustomer.id, nextCustomer.queue_number);
-            }, 2000);
-          }
-        }
+        // if (queueList.value.length > 0 &&
+        //     queueList.value[0].status === "waiting" &&
+        //     currentServing.value == null
+        // ) {
+        //   const nextCustomer = queueList.value[0];
+        //   console.log(nextCustomer.id)
+        //   console.log(nextCustomer.type_id)
+        //   if (nextCustomer) {
+        //     setTimeout(() => {
+        //       caterCustomer(nextCustomer.id, nextCustomer.type_id);
+        //       startWait(nextCustomer.id, nextCustomer.queue_number);
+        //     }, 2000);
+        //   }
+        // }
 
         isQueuelistEmpty.value = queueList.value.length == 0;
       } catch (error) {
@@ -490,22 +496,22 @@ export default {
         console.error("Error fetching customer ID:", error);
       }
     };
-
     // Cater customer with error handling
     const caterCustomer = async (customerId, type_id) => {
       try {
+                // Update UI immediately
+        const customer = queueList.value.find((q) => q.id === customerId);
         await $axios.post("/teller/cater", {
           id: customerId,
           service_id: type_id,
           teller_id: tellerInformation.value.id,
         });
-
-        // Update UI immediately
-        const customer = queueList.value.find((q) => q.id === customerId);
         if (customer) {
           customer.status = "serving";
           currentServing.value = customer;
         }
+
+
       } catch (error) {
         console.error("Error catering customer:", error);
       }
@@ -560,6 +566,7 @@ export default {
       try {
         await $axios.post("/teller/finish", { id: customerId });
         await fetchQueue();
+        await serveEnd();
         $notify("positive", "check", "Customer has been marked as finished.");
       } catch (error) {
         console.error("Error finishing customer:", error);
@@ -593,7 +600,7 @@ export default {
         $notify(
           "positive",
           "check",
-          "Waiting for Queue Number: " + queueNumber
+          "Waiting for Customer"
         );
 
         // Clear any existing timer
@@ -702,7 +709,89 @@ export default {
     },
     { deep: false } // We're creating a new reference so deep isn't needed
   );
+  let autoServingInterval = null; // Store the interval ID
+  let serveStartTime = null;
+  watch(autoServing, (newValue) => {
+    if (newValue) {
+      $notify(
+          "positive",
+          "check",
+          "Auto Serving Enabled"
+        );
+      console.log("Auto Serving Enabled");
+      // Start the interval when autoServing is turned on
+      autoServingInterval = setInterval(() => {
+        if (
+          queueList.value.length > 0 &&
+          queueList.value[0].status === "waiting" &&
+          currentServing.value == null
+        ) {
+          const nextCustomer = queueList.value[0];
 
+          if (nextCustomer) {
+            setTimeout(() => {
+              caterCustomer(nextCustomer.id, nextCustomer.type_id);
+              startWait(nextCustomer.id, nextCustomer.queue_number);
+              serveStartTime = new Date();
+            }, 2000);
+          }
+        }
+      }, 2000); // Check every 3 seconds (adjust as needed)
+    } else {
+      $notify(
+          "positive",
+          "check",
+          "Auto Serving Disabled"
+        );
+      console.log("Auto Serving Disabled");
+      // Clear the interval when autoServing is turned off
+      if (autoServingInterval) {
+        clearInterval(autoServingInterval);
+        autoServingInterval = null;
+      }
+    }
+  }, { immediate: true }); // immediate: true will run the callback immediately on mount
+
+
+  const serveEnd = async () => {
+  if (serveStartTime) {
+    const now = new Date();
+    const diffMs = now - serveStartTime; // in ms
+    let minutes = Math.round(diffMs / 60000); // convert to minutes
+    if (minutes < 1) minutes = 1;
+    // const seconds = Math.floor((diffMs % 60000) / 1000); // if you want seconds too
+
+    // Save to backend
+    try {
+      await $axios.post("/teller/save-serving-time", {
+        minutes,
+        type_id: tellerInformation.value.type_id,
+        teller_id: tellerInformation.value.id,
+      });
+      console.log("Serving time saved:", minutes, "minutes");
+    } catch (err) {
+      console.error("Failed to save serving time", err);
+    }
+
+    serveStartTime = null; // Reset
+  }
+};
+
+  const fetchTodayServingStats = async () => {
+    try {
+      const response = await $axios.post('/teller/today-serving-stats',{
+        type_id: tellerInformation.value.type_id,
+      });
+      const stats = response.data;
+      const updatedServingTime = Math.round(response.data.avg)
+      await $axios.post("/teller/update-serving-time", {
+        minutes: updatedServingTime,
+        type_id: tellerInformation.value.type_id,
+      });
+    } catch (error) {
+      console.error("Failed to fetch today's serving stats", error);
+    }
+  };
   // Drag and drop improvements
   let draggedIndex = null;
   const dragOverIndex = ref(null);
@@ -883,7 +972,7 @@ export default {
           optimizedFetchQueueData();
           optimizedFetchWaitingtime();
           optimizedFetchId();
-
+          fetchTodayServingStats()
           // Start currency data fetching
           fetchCurrency();
           currencyInterval = setInterval(fetchCurrency, 30000);
@@ -913,6 +1002,11 @@ export default {
       clearInterval(currencyInterval);
       if (waitTimer) clearInterval(waitTimer);
       if (refreshInterval) clearInterval(refreshInterval);
+    });
+    onBeforeUnmount(() => {
+      if (autoServingInterval) {
+        clearInterval(autoServingInterval);
+      }
     });
 
     return {
@@ -950,7 +1044,8 @@ export default {
       onDrop,
       columns,
       rowsCurrency,
-      isLoading
+      isLoading,
+      autoServing,
     };
   },
 };

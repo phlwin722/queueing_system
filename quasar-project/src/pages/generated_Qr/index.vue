@@ -195,9 +195,6 @@ export default {
         originalFromBreak.value = formatTime(OrgtotalMinutes);
         const totalFormatMinutes = parseTime(formattedCurrentTime.value)
         newFormattedTime.value = formatTime(totalFormatMinutes);
-        console.log("from break time: "+newTime.value)
-        console.log("current time: "+newFormattedTime.value)
-        console.log("org time: "+originalFromBreak.value)
       } catch (error) {
         console.error("Error fetching break time:", error);
       }

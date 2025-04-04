@@ -115,6 +115,7 @@ class TellercaterController extends Controller
                     "qs.type_id",
                     "qs.teller_id",
                     "qs.queue_number",
+                    "qs.position",
                     "qs.status",
                     "qs.waiting_customer",
                     "qs.priority_service",
@@ -164,22 +165,25 @@ class TellercaterController extends Controller
 
     public function caterTellerCustomer(Request $request)
     {
-
-        Queue::where('type_id', $request->service_id)
-                ->where('teller_id', $request->teller_id)
-                ->where('status', 'serving')
-                ->update(['status' => 'served']);
-
-        Queue::where('type_id', $request->service_id)
-                ->where('teller_id', $request->teller_id)
-                ->where('id', $request->id)
-                ->update(['status' => 'serving']);
-
-        Queue::where('type_id', $request->service_id)
-                ->where('teller_id', $request->teller_id)
-                ->where('id', $request->id)
-                ->update(['position' => 0]);
-
+        // First mark any currently serving customers as served
+        // Queue::where('type_id', $request->service_id)
+        //      ->where('teller_id', $request->teller_id)
+        //      ->where('status', 'serving')
+        //      ->update(['status' => 'served']);
+    
+        // Then update the new customer with both status and position in one query
+        $updated = Queue::where('type_id', $request->service_id)
+                    ->where('teller_id', $request->teller_id)
+                    ->where('id', $request->id)
+                    ->update([
+                        'status' => 'serving',
+                        'position' => 0
+                    ]);
+    
+        if (!$updated) {
+            return response()->json(['error' => 'Failed to update customer'], 500);
+        }
+    
         return response()->json(['message' => 'Customer is now being served']);
     }
 

@@ -193,7 +193,7 @@
                                 />
                                 <q-time
                                   v-model="formDataBreak.break_from"
-                                  format12h
+                                  format24h
                                   v-if="showFromPicker"
                                   @update:model-value="showFromPicker = false"
                                 />
@@ -213,7 +213,7 @@
                                 />
                                 <q-time
                                   v-model="formDataBreak.break_to"
-                                  format12h
+                                  format24h
                                   v-if="showToPicker"
                                   @update:model-value="showToPicker = false"
                                 />
@@ -331,7 +331,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent, ref, onMounted, reactive, nextTick  } from "vue";
 import { date } from "quasar";
 import { useRouter } from "vue-router";
 import { $axios, $notify } from "src/boot/app";
@@ -445,7 +445,7 @@ export default defineComponent({
     });
     const timeData = ref(null);
     const formError = ref({});
-    const formDataBreak = ref ({
+    const formDataBreak = reactive ({
       id: "", // Store ID if it exists
       break_from: "", // Stores start time
       break_to: "",   // Stores end time
@@ -479,7 +479,7 @@ export default defineComponent({
       }
     };
     
-
+    
     const fetchBreakTime = async () => {
       try {
         const { data } = await $axios.post("/admin/fetch_break_time");
@@ -489,6 +489,8 @@ export default defineComponent({
           formDataBreak.break_to = data.dataValue.break_to.slice(0, 5)
           formDataBreak.break_from = data.dataValue.break_from.slice(0, 5)
           console.log("Updated break time:", formDataBreak.break_from, formDataBreak.break_to);
+          console.log(typeof formDataBreak.break_from)
+          await nextTick();
         } else {
           console.warn("No break time found");
         }
@@ -496,6 +498,8 @@ export default defineComponent({
         console.error("Error fetching break time:", error);
       }
     }
+
+
 
 
     const process = async () => {
@@ -526,7 +530,7 @@ export default defineComponent({
       try {
         const endpoint = "/admin/break_time"; // Always use the same endpoint
 
-        const { data } = await $axios.post(endpoint, formDataBreak.value);
+        const { data } = await $axios.post(endpoint, formDataBreak);
         formError.value = {}; // Reset form errors
 
         if (data) {
