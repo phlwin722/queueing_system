@@ -4,4 +4,5 @@ import axios from 'axios'
     ? window.location.origin
     : 'http://192.168.0.164:8000'
 
+
 export { axios }

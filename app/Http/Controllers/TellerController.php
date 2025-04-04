@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Http\Requests\AdminRequest;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 class TellerController extends Controller
 {
-
 
     public function index(Request $request){
 
@@ -299,6 +301,86 @@ class TellerController extends Controller
             ]);
         }
     }
+    public function queueLogs(Request $request)
+    {
+        try {
+            // Get the 'teller_id' from the incoming request
+            $teller_id = $request->teller_id;
+            $date = $request->date;
+    
+            // Begin querying the 'queues' table with alias 'qs'
+            $res = DB::table('queues as qs')
+                // Add a condition to filter the results by the 'teller_id' 
+                ->where('teller_id', $teller_id)
+                // Select specific columns from the 'queues' table and related tables
+                ->select(
+                    "qs.name", // Customer name from the 'queues' table
+                    "qs.email", // Customer email from the 'queues' table
+                    "qs.queue_number", // Queue number from the 'queues' table
+                    "tp.name as type_id", // Name of the type from the 'types' table (alias 'tp')
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"), // Concatenate first and last name of the teller from 'tellers' table
+                    "qs.status", // The status of the queue from the 'queues' table
+                    "qs.updated_at" // The timestamp when the queue was last updated
+                )
+                // Perform a LEFT JOIN with the 'types' table on 'type_id'
+                ->leftJoin("types as tp", "tp.id", "qs.type_id")
+                // Perform a LEFT JOIN with the 'tellers' table on 'teller_id'
+                ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+                // Exclude queues that are in the 'serving' or 'waiting' statuses
+                ->whereNotIn('qs.status', ['serving', 'waiting']) 
+                // Order the results by 'updated_at' in descending order (latest first)
+                ->orderBy('qs.updated_at', 'desc');
+    
+            // Check if a 'date' filter is provided in the request
+            if ($date != null) {
+                // Filter the results by the 'updated_at' date (exact match)
+                $res->whereDate('qs.updated_at', $date); // Use the alias 'qs' for the 'updated_at' column
+            }else {
+                $dateNow = Carbon::now(); // get current date
+                $formatted = $dateNow->format('Y-m-d'); // Format as YYYY-MM-DD
+                $res->whereDate('qs.updated_at',$formatted);
+            }
+    
+            // Return the query results as a JSON response
+            return response()->json([
+                'rows' => $res->get() // Execute the query and return the rows
+            ]);
+    
+        } catch (\Exception $e) {
+            // In case of an error, catch the exception and return an error message
+            $message = $e->getMessage(); // Get the exception message
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $message : "Something went wrong!" // Return the error message or a generic one based on the app's debug mode
+            ]);
+        }
+    }
+    
+    public function windowFetch(Request $request) {
+        try {
+            // Query the 'tellers' table to retrieve the 'id', 'teller_firstname', and 'teller_lastname' columns
+            $tellers = DB::table('tellers')
+                ->select('id','teller_firstname', 'teller_lastname') // Selecting the necessary columns
+                ->get(); // Execute the query and get the results
+    
+            // Format the results to prepare for a dropdown list
+            $formattedTellers = $tellers->map(function ($teller) {
+                return [
+                    'value' => $teller->id, // Set 'id' as the value for the dropdown
+                    'label' => $teller->teller_firstname . ' ' . $teller->teller_lastname // Combine first and last name as the label for the dropdown
+                ];
+            });
+    
+            // Return the formatted list of tellers as a JSON response
+            return response()->json([
+                'rows' => $formattedTellers, // Return the formatted tellers
+            ]);
+        } catch (\Exception $e) {
+            // In case of an error, catch the exception and return an error message
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!" // Return the error message or a generic one based on the app's debug mode
+            ]);
+        }
+    }    
 
     public function viewTellerDropdown(Request $request)
     {

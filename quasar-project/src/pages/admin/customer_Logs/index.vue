@@ -8,10 +8,15 @@
     </div>
 
     <div class="q-px-md q-mt-md">
-      <q-table title="Customer Logs" :rows="filteredRows" :columns="columns" row-key="index">
+      <q-table title="Customer Logs" 
+      :rows="filteredRows" 
+      :columns="columns" 
+      row-key="index" 
+      dense
+      >
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
-          <q-toolbar class="q-gutter-md">
+          <q-toolbar class="q-gutter-sm">
             <!-- 📌 Add Title Manually -->
             <q-toolbar-title>Customer Logs</q-toolbar-title>
 
@@ -22,9 +27,10 @@
               filled 
               dense 
               outlined 
-              class="bg-accent text-black"
+              class="bg-accent text-black col-2"
               v-model="text" 
-              label="Search">
+              label="Search"
+              >
               <template v-slot:append>
                 <q-icon name="search" />
               </template>
@@ -35,7 +41,7 @@
               filled 
               dense 
               outlined 
-              class="bg-accent text-black"
+              class="bg-accent text-black col-1.5"
               v-model="selectedDate" 
               type="date" 
               label="Select Date"
@@ -247,12 +253,5 @@
     </script>
 
 <style scoped>
-.q-mx-lg {
-  margin-left: 20px;
-  margin-right: 20px;
-}
 
-.q-mt-md {
-  margin-top: 16px;
-}
 </style>

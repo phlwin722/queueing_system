@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('queue_numbers', function (Blueprint $table) {
+        Schema::create('survey_responses', function (Blueprint $table) {
             $table->id();
-            $table->string('status') // Update the column name
-                ->default('waiting'); // Add a default value
-            $table->integer('queue_number');
-            $table->integer('customer_id')->nullable();
-            $table->string('type_id'); // Update the column name
+            $table->string('name');
+            $table->integer('rating');
+            $table->string('ease_of_use');
+            /* $table->string('waiting_time_satisfaction'); */
+            $table->integer('waiting_time_satisfaction');
+            $table->text('suggestions')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('survey_responses');
     }
 };

@@ -674,6 +674,11 @@ export default defineComponent({
         link: "/admin/customer-logs",
       },
       {
+        title:"Teller customer logs",
+        icon: "person",
+        link: "/admin/teller-customer-logs",
+      },
+      {
         title: "Window Logs",
         icon: "upload_file",
         link: "/admin/window-logs",

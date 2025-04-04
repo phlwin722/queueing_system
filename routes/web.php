@@ -15,6 +15,8 @@ use App\Http\Controllers\WindowArchiveController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\BreakTimeController;
 use App\Http\Controllers\ServingTimeController;
+use App\Http\Controllers\SurveyResponseController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +36,7 @@ Route::post('/admin/updatePassword',[AdminController::class,"updatePassword"]);
 Route::post('/createAdmin',[AdminController::class,'createAdmin'] );
 
 Route::post('/customer-join',[QueueController::class, 'joinQueue']);
+Route::post('/customer-join-switch-teller', [QueueController::class, 'joinSwitchQueue']);
 Route::post('/customer-list',[QueueController::class, 'getQueueList']);
 Route::post('/customer-leave',[QueueController::class, 'leaveQueue']);
 Route::post('/customer-fetch',[QueueController::class, 'customerData']);
@@ -64,22 +67,23 @@ Route::post('/admin/fetch_break_time',[BreakTimeController::class,'fetchBreakTim
 // adminside
 // Teller Routes
 Route::post('/tellers/index', [TellerController::class, 'index']);
+Route::post('/tellers/indexx', [TellerController::class, 'windowFetch']);
 Route::post('/tellers/create', [TellerController::class, 'create']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
 Route::post('/teller/typeid-value',[TellerController::class,'valueTypeid']);
 Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
 Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
-Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
-Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
-Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
-Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
-
+Route::post('/teller/queue-logs', [TellerController::class, 'queueLogs']);
 Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/teller/image',[TellerController::class,'fetchImage']);
 Route::post('/teller/image-teller',[TellerController::class,'fetchImageTeller']);
 Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchImageTellerCsDashboaard']);
 
+Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
+Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
+Route::post('/teller/cancel', [TellercaterController::class, 'cancelCustomer']);
+Route::post('/teller/finish', [TellercaterController::class, 'finishCustomer']);
 
 // Type Routes
 Route::post('/types/index', [TypeController::class, 'index']);
@@ -140,3 +144,6 @@ Route::post('/sent-email-dashboard',[MailController::class,'sentEmailDashboard']
 Route::post('/waiting_Time',[Waiting_timeController::class,'store']); 
 Route::post('/waiting_Time-fetch',[Waiting_timeController::class,'index']);
 Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
+
+//thank you page (survey)
+Route::post('/survey', [SurveyResponseController::class, 'store']);
