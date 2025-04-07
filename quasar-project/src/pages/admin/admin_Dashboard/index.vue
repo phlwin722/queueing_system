@@ -43,14 +43,12 @@
         </q-card-section>
       </q-card>
 
-  <div class="q-pa-md q-mt-xs shadow-1 q-mt-md" style="width: 63%;">
-    <BarChart
-      :cancelledPercent="cancelledPercent"
-      :finishedPercent="finishedPercent"
-    />
-  </div>
+      
+      <BarChart
+        :cancelledPercent="cancelledPercent"
+      ></BarChart>
 
-  <div class="col-4">
+      <div class="col-4 q-mb-xl">
     <q-card>
       <q-card-section class="bg-primary">
         <div class="text-accent">Teller Workstations</div>
@@ -59,6 +57,7 @@
       <q-table
           flat
           bordered
+          dense
           virtual-scroll
           :rows="rowsWorkStation"
           :columns="columnsWorkStation"
@@ -67,7 +66,7 @@
         >
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
-              <!-- Apply color based on the status -->
+               <!-- Apply color based on the status -->
               <q-badge :color="props.row.status === 'Available' ? 'green' : 'red'">
                 {{ props.row.status }}
               </q-badge>
@@ -76,6 +75,36 @@
       </q-table>
     </q-card>
   </div>
+
+      <!-- Survey Charts Section -->
+      <q-card class="q-mb-xl" style="width: 350px; margin-top: -440px; margin-left: auto;">
+          <p class="text-secondary text-center q-mt-sm">
+            Survey Analysis
+          </p>
+        <div class="row q-col-gutter-xs q-mt-md q-mb-lg shadow-1 q-px-md" style="flex-direction: column; gap: .5rem;">
+        <!-- Rating Overview -->
+        <div class="col-12">
+            <div>Rating Overview</div>
+            <canvas ref="ratingChart" height="200"></canvas>
+        </div>
+
+        <q-separator/>
+
+        <!-- Ease of Use -->
+        <div class="col-10">
+            <div>Ease of Use</div>
+            <canvas ref="easeOfUseChart" style="margin-left: 50px;"></canvas>
+        </div>
+
+        <q-separator/>
+
+        <!-- Waiting Time -->
+        <div class="col-12">
+            <div>Waiting Time Satisfaction</div>
+            <canvas ref="waitingTimeChart" height="200"></canvas>
+        </div>
+      </div>
+      </q-card>
   </div>
 
   </q-page>
@@ -99,6 +128,8 @@ import {
 } from 'boot/app'
 
 import BarChart from 'components/BarChart.vue';
+import Chart from 'chart.js/auto'
+
 export default {
   name: "QueueDashboard",
   components: { BarChart },
@@ -110,6 +141,10 @@ export default {
     const finishedCount = ref(0)
     const total = ref(0)
     const dateToday = new Date().toISOString().slice(0, 10);
+    const ratingChart = ref(null)
+    const easeOfUseChart = ref(null)
+    const waitingTimeChart = ref(null)
+
 
     const getTableData = async () => {
           try{           
@@ -206,10 +241,104 @@ export default {
             workTimeout = setTimeout(optimizedFetchWork, 5000); // Recursive Timeout
         };
 
+        const renderSurveyCharts = async () => {
+          try {
+            const { data } = await $axios.get('/admin/survey-stats') // adjust your endpoint if needed
+
+            // Chart 1: Ratings
+            new Chart(ratingChart.value, {
+              type: 'bar',
+              data: {
+                labels: Object.keys(data.ratings),
+                datasets: [{
+                  label: 'Rating',
+                  data: Object.values(data.ratings),
+                  backgroundColor: '#42a5f5'
+                }]
+              },
+              options: { responsive: true }
+            })
+
+            // Chart 2: Ease of Use
+            new Chart(easeOfUseChart.value, {
+              type: 'pie',
+              data: {
+                labels: Object.keys(data.ease_of_use),
+                datasets: [{
+                  data: Object.values(data.ease_of_use),
+                  backgroundColor: ['#4caf50', '#f44336']
+                }]
+              },
+              options: { responsive: true }
+            })
+
+            // Chart 3: Waiting Time
+            new Chart(waitingTimeChart.value, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(data.waiting_time_satisfaction), // X-axis labels
+              datasets: [{
+                label: 'Waiting Time',
+                data: Object.values(data.waiting_time_satisfaction), // Y-axis values
+                backgroundColor: '#ff9800'
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    // Modify the title (header) of the tooltip to show a custom label
+                    title: function(tooltipItem) {
+                      let xValue = tooltipItem[0].label; // Get the X-axis value (category)
+                      let labelText = '';
+
+                      // Map the X-axis value to a custom label
+                      switch(parseInt(xValue)) {
+                        case 1:
+                          labelText = 'Very Dissatisfied';
+                          break;
+                        case 2:
+                          labelText = 'Dissatisfied';
+                          break;
+                        case 3:
+                          labelText = 'Neutral';
+                          break;
+                        case 4:
+                          labelText = 'Satisfied';
+                          break;
+                        case 5:
+                          labelText = 'Very Satisfied';
+                          break;
+                        default:
+                          labelText = 'Unknown'; // In case there's an unexpected value
+                      }
+
+                      // Return the custom title with the label
+                      return labelText;
+                    },
+                    // Optionally, you can modify the label part of the tooltip (if needed)
+                    label: function(tooltipItem) {
+                      return `Waiting Time: ${tooltipItem.raw}`; // Show the raw value as label
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+
+          } catch (error) {
+            console.error('Survey chart fetch failed:', error)
+          }
+        }
+
+
         onMounted(() => {
           optimizedFetchData()
           optimizedFetchWork()
           updateAllServingTime()
+          renderSurveyCharts()
         })
 
         onUnmounted(() => {
@@ -226,6 +355,9 @@ export default {
       cancelledCount,
       finishedCount,
       total,
+      ratingChart,
+      easeOfUseChart,
+      waitingTimeChart
     };
   },
 };
@@ -234,7 +366,7 @@ export default {
 
 <style scoped>
 .stat-card {
-  width: 250px; /* Adjust width to match your image */
+  width: 272.5px; /* Adjust width to match your image */
   height: 125px; /* Adjust height to match your image */
   border-radius: 10px; /* Rounded corners */
   display: flex;

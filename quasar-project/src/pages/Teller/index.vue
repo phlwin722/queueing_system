@@ -124,10 +124,10 @@
                         >
                         
                         <div 
-                          class="text-white text-bold"
+                          class="text-white text-bold glossy"
                           :style="customer.priority_service ? 
                             {
-                              'background-color': 'yellow',
+                              'background-color': '#fad72a',
                               'padding': '5px',
                               'height': '30px',
                               'margin-top': '18px',

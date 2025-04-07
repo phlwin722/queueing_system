@@ -20,7 +20,7 @@
           <div class="text-secondary q-mb-sm">
               Survey form
             </div>
-          <q-input v-model="survey.name" label="Your Name" filled dense class="full-width" required />
+          <q-input v-model="survey.name" label="Your Name" filled dense class="full-width" hint="Optional"/>
 
         <q-card-section class="bg-accent full-width rounded-borders">
           <div class="text-secondary q-mb-sm text-left">

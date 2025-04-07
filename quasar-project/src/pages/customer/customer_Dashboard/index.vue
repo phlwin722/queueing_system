@@ -34,8 +34,7 @@
             color="green-10"
             icon="switch_account"
             dense
-            class="q-ml-sm"
-            style="min-width: 30px; max-width: 40px"
+            style="min-width: 30px; max-width: 40px; margin-left: 5px;"
             size="sm"
           >
             <q-tooltip

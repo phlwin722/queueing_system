@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('survey_responses', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->integer('rating');
             $table->string('ease_of_use');
             /* $table->string('waiting_time_satisfaction'); */
