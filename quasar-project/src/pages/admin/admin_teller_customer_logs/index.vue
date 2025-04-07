@@ -64,9 +64,9 @@
               icon="download"
               @click="generatePDF"
               dense
-              class="q-ml-sm"
-              style="min-width: 30px; max-width: 40px;"
+              style="min-width: 30px; max-width: 40px; margin-top: 15px; margin-left: 15px; height: 38px;"
             />
+            
           </q-toolbar>
         </template>
 

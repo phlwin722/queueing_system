@@ -147,3 +147,5 @@ Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
 
 //thank you page (survey)
 Route::post('/survey', [SurveyResponseController::class, 'store']);
+Route::get('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
+
