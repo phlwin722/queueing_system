@@ -79,6 +79,7 @@ Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']
 Route::post('/teller/image',[TellerController::class,'fetchImage']);
 Route::post('/teller/image-teller',[TellerController::class,'fetchImageTeller']);
 Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchImageTellerCsDashboaard']);
+Route::post('/teller/logout', [TellerController::class, 'tellerLogout']);
 
 Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
 Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);

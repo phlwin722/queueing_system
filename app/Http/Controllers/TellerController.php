@@ -451,9 +451,11 @@ class TellerController extends Controller
                 "t.type_id",
                 "t.type_ids_selected",
                 "t.Image",
+                "ts.Status", // Assuming the status is in the window table
                 DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
             )
             ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
+            ->leftJoin('windows as ts', 't.id', '=', 'ts.teller_id') // Join with the teller_status table
             ->groupBy(
                 "t.id", 
                 "t.teller_firstname", 
@@ -461,7 +463,8 @@ class TellerController extends Controller
                 "t.teller_username", 
                 "t.teller_password", 
                 "t.type_ids_selected",
-                "t.Image"
+                "t.Image",
+                "ts.Status"
             )
             ->orderBy('t.created_at', 'desc'); // Ordering by created_at in descending order
     
@@ -474,7 +477,6 @@ class TellerController extends Controller
         return $res;
     }
     
-
     public function validationLoginTeller (AdminRequest $request) {
         $teller = DB::table('tellers')
             ->where('teller_username', $request->Username)
@@ -488,6 +490,12 @@ class TellerController extends Controller
                         'error' => 'Invalid Credentials'
                     ],401);
                  }
+
+                 // update tellers has logged in
+                 DB::table('windows')
+                    ->where('teller_id', $teller->id)
+                    ->update(['status' => 'Online']);
+
                 // Generate a simple authentication token (or use Laravel Sanctum for better security)
                 $token = base64_encode(Str::random(40));
 
@@ -510,6 +518,106 @@ class TellerController extends Controller
                 ],400);
             }
     }
+
+    public function tellerLogout (Request $request) {
+        try {
+            // Extract the teller_id and type_id from the incoming request.
+            $teller_id = $request->teller_id;
+            $type_id = $request->type_id;
+    
+            // Update the status of the teller to 'Offline' when they log out.
+            DB::table('windows')
+                ->where('teller_id', $teller_id)  // Locate the teller by their ID.
+                ->update(['status' => 'Offline']); // Set their status to 'Offline'.
+                    
+            // Check if there are any customers currently waiting for this teller to serve them.
+            $list_waiting = DB::table('queues')
+                            ->where('teller_id', $teller_id)  // Find queues assigned to this specific teller.
+                            ->where('status', 'waiting')      // Filter only customers who are still waiting.
+                            ->get();                          // Get all waiting customers.
+    
+            // Loop through all waiting customers to reassign them to other tellers.
+            foreach ($list_waiting as $queue) {
+                // Fetch all tellers who are signed in and assigned to this type of service (type_id).
+                $tellers = DB::table('windows')
+                    ->where('type_id', $type_id)       // Find tellers for this specific type of service.
+                    ->where('status', 'Online')      // Filter only tellers who are currently signed in.
+                    ->pluck('teller_id');              // Get a list of teller IDs.
+    
+                // Check if there are available tellers to handle the queues.
+                if ($tellers->isEmpty()) {
+                    return response()->json([
+                        'message' => 'Please log in some tellers or finish the pending customers'  // No available tellers for this type_id
+                    ], 400);  // HTTP status 400 indicating a bad request.
+                }
+    
+                // Get the last assigned queue for this type of service, ordered by the most recent.
+                $lastAssigned = DB::table('queues')
+                                ->where('type_id', $type_id)       // Filter by the type_id of the service.
+                                ->orderBy('created_at', 'desc')    // Sort by creation date, getting the latest assigned queue.
+                                ->first();                         // Retrieve only the most recent entry.
+    
+                // If there are available tellers, assign the next teller in a round-robin manner.
+                // If there was no last assigned queue, start with the first teller (index 0).
+                if ($tellers->count() > 0) {
+                    // Find the index of the last assigned teller and move to the next one using modulo for round-robin.
+                    $nextTellerIndex = $lastAssigned ? 
+                        ($tellers->search($lastAssigned->teller_id) + 1) % $tellers->count() : 0;
+                    // Get the teller ID at the calculated index.
+                    $assignedTellerId = $tellers[$nextTellerIndex];
+                }
+                 else {
+                    // If no tellers are available, return an error message.
+                    return response()->json([
+                        'message' => 'Please log in some tellers or finish the pending customers'  // No tellers available for round-robin assignment
+                    ], 400);  // HTTP status 400 for bad request.
+                }
+    
+                // Retrieve the last queue number assigned to the new teller (to avoid assigning the same number again).
+                $lastQueuenumber = DB::table('queue_numbers')
+                    ->where('type_id', $type_id)                    // Filter by the type_id of the service.
+                    ->where('teller_id', $assignedTellerId)         // Filter by the assigned teller.
+                    ->where('status', '!=', 'finished')             // Only consider active queues (exclude 'finished' status).
+                    ->orderBy('queue_number', 'desc')               // Sort by queue number in descending order to get the most recent one.
+                    ->first();                                      // Get the first (latest) entry.
+    
+                // If a last queue number exists, increment it by 1. Otherwise, start with queue number 1.
+                $nextQueueNumber = $lastQueuenumber ? $lastQueuenumber->queue_number + 1 : 1;
+    
+                // Update the queue with the new assigned teller and the next queue number.
+                DB::table('queues')
+                    ->where('id', $queue->id)  // Find the queue entry by its ID.
+                    ->update([
+                        'queue_number' => $nextQueueNumber,        // Update the queue number.
+                        'email_status' => 'sending_customer',     // Mark the email status to indicate it's sending the customer info.
+                        'teller_id' => $assignedTellerId          // Reassign the queue to the new teller.
+                    ]);
+    
+                // Update the queue_numbers table for the customer with the new teller and queue number.
+                DB::table('queue_numbers')
+                    ->where('customer_id', $queue->id)           // Locate the queue number entry for this customer.
+                    ->update([
+                        'status' => 'waiting',                    // Set the status as 'waiting'.
+                        'queue_number' => $nextQueueNumber,       // Set the updated queue number.
+                        'type_id' => $type_id,                   // Set the type_id for the service.
+                        'teller_id' => $assignedTellerId         // Set the assigned teller ID.
+                    ]);
+            }
+    
+            // If everything was processed successfully, return a success message.
+            return response()->json([
+                'message' => 'Successfully logged out'  // Inform the user that the logout process is complete.
+            ]);
+    
+        } catch (\Exception $e) {
+            // If an exception occurs during the process, catch it and return the error message.
+            $message = $e->getMessage();  // Get the error message.
+            return response()->json([
+                'message' => env('APP_DEBUG') ? $message : 'Something went wrong'  // Show the error message in debug mode, otherwise show a generic error.
+            ]);
+        }
+    }
+    
 
     public function valueTypeid (Request $request) {
         try {
