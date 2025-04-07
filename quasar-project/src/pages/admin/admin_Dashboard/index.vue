@@ -128,13 +128,13 @@ export default {
         const { data } = await $axios.post('/teller/update-all-serving-time');
         console.log(data.status);
         if (data.status === 'success') {
-          $notify("positive", "check", "Updated Successfully.");
+          console.log("Updated Successfully.")
         } else {
-          $notify("negative", "error", "Update Error.");
+          console.log("Update error.")
         }
       } catch (error) {
         console.error(error);
-        $notify("negative", "error", "Update Errors.");
+        console.log("Update error.")
       }
     }
 

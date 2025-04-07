@@ -121,6 +121,7 @@ Route::post('/teller/save-serving-time', [ServingTimeController::class, 'saveSer
 Route::post('/teller/today-serving-stats', [ServingTimeController::class, 'getTodayServingStats']);
 Route::post('/teller/update-serving-time', [ServingTimeController::class, 'updateServingTime']);
 Route::post('/teller/update-all-serving-time', [ServingTimeController::class, 'updateAllServingTime']);
+Route::post('/teller/fetch-serving-time', [ServingTimeController::class, 'fetchServingTime']);
 
 
 //Reset-Window

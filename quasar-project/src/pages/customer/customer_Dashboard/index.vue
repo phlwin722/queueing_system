@@ -595,6 +595,9 @@ export default {
         serviceType.value = data.row.name;
         indicator.value = data.row.indicator;
         serving_time.value = data.row.serving_time;
+        if(serving_time.value == null){
+          serving_time.value = 10
+        }
 
         assignedTeller.value = data.row.teller_firstname + " " + data.row.teller_lastname;
         typeId.value = data.row.typeId;
@@ -719,6 +722,12 @@ export default {
 
         }else{
           isNotBeingCatered.value = false
+          // const convertToBreak = parseTime(toBreak.value)
+          // console.log(convertToBreak)
+          // const haha = convertExpectedCaterTime.value= parseTime(convertExpectedCaterTime.value) // Convert to readable time
+          // console.log(convertExpectedCaterTime.value)
+          // const b = formatTime2(convertToBreak+haha)
+          // console.log(b)
         }
         fetchBreakTime()
       }
