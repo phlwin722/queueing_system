@@ -230,7 +230,7 @@
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
               >
               <q-card-section class="row items-center">
-                <q-toggle v-model="autoServing" label="Auto Serving" color="green" />
+                <q-toggle v-model="autoServing"  color="green" />
                 <q-chip v-if="autoServing" color="green" text-color="white" class="q-ml-md">
                   Auto Serving ON
                 </q-chip>
@@ -567,6 +567,8 @@ export default {
         await $axios.post("/teller/finish", { id: customerId });
         await fetchQueue();
         await serveEnd();
+        serveStartTime = null; // Reset
+        localStorage.removeItem('serveStartTime'+tellerInformation.value.id.toString());
         $notify("positive", "check", "Customer has been marked as finished.");
       } catch (error) {
         console.error("Error finishing customer:", error);
@@ -710,7 +712,7 @@ export default {
     { deep: false } // We're creating a new reference so deep isn't needed
   );
   let autoServingInterval = null; // Store the interval ID
-  let serveStartTime = null;
+  let serveStartTime = null
   watch(autoServing, (newValue) => {
     if (newValue) {
       $notify(
@@ -733,6 +735,7 @@ export default {
               caterCustomer(nextCustomer.id, nextCustomer.type_id);
               startWait(nextCustomer.id, nextCustomer.queue_number);
               serveStartTime = new Date();
+              localStorage.setItem('serveStartTime'+tellerInformation.value.id.toString(), serveStartTime);
             }, 2000);
           }
         }
@@ -754,11 +757,14 @@ export default {
 
 
   const serveEnd = async () => {
-  if (serveStartTime) {
+  const savedStartTimeStr  = localStorage.getItem('serveStartTime'+tellerInformation.value.id.toString());
+  if (savedStartTimeStr ) {
+    const savedStartTime = new Date(savedStartTimeStr); // ✅ convert to Date
     const now = new Date();
-    const diffMs = now - serveStartTime; // in ms
+    const diffMs = now - savedStartTime; // in ms
     let minutes = Math.round(diffMs / 60000); // convert to minutes
     if (minutes < 1) minutes = 1;
+    console.log("minutes: "+minutes)
     // const seconds = Math.floor((diffMs % 60000) / 1000); // if you want seconds too
 
     // Save to backend
@@ -773,7 +779,7 @@ export default {
       console.error("Failed to save serving time", err);
     }
 
-    serveStartTime = null; // Reset
+
   }
 };
 
@@ -782,7 +788,6 @@ export default {
       const response = await $axios.post('/teller/today-serving-stats',{
         type_id: tellerInformation.value.type_id,
       });
-      const stats = response.data;
       const updatedServingTime = Math.round(response.data.avg)
       await $axios.post("/teller/update-serving-time", {
         minutes: updatedServingTime,

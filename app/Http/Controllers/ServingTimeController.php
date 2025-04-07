@@ -30,6 +30,50 @@ class ServingTimeController extends Controller
         return response()->json(['message' => 'Serving time saved successfully']);
     }
 
+    public function fetchServingTime(Request $request)
+    {
+        try {
+            $type_id = $request->input('type_id');
+            $from_date = $request->input('from_date');
+            $to_date = $request->input('to_date');
+    
+            $res = DB::table('serving_times as st')
+                ->leftJoin("types as tp", "tp.id", "st.type_id");
+    
+            if (!empty($type_id)) {
+                $res->where('st.type_id', $type_id);
+            }
+    
+            if (!empty($from_date)) {
+                $res->whereDate('st.created_at', '>=', $from_date);
+            }
+    
+            if (!empty($to_date)) {
+                $res->whereDate('st.created_at', '<=', $to_date);
+            }
+    
+            // Get rows
+            $rows = $res->select("st.minutes", "tp.name as window_type", "st.created_at")
+                        ->get();
+    
+            // Extract minutes separately for calculations
+            $minutes = $rows->pluck('minutes');
+    
+            // Return both rows and minutes separately
+            return response()->json([
+                'rows' => $rows,
+                'minutes' => $minutes
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
+            ]);
+        }
+    }
+    
+    
+
     public function getTodayServingStats(Request $request)
     {
         $yesterday = Carbon::yesterday();
@@ -51,9 +95,13 @@ class ServingTimeController extends Controller
         $minutes = $request->minutes;
         $type_id = $request->type_id;
 
-        DB::table('types')
-        ->where('id', $type_id)
-        ->update(['serving_time' => $minutes]);
+
+
+        if ($minutes !== 0) {
+            DB::table('types')
+                ->where('id', $type_id)
+                ->update(['serving_time' => $minutes]);
+        }
     }
 
     public function updateAllServingTime(Request $request)
@@ -77,10 +125,11 @@ class ServingTimeController extends Controller
             // Check if an average was found for the type_id
             $stat = $stats->firstWhere('type_id', $type_id);
 
-            // If the average exists, update with avg_minutes, otherwise set it to null
-            DB::table('types')
-                ->where('id', $type_id)
-                ->update(['serving_time' => $stat ? $stat->avg_minutes : null]);
+            if ($stat && $stat->avg_minutes !== null) {
+                DB::table('types')
+                    ->where('id', $type_id)
+                    ->update(['serving_time' => $stat->avg_minutes]);
+            }
         }
         return response()->json(['status' => 'success']);
 

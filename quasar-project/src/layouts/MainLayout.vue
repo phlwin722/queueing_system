@@ -684,6 +684,11 @@ export default defineComponent({
         link: "/admin/window-logs",
       },
       {
+        title: "Serving Time Logs",
+        icon: "timer",
+        link: "/admin/serving-time-logs",
+      },
+      {
         title: "Reports",
         icon: "bar_chart",
         link: "/admin/reports",
