@@ -65,6 +65,18 @@
           </div>
         </div>
       </template>
+ 
+      <!-- Status cell template for the table -->
+      <template v-slot:body-cell-status="props">
+        <q-td :props="props">
+          <q-badge
+            :color="props.row.Status === 'Online' ? 'green' : 'red'" 
+          >
+            {{ props.row.Status }}  <!-- Display the status text -->
+          </q-badge>
+        </q-td>
+      </template>
+
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
@@ -158,6 +170,12 @@ export default defineComponent({
         sortable: true,
       },
       {
+        name: "status",
+        label: "Status",
+        align: "left",
+        field: "status",
+      },
+      {
         name: "actions",
         label: "Actions",
         align: "left",
@@ -172,6 +190,7 @@ export default defineComponent({
       try {
         const { data } = await $axios.post(URL + "/index");
         rows.value.splice(0, rows.value.length, ...data.rows);
+        console.log("try",rows.value);  // Add this line to check the rows
       } catch (error) {
         console.log(error);
       }

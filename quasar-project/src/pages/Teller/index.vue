@@ -862,6 +862,11 @@ export default {
 
     const logout = async () => {
       try {
+        await $axios.post('/teller/logout',{
+          teller_id: tellerInformation.value.id,
+          type_id: tellerInformation.value.type_id
+        });
+
         localStorage.removeItem("authTokenTeller");
         localStorage.removeItem("tellerInformation");
         router.push("/login");
@@ -869,7 +874,9 @@ export default {
           window.location.reload();
         }, 100);
       } catch (error) {
-        console.error("Error during logout:", error);
+        if (error.response.status === 400) {
+          $notify('negative','error',error.response.data.message)
+        }
       }
     };
 
