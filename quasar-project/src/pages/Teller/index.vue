@@ -548,13 +548,12 @@ export default {
     const cancelCustomer = async (customerId) => {
       try {
         await $axios.post("/teller/cancel", { id: customerId });
-        await fetchQueue();
         $notify(
           "positive",
           "check",
           "Customer has been removed from the queue."
         );
-        stopWait();
+        // stopWait();
       } catch (error) {
         console.error("Error canceling customer:", error);
         $notify("negative", "error", "Failed to cancel customer.");
@@ -565,7 +564,6 @@ export default {
     const finishCustomer = async (customerId) => {
       try {
         await $axios.post("/teller/finish", { id: customerId });
-        await fetchQueue();
         await serveEnd();
         serveStartTime = null; // Reset
         localStorage.removeItem('serveStartTime'+tellerInformation.value.id.toString());
@@ -948,7 +946,7 @@ export default {
       } catch (error) {
         console.error("Error in queue data fetch:", error);
       } finally {
-        queueTimeout = setTimeout(optimizedFetchQueueData, 2000);
+        queueTimeout = setTimeout(optimizedFetchQueueData, 3000);
       }
     };
 
@@ -958,7 +956,7 @@ export default {
       } catch (error) {
         console.error("Error in waiting time fetch:", error);
       } finally {
-        waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000);
+        waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000);
       }
     };
 
@@ -968,7 +966,7 @@ export default {
       } catch (error) {
         console.error("Error in customer ID fetch:", error);
       } finally {
-        fetchIdTimeout = setTimeout(optimizedFetchId, 2000);
+        fetchIdTimeout = setTimeout(optimizedFetchId,3000);
       }
     };
 

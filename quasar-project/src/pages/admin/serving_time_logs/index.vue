@@ -1,119 +1,131 @@
 <template>
-    <q-page class="q-px-lg">
+  <q-page class="q-px-lg">
 
-        <div class="q-my-md bg-white q-pa-sm shadow-1">
-            <q-breadcrumbs 
-                class="q-mx-sm"
-                >
-                <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
-                <q-breadcrumbs-el label="Serving Time Logs" icon="timer" to="/admin/serving_time_logs" />
-            </q-breadcrumbs>
+    <!-- Breadcrumbs -->
+    <div class="q-my-md bg-white q-pa-sm shadow-1">
+      <q-breadcrumbs class="q-mx-sm">
+        <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
+        <q-breadcrumbs-el label="Serving Time Logs" icon="timer" to="/admin/serving_time_logs" />
+      </q-breadcrumbs>
+    </div>
+
+    <!-- Data Table -->
+    <q-table
+      class="q-mt-md"
+      title="Data Reports"
+      :rows="filteredRows"
+      :columns="columns"
+      row-key="index"
+      dense
+    >
+
+      <!-- Custom Table Header -->
+      <template v-slot:top>
+        <q-toolbar class="q-gutter-md">
+          <q-toolbar-title>Serving Time</q-toolbar-title>
+          <q-space />
+
+          <div class="row q-col-gutter-sm items-center">
+            <!-- Filter by Type -->
+            <div class="col-auto">
+              <span class="text-bold">Filter by Type:</span>
+            </div>
+            <div class="col-2">
+              <q-select
+                filled
+                outlined
+                v-model="type_id"
+                :options="serviceTypeList"
+                label="Window type"
+                class="bg-accent text-black"
+                dense
+                emit-value
+                map-options
+              />
             </div>
 
-            <q-table
-  class="q-mt-md"
-  title="Data Reports"
-  :rows="filteredRows"
-  :columns="columns"
-  row-key="index"
-  dense
->
+            <!-- Filter by Date -->
+            <div class="col-auto">
+              <span class="text-bold">Filter by Date:</span>
+            </div>
+            <div class="col-2">
+              <q-input 
+                filled
+                dense
+                outlined
+                class="bg-accent text-black"
+                v-model="fromDate" 
+                type="date"
+                label="From"
+                @update:model-value="getTableData"
+              />
+            </div>
+            <div class="col-2">
+              <q-input 
+                filled
+                dense
+                outlined
+                class="bg-accent text-black"
+                v-model="toDate" 
+                type="date"
+                label="To"
+                @update:model-value="getTableData"
+              />
+            </div>
+          </div>
+        </q-toolbar>
+      </template>
 
+      <!-- Table Actions -->
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props" />
+      </template>
+    </q-table>
 
-  <!-- Custom Table Header -->
-  <template v-slot:top>
+    <!-- Statistics Card -->
     <template v-if="stats.min !== Infinity && stats.max !== -Infinity && stats.avg !== 'NaN'">
-    <q-card flat bordered class="q-pa-md q-mb-md bg-grey-1 text-primary">
-  <q-card-section>
-    <div class="text-h6">📊 Serving Time Statistics</div>
-    <div class="q-mt-sm">
-      <q-item dense>
-        <q-item-section avatar>
-          <q-icon name="timer" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>Min Serving Time</q-item-label>
-          <q-item-label caption class="text-weight-bold">{{ stats.min }} minute/s</q-item-label>
-        </q-item-section>
-      </q-item>
+      <q-card flat bordered class="q-pa-md q-mt-md q-mb-md bg-grey-1 text-primary">
+        <q-card-section>
+          <div class="text-h6">📊 Serving Time Statistics</div>
 
-      <q-item dense>
-        <q-item-section avatar>
-          <q-icon name="schedule" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>Max Serving Time</q-item-label>
-          <q-item-label caption class="text-weight-bold">{{ stats.max }} minute/s</q-item-label>
-        </q-item-section>
-      </q-item>
+          <div class="q-mt-sm">
+            <q-item dense>
+              <q-item-section avatar>
+                <q-icon name="timer" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Min Serving Time</q-item-label>
+                <q-item-label caption class="text-weight-bold">{{ stats.min }} minute/s</q-item-label>
+              </q-item-section>
+            </q-item>
 
-      <q-item dense>
-        <q-item-section avatar>
-          <q-icon name="trending_up" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>Mean (Average) Time</q-item-label>
-          <q-item-label caption class="text-weight-bold">{{ stats.avg }} minute/s</q-item-label>
-        </q-item-section>
-      </q-item>
-    </div>
-  </q-card-section>
-</q-card>
+            <q-item dense>
+              <q-item-section avatar>
+                <q-icon name="schedule" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Max Serving Time</q-item-label>
+                <q-item-label caption class="text-weight-bold">{{ stats.max }} minute/s</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item dense>
+              <q-item-section avatar>
+                <q-icon name="trending_up" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Mean (Average) Time</q-item-label>
+                <q-item-label caption class="text-weight-bold">{{ stats.avg }} minute/s</q-item-label>
+              </q-item-section>
+            </q-item>
+          </div>
+        </q-card-section>
+      </q-card>
+    </template>
+    
+  </q-page>
 </template>
-    <q-toolbar class="q-gutter-md">
-      <!-- 📌 Table Title -->
-      <q-toolbar-title>Serving Time</q-toolbar-title>
 
-      <q-space /> <!-- Pushes inputs to the right -->
-
-      <span class="text-bold">Filter by Type:</span>
-      <q-select
-            filled
-            outlined
-            v-model="type_id"
-            :options="serviceTypeList"
-            label="Window type"
-            class="bg-accent text-black col-2"
-            dense
-            emit-value
-            map-options
-          />
-      <span class="text-bold">Filter by Date:</span>
-
-      <!-- From Date -->
-      <q-input 
-        filled
-        dense
-        outlined
-        class="bg-accent text-black col-1.5"
-        v-model="fromDate" 
-        type="date"
-        label="From"
-        @update:model-value="getTableData"
-      />
-
-      <!-- To Date -->
-      <q-input 
-        filled
-        dense
-        outlined
-        class="bg-accent text-black col-1.5"
-        v-model="toDate" 
-        type="date"
-        label="To"
-        @update:model-value="getTableData"
-      />
-    </q-toolbar>
-  </template>
-
-  <!-- Table Actions -->
-  <template v-slot:body-cell-actions="props">
-    <q-td :props="props"></q-td>
-  </template>
-</q-table>
-
-    </q-page>
-</template>
 
 
 <script>
@@ -267,3 +279,8 @@ export default defineComponent({
 
 });
 </script>
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
+</style>

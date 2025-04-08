@@ -263,3 +263,8 @@ export default defineComponent({
 
 });
 </script>
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
+</style>

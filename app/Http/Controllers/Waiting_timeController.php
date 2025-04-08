@@ -46,21 +46,32 @@ class Waiting_timeController extends Controller
     public function index(Request $request)
     {
         try {
-            // Fetch all waiting times from the database
+            $lastUpdated = $request->input('last_updated');
+    
+            // Get latest updated_at from the waiting_times table
+            $latestUpdate = DB::table('waiting_times')->max('updated_at');
+    
+            // If not updated since last request, skip
+            if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
+                return response()->json([
+                    'updated' => false,
+                ]);
+            }
+    
+            // Fetch updated data
             $waitingTimes = DB::table('waiting_times')->get();
-
-            // Return the data as a JSON response
+    
             return response()->json([
-                'message' => 'Data fetched successfully',
+                'updated' => true,
+                'last_updated_at' => $latestUpdate,
                 'dataValue' => $waitingTimes
             ]);
         } catch (\Exception $e) {
-            // Catch any errors and return them as a response
-            $message = $e->getMessage();
             return response()->json([
-                "message" => env('APP_DEBUG') ? $message : 'Something went wrong'
+                "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
             ]);
         }
     }
+    
 
 }

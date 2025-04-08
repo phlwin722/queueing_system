@@ -136,6 +136,7 @@ class QueueSeeder extends Seeder
                 'window_name' => 'Window 1',
                 'type_id' => '1',
                 'teller_id' => '1',
+                'status' => 'Online',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
