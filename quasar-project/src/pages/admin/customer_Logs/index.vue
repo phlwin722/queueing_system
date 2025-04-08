@@ -252,6 +252,8 @@
     });
     </script>
 
-<style scoped>
-
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
 </style>

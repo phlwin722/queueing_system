@@ -261,3 +261,9 @@ export default defineComponent({
   border-radius: 5px;
 }
 </style>
+
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
+</style>

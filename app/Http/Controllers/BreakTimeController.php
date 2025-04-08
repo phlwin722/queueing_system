@@ -56,15 +56,24 @@ class BreakTimeController extends Controller
 
 
 
-    public function fetchBreakTime()
+    public function fetchBreakTime(Request $request)
     {
         try {
-            // ✅ Fetch only the first break time
+            $lastUpdated = $request->input('last_updated');
+    
             $breakTime = DB::table('break_times')->first();
+            $latestUpdate = optional($breakTime)->updated_at;
+    
+            if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
+                return response()->json([
+                    'updated' => false,
+                ]);
+            }
     
             return response()->json([
-                'message' => 'Data fetched successfully',
-                'dataValue' => $breakTime // ✅ No need for an array
+                'updated' => true,
+                'last_updated_at' => $latestUpdate,
+                'dataValue' => $breakTime,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -72,6 +81,7 @@ class BreakTimeController extends Controller
             ]);
         }
     }
+    
     
 
 }
