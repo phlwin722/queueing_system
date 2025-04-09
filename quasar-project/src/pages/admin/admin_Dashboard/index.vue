@@ -1,114 +1,112 @@
 <template>
-  <q-page class="q-px-lg" style="height: auto; min-height: unset;">
+  <q-page class="q-px-sm">
 
-    <div class="q-my-md bg-white q-pa-sm shadow-1">
-    <q-breadcrumbs 
-                class="q-mx-sm"
-                >
-                <q-breadcrumbs-el icon="home" />
-                <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
-            </q-breadcrumbs>
+    <!-- Breadcrumb -->
+    <div class="q-ma-md bg-white q-pa-sm shadow-1 ">
+      <q-breadcrumbs class="q-mx-sm">
+        <q-breadcrumbs-el icon="home" />
+        <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+      </q-breadcrumbs>
+    </div>
+
+    <!-- Summary Cards + Survey Chart -->
+    <div class="q-px-md row q-col-gutter-md">
+      <!-- Summary Cards -->
+      <div class="col-xs-12 col-md-9">
+        <div class="row q-col-gutter-md">
+          <div class="col-xs-12 col-sm-6 col-md-4">
+            <q-card class="stat-card bg-white text-secondary">
+              <q-card-section>
+                <div><q-icon name="people" size="24px" class="text-warning q-mr-xs" /> Number of Customers</div>
+                <div class="text-h4 q-mt-lg">{{ total }}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-md-4">
+            <q-card class="stat-card bg-white text-secondary">
+              <q-card-section>
+                <div><q-icon name="check_circle" size="24px" class="text-positive q-mr-xs" /> Finished</div>
+                <div class="text-h4 q-mt-lg">{{ finishedCount }}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-md-4">
+            <q-card class="stat-card bg-white text-secondary">
+              <q-card-section>
+                <div><q-icon name="cancel" size="24px" class="text-negative q-mr-xs" /> Cancelled</div>
+                <div class="text-h4 q-mt-lg">{{ cancelledCount }}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- Bar Chart Section -->
+        <q-card class="q-mt-md">
+        <div class="col-12">
+          <BarChart :cancelledPercent="cancelledPercent" />
+        </div>
+        </q-card>
+
+        <!-- Teller Table Section -->
+      <div class="row q-col-gutter-sm q-mt-sm">
+        <div class="col-xs-6 col-md-6">
+          <q-card>
+            <q-card-section class="">
+              <div class="text-primary">Teller Workstations</div>
+            </q-card-section>
+            <q-separator />
+            <q-table
+              flat
+              bordered
+              dense
+              virtual-scroll
+              :rows="rowsWorkStation"
+              :columns="columnsWorkStation"
+              row-key="id"
+            >
+              <template v-slot:body-cell-status="props">
+                <q-td :props="props">
+                  <q-badge :color="props.row.status === 'Available' ? 'green' : 'red'">
+                    {{ props.row.status }}
+                  </q-badge>
+                </q-td>
+              </template>
+            </q-table>
+          </q-card>
+        </div>
       </div>
 
-    <!-- Queue Summary Cards -->
-    <div class="row q-gutter-md">
-      <!-- Total Customers -->
-      <q-card class="stat-card bg-white text-secondary">
-        <q-card-section>
-          <div>
-          <q-icon name="people" size="24px" class="text-warning q-mr-xs"/>
-          Number of Customers</div>
-          <div class="text-h4 q-mt-lg">{{ total }}</div>
-        </q-card-section>
-      </q-card>
-
-      <!-- Finished Customers -->
-      <q-card class="stat-card bg-white text-secondary">
-        <q-card-section>
-          <div>
-          <q-icon name="check_circle" size="24px" class="text-positive q-mr-xs"/>
-          Finished
-        </div>
-          <div class="text-h4 q-mt-lg">{{ finishedCount }}</div>
-        </q-card-section>
-      </q-card>
-
-      <!-- Cancelled Customers -->
-      <q-card class="stat-card bg-white text-secondary">
-        <q-card-section>
-          <div>
-          <q-icon name="cancel" size="24px" class="text-negative q-mr-xs"/>
-          Cancelled</div>
-          <div class="text-h4 q-mt-lg">{{ cancelledCount }}</div>
-        </q-card-section>
-      </q-card>
-
-      
-      <BarChart
-        :cancelledPercent="cancelledPercent"
-      ></BarChart>
-
-      <div class="col-4 q-mb-xl">
-    <q-card>
-      <q-card-section class="bg-primary">
-        <div class="text-accent">Teller Workstations</div>
-      </q-card-section>
-      <q-separator />
-      <q-table
-          flat
-          bordered
-          dense
-          virtual-scroll
-          :rows="rowsWorkStation"
-          :columns="columnsWorkStation"
-          row-key="id"
-          
-        >
-          <template v-slot:body-cell-status="props">
-            <q-td :props="props">
-               <!-- Apply color based on the status -->
-              <q-badge :color="props.row.status === 'Available' ? 'green' : 'red'">
-                {{ props.row.status }}
-              </q-badge>
-            </q-td>
-          </template>
-      </q-table>
-    </q-card>
-  </div>
-
-      <!-- Survey Charts Section -->
-      <q-card class="q-mb-xl" style="width: 350px; margin-top: -440px; margin-left: auto;">
-          <p class="text-secondary text-center q-mt-sm">
-            Survey Analysis
-          </p>
-        <div class="row q-col-gutter-xs q-mt-md q-mb-lg shadow-1 q-px-md" style="flex-direction: column; gap: .5rem;">
-        <!-- Rating Overview -->
-        <div class="col-12">
-            <div>Rating Overview</div>
-            <canvas ref="ratingChart" height="200"></canvas>
-        </div>
-
-        <q-separator/>
-
-        <!-- Ease of Use -->
-        <div class="col-10">
-            <div>Ease of Use</div>
-            <canvas ref="easeOfUseChart" style="margin-left: 50px;"></canvas>
-        </div>
-
-        <q-separator/>
-
-        <!-- Waiting Time -->
-        <div class="col-12">
-            <div>Waiting Time Satisfaction</div>
-            <canvas ref="waitingTimeChart" height="200"></canvas>
-        </div>
       </div>
-      </q-card>
-  </div>
+
+      <!-- Survey Chart -->
+      <div class="col-xs-12 col-md-3">
+        <q-card class="q-mb-xl">
+          <q-card-section>
+            <div class="text-primary text-center">Survey Analysis</div>
+          </q-card-section>
+          <div class="q-pa-md">
+            <div class="q-mb-md">
+              <div>Rating Overview</div>
+              <canvas ref="ratingChart" height="150"></canvas>
+            </div>
+            <q-separator />
+            <div class="q-mb-md q-mt-sm">
+              <div>Ease of Use</div>
+              <canvas ref="easeOfUseChart" height="150"></canvas>
+            </div>
+            <q-separator />
+            <div class="q-mb-md q-mt-sm">
+              <div>Waiting Time Satisfaction</div>
+              <canvas ref="waitingTimeChart" height="150"></canvas>
+            </div>
+          </div>
+        </q-card>
+      </div>
+    </div>
 
   </q-page>
 </template>
+
 
 <script>
 
@@ -144,7 +142,6 @@ export default {
     const ratingChart = ref(null)
     const easeOfUseChart = ref(null)
     const waitingTimeChart = ref(null)
-
 
     const getTableData = async () => {
           try{           
@@ -365,15 +362,6 @@ export default {
 </script>
 
 <style scoped>
-.stat-card {
-  width: 272.5px; /* Adjust width to match your image */
-  height: 125px; /* Adjust height to match your image */
-  border-radius: 10px; /* Rounded corners */
-  display: flex;
-}
 
-.q-table {
-  overflow: hidden !important;
-}
 
 </style>
