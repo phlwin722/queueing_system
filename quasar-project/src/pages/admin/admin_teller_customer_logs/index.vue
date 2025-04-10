@@ -16,7 +16,7 @@
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-md">
-            <div class="col-6">
+            <div class="col-3">
               <q-select
                 outlined
                 v-model="type_id"

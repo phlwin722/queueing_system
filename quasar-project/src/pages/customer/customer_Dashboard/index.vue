@@ -4,11 +4,13 @@
       class="row wrap col-md-6 justify-center items-center flex q-gutter-md q-pa-md"
       style="width: 100%; max-width: 600px; margin: auto"
     >
+    
       <!-- User Queue Status -->
       <q-card
         class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
-        <q-card-section>
+
+        <q-card-section style="text-align: right;">
           <q-btn
             color="yellow-8"
             icon="download"
@@ -49,36 +51,44 @@
             </q-tooltip>
           </q-btn>
 
+
           <q-dialog v-model="showDialog">
-            <q-card class="q-pa-md" style="min-width: 310px">
+            <q-card class="q-pa-md" style="min-width: 310px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1)">
+              <div class="text-primary" style="font-weight: 600; font-size: 20px;">
+                Switch Teller
+              </div>
               <q-card-section>
+
                 <!-- Loop through serviceTypeId and create a div for each item -->
                 <div 
                   v-for="item in serviceTypeId" 
                   :key="item.value" 
                   @click="changeTeller(item), showDialog = false" 
                   :id="`item-${item.value}`" 
-                  class="item-div col"
-                  >
-                  <div class="row">
-                    <div class="col-4">
+                  class="item-div col cursor-pointer"
+                  style="border-bottom: 1px solid #e0e0e0; padding: 10px 0; transition: background-color 0.3s ease;"
+                >
+                  <div class="row items-center">
+                    <div class="col-auto q-ml-sm">
                       <q-img
                         :src="item.teller_image || require('assets/no-image.png')"
                         width="60px"
                         height="60px"
-                        class="text-secondary q-mr-md shadow-1"
+                        class="text-secondary q-mr-md shadow-1 rounded-borders"
                       />
                     </div>
                     <div class="col">
-                        <!-- Display item.value (or item.label) inside the p tag -->
-                        <p>{{ item.name }}</p>
-                        <p class="service-name">{{ item.service_name }}</p>
+                      <!-- Display item.name and item.service_name inside the p tag -->
+                      <p class="text-h6 q-mb-xs" style="font-weight: 600">{{ item.name }}</p>
+                      <p class="service-name text-subtitle2" style="color: #21ba45">{{ item.service_name }}</p>
                     </div>
-                </div>
+                  </div>
                 </div>
               </q-card-section>
             </q-card>
           </q-dialog>
+
+
         </q-card-section>
         <!-- Modernized Service Type & Personnel with Glass Effect -->
         <q-card
@@ -1356,9 +1366,9 @@ const fetchWaitingtime = async () => {
 } */
  /* Style for each item div */
 .item-div {
-  margin: 5px;
+  margin-top: 10px;
   padding: 15px;
-  border: 2px solid #ccc; /* Adds border */
+  border: 2px solid #393C3F; /* Adds border */
   border-radius: 8px; /* Adds rounded corners */
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s; /* Smooth transition for hover effect */
@@ -1368,6 +1378,7 @@ const fetchWaitingtime = async () => {
 .item-div:hover {
   background-color: #f0f0f0; /* Light background color on hover */
   transform: scale(1.05); /* Slightly enlarge the div on hover */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Style the paragraph (item name) inside the div */

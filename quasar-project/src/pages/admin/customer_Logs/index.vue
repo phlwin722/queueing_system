@@ -8,7 +8,7 @@
     </div>
 
     <div class="q-px-md q-mt-md">
-      <q-table title="Customer Logs" 
+      <q-table title="Customer Logs"  
       :rows="filteredRows" 
       :columns="columns" 
       row-key="index" 
@@ -16,40 +16,43 @@
       >
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
-          <q-toolbar class="q-gutter-sm">
+          <q-toolbar class="q-gutter-xs">
             <!-- 📌 Add Title Manually -->
-            <q-toolbar-title>Customer Logs</q-toolbar-title>
+            <q-toolbar-title class="text-primary">Customer Logs</q-toolbar-title>
 
             <q-space /> <!-- Pushes items to the right -->
 
-            <!-- Search Input -->
-            <q-input 
-              filled 
-              dense 
-              outlined 
-              class="bg-accent text-black col-2"
-              v-model="text" 
-              label="Search"
-              >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
+            <div class="row q-col-gutter-sm items-center">
+              <!-- Search Input -->
+              <div class="col-xs-12 col-sm-8 col-md-7">
+                <q-input 
+                  filled 
+                  dense 
+                  class="bg-accent text-black"
+                  v-model="text" 
+                  label="Search"
+                >
+                  <template v-slot:append>
+                    <q-icon name="search" />
+                  </template>
+                </q-input>
+              </div>
 
-            <!-- Date Picker Input -->
-            <q-input 
-              filled 
-              dense 
-              outlined 
-              class="bg-accent text-black col-1.5"
-              v-model="selectedDate" 
-              type="date" 
-              label="Select Date"
-              @update:model-value="getTableData"
-            />
+              <!-- Date Picker -->
+              <div class="col-xs-12 col-sm-4 col-md-5">
+                <q-input 
+                  filled 
+                  dense  
+                  class="bg-accent text-black"
+                  v-model="selectedDate" 
+                  type="date" 
+                  label="Select Date"
+                  @update:model-value="getTableData"
+                />
+              </div>
+            </div>
           </q-toolbar>
         </template>
-
 
         <!-- Table Actions -->
         <template v-slot:body-cell-actions="props">
@@ -111,11 +114,6 @@
     } from 'boot/app'
 
     import BarChart from 'components/BarChart.vue';
-    
-  
-    
-  
-    
     
     export default defineComponent({
       name: 'IndexPage',
@@ -251,9 +249,3 @@
     
     });
     </script>
-
-<style >
-  span.q-table__bottom-item{
-    width: 200px;
-  }
-</style>
