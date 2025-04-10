@@ -35,7 +35,17 @@ const routes = [
     path: "/teller/Layout", // The login page path
     component: () => import("pages/Teller/index.vue"), // Dynamically load the login component
   },
+  {
+    path: "/vrtsystem/onlineAppointment", 
+    component: ()=> import ('layouts/OnlineAppointment.vue'),
 
+    children: [
+      {
+        path: "/vrtsystem/onlineAppointment",
+        component: ()=> import ('pages/customer/customer_onlineAppointment/firstpage.vue')
+      }
+    ]
+  },
   {
     path: "/admin/dashboard", // The main path for the admin dashboard
     component: () => import("layouts/MainLayout.vue"), // Load the MainLayout which contains a sidebar or header

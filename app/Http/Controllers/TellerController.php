@@ -509,7 +509,7 @@ class TellerController extends Controller
                         'token' => $token,
                         'type_id' => $teller->type_id
                     ],
-                    'message' => "Login sucessfull teller",
+
                     'result' => 'teller'
                 ]);
             }else {

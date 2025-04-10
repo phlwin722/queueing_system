@@ -30,7 +30,7 @@
           </q-btn>
 
           <q-btn
-            @click="showDialog = true"
+            @click="showSwitchDialog()"
             color="green-10"
             icon="switch_account"
             dense
@@ -411,7 +411,7 @@ export default {
     const moneyRates = ref([]);
     const currentPage = ref(1);
     const itemsPerPage = 5; // Number of items per page
-    const showDialog = ref(false);
+    let showDialog = ref(false);
 
     const waitTime = ref(30); // Default wait time (can be fetched dynamically)
     const prepared = ref("");
@@ -935,6 +935,14 @@ export default {
       }
     };
 
+    const showSwitchDialog = async () => {
+      try{
+        console.log('serviceTypeId.value.length ',serviceTypeId.value )
+        serviceTypeId.value.length === 0 ? $notify('negative','error','There are no tellers available at the moment.') : showDialog.value = true
+      } catch (error) {
+        console.log("ShowSwitchDilog",error)
+      }
+    }
     // Function to check if the user's queue number is 5, then send an email notification
     const checkingQueueNumber = async () => {
       try {
@@ -953,7 +961,7 @@ export default {
               email: userInformation.value.email, // Recipient's email address
               subject: "Queue Alert", // Email subject
               message: `You are just a few steps away from being served! 
-                            Please remain on standby, as your turn is approaching soon.`, // Email message body
+                        Please remain on standby, as your turn is approaching soon.`, // Email message body
             });
           }
         }
@@ -980,6 +988,8 @@ export default {
 
     const optimizedFetchQueueData = async () => {
       await fetchQueueData();
+      await getTableData();
+      await fetchType();
       queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
     };
 
@@ -1219,9 +1229,7 @@ export default {
       optimizedFetchWaitingStatus();
       optimizedFetchBreakTime()
       setInterval(fetchCurrency(),30000);
-
       fetchType();
-
     });
 
     onUnmounted(() => {
@@ -1233,6 +1241,7 @@ export default {
 
     return {
       changeTeller,
+      showSwitchDialog,
       generatedQrValue, // Return the generated QR value to be used in the template
       generatePDF,
       customerQueueNumber,

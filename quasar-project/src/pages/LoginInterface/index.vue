@@ -104,8 +104,6 @@ export default {
           );
           if (data.result == "teller") {
             if (data.tellerInformation.type_id != null) {
-              // If login is successful, redirect to the admin dashboard
-              $notify("positive", "done", data.message);
               // Store token in localStorage instead of localStorage
               localStorage.setItem(
                 "authTokenTeller",

@@ -456,8 +456,11 @@ class QueueController extends Controller
                 "t.Image",
                 "tp.name",
                 "tp.indicator",
-                "tp.serving_time"
+                "tp.serving_time",
+                "w.status"
             )
+            ->leftJoin('windows as w', 'w.teller_id', "=", "t.id")
+            ->whereIn('w.status', ['Online'])
             ->leftJoin("types as tp", "tp.id", "=", "t.type_id")
             ->whereIn("t.type_id", $matchingTypeIds) // Match multiple type_ids
             ->get();
