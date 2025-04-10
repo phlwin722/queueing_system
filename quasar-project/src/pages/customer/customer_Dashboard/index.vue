@@ -603,13 +603,16 @@ export default {
 
       checkingQueueNumber(); // Always check queue number
       QueueListlastUpdatedAt.value = response.data.last_updated_at; // Update timestamp
-      await fetchQueueData()
     }
   } catch (error) {
     console.error(error);
   }finally{
-    // Fetch the waiting status after fetching queue data
-    if (polling) setTimeout(fetchQueueData, 3000);
+    if(queueList.value.length > 5){
+      if (polling) setTimeout(fetchQueueData, 10000);
+    }else{
+      if (polling) setTimeout(fetchQueueData, 3000);
+    }
+
   }
 };
 
@@ -738,7 +741,7 @@ const fetchBreakTime = async () => {
   } catch (error) {
     console.error("Error fetching break time:", error);
   } finally {
-    if (breakTimePolling) setTimeout(fetchBreakTime, 3000); // Schedule next poll
+      if (breakTimePolling) setTimeout(fetchBreakTime, 10000); // Schedule next poll
   }
 };
 
@@ -861,7 +864,7 @@ const fetchWaitingStatus = async () => {
   } catch (error) {
     console.error("Error fetching waiting status:", error);
   } finally {
-    if (waitingPolling) setTimeout(fetchWaitingStatus, 3000); // Schedule next poll
+    if (waitingPolling) setTimeout(fetchWaitingStatus, 5000); // Schedule next poll
   }
 };
 
@@ -898,7 +901,7 @@ const fetchWaitingtime = async () => {
   } catch (error) {
     console.log("Error fetching data:", error);
   } finally {
-    if (waitingTimePolling) setTimeout(fetchWaitingtime, 3000); // Schedule next poll
+    if (waitingTimePolling) setTimeout(fetchWaitingtime, 10000); // Schedule next poll
   }
 };
     

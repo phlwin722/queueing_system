@@ -43,7 +43,7 @@
         <!-- Bar Chart Section -->
         <q-card class="q-mt-md">
         <div class="col-12">
-          <BarChart :cancelledPercent="cancelledPercent" />
+          <BarChart :cancelledPercent="cancelledPercent" :finishedPercent="finishedPercent" />
         </div>
         </q-card>
 

@@ -415,7 +415,10 @@ export default {
     });
 
     // Fetch queue data with error handling
+    const QueueListlastUpdatedAt = ref(null); // default to null
+    let polling = true;
     const fetchQueue = async () => {
+      if (!polling) return;
       try {
         isLoading.value = true;
         
@@ -425,52 +428,48 @@ export default {
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
+          last_updated: QueueListlastUpdatedAt.value,
         });
 
-        const fetchedQueue = response.data.queue.filter(
-          (q) => !["finished", "cancelled"].includes(q.status)
-        );
+        if (response.data.updated) {
+          const fetchedQueue = response.data.queue.filter(
+            (q) => !["finished", "cancelled"].includes(q.status)
+          );
 
-        // Update and store current serving
-        currentServing.value = response.data.current_serving;
-        localStorage.setItem(
-          "currentServing",
-          JSON.stringify(currentServing.value)
-        );
+          // Update and store current serving
+          currentServing.value = response.data.current_serving;
+          localStorage.setItem(
+            "currentServing",
+            JSON.stringify(currentServing.value)
+          );
 
-        // Remove current serving from the queue list
-        const updatedQueue = fetchedQueue.filter(
-          (q) => q.id !== currentServing.value?.id
-        );
+          // Remove current serving from the queue list
+          const updatedQueue = fetchedQueue.filter(
+            (q) => q.id !== currentServing.value?.id
+          );
 
-        // Preserve the local order while updating new queue items
-        queueList.value = reorderQueue(storedQueue, updatedQueue);
+          // Preserve the local order while updating new queue items
+          queueList.value = reorderQueue(storedQueue, updatedQueue);
 
-        // Save updated queue order
-        localStorage.setItem("queueList", JSON.stringify(queueList.value));
+          // Save updated queue order
+          localStorage.setItem("queueList", JSON.stringify(queueList.value));
 
-        noOfQueue.value = queueList.value.length;
-        // if (queueList.value.length > 0 &&
-        //     queueList.value[0].status === "waiting" &&
-        //     currentServing.value == null
-        // ) {
-        //   const nextCustomer = queueList.value[0];
-        //   console.log(nextCustomer.id)
-        //   console.log(nextCustomer.type_id)
-        //   if (nextCustomer) {
-        //     setTimeout(() => {
-        //       caterCustomer(nextCustomer.id, nextCustomer.type_id);
-        //       startWait(nextCustomer.id, nextCustomer.queue_number);
-        //     }, 2000);
-        //   }
-        // }
+          noOfQueue.value = queueList.value.length;
 
-        isQueuelistEmpty.value = queueList.value.length == 0;
+
+          isQueuelistEmpty.value = queueList.value.length == 0;
+          QueueListlastUpdatedAt.value = response.data.last_updated_at;
+        }
       } catch (error) {
         console.error("Error fetching queue:", error);
         $notify("negative", "error", "Failed to fetch queue data");
       } finally {
         isLoading.value = false;
+        if(noOfQueue.value >5){
+          if (polling) setTimeout(fetchQueue, 10000);
+        }else{
+          if (polling) setTimeout(fetchQueue, 3000);
+        }
       }
     };
 
@@ -482,18 +481,27 @@ export default {
           (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
       );
     };
-
+    const fetchIdLastUpdatedAt = ref(null); // last update tracker
+    let fetchIdPolling = true; // Flag to control recursive polling
     const fetchId = async () => {
+      if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
       try {
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
+          last_updated: fetchIdLastUpdatedAt.value,
         });
-        if (response.data.current_serving) {
+        if (response.data.updated) {
+          if (response.data.current_serving) {
           cusId.value = response.data.current_serving.id;
         }
+          fetchIdLastUpdatedAt.value = response.data.last_updated_at;
+        }
+
       } catch (error) {
         console.error("Error fetching customer ID:", error);
+      }finally {
+        if (fetchIdPolling) setTimeout(fetchId, 3000); // Poll every 3 seconds
       }
     };
     // Cater customer with error handling
@@ -648,15 +656,26 @@ export default {
     };
 
     // Fetch waiting time with error handling
+    const fetchWaitingtimelastUpdatedAt = ref(null); // default to null
+    let fetchWaitingtimepolling = true;
     const fetchWaitingtime = async () => {
+      if (!fetchWaitingtimepolling) return;
       try {
-        const { data } = await $axios.post("/admin/waiting_Time-fetch");
-        if (data?.dataValue?.length > 0) {
-          waitTime.value = data.dataValue[0].Waiting_time;
-          prepared.value = data.dataValue[0].Prepared;
+        const { data } = await $axios.post("/admin/waiting_Time-fetch",{
+          last_updated: fetchWaitingtimelastUpdatedAt.value,
+        });
+        if (data.updated) {
+          if (data?.dataValue?.length > 0) {
+            waitTime.value = data.dataValue[0].Waiting_time;
+            prepared.value = data.dataValue[0].Prepared;
+          }
+          fetchWaitingtimelastUpdatedAt.value = data.last_updated_at;
         }
+        
       } catch (error) {
         console.error("Error fetching waiting time:", error);
+      }finally {
+        if (fetchWaitingtimepolling) setTimeout(fetchWaitingtime, 10000);
       }
     };
 
@@ -733,7 +752,9 @@ export default {
               caterCustomer(nextCustomer.id, nextCustomer.type_id);
               startWait(nextCustomer.id, nextCustomer.queue_number);
               serveStartTime = new Date();
+              const startingTime = serveStartTime.toLocaleTimeString();
               localStorage.setItem('serveStartTime'+tellerInformation.value.id.toString(), serveStartTime);
+              localStorage.setItem('startingTime'+tellerInformation.value.id.toString(), startingTime);
             }, 2000);
           }
         }
@@ -756,9 +777,11 @@ export default {
 
   const serveEnd = async () => {
   const savedStartTimeStr  = localStorage.getItem('serveStartTime'+tellerInformation.value.id.toString());
-  if (savedStartTimeStr ) {
+  const startingTime  = localStorage.getItem('startingTime'+tellerInformation.value.id.toString());
+  if (savedStartTimeStr && startingTime ) {
     const savedStartTime = new Date(savedStartTimeStr); // ✅ convert to Date
     const now = new Date();
+    const endingTime = now.toLocaleTimeString();
     const diffMs = now - savedStartTime; // in ms
     let minutes = Math.round(diffMs / 60000); // convert to minutes
     if (minutes < 1) minutes = 1;
@@ -769,10 +792,14 @@ export default {
     try {
       await $axios.post("/teller/save-serving-time", {
         minutes,
+        startingTime,
+        endingTime,
         type_id: tellerInformation.value.type_id,
         teller_id: tellerInformation.value.id,
       });
       console.log("Serving time saved:", minutes, "minutes");
+      console.log("Start time saved:", startingTime, "startingTime");
+      console.log("End time saved:", endingTime, "endingTime");
     } catch (err) {
       console.error("Failed to save serving time", err);
     }
@@ -872,6 +899,9 @@ export default {
 
         localStorage.removeItem("authTokenTeller");
         localStorage.removeItem("tellerInformation");
+        polling = false;
+        fetchWaitingtimepolling = false;
+        fetchIdPolling = false;
         router.push("/login");
         setTimeout(() => {
           window.location.reload();
@@ -934,41 +964,14 @@ export default {
     };
 
     // Timer references for cleanup
-    let waitingTimeout;
-    let queueTimeout;
-    let fetchIdTimeout;
+
     let currencyInterval;
 
-    // Optimized fetch functions with error handling
-    const optimizedFetchQueueData = async () => {
-      try {
-        await fetchQueue();
-      } catch (error) {
-        console.error("Error in queue data fetch:", error);
-      } finally {
-        queueTimeout = setTimeout(optimizedFetchQueueData, 3000);
-      }
-    };
 
-    const optimizedFetchWaitingtime = async () => {
-      try {
-        await fetchWaitingtime();
-      } catch (error) {
-        console.error("Error in waiting time fetch:", error);
-      } finally {
-        waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000);
-      }
-    };
 
-    const optimizedFetchId = async () => {
-      try {
-        await fetchId();
-      } catch (error) {
-        console.error("Error in customer ID fetch:", error);
-      } finally {
-        fetchIdTimeout = setTimeout(optimizedFetchId,3000);
-      }
-    };
+
+
+
 
     onMounted(() => {
       try {
@@ -979,9 +982,9 @@ export default {
           fetch_Image();
 
           // Start periodic data fetching
-          optimizedFetchQueueData();
-          optimizedFetchWaitingtime();
-          optimizedFetchId();
+          fetchQueue()
+          fetchWaitingtime()
+          fetchId()
           fetchTodayServingStats()
           // Start currency data fetching
           fetchCurrency();
@@ -1006,9 +1009,6 @@ export default {
 
     onUnmounted(() => {
       // Cleanup all timers and intervals
-      clearTimeout(waitingTimeout);
-      clearTimeout(queueTimeout);
-      clearTimeout(fetchIdTimeout);
       clearInterval(currencyInterval);
       if (waitTimer) clearInterval(waitTimer);
       if (refreshInterval) clearInterval(refreshInterval);

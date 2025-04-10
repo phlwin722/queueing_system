@@ -98,12 +98,7 @@ class TellercaterController extends Controller
     
         $type_id = $request->type_id;
         $teller_id = $request->teller_id;
-    
-        // $queue = Queue::where('type_id', $type_id)
-        //             ->where('teller_id', $teller_id) // Fetch queue specific to teller
-        //             ->where('status', 'waiting')
-        //             ->orderBy('created_at')
-        //             ->get();
+        $lastUpdated = $request->input('last_updated'); // from frontend
 
         $queue = DB::table('queues as qs')
                 ->select(
@@ -129,13 +124,25 @@ class TellercaterController extends Controller
                 ->where('type_id', $type_id)
                 ->where('teller_id', $teller_id) // Fetch queue specific to teller
                 ->where('status', 'waiting')
-                ->orderBy('created_at')
+                ->orderBy('position', 'asc')
                 ->get();
+
+                // Check latest updated_at timestamp in queue for this type and teller
+                $latestUpdate = Queue::where('type_id', $type_id)
+                ->where('teller_id', $teller_id)
+                ->max('updated_at');
+    
+            if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
+                // No updates since the last request
+                return response()->json([
+                    'updated' => false,
+                ]);
+            }
     
         $currentServing = Queue::where('type_id', $type_id)
-                              ->where('teller_id', $teller_id)
-                              ->where('status', 'serving')
-                              ->first();
+                            ->where('teller_id', $teller_id)
+                            ->where('status', 'serving')
+                            ->first();
     
         $servingQueue = DB::table('queues')
                         ->select('name', 'queue_number', 'status')
@@ -145,9 +152,9 @@ class TellercaterController extends Controller
                         ->first();
     
         $name = DB::table('tellers')
-                 ->select('teller_firstname', 'teller_lastname')
-                 ->where('id', $teller_id)
-                 ->first();
+                ->select('teller_firstname', 'teller_lastname')
+                ->where('id', $teller_id)
+                ->first();
     
         $fullname = $name ? $name->teller_firstname . " " . $name->teller_lastname : null;
     
@@ -159,6 +166,8 @@ class TellercaterController extends Controller
             'queue_number' => $servingQueue->queue_number ?? null,
             'status' => $servingQueue->status ?? null,
             'fullname' => $fullname,
+            'updated' => true,
+            'last_updated_at' => $latestUpdate,
         ]);
     }
     
