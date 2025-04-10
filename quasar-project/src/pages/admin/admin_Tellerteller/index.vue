@@ -72,7 +72,7 @@
           <q-badge
             :color="props.row.Status === 'Online' ? 'green' : 'red'" 
           >
-            {{ props.row.Status }}  <!-- Display the status text -->
+            {{ props.row.Status === null ? 'Offline' : props.row.Status}}  <!-- Display the status text -->
           </q-badge>
         </q-td>
       </template>

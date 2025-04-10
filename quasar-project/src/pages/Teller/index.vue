@@ -716,9 +716,9 @@ export default {
       $notify(
           "positive",
           "check",
-          "Auto Serving Enabled"
+          "I'm ready to get back to work"
         );
-      console.log("Auto Serving Enabled");
+ 
       // Start the interval when autoServing is turned on
       autoServingInterval = setInterval(() => {
         if (
@@ -740,11 +740,11 @@ export default {
       }, 2000); // Check every 3 seconds (adjust as needed)
     } else {
       $notify(
-          "positive",
-          "check",
-          "Auto Serving Disabled"
+          "primary",
+          "info",
+          "I'm taking a break"
         );
-      console.log("Auto Serving Disabled");
+ 
       // Clear the interval when autoServing is turned off
       if (autoServingInterval) {
         clearInterval(autoServingInterval);
