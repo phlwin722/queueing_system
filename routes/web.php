@@ -79,6 +79,7 @@ Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']
 Route::post('/teller/image',[TellerController::class,'fetchImage']);
 Route::post('/teller/image-teller',[TellerController::class,'fetchImageTeller']);
 Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchImageTellerCsDashboaard']);
+Route::post('/teller/logout', [TellerController::class, 'tellerLogout']);
 
 Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
 Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
@@ -121,6 +122,7 @@ Route::post('/teller/save-serving-time', [ServingTimeController::class, 'saveSer
 Route::post('/teller/today-serving-stats', [ServingTimeController::class, 'getTodayServingStats']);
 Route::post('/teller/update-serving-time', [ServingTimeController::class, 'updateServingTime']);
 Route::post('/teller/update-all-serving-time', [ServingTimeController::class, 'updateAllServingTime']);
+Route::post('/teller/fetch-serving-time', [ServingTimeController::class, 'fetchServingTime']);
 
 
 //Reset-Window
@@ -147,3 +149,5 @@ Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
 
 //thank you page (survey)
 Route::post('/survey', [SurveyResponseController::class, 'store']);
+Route::get('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
+

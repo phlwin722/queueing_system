@@ -16,7 +16,7 @@
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-md">
-            <div class="col-6">
+            <div class="col-3">
               <q-select
                 outlined
                 v-model="type_id"
@@ -64,9 +64,9 @@
               icon="download"
               @click="generatePDF"
               dense
-              class="q-ml-sm"
-              style="min-width: 30px; max-width: 40px;"
+              style="min-width: 30px; max-width: 40px; margin-top: 15px; margin-left: 15px; height: 38px;"
             />
+            
           </q-toolbar>
         </template>
 
@@ -462,4 +462,9 @@
 .q-mt-md {
   margin-top: 16px;
 }
+</style>
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
 </style>

@@ -124,10 +124,10 @@
                         >
                         
                         <div 
-                          class="text-white text-bold"
+                          class="text-white text-bold glossy"
                           :style="customer.priority_service ? 
                             {
-                              'background-color': 'yellow',
+                              'background-color': '#fad72a',
                               'padding': '5px',
                               'height': '30px',
                               'margin-top': '18px',
@@ -230,7 +230,7 @@
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
               >
               <q-card-section class="row items-center">
-                <q-toggle v-model="autoServing" label="Auto Serving" color="green" />
+                <q-toggle v-model="autoServing"  color="green" />
                 <q-chip v-if="autoServing" color="green" text-color="white" class="q-ml-md">
                   Auto Serving ON
                 </q-chip>
@@ -548,13 +548,12 @@ export default {
     const cancelCustomer = async (customerId) => {
       try {
         await $axios.post("/teller/cancel", { id: customerId });
-        await fetchQueue();
         $notify(
           "positive",
           "check",
           "Customer has been removed from the queue."
         );
-        stopWait();
+        // stopWait();
       } catch (error) {
         console.error("Error canceling customer:", error);
         $notify("negative", "error", "Failed to cancel customer.");
@@ -565,8 +564,9 @@ export default {
     const finishCustomer = async (customerId) => {
       try {
         await $axios.post("/teller/finish", { id: customerId });
-        await fetchQueue();
         await serveEnd();
+        serveStartTime = null; // Reset
+        localStorage.removeItem('serveStartTime'+tellerInformation.value.id.toString());
         $notify("positive", "check", "Customer has been marked as finished.");
       } catch (error) {
         console.error("Error finishing customer:", error);
@@ -710,15 +710,15 @@ export default {
     { deep: false } // We're creating a new reference so deep isn't needed
   );
   let autoServingInterval = null; // Store the interval ID
-  let serveStartTime = null;
+  let serveStartTime = null
   watch(autoServing, (newValue) => {
     if (newValue) {
       $notify(
           "positive",
           "check",
-          "Auto Serving Enabled"
+          "I'm ready to get back to work"
         );
-      console.log("Auto Serving Enabled");
+ 
       // Start the interval when autoServing is turned on
       autoServingInterval = setInterval(() => {
         if (
@@ -733,17 +733,18 @@ export default {
               caterCustomer(nextCustomer.id, nextCustomer.type_id);
               startWait(nextCustomer.id, nextCustomer.queue_number);
               serveStartTime = new Date();
+              localStorage.setItem('serveStartTime'+tellerInformation.value.id.toString(), serveStartTime);
             }, 2000);
           }
         }
       }, 2000); // Check every 3 seconds (adjust as needed)
     } else {
       $notify(
-          "positive",
-          "check",
-          "Auto Serving Disabled"
+          "primary",
+          "info",
+          "I'm taking a break"
         );
-      console.log("Auto Serving Disabled");
+ 
       // Clear the interval when autoServing is turned off
       if (autoServingInterval) {
         clearInterval(autoServingInterval);
@@ -754,11 +755,14 @@ export default {
 
 
   const serveEnd = async () => {
-  if (serveStartTime) {
+  const savedStartTimeStr  = localStorage.getItem('serveStartTime'+tellerInformation.value.id.toString());
+  if (savedStartTimeStr ) {
+    const savedStartTime = new Date(savedStartTimeStr); // ✅ convert to Date
     const now = new Date();
-    const diffMs = now - serveStartTime; // in ms
+    const diffMs = now - savedStartTime; // in ms
     let minutes = Math.round(diffMs / 60000); // convert to minutes
     if (minutes < 1) minutes = 1;
+    console.log("minutes: "+minutes)
     // const seconds = Math.floor((diffMs % 60000) / 1000); // if you want seconds too
 
     // Save to backend
@@ -773,7 +777,7 @@ export default {
       console.error("Failed to save serving time", err);
     }
 
-    serveStartTime = null; // Reset
+
   }
 };
 
@@ -782,7 +786,6 @@ export default {
       const response = await $axios.post('/teller/today-serving-stats',{
         type_id: tellerInformation.value.type_id,
       });
-      const stats = response.data;
       const updatedServingTime = Math.round(response.data.avg)
       await $axios.post("/teller/update-serving-time", {
         minutes: updatedServingTime,
@@ -862,6 +865,11 @@ export default {
 
     const logout = async () => {
       try {
+        await $axios.post('/teller/logout',{
+          teller_id: tellerInformation.value.id,
+          type_id: tellerInformation.value.type_id
+        });
+
         localStorage.removeItem("authTokenTeller");
         localStorage.removeItem("tellerInformation");
         router.push("/login");
@@ -869,7 +877,9 @@ export default {
           window.location.reload();
         }, 100);
       } catch (error) {
-        console.error("Error during logout:", error);
+        if (error.response.status === 400) {
+          $notify('negative','error',error.response.data.message)
+        }
       }
     };
 
@@ -936,7 +946,7 @@ export default {
       } catch (error) {
         console.error("Error in queue data fetch:", error);
       } finally {
-        queueTimeout = setTimeout(optimizedFetchQueueData, 2000);
+        queueTimeout = setTimeout(optimizedFetchQueueData, 3000);
       }
     };
 
@@ -946,7 +956,7 @@ export default {
       } catch (error) {
         console.error("Error in waiting time fetch:", error);
       } finally {
-        waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000);
+        waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000);
       }
     };
 
@@ -956,7 +966,7 @@ export default {
       } catch (error) {
         console.error("Error in customer ID fetch:", error);
       } finally {
-        fetchIdTimeout = setTimeout(optimizedFetchId, 2000);
+        fetchIdTimeout = setTimeout(optimizedFetchId,3000);
       }
     };
 

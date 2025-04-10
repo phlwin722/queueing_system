@@ -19,6 +19,7 @@ return new class extends Migration
             ->constrained('types'); 
             $table->foreignId('teller_id')
             ->nullable()->constrained('tellers');
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }

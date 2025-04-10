@@ -142,8 +142,19 @@ export default defineComponent({
         field: "indicator",
         sortable: false,
       },
-      { name:'serving_time',label:'Serving Time',align: 'left', field: 'serving_time', sortable: false},
-      { name: "actions", label: "Actions", align: "left", sortable: false },
+      { 
+        name:'serving_time',
+        label:'Serving Time',
+        align: 'left', 
+        field: row => row.serving_time || '10',
+        sortable: false
+      },
+      { 
+        name: "actions", 
+        label: "Actions", 
+        align: "left", 
+        sortable: false 
+      },
     ]);
 
     const selected = ref([]);
@@ -249,4 +260,10 @@ export default defineComponent({
   margin-left: 5px;
   border-radius: 5px;
 }
+</style>
+
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
 </style>

@@ -10,7 +10,8 @@ class Window extends Model
     protected $fillable = [
         'window_name', 
         'teller_id', 
-        'type_id'
+        'type_id',
+        'status',
     ];
 
 }

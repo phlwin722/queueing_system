@@ -16,11 +16,11 @@
           <p class="text-h6 text-primary">Your experience matters to us! Please provide feedback to improve our service.</p>
         </q-card-section>
 
-        <q-form @submit="submitSurvey" class="q-gutter-md q-px-md q-pb-md flex flex-center column shadow-1" style="max-width: 500px; margin: 0 auto;">
+        <q-form @submit="submitSurvey" class="q-gutter-md q-px-md q-pb-md flex flex-center column shadow-1 rounded-borders" style="max-width: 500px; margin: 0 auto;">
           <div class="text-secondary q-mb-sm">
               Survey form
             </div>
-          <q-input v-model="survey.name" label="Your Name" filled dense class="full-width" required />
+          <q-input v-model="survey.name" label="Your Name" filled dense class="full-width" hint="Optional"/>
 
         <q-card-section class="bg-accent full-width rounded-borders">
           <div class="text-secondary q-mb-sm text-left">

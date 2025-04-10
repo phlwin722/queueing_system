@@ -1,6 +1,6 @@
 <!-- components/BarChart.vue -->
 <template>
-    <div style="height: 300px; width: 100%;">
+    <div style="height: 300px; width:100%;" class="shadow-1 q-pa-sm">
       <Bar :data="chartData" :options="options" />
     </div>
   </template>

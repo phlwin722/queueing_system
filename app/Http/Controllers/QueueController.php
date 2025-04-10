@@ -13,76 +13,102 @@ class QueueController extends Controller
 {
     public function joinQueue(QueueRequest $request)
     {
+        // Extracts the 'type_id' from the incoming request. This identifies the type of service (or window).
         $type_id = $request->type_id;
-
-        // Fetch all tellers assigned to this type_id
-        $tellers = DB::table('windows')->where('type_id', $type_id)->pluck('teller_id');
-
+    
+        // Fetch all tellers who are assigned to the specific window type and are currently "Online" (signed in).
+        $tellers = DB::table('windows')
+                       ->where('type_id', $type_id)        // Filters by 'type_id' for the current window type.
+                       ->where('status', 'Online')        // Filters to only include tellers who are online.
+                       ->pluck('teller_id');              // Retrieves an array of teller IDs.
+    
+        // If no tellers are found, return a 400 error with an appropriate message.
         if ($tellers->isEmpty()) {
-            return response()->json(['message' => 'No tellers assigned to this window type'], 400);
+            return response()->json([
+                'message' => 'No tellers assigned to this window type'  // Error message for the user.
+            ], 400);  // HTTP status code 400 for a bad request.
         }
-
-        // Determine the last assigned teller for this type_id
-        $lastAssigned = Queue::where('type_id', $type_id)->orderBy('created_at', 'desc')->first();
-
-
-        // Get the next teller in a round-robin manner
-        $nextTellerIndex = $lastAssigned ? ($tellers->search($lastAssigned->teller_id) + 1) % $tellers->count() : 0;
-        $assignedTellerId = $tellers[$nextTellerIndex];
-
-        // Double-check assignedTellerId
-        if (!$assignedTellerId) {
-            return response()->json(['message' => 'Failed to assign teller'], 500);
+    
+        // Initialize an empty array to track how many customers each teller has assigned.
+        $tellerCount = [];
+    
+        // Loop through each teller to count how many active customers (not finished) are assigned to them.
+        foreach ($tellers as $tellerID) {
+            // Count customers for each teller (those whose status is not 'finished').
+            $assignedCount = DB::table('queues')
+                                ->where('type_id', $type_id)        // Filters by the 'type_id' of the service.
+                                ->where('teller_id', $tellerID)     // Filters by each 'teller_id'.
+                                ->where('status', '!=', 'finished') // Excludes customers with a 'finished' status.
+                                ->count();                         // Counts how many customers meet the criteria.
+            $tellerCount[$tellerID] = $assignedCount;  // Stores the count of assigned customers for each teller.
         }
-
-        // Get the next queue number
+    
+        // Filters out tellers who have less than 1 customer assigned to them.
+        $availableTellers = array_filter($tellerCount, function($count) {
+            return $count < 1;  // Returns tellers with less than 1 active customer.
+        });
+    
+        // If all tellers are at the limit (i.e., have 1 or more assigned customers), choose a random teller.
+        if (count($availableTellers) === 0) {
+            $assignedTellerId = $tellers->random(); // Randomly selects a teller from the list.
+        } else {
+            // If there are tellers available with less than 1 customer, assign the one with the least load.
+            $assignedTellerId = array_search(min($availableTellers), $availableTellers); // Finds the teller with the minimum assigned customers.
+        }
+    
+        // Retrieve the last queue number for the specific 'type_id' and 'assignedTellerId', ordered by the most recent.
         $lastQueue = DB::table('queue_numbers')
-            ->where('type_id', $type_id)
-            ->where('teller_id', $assignedTellerId)
-            ->where('status', '!=', 'finished')
-            ->orderBy('queue_number', 'desc')
-            ->first();
-
+            ->where('type_id', $type_id)                  // Filters by 'type_id' for the current service.
+            ->where('teller_id', $assignedTellerId)       // Filters by the selected teller.
+            ->where('status', '!=', 'finished')           // Excludes finished queues.
+            ->orderBy('queue_number', 'desc')             // Orders by queue number in descending order (most recent).
+            ->first();                                    // Retrieves the first (latest) record.
+    
+        // If a previous queue exists, increment the queue number by 1, else start at 1.
         $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
-
-        // Create a new queue entry with explicit teller_id
+    
+        // Create a new queue entry in the database with the given customer and teller information.
         $queue = Queue::create([
-            'token' => $request->token,
-            'name' => $request->name,
-            'email' => $request->email,
-            'type_id' => $type_id,
-            'teller_id' => $assignedTellerId, // Assigned teller - Explicitly setting it here
-            'email_status' => $request->email_status,
-            'queue_number' => $nextQueueNumber,
-            'status' => 'waiting',
-            'waiting_customer' => null,
-            'currency_selected' => $request->currency,
-            'priority_service' => $request->priority_service
+            'token' => $request->token,                      // The unique token for the customer.
+            'name' => $request->name,                        // The customer's name.
+            'email' => $request->email,                      // The customer's email.
+            'type_id' => $type_id,                           // The 'type_id' for the service.
+            'teller_id' => $assignedTellerId,                // The selected teller's ID.
+            'email_status' => $request->email_status,        // Email status (if applicable).
+            'queue_number' => $nextQueueNumber,               // The next available queue number.
+            'status' => 'waiting',                            // Initial status for the new queue: 'waiting'.
+            'waiting_customer' => null,                      // Placeholder for customer waiting status.
+            'currency_selected' => $request->currency,       // The currency selected by the customer.
+            'priority_service' => $request->priority_service // Priority service flag.
         ]);
-
-        // Log to ensure proper assignment
+    
+        // Log the created queue to ensure the correct assignment of tellers and queue numbers.
         logger()->info("Queue Created: ", $queue->toArray());
-
+    
+        // Insert a new entry in the 'queue_numbers' table to associate the queue with the teller and the customer.
         DB::table('queue_numbers')->insert([
-            'status' => 'waiting',
-            'queue_number' => $nextQueueNumber,
-            'type_id' => $type_id,
-            'teller_id' => $assignedTellerId,
-            'customer_id' => $queue->id
+            'status' => 'waiting',                            // Set the status as 'waiting' for the new queue number.
+            'queue_number' => $nextQueueNumber,               // The next queue number for the customer.
+            'type_id' => $type_id,                           // The 'type_id' for the service.
+            'teller_id' => $assignedTellerId,                // The assigned teller's ID.
+            'customer_id' => $queue->id                      // The customer ID associated with this queue.
         ]);
-
+    
+        // Retrieve the window name associated with the assigned teller.
         $windowName = DB::table('windows')
-            ->where('teller_id', $queue->teller_id)
-            ->select('window_name')
-            ->first();
-
+            ->where('teller_id', $queue->teller_id)           // Filters by the 'teller_id' of the assigned teller.
+            ->select('window_name')                           // Selects the 'window_name' column.
+            ->first();                                        // Retrieves the first result (since 'teller_id' is unique).
+    
+        // Return a JSON response to the user with the details of the newly joined queue.
         return response()->json([
-            'message' => 'Successfully joined queue',
-            'id' => $queue->id,
-            'queue_number' => $queue->queue_number,
-            'window_name' => $windowName->window_name
+            'message' => 'Successfully joined queue',         // Success message.
+            'id' => $queue->id,                               // The ID of the newly created queue.
+            'queue_number' => $queue->queue_number,           // The queue number assigned to the customer.
+            'window_name' => $windowName->window_name         // The name of the window where the customer was assigned.
         ]);
     }
+    
     
     public function joinSwitchQueue (Request $request) {
         $customerID = $request->userId;
@@ -156,6 +182,7 @@ class QueueController extends Controller
     public function getQueueList(Request $request)
     {
         $token = $request->input('token');
+        $lastUpdated = $request->input('last_updated'); // from frontend
 
         $typeId = DB::table('queues')
             ->where('token', $token)
@@ -165,25 +192,37 @@ class QueueController extends Controller
             ->where('token', $token)
             ->value('teller_id');
 
-        // Get all queue numbers for the specified type_id
+        // Check latest updated_at timestamp in queue for this type and teller
+        $latestUpdate = Queue::where('type_id', $typeId)
+            ->where('teller_id', $tellerId)
+            ->max('updated_at');
+
+        if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
+            // No updates since the last request
+            return response()->json([
+                'updated' => false,
+            ]);
+        }
+
+        // Otherwise, return the updated list
         $queueList = Queue::where('type_id', $typeId)
             ->where('teller_id', $tellerId)
-            ->orderBy('position', 'asc') // Sort in ascending order
+            ->orderBy('position', 'asc')
             ->get();
 
-
-
-        // Get the currently serving queue number for the specified type_id
         $currentServing = Queue::where('status', 'serving')
             ->where('type_id', $typeId)
             ->where('teller_id', $tellerId)
             ->first()?->queue_number ?? 'N/A';
 
         return response()->json([
+            'updated' => true,
+            'last_updated_at' => $latestUpdate,
             'queue' => $queueList,
             'current_serving' => $currentServing,
         ]);
     }
+
 
 
 
@@ -430,8 +469,11 @@ class QueueController extends Controller
                 "t.Image",
                 "tp.name",
                 "tp.indicator",
-                "tp.serving_time"
+                "tp.serving_time",
+                "w.status"
             )
+            ->leftJoin('windows as w', 'w.teller_id', "=", "t.id")
+            ->whereIn('w.status', ['Online'])
             ->leftJoin("types as tp", "tp.id", "=", "t.type_id")
             ->whereIn("t.type_id", $matchingTypeIds) // Match multiple type_ids
             ->get();
@@ -488,16 +530,30 @@ class QueueController extends Controller
 
     public function checkWaitingCustomer(Request $request)
     {
+        $token = $request->input('token');
+        $lastUpdated = $request->input('last_updated');
+    
         $queue = DB::table('queues')
-            ->where('token', $request->input('token'))
+            ->where('token', $token)
             ->first();
-
+    
+        // Get updated_at value of the matched queue
+        $latestUpdate = optional($queue)->updated_at;
+    
+        // If not updated since the last fetch, skip
+        if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
+            return response()->json([
+                'updated' => false,
+            ]);
+        }
+    
         return response()->json([
+            'updated' => true,
+            'last_updated_at' => $latestUpdate,
             'waiting_customer' => $queue->waiting_customer,
-
         ]);
     }
-
+    
 
     public function WaitingCustomerReset(Request $request)
     {
