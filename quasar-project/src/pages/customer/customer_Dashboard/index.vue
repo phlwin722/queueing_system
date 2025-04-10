@@ -4,11 +4,13 @@
       class="row wrap col-md-6 justify-center items-center flex q-gutter-md q-pa-md"
       style="width: 100%; max-width: 600px; margin: auto"
     >
+    
       <!-- User Queue Status -->
       <q-card
         class="col-12 col-md-5 full-width shadow-3 bg-white rounded-borders q-pa-md q-pa-xs"
       >
-        <q-card-section>
+
+        <q-card-section style="text-align: right;">
           <q-btn
             color="yellow-8"
             icon="download"
@@ -49,36 +51,44 @@
             </q-tooltip>
           </q-btn>
 
+
           <q-dialog v-model="showDialog">
-            <q-card class="q-pa-md" style="min-width: 310px">
+            <q-card class="q-pa-md" style="min-width: 310px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1)">
+              <div class="text-primary" style="font-weight: 600; font-size: 20px;">
+                Switch Teller
+              </div>
               <q-card-section>
+
                 <!-- Loop through serviceTypeId and create a div for each item -->
                 <div 
                   v-for="item in serviceTypeId" 
                   :key="item.value" 
                   @click="changeTeller(item), showDialog = false" 
                   :id="`item-${item.value}`" 
-                  class="item-div col"
-                  >
-                  <div class="row">
-                    <div class="col-4">
+                  class="item-div col cursor-pointer"
+                  style="border-bottom: 1px solid #e0e0e0; padding: 10px 0; transition: background-color 0.3s ease;"
+                >
+                  <div class="row items-center">
+                    <div class="col-auto q-ml-sm">
                       <q-img
                         :src="item.teller_image || require('assets/no-image.png')"
                         width="60px"
                         height="60px"
-                        class="text-secondary q-mr-md shadow-1"
+                        class="text-secondary q-mr-md shadow-1 rounded-borders"
                       />
                     </div>
                     <div class="col">
-                        <!-- Display item.value (or item.label) inside the p tag -->
-                        <p>{{ item.name }}</p>
-                        <p class="service-name">{{ item.service_name }}</p>
+                      <!-- Display item.name and item.service_name inside the p tag -->
+                      <p class="text-h6 q-mb-xs" style="font-weight: 600">{{ item.name }}</p>
+                      <p class="service-name text-subtitle2" style="color: #21ba45">{{ item.service_name }}</p>
                     </div>
-                </div>
+                  </div>
                 </div>
               </q-card-section>
             </q-card>
           </q-dialog>
+
+
         </q-card-section>
         <!-- Modernized Service Type & Personnel with Glass Effect -->
         <q-card
@@ -180,6 +190,23 @@
           class="text-center text-warning q-mb-md q-mt-md"
         >
           Expected cater time: {{ timeCater }}
+
+          <q-icon
+            name="info"
+            size="18px"
+            class="q-ml-sm cursor-pointer"
+            color="grey-7"
+          >
+            <q-tooltip
+              anchor="top middle"
+              self="bottom middle"
+              :offset="[0, 5]"
+              transition-show="scale"
+              transition-hide="scale"
+            >
+              This expected cater time is just an assumption. You may be catered earlier or later than the expected cater time. Thank you.
+            </q-tooltip>
+          </q-icon>
         </div>
         <div
           v-if="convertExpectedCaterTime >= newTime && newFormattedTime < originalFromBreak && !isBeingServed "
@@ -370,7 +397,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
 import { useQuasar, date } from "quasar";
@@ -404,10 +431,6 @@ export default {
     const imageUrl = ref();
     let refreshInterval = null;
     let countdownInterval = null;
-    let waitingTimeout;
-    let queueTimeout;
-    let statusTimeout;
-    let breakTimeout
     const moneyRates = ref([]);
     const currentPage = ref(1);
     const itemsPerPage = 5; // Number of items per page
@@ -511,48 +534,40 @@ export default {
     //   });
     // }
     // Fetch queue list and current serving number
-
+    const QueueListlastUpdatedAt = ref(null); // default to null
+    let polling = true;
     const fetchQueueData = async () => {
-      try {
-        const response = await $axios.post("/customer-list", {
-          token: tokenurl.value,
-        });
+      if (!polling) return;
+  try {
+    const response = await $axios.post("/customer-list", {
+      token: tokenurl.value,
+      last_updated: QueueListlastUpdatedAt.value,
+    });
 
-        queueList.value = response.data.queue.filter(
-          (q) => !["finished", "cancelled", "serving"].includes(q.status)
+    // Only process if there's an update
+    if (response.data.updated) {
+      // Update the queue
+      queueList.value = response.data.queue.filter(
+        (q) => !["finished", "cancelled", "serving"].includes(q.status)
+      );
+
+      currentQueue.value = response.data.current_serving;
+      isBeingServed.value = currentQueue.value == customerQueueNumber.value;
+
+      if (isBeingServed.value) {
+        queueList.value = queueList.value.filter(
+          (q) => q.queue_number !== customerQueueNumber.value
         );
-        currentQueue.value = response.data.current_serving;
-        // Check if the customer is currently being served
-        isBeingServed.value = currentQueue.value == customerQueueNumber.value;
-        // Determine customer position in queue
-        // If admin pressed "Wait" for the first in queue, start countdown
-        // if (
-        //   response.data.waiting_customer === 'yes') {
-        //   console.log(response.data.waiting_customer)
-        //   isWaiting.value = true;
-        //   startWait();
-        // } else {
-        //   isWaiting.value = false;
-        //   clearInterval(countdownInterval); // Stop countdown if not waiting
-        // }
+      }
 
-        if (isBeingServed.value) {
-          queueList.value = queueList.value.filter(
-            (q) => q.queue_number !== customerQueueNumber.value
-          );
-        }
+      const customer = response.data.queue.find(
+        (q) => q.id == customerId.value
+      );
 
-        // Notify and redirect when the customer is finished
-        const customer = response.data.queue.find(
-          (q) => q.id == customerId.value
-        );
-
-        queuePosition.value = customer.position;
-
+      if (customer) {
+        queuePosition.value = customer.status === 'serving' ? 0 : customer.position;
         customerStatus.value = customer.status;
-        if(customerStatus.value == 'serving'){
-          queuePosition.value = 0
-        }
+
         if (customer.status === "finished" && !hasNotified.value) {
           await $axios.post("/sent-email-finish", {
             id: userInformation.value.id,
@@ -560,30 +575,44 @@ export default {
             subject: "Thank you for visit",
           });
 
-          hasNotified.value = true; // Mark as notified
+          hasNotified.value = true;
           $notify("positive", "check", "Your turn is finished. Thank you!");
-          setTimeout(() => router.push("/customer-thankyou/"), 2000); // Delay redirect for a smooth transition
+          polling = false;
+          waitingPolling = false;
+          waitingTimePolling = false;
+          breakTimePolling = false; 
+          setTimeout(() => router.push("/customer-thankyou/"), 2000);
         }
-        if (customer && customer.status === "cancelled" && !hasNotified.value) {
-          hasNotified.value = true; // Mark as notified
-          $notify(
-            "negative",
-            "error",
-            "The Admin cancelled your queueing number."
-          );
+
+        if (customer.status === "cancelled" && !hasNotified.value) {
+          hasNotified.value = true;
+          $notify("negative", "error", "The Admin cancelled your queueing number.");
 
           await $axios.post("/sent-email-finish", {
             id: customerId.value,
             email: customer.email,
-            subject: "Thankyou for visit",
+            subject: "Thank you for visit",
           });
+          polling = false;
+          waitingPolling = false;
+          waitingTimePolling = false;
+          breakTimePolling = false; 
           setTimeout(() => router.push("/customer-thankyou/"), 2000);
         }
-        checkingQueueNumber(); // Call the function to check queue number after updating data
-      } catch (error) {
-        console.error(error);
       }
-    };
+
+      checkingQueueNumber(); // Always check queue number
+      QueueListlastUpdatedAt.value = response.data.last_updated_at; // Update timestamp
+      await fetchQueueData()
+    }
+  } catch (error) {
+    console.error(error);
+  }finally{
+    // Fetch the waiting status after fetching queue data
+    if (polling) setTimeout(fetchQueueData, 3000);
+  }
+};
+
 
     const getTableData = async () => {
       try {
@@ -627,12 +656,19 @@ export default {
 
     const approximateWaitTime = computed(() => {
       if (queuePosition.value === null || !serving_time.value) return "N/A";
+        if(isNotBeingCatered.value == true){
+          const estimatedTimeInMinutes = parseTime(toBreak.value)+(queuePosition.value * serving_time.value)
+          approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
+          
+          return estimatedTimeInMinutes;
+        }else{
+          const estimatedTimeInMinutes = queuePosition.value * serving_time.value;
+          approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
 
-      const estimatedTimeInMinutes = queuePosition.value * serving_time.value;
+          return estimatedTimeInMinutes;
+        }
 
-      approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
 
-      return estimatedTimeInMinutes;
     });
 
     const newTime = ref("")
@@ -645,37 +681,67 @@ export default {
     const convertExpectedCaterTime = ref()
     const tempFromBreak = ref()
     const tempToBreak = ref()
-    const fetchBreakTime = async () => {
-      try {
-        const { data } = await $axios.post("/admin/fetch_break_time");
-        // ✅ Correctly assign break start & end times
-        fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
-        tempFromBreak.value = formatTo12Hour(fromBreak.value)
-        toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
-        tempToBreak.value = formatTo12Hour(toBreak.value)
-        // ✅ Get current time in HH:mm format
-        const currentTime = new Date();
-        const currentHour = currentTime.getHours().toString().padStart(2, "0");
-        const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
-        formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
-        const totalMinutes = parseTime(fromBreak.value)-10
-        newTime.value = formatTime2(totalMinutes);
-        const OrgtotalMinutes = parseTime(fromBreak.value)
-        originalFromBreak.value = formatTime2(OrgtotalMinutes);
-        const convertToBreak = parseTime(toBreak.value)
-        convertedToBreak.value = formatTime2(convertToBreak);
-        const totalFormatMinutes = parseTime(formattedCurrentTime.value)
-        newFormattedTime.value = formatTime2(totalFormatMinutes);
-        if(newFormattedTime.value >= originalFromBreak.value && newFormattedTime.value < convertedToBreak.value && !isBeingServed.value || convertExpectedCaterTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && !isBeingServed.value){
-          isNotBeingCatered.value = true
 
-        }else{
-          isNotBeingCatered.value = false
-        }
-      } catch (error) {
-        console.error("Error fetching break time:", error);
-      }
+
+    const fetchBreakTimeLastUpdatedAt = ref(null); // last update tracker
+    let breakTimePolling = true; // Flag to control recursive polling
+
+const fetchBreakTime = async () => {
+  if (!breakTimePolling) return; // Prevent re-fetch if polling is stopped
+
+  try {
+    const { data } = await $axios.post("/admin/fetch_break_time", {
+      last_updated: fetchBreakTimeLastUpdatedAt.value,
+    });
+
+    if (!data.updated) return; // Skip if no update
+
+    fromBreak.value = data.dataValue.break_from.slice(0, 5);
+    tempFromBreak.value = formatTo12Hour(fromBreak.value);
+
+    toBreak.value = data.dataValue.break_to.slice(0, 5);
+    tempToBreak.value = formatTo12Hour(toBreak.value);
+
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours().toString().padStart(2, "0");
+    const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+    formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
+
+    const totalMinutes = parseTime(fromBreak.value) - 10;
+    newTime.value = formatTime2(totalMinutes);
+
+    const OrgtotalMinutes = parseTime(fromBreak.value);
+    originalFromBreak.value = formatTime2(OrgtotalMinutes);
+
+    const convertToBreak = parseTime(toBreak.value);
+    convertedToBreak.value = formatTime2(convertToBreak);
+
+    const totalFormatMinutes = parseTime(formattedCurrentTime.value);
+    newFormattedTime.value = formatTime2(totalFormatMinutes);
+
+    // Condition to check if user is NOT being catered
+    if (
+      (newFormattedTime.value >= originalFromBreak.value &&
+        newFormattedTime.value < convertedToBreak.value &&
+        !isBeingServed.value) ||
+      (convertExpectedCaterTime.value >= newTime.value &&
+        newFormattedTime.value < originalFromBreak.value &&
+        !isBeingServed.value)
+    ) {
+      isNotBeingCatered.value = true;
+    } else {
+      isNotBeingCatered.value = false;
     }
+
+    // Save the latest update timestamp
+    fetchBreakTimeLastUpdatedAt.value = data.last_updated_at;
+  } catch (error) {
+    console.error("Error fetching break time:", error);
+  } finally {
+    if (breakTimePolling) setTimeout(fetchBreakTime, 3000); // Schedule next poll
+  }
+};
+
 
     function parseTime(timeString) {
         // Make sure we're working with a string (access .value if it's a Vue ref)
@@ -709,24 +775,12 @@ export default {
         convertExpectedCaterTime.value = timePart.split("T")[1].split(":").slice(0, 2).join(":");
         convertExpectedCaterTime.value= parseTime(convertExpectedCaterTime.value) // Convert to readable time
         convertExpectedCaterTime.value= formatTime2(convertExpectedCaterTime.value)
-        // console.log("convertExpectedCaterTime:", convertExpectedCaterTime.value);
-        // console.log("newTime:", newTime.value);
-        // console.log("originalFromBreak:", originalFromBreak.value);
-        // console.log("convertedToBreak:", convertedToBreak.value);
-        // console.log("time now: ", newFormattedTime.value)
-        // console.log("Condition 1:", convertExpectedCaterTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && !isBeingServed.value);
-        // console.log("Condition 2:", newFormattedTime.value >= originalFromBreak.value && newFormattedTime.value < convertedToBreak.value && !isBeingServed.value);
         if(newFormattedTime.value >= originalFromBreak.value && newFormattedTime.value < convertedToBreak.value && !isBeingServed.value || convertExpectedCaterTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && !isBeingServed.value){
           isNotBeingCatered.value = true
 
         }else{
           isNotBeingCatered.value = false
-          // const convertToBreak = parseTime(toBreak.value)
-          // console.log(convertToBreak)
-          // const haha = convertExpectedCaterTime.value= parseTime(convertExpectedCaterTime.value) // Convert to readable time
-          // console.log(convertExpectedCaterTime.value)
-          // const b = formatTime2(convertToBreak+haha)
-          // console.log(b)
+          console.log(approximateWaitTime.value+ parseTime(toBreak.value))
         }
         fetchBreakTime()
       }
@@ -779,45 +833,76 @@ export default {
     // };
 
     // Fetch the waiting status from the backend
-    const fetchWaitingStatus = async () => {
-      try {
-        const { data } = await $axios.post("/customer-check-waiting", {
-          token: tokenurl.value,
-        });
+    const fetchWaitingStatuslastUpdatedAt = ref(null); // default to null
+let waitingPolling = true; // Flag to control recursive polling
 
-        if (data.waiting_customer === "yes") {
-          if (!isWaiting.value) {
-            // Start countdown only if not already waiting
-            isWaiting.value = true;
-            startCountdown();
-          }
-        } else {
-          stopCountdown();
+const fetchWaitingStatus = async () => {
+  if (!waitingPolling) return;
+
+  try {
+    const { data } = await $axios.post("/customer-check-waiting", {
+      token: tokenurl.value,
+      last_updated: fetchWaitingStatuslastUpdatedAt.value,
+    });
+
+    if (data.updated) {
+      if (data.waiting_customer === "yes") {
+        if (!isWaiting.value) {
+          // Start countdown only if not already waiting
+          isWaiting.value = true;
+          startCountdown();
         }
-      } catch (error) {
-        console.error("Error fetching waiting status:", error);
+      } else {
+        stopCountdown();
       }
-    };
+      fetchWaitingStatuslastUpdatedAt.value = data.last_updated_at;
+    }
 
-    const fetchWaitingtime = async () => {
-      try {
-        const { data } = await $axios.post("/admin/waiting_Time-fetch");
+  } catch (error) {
+    console.error("Error fetching waiting status:", error);
+  } finally {
+    if (waitingPolling) setTimeout(fetchWaitingStatus, 3000); // Schedule next poll
+  }
+};
 
-        if (data && data.dataValue && data.dataValue.length > 0) {
-          let fetchedTime = data.dataValue[0].Waiting_time;
-          let fetchedPrepared = data.dataValue[0].Prepared;
+    
 
-          // Convert to seconds if "Minutes"
-          waitTime.value =
-            fetchedPrepared === "Minutes" ? fetchedTime * 60 : fetchedTime;
-          prepared.value = fetchedPrepared;
-        } else {
-          console.log("No data available");
-        }
-      } catch (error) {
-        console.log("Error fetching data:", error);
+
+const fetchWaitingTimeLastUpdatedAt = ref(null); // last update tracker
+let waitingTimePolling = true; // Flag to control recursive polling
+
+const fetchWaitingtime = async () => {
+  if (!waitingTimePolling) return; // Prevent re-fetch if polling is stopped
+
+  try {
+    const { data } = await $axios.post("/admin/waiting_Time-fetch", {
+      last_updated: fetchWaitingTimeLastUpdatedAt.value,
+    });
+
+    // Only update if data was changed
+    if (data.updated) {
+      if (data && data.dataValue && data.dataValue.length > 0) {
+        let fetchedTime = data.dataValue[0].Waiting_time;
+        let fetchedPrepared = data.dataValue[0].Prepared;
+
+        waitTime.value =
+          fetchedPrepared === "Minutes" ? fetchedTime * 60 : fetchedTime;
+        prepared.value = fetchedPrepared;
+
+        fetchWaitingTimeLastUpdatedAt.value = data.last_updated_at;
+      } else {
+        console.log("No data available");
       }
-    };
+    }
+
+  } catch (error) {
+    console.log("Error fetching data:", error);
+  } finally {
+    if (waitingTimePolling) setTimeout(fetchWaitingtime, 3000); // Schedule next poll
+  }
+};
+    
+
 
     const startCountdown = () => {
       if (remainingTime.value > 0) return; // Prevent resetting the countdown
@@ -901,6 +986,10 @@ export default {
         await $axios.post("/customer-leave", { id: customerId.value });
         hasNotified.value = true; // Mark as notified
         $notify("positive", "check", "You have left the queue.");
+        polling = false;
+        waitingPolling = false;
+        waitingTimePolling = false;
+        breakTimePolling = false;
         setTimeout(() => router.push("/customer-thankyou/"), 1000);
       } catch (error) {
         console.error(error);
@@ -991,20 +1080,6 @@ export default {
       await getTableData();
       await fetchType();
       queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
-    };
-
-    const optimizedFetchWaitingStatus = async () => {
-      await fetchWaitingStatus();
-      statusTimeout = setTimeout(optimizedFetchWaitingStatus, 2000); // Recursive Timeout
-    };
-
-    const optimizedFetchWaitingtime = async () => {
-      await fetchWaitingtime();
-      waitingTimeout = setTimeout(optimizedFetchWaitingtime, 2000); // Recursive Timeout
-    };
-    const optimizedFetchBreakTime = async () => {
-      await fetchBreakTime();
-      breakTimeout = setTimeout(optimizedFetchBreakTime, 5000); // Recursive Timeout
     };
 
     const isMoneyRatesDialogOpen = ref(false);
@@ -1222,22 +1297,19 @@ export default {
   
     }
 
+
+
     onMounted(() => {
-      getTableData();
-      optimizedFetchWaitingtime();
-      optimizedFetchQueueData();
-      optimizedFetchWaitingStatus();
-      optimizedFetchBreakTime()
+      getTableData()
+      fetchQueueData()
+      fetchWaitingStatus()
+      fetchWaitingtime()
+      fetchBreakTime()
       setInterval(fetchCurrency(),30000);
       fetchType();
     });
 
-    onUnmounted(() => {
-      clearTimeout(waitingTimeout);
-      clearTimeout(queueTimeout);
-      clearTimeout(statusTimeout);
-      clearTimeout(breakTimeout);
-    });
+
 
     return {
       changeTeller,
@@ -1301,9 +1373,9 @@ export default {
 } */
  /* Style for each item div */
 .item-div {
-  margin: 5px;
+  margin-top: 10px;
   padding: 15px;
-  border: 2px solid #ccc; /* Adds border */
+  border: 2px solid #393C3F; /* Adds border */
   border-radius: 8px; /* Adds rounded corners */
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s; /* Smooth transition for hover effect */
@@ -1313,6 +1385,7 @@ export default {
 .item-div:hover {
   background-color: #f0f0f0; /* Light background color on hover */
   transform: scale(1.05); /* Slightly enlarge the div on hover */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Style the paragraph (item name) inside the div */

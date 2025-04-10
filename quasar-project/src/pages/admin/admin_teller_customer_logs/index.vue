@@ -16,7 +16,7 @@
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-md">
-            <div class="col-6">
+            <div class="col-3">
               <q-select
                 outlined
                 v-model="type_id"
@@ -462,4 +462,9 @@
 .q-mt-md {
   margin-top: 16px;
 }
+</style>
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
 </style>

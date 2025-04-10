@@ -286,3 +286,8 @@ export default defineComponent({
 <style>
 @import "flag-icons/css/flag-icons.min.css";
 </style>
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
+</style>
