@@ -21,6 +21,8 @@ class ServingTimeController extends Controller
 
         DB::table('serving_times')->insert([
             'minutes' => $request->minutes,
+            'start_time' => $request->startingTime,
+            'end_time' => $request->endingTime,
             'type_id' => $request->type_id,
             'teller_id' => $request->teller_id,
             'created_at' => now(),
@@ -53,7 +55,7 @@ class ServingTimeController extends Controller
             }
     
             // Get rows
-            $rows = $res->select("st.minutes", "tp.name as window_type", "st.created_at")
+            $rows = $res->select("st.minutes", "st.start_time", "st.end_time", "tp.name as window_type", "st.created_at")
                         ->get();
     
             // Extract minutes separately for calculations
@@ -62,7 +64,7 @@ class ServingTimeController extends Controller
             // Return both rows and minutes separately
             return response()->json([
                 'rows' => $rows,
-                'minutes' => $minutes
+                'minutes' => $minutes,
             ]);
     
         } catch (\Exception $e) {
