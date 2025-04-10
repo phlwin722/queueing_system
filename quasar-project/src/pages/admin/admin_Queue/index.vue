@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-px-md">
+  <q-page class="q-px-md q-pb-md">
     <div class="q-my-md bg-white q-pa-sm shadow-1">
       <q-breadcrumbs class="q-mx-sm">
         <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
@@ -43,130 +43,232 @@
         </div>
       </div>
 
-      <q-card class="q-mb-md q-pa-md shadow-2 bg-primary text-white">
-        <q-card-section class="q-gutter-y-md">
-          <div class="row items-center justify-between">
-            <div class="text-h6">Assigned Personnel:</div>
-            <div class="text-subtitle2">{{ tellerFullName }}</div>
-          </div>
+      <!-- creating the list of all tellers -->
+      <div v-if="assignedTellers.length === 0">Loading...</div>
+      <!-- v-for the service type eg. Deposit, Withdrawal and so on -->
+      <div class="row q-col-gutter-md">
+        <!-- Loop through each service -->
+        <template v-for="service in assignedTellers" :key="service.type_id">
+          <!-- Loop through each teller -->
+          <div
+            class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
+            v-for="teller in sortedTellers(service.tellers)"
+            :key="teller.id"
+          >
+            <q-card class="q-pa-md" style="width: 325px">
+              <q-card-section class="q-pa-md">
+                <q-item
+                  class="column text-subtitle2 text-center q-pa-none q-pb-sm"
+                >
+                  <div class="q-mb-none text-grey-8 q-mb-xs">SERVICE TYPE</div>
+                  <span
+                    class="text-no-wrap"
+                    style="font-size: clamp(12px, 1.5vw, 14px); max-width: 100%"
+                  >
+                    {{ service.type_name }}
+                  </span>
+                </q-item>
+                <q-separator />
+                <q-item
+                  class="column text-subtitle2 text-center q-pa-none q-pt-sm"
+                >
+                  <div class="q-mb-none text-grey-8 q-mb-xs">
+                    ASSIGNED TELLER
+                  </div>
+                  <span
+                    class="text-weight-medium"
+                    style="font-size: clamp(12px, 1.5vw, 14px); max-width: 100%"
+                  >
+                    {{ teller.teller_firstname }}
+                    {{ teller.teller_lastname }}
+                  </span>
+                </q-item>
+              </q-card-section>
 
-          <q-separator class="q-my-sm" color="white" />
+              <q-separator />
 
-          <div class="row items-center justify-between">
-            <div class="text-h6">Queue in Line:</div>
-            <div class="text-subtitle2">{{ noOfQueue }}</div>
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <!-- Current Serving Section -->
-
-      <div class="row d-flex">
-        <div class="col-12 col-md q-mx-sm">
-          <q-card class="q-pa-lg shadow-2 bg-white text-dark">
-            <q-card-section class="text-center">
-              <div class="text-h5 text-bold text-primary">Now Serving</div>
-
-              <q-separator class="q-my-md" color="primary" />
-
-              <div v-if="servingStatus !== null">
-                <div class="text-h4 text-blue-7 q-mt-md">Queue Number:</div>
-                <div class="text-h3 text-primary q-mt-xs">
-                  <strong>{{ cusQueueNum }}</strong>
-                </div>
-
-                <q-separator class="q-my-sm" color="primary" />
-
-                <div class="text-subtitle2 text-grey-8">
-                  Name: <strong class="text-dark">{{ cusName }}</strong>
-                </div>
-              </div>
-
-              <div v-else class="text-subtitle1 text-grey-6 q-mt-md">
-                No one is being served
-              </div>
-            </q-card-section>
-
-            <!-- Action Buttons -->
-            <q-card-actions align="center" class="q-pt-md">
-              <q-btn
-                v-if="currentServing && tempTimer == 0"
-                color="negative"
-                label="Cancel"
-                class="q-mx-sm rounded-borders"
-                @click="beforeCancel(currentServing)"
-              />
-
-              <q-btn
-                v-if="currentServing && tempTimer == 0"
-                color="warning"
-                :label="waiting ? formatTime(tempTimer) : 'Wait'"
-                class="q-mx-sm rounded-borders"
-                @click="startWait(cusId, currentServing.queue_number)"
-                :disable="waiting"
-              />
-
-              <q-btn
-                v-if="currentServing && tempTimer == 0"
-                color="primary"
-                label="Finish"
-                class="q-mx-sm rounded-borders"
-                @click="finishCustomer(currentServing.id)"
-              />
-            </q-card-actions>
-          </q-card>
-        </div>
-
-        <div class="col-12 col-md">
-          <!-- Waiting Queue List -->
-          <q-card class="q-pa-md shadow-3">
-            <q-card-section
-              class="text-h6 text-bold text-primary q-mb-sm text-center"
-            >
-              Waiting Queue
-            </q-card-section>
-
-            <q-separator color="white" />
-
-            <q-list bordered class="q-mb-md" dense>
-              <q-item
-                v-for="customer in paginatedQueueList"
-                :key="customer.id"
-                class="bg-white text-primary rounded-borders q-my-xs shadow-1"
+              <q-card-section
+                class="q-pa-md bg-primary"
+                style="border-radius: 15px"
               >
-                <q-item-section>
-                  <q-item-label class="text-bold text-dark">
-                    <span class="text-grey">Name:</span> {{ customer.name }}
-                  </q-item-label>
-                  <q-item-label class="text-bold text-dark">
-                    <span class="text-grey">Queue No:</span>
-                    {{ customer.queue_number }}
-                  </q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
+                <div
+                  v-if="teller.currently_served && teller.currently_served.name"
+                >
+                  <h6 class="text-center text-white q-my-md">CURRENT QUEUE</h6>
+                  <p class="text-center text-white" style="font-size: 19px">
+                    {{
+                      `${service.type_indicator}#-${String(
+                        teller.currently_served.queue_number
+                      ).padStart(3, "0")}`
+                    }}
+                  </p>
+                  <p class="text-center text-white">
+                    {{ teller.currently_served.name }}
+                  </p>
+                </div>
+                <div v-else>
+                  <h6 class="text-center text-white q-my-md">CURRENT QUEUE</h6>
+                  <p class="text-center text-white" style="font-size: 13px">
+                    No customer is being served currently
+                  </p>
+                  <p class="text-center text-white">...</p>
+                </div>
+              </q-card-section>
 
-            <!-- Pagination -->
-            <q-card-actions align="center">
-              <q-pagination
-                v-model="currentPage"
-                :max="totalPages"
-                :max-pages="5"
-                boundary-numbers
-                color="positive"
-                input-style="width: 60px; text-align: center;"
-                class="text-white"
-              />
-            </q-card-actions>
-          </q-card>
-        </div>
+              <q-card-section>
+                <q-separator />
+                <div v-if="teller.waiting_customers.length">
+                  <p class="text-center text-h6">Waiting Queue</p>
+                  <q-item class="q-pa-none">
+                    <q-item-section class="q-pa-none">
+                      <q-scroll-area
+                        class="my-scroll"
+                        style="
+                          height: 250px;
+                          overflow-y: auto;
+                          overflow-x: hidden;
+                        "
+                      >
+                        <q-list class="q-pa-sm" bordered separator>
+                          <div style="min-height: 250px">
+                            <q-item
+                              v-for="(customer, index) in queueLists(teller)"
+                              :key="customer.queue_number"
+                              v-ripple
+                              class="shadow-2 border q-px-sm q-mb-sm q-flex q-items-center q-justify-center"
+                            >
+                              <q-item-section>
+                                <div v-if="customer.priority_service">
+                                  <div
+                                    class="text-black text-bold text-h6 q-mb-xs"
+                                  >
+                                    <q-badge>VIP</q-badge>
+                                    {{
+                                      `${service.type_indicator}#-${String(
+                                        customer.queue_number
+                                      ).padStart(3, "0")}`
+                                    }}
+                                    <q-tooltip
+                                      anchor="top middle"
+                                      self="bottom middle"
+                                    >
+                                      {{ customer.priority_service }}
+                                    </q-tooltip>
+                                  </div>
+                                </div>
+                                <div v-else>
+                                  <div
+                                    class="text-primary text-bold text-h6 q-mb-xs"
+                                  >
+                                    {{
+                                      `${service.type_indicator}#-${String(
+                                        customer.queue_number
+                                      ).padStart(3, "0")}`
+                                    }}
+                                  </div>
+                                </div>
+                                <!--                           <div
+                                class="text-primary text-bold text-h6 q-mb-xs"
+                              >
+                                {{
+                                  `${service.type_indicator}#-${String(
+                                    customer.queue_number
+                                  ).padStart(3, "0")}`
+                                }}
+                              </div> -->
+                                <p class="text-body2 text-secondary q-mb-none">
+                                  {{ customer.name }}
+                                </p>
+                              </q-item-section>
+                              <q-item-section class="q-px-sm q-justify-center">
+                                <span
+                                  :class="['fi', customer.flag]"
+                                  style="font-size: 1.3em; margin-right: 1px"
+                                ></span>
+                                <span style="font-size: 11px">
+                                  {{ customer.currency_name }}
+                                </span>
+                              </q-item-section>
+                              <q-item-section side>
+                                <q-badge
+                                  :color="index <= 0 ? 'primary' : 'blue-grey'"
+                                  class="text-white text-bold"
+                                >
+                                  <q-tooltip
+                                    anchor="center right"
+                                    self="center left"
+                                  >
+                                    {{ index <= 0 ? "Up Next" : "Waiting" }}
+                                  </q-tooltip>
+                                </q-badge>
+                              </q-item-section>
+                            </q-item>
+                          </div>
+                        </q-list>
+                      </q-scroll-area>
+                    </q-item-section>
+                  </q-item>
+                </div>
+                <div v-else>
+                  <p class="text-center text-h6">Waiting Queue</p>
+                  <q-item class="q-pa-none">
+                    <q-item-section class="q-pa-none">
+                      <q-scroll-area
+                        class="my-scroll"
+                        style="
+                          height: 250px;
+                          overflow-y: auto;
+                          overflow-x: hidden;
+                        "
+                      >
+                        <q-list class="q-pa-sm" bordered separator>
+                          <div style="height: 250px">
+                            <q-item
+                              v-for="n in 5"
+                              :key="n"
+                              class="shadow-1 q-px-sm q-mb-sm"
+                              style="height: 72px"
+                            >
+                              <q-item-section>
+                                <div class="q-mb-xs">
+                                  <div class="skeleton-line short" />
+                                </div>
+                                <div>
+                                  <div class="skeleton-line" />
+                                </div>
+                              </q-item-section>
+                              <q-item-section>
+                                <div class="skeleton-badge" />
+                              </q-item-section>
+                              <q-item-section side>
+                                <div class="skeleton-badge" />
+                              </q-item-section>
+                            </q-item>
+                          </div>
+                        </q-list>
+                      </q-scroll-area>
+                    </q-item-section>
+                  </q-item>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </template>
       </div>
     </q-card>
   </q-page>
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch,
+  nextTick,
+  onBeforeUnmount,
+} from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 
@@ -278,6 +380,7 @@ export default {
       } catch (error) {
         console.error("Error fetching sections:", error);
       }
+      console.log(type_id.value);
     };
 
     const fetchId = async () => {
@@ -335,6 +438,7 @@ export default {
         );
       }
     };
+
     //cancel dialog
     const beforeCancel = (row) => {
       $dialog
@@ -557,6 +661,71 @@ export default {
       await fetchQueue();
       waitingQueue = setTimeout(optimizedFetchQueue, 3000); // Recursive Timeout
     };
+
+    const assignedTellers = ref([]);
+    const lastFetched = ref(null);
+    const queueListFromStorage = ref([]);
+
+    const fetchAssignedTellers = async () => {
+      try {
+        const response = await $axios.post("/tellers/fetch-assigned");
+        assignedTellers.value = response.data.services
+          .map((service) => ({
+            ...service,
+            tellers: service.tellers.filter((teller) => teller.window_name),
+          }))
+          .filter((service) => service.tellers.length > 0);
+      } catch (error) {
+        console.log("Error fetching: ", error);
+      }
+    };
+
+    const queueLists = (teller) => {
+      const fromStorage = queueListFromStorage.value.filter(
+        (q) => q.teller_id === teller.id
+      );
+      return fromStorage.length ? fromStorage : teller.waiting_customers || [];
+    };
+
+    const sortedTellers = (tellers) => {
+      return tellers.sort((a, b) => {
+        if (a.currently_served?.name) return -1;
+        if (b.currently_served?.name) return 1;
+        return 0;
+      });
+    };
+
+    const loadQueueList = () => {
+      const raw = localStorage.getItem("queueList");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (
+          JSON.stringify(parsed) !== JSON.stringify(queueListFromStorage.value)
+        ) {
+          queueListFromStorage.value = parsed;
+        }
+      }
+    };
+
+    let intervalQueue, intervalFetch;
+
+    onMounted(() => {
+      loadQueueList();
+      intervalQueue = setInterval(loadQueueList, 1000);
+
+      fetchAssignedTellers();
+      intervalFetch = setInterval(() => {
+        lastFetched.value = new Date().toISOString();
+      }, 2000);
+    });
+
+    onBeforeUnmount(() => {
+      clearInterval(intervalQueue);
+      clearInterval(intervalFetch);
+    });
+
+    watch(lastFetched, fetchAssignedTellers);
+
     onMounted(() => {
       optimizedFetchQueue();
       fetchWaitingtime();
@@ -609,13 +778,49 @@ export default {
 
       menuOpen,
       toggleFullscreen,
+      // fetching assigned tellers
+      assignedTellers,
+      fetchAssignedTellers,
+      sortedTellers,
+      queueLists,
     };
   },
 };
 </script>
 
 <style scoped>
+@import "flag-icons/css/flag-icons.min.css";
 .rounded-borders {
   border-radius: 12px;
+}
+
+.skeleton-line {
+  height: 12px;
+  background: linear-gradient(90deg, #eee, #ddd, #eee);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-badge {
+  width: 80px;
+  height: 22px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #eee, #ddd, #eee);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 </style>
