@@ -182,6 +182,7 @@ class QueueController extends Controller
     public function getQueueList(Request $request)
     {
         $token = $request->input('token');
+        $lastUpdated = $request->input('last_updated'); // from frontend
 
         $typeId = DB::table('queues')
             ->where('token', $token)
@@ -191,25 +192,37 @@ class QueueController extends Controller
             ->where('token', $token)
             ->value('teller_id');
 
-        // Get all queue numbers for the specified type_id
+        // Check latest updated_at timestamp in queue for this type and teller
+        $latestUpdate = Queue::where('type_id', $typeId)
+            ->where('teller_id', $tellerId)
+            ->max('updated_at');
+
+        if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
+            // No updates since the last request
+            return response()->json([
+                'updated' => false,
+            ]);
+        }
+
+        // Otherwise, return the updated list
         $queueList = Queue::where('type_id', $typeId)
             ->where('teller_id', $tellerId)
-            ->orderBy('position', 'asc') // Sort in ascending order
+            ->orderBy('position', 'asc')
             ->get();
 
-
-
-        // Get the currently serving queue number for the specified type_id
         $currentServing = Queue::where('status', 'serving')
             ->where('type_id', $typeId)
             ->where('teller_id', $tellerId)
             ->first()?->queue_number ?? 'N/A';
 
         return response()->json([
+            'updated' => true,
+            'last_updated_at' => $latestUpdate,
             'queue' => $queueList,
             'current_serving' => $currentServing,
         ]);
     }
+
 
 
 
@@ -514,16 +527,30 @@ class QueueController extends Controller
 
     public function checkWaitingCustomer(Request $request)
     {
+        $token = $request->input('token');
+        $lastUpdated = $request->input('last_updated');
+    
         $queue = DB::table('queues')
-            ->where('token', $request->input('token'))
+            ->where('token', $token)
             ->first();
-
+    
+        // Get updated_at value of the matched queue
+        $latestUpdate = optional($queue)->updated_at;
+    
+        // If not updated since the last fetch, skip
+        if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
+            return response()->json([
+                'updated' => false,
+            ]);
+        }
+    
         return response()->json([
+            'updated' => true,
+            'last_updated_at' => $latestUpdate,
             'waiting_customer' => $queue->waiting_customer,
-
         ]);
     }
-
+    
 
     public function WaitingCustomerReset(Request $request)
     {

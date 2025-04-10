@@ -463,3 +463,8 @@
   margin-top: 16px;
 }
 </style>
+<style >
+  span.q-table__bottom-item{
+    width: 200px;
+  }
+</style>
