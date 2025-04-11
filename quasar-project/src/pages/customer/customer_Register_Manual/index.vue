@@ -56,22 +56,22 @@
             option-value="id"
           />
           <q-select
-          v-if="currentCiesList && currentCiesList.length > 0"
-          v-model="currencySelected"
-          label="Currency Available"
-          transition-show="flip-up"
-          transition-hide="flip-down"
-          outlined
-          emit-value
-          map-options
-          dense
-          class="q-mt-md"
-          :options="currentCiesList"
-          option-label="name"
-          :error="formError.hasOwnProperty('currency')"
-          :error-message="formError.currency"
-          option-value="id"
-        >
+            v-if="currentCiesList && currentCiesList.length > 0"
+            v-model="currencySelected"
+            label="Currency Available"
+            transition-show="flip-up"
+            transition-hide="flip-down"
+            outlined
+            emit-value
+            map-options
+            dense
+            class="q-mt-md"
+            :options="currentCiesList"
+            option-label="name"
+            :error="formError.hasOwnProperty('currency')"
+            :error-message="formError.currency"
+            option-value="id"
+          >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
               <q-item-section avatar>

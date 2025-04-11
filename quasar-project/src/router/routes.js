@@ -76,6 +76,14 @@ const routes = [
         component: () => import("pages/admin/admin_Queue/index.vue"), // Load the QR code page
       },
       {
+        path: '/admin/bank_manager',
+        component: () => import ('pages/admin/bank_manager/index.vue'),
+      },
+      {
+        path: '/admin/branch',
+        component: () => import ('pages/admin/branch/index.vue')
+      },
+      {
         path: "/admin/currency_conversion", // Path for the QR Code management page
         component: () => import("pages/admin/admin_Currency_Conversion/index.vue"), // Load the QR code page
       },
