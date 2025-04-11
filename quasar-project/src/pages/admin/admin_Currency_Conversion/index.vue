@@ -249,7 +249,7 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      getTableData();
+      getTableData()
     });
 
     return {

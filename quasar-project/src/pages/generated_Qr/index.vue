@@ -39,25 +39,38 @@
         class="q-mb-xl"
       />
       <!-- First Item -->
-      <div v-if="newFormattedTime >= newTime && newFormattedTime < originalFromBreak" class="col q-mb-xl">
-        <q-card class="shadow-2" style="width: 350px; text-align: center">
-          <q-card-section>
-            <div class="text-h6">Taking a break soon...</div>
-          </q-card-section>
-
+      <!-- <div v-if="newFormattedTime >= newTime && newFormattedTime < originalFromBreak" class="col q-mb-xl">
+        <q-card class="q-pa-md q-mx-auto" style="max-width: 400px; border-left: 6px solid #1c5d99;">
+        <q-card-section class="text-center">
+          <q-icon name="access_time" size="40px" style="color: #1c5d99;" class="q-mb-sm" />
+          <div class="text-h5 text-weight-bold" style="color: #1c5d99;">Break Time Soon...</div>
+        </q-card-section>
         </q-card>
-      </div>
+      </div> -->
       <div v-if="newFormattedTime >= newTime && formattedCurrentTime < toBreak" class="col q-mb-xl">
-        <q-card class="shadow-2" style="width: 350px; text-align: center">
-          <q-card-section>
-            <div class="text-h6">Break Time</div>
-          </q-card-section>
+        <q-card class="q-pa-xl q-mx-auto" style="max-width: 600px; border-left: 8px solid #1c5d99;">
+              <q-card-section class="text-center">
+                <q-icon name="access_time" size="60px" style="color: #1c5d99;" class="q-mb-md" />
+                <div class="text-h4 text-weight-bold" style="color: #1c5d99;">Break Time</div>
+                <div class="text-subtitle1 text-grey-7">We’ll be on break</div>
+              </q-card-section>
 
-          <q-card-section>
-            <p>From: {{ formatTo12Hour(fromBreak) }}</p>
-            <p>To: {{ formatTo12Hour(toBreak) }}</p>
-          </q-card-section>
-        </q-card>
+              <q-separator spaced />
+
+              <q-card-section class="row justify-around items-center q-pt-lg">
+                <div class="column items-center">
+                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
+                  <div class="text-caption text-grey-7 q-mt-xs">From</div>
+                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(fromBreak) }}</div>
+                </div>
+                <q-icon name="arrow_forward" size="32px" color="grey-6" />
+                <div class="column items-center">
+                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
+                  <div class="text-caption text-grey-7 q-mt-xs">To</div>
+                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(toBreak) }}</div>
+                </div>
+              </q-card-section>
+            </q-card>
       </div>
       <div v-else class="col q-mb-xl">
         <q-card class="shadow-2" style="width: 350px; text-align: center">

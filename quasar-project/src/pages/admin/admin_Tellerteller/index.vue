@@ -70,9 +70,9 @@
       <template v-slot:body-cell-status="props">
         <q-td :props="props">
           <q-badge
-            :color="props.row.Status === 'Online' ? 'green' : 'red'" 
+            :color="props.row.status === 'Online' ? 'green' : 'red'" 
           >
-            {{ props.row.Status }}  <!-- Display the status text -->
+            {{ props.row.status }}  <!-- Display the status text -->
           </q-badge>
         </q-td>
       </template>
@@ -127,7 +127,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, onMounted, onUnmounted } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import MyForm from "pages/admin/admin_Tellerteller/form.vue";
 import { useQuasar } from "quasar";
@@ -190,7 +190,7 @@ export default defineComponent({
       try {
         const { data } = await $axios.post(URL + "/index");
         rows.value.splice(0, rows.value.length, ...data.rows);
-        console.log("try",rows.value);  // Add this line to check the rows
+        console.log("try",data.rows.value);  // Add this line to check the rows
       } catch (error) {
         console.log(error);
       }
@@ -262,7 +262,22 @@ export default defineComponent({
       }
     };
 
-    getTypes();
+    
+
+    let dataTimeout;
+    const optimizedFetchData = async () => {
+          await getTableData()
+          dataTimeout = setTimeout(optimizedFetchData, 5000); // Recursive Timeout
+        };
+
+        onMounted(() => {
+          optimizedFetchData()
+          getTypes()
+        })
+
+        onUnmounted(() => {
+          clearTimeout(dataTimeout)
+        });
 
     return {
       rows,

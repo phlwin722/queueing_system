@@ -244,7 +244,7 @@
 
         };
 
-        let dataTimeout
+       
 
         const fetchTeller = async () => {
           try {
@@ -427,11 +427,9 @@
         });
 
         onMounted(() => {
-          fetchTeller();
+          fetchTeller()
+          getTableData()
         })
-        onUnmounted(() => {
-          clearTimeout(dataTimeout);
-        });
     
         return{
           generatePDF,
