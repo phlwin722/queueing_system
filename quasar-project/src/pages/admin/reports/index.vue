@@ -104,9 +104,10 @@ import {
     ref,
     computed,
     onMounted,
-    onUnmounted
+    onUnmounted,
+    watch
 } from 'vue'
-
+import { debounce } from 'lodash';
 
 import {
     $axios,
@@ -230,18 +231,19 @@ export default defineComponent({
         finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
 
     };
-    let dataTimeout
 
-    const optimizedFecthData = async () => {
-        await getTableData()
-        dataTimeout = setTimeout(optimizedFecthData, 3000); // Recursive Timeout
-    };
-    onMounted(() => {
-        optimizedFecthData()
-    })
-    onUnmounted(() => {
-        clearTimeout(dataTimeout);
+    const debouncedGetTableData = debounce(() => {
+          getTableData()
+        }, 300);
+
+    watch([fromDate, toDate], () => {
+        debouncedGetTableData(); // Only call getTableData once when either value changes
     });
+
+    onMounted(() => {
+      getTableData()
+    })
+
     
 
 

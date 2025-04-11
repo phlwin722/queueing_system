@@ -317,7 +317,7 @@ class TellerController extends Controller
             // Begin querying the 'queues' table with alias 'qs'
             $res = DB::table('queues as qs')
                 // Add a condition to filter the results by the 'teller_id' 
-                ->where('teller_id', $teller_id)
+                // ->where('teller_id', $teller_id)
                 // Select specific columns from the 'queues' table and related tables
                 ->select(
                     "qs.name", // Customer name from the 'queues' table
@@ -337,16 +337,16 @@ class TellerController extends Controller
                 // Order the results by 'updated_at' in descending order (latest first)
                 ->orderBy('qs.updated_at', 'desc');
 
-            // Check if a 'date' filter is provided in the request
-            if ($date != null) {
-                // Filter the results by the 'updated_at' date (exact match)
-                $res->whereDate('qs.updated_at', $date); // Use the alias 'qs' for the 'updated_at' column
-            } else {
-                $dateNow = Carbon::now(); // get current date
-                $formatted = $dateNow->format('Y-m-d'); // Format as YYYY-MM-DD
-                $res->whereDate('qs.updated_at', $formatted);
-            }
 
+                if (!empty($teller_id)) {
+                    $res->where('qs.teller_id', $teller_id);
+                }
+    
+                if ($request->has('date') && $request->input('date')) {
+                    $date = $request->input('date');
+                    $res->whereDate('qs.updated_at', $date); // Use the alias 'qs'
+                }
+    
             // Return the query results as a JSON response
             return response()->json([
                 'rows' => $res->get() // Execute the query and return the rows
@@ -461,11 +461,11 @@ class TellerController extends Controller
                 "t.type_id",
                 "t.type_ids_selected",
                 "t.Image",
-                "ts.Status", // Assuming the status is in the window table
-                DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
+                DB::raw("IFNULL(ts.status, 'Offline') as status"), // Set 'Offline' if null
+                DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')
             )
             ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
-            ->leftJoin('windows as ts', 't.id', '=', 'ts.teller_id') // Join with the teller_status table
+            ->leftJoin('windows as ts', 't.id', '=', 'ts.teller_id')
             ->groupBy(
                 "t.id",
                 "t.teller_firstname",
@@ -474,18 +474,21 @@ class TellerController extends Controller
                 "t.teller_password",
                 "t.type_ids_selected",
                 "t.Image",
-                "ts.Status"
+                "ts.status"
             )
-            ->orderBy('t.created_at', 'desc'); // Ordering by created_at in descending order
+            ->orderBy('t.created_at', 'desc');
+    
 
         if ($id) {
             $res = $res->where("t.id", $id)->first();
         } else {
             $res = $res->get();
         }
+    
 
         return $res;
     }
+    
     
     public function validationLoginTeller (AdminRequest $request) {
 

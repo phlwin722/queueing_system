@@ -272,10 +272,7 @@ export default defineComponent({
         getTableData()
         fetchWindowTypes()
     })
-    onUnmounted(() => {
-        clearTimeout(dataTimeout);
-    });
-    
+
 
 
     return{
