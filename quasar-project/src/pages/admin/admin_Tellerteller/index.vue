@@ -72,7 +72,9 @@
           <q-badge
             :color="props.row.status === 'Online' ? 'green' : 'red'" 
           >
+
             {{ props.row.status }}  <!-- Display the status text -->
+
           </q-badge>
         </q-td>
       </template>

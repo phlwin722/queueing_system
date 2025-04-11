@@ -768,9 +768,10 @@ export default {
     console.log(onBreak.value)
     if(onBreak.value == true){
       $notify(
-        "negative",
-        "error",
-        "You are on break, cannot enable auto serving"
+
+          "positive",
+          "check",
+          "I'm ready to get back to work"
       );
       autoServing.value = false
     }else{
@@ -800,6 +801,7 @@ export default {
                 localStorage.setItem('startingTime'+tellerInformation.value.id.toString(), startingTime);
               }, 2000);
             }
+
           }
         }, 2000); // Check every 3 seconds (adjust as needed)
       } else {
@@ -814,6 +816,19 @@ export default {
           clearInterval(autoServingInterval);
           autoServingInterval = null;
         }
+      }, 2000); // Check every 3 seconds (adjust as needed)
+    } else {
+      $notify(
+          "primary",
+          "info",
+          "I'm taking a break"
+        );
+ 
+      // Clear the interval when autoServing is turned off
+      if (autoServingInterval) {
+        clearInterval(autoServingInterval);
+        autoServingInterval = null;
+
       }
     }
 
