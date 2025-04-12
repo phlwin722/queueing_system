@@ -32,25 +32,25 @@ use App\Models\Branch;
 |
 */
 
-Route::post('/admin/validate',[AdminController::class,'adminValidate'] );
-Route::post('/admin/Information',[AdminController::class,"index"]);
-Route::post('/admin/updateInformation',[AdminController::class,"updateqInformation"]);
-Route::post('/admin/updatePassword',[AdminController::class,"updatePassword"]);
-Route::post('/createAdmin',[AdminController::class,'createAdmin'] );
+Route::post('/admin/validate', [AdminController::class, 'adminValidate']);
+Route::post('/admin/Information', [AdminController::class, "index"]);
+Route::post('/admin/updateInformation', [AdminController::class, "updateqInformation"]);
+Route::post('/admin/updatePassword', [AdminController::class, "updatePassword"]);
+Route::post('/createAdmin', [AdminController::class, 'createAdmin']);
 
-Route::post('/customer-join',[QueueController::class, 'joinQueue']);
+Route::post('/customer-join', [QueueController::class, 'joinQueue']);
 Route::post('/customer-join-switch-teller', [QueueController::class, 'joinSwitchQueue']);
-Route::post('/customer-list',[QueueController::class, 'getQueueList']);
-Route::post('/customer-leave',[QueueController::class, 'leaveQueue']);
-Route::post('/customer-fetch',[QueueController::class, 'customerData']);
-Route::post('/update-teller_id',[QueueController::class, 'updateTellerId']);
+Route::post('/customer-list', [QueueController::class, 'getQueueList']);
+Route::post('/customer-leave', [QueueController::class, 'leaveQueue']);
+Route::post('/customer-fetch', [QueueController::class, 'customerData']);
+Route::post('/update-teller_id', [QueueController::class, 'updateTellerId']);
 
 Route::post('/admin/queue-list', [QueueController::class, 'getCQueueList']);
 Route::post('/admin/cater', [QueueController::class, 'caterCustomer']);
 Route::post('/admin/cancel', [QueueController::class, 'cancelCustomer']);
 Route::post('/admin/finish', [QueueController::class, 'finishCustomer']);
 Route::post('/admin/start-wait', [QueueController::class, 'startWait']);
-Route::post('/send-fetchInfo',[QueueController::class,'fetchData']);
+Route::post('/send-fetchInfo', [QueueController::class, 'fetchData']);
 Route::post('/admin/queue-logs', [QueueController::class, 'queueLogs']);
 Route::post('/admin/reports', [QueueController::class, 'fetchReports']);
 Route::post('/resetQueue', [QueueController::class, 'resetTodayQueueNumbers']);
@@ -59,29 +59,30 @@ Route::post('/customer-check-waiting', [QueueController::class, 'checkWaitingCus
 Route::post('/waitCustomerReset', [QueueController::class, 'WaitingCustomerReset']);
 Route::post('/update-queue-positions', [QueueController::class, 'updatePositions']);
 
-Route::post('/admin/waiting_Time',[Waiting_timeController::class,'store']);
-Route::post('/admin/waiting_Time-fetch',[Waiting_timeController::class,'index']);
-Route::post('/admin/waiting_Time-update',[Waiting_timeController::class,'update']);
+Route::post('/admin/waiting_Time', [Waiting_timeController::class, 'store']);
+Route::post('/admin/waiting_Time-fetch', [Waiting_timeController::class, 'index']);
+Route::post('/admin/waiting_Time-update', [Waiting_timeController::class, 'update']);
 Route::post('/upload-image', [AdminController::class, 'uploadImage']);
 
-Route::post('/admin/break_time',[BreakTimeController::class,'storeBreakTime']);
-Route::post('/admin/fetch_break_time',[BreakTimeController::class,'fetchBreakTime']);
+Route::post('/admin/break_time', [BreakTimeController::class, 'storeBreakTime']);
+Route::post('/admin/fetch_break_time', [BreakTimeController::class, 'fetchBreakTime']);
 
 // adminside
 // Teller Routes
 Route::post('/tellers/index', [TellerController::class, 'index']);
 Route::post('/tellers/indexx', [TellerController::class, 'windowFetch']);
 Route::post('/tellers/create', [TellerController::class, 'create']);
+Route::post('/tellers/fetch-assigned', [TellerController::class, 'fetchingAssignedTeller']);
 Route::post('/tellers/update', [TellerController::class, 'update']);
 Route::post('/tellers/delete', [TellerController::class, 'delete']);
-Route::post('/teller/typeid-value',[TellerController::class,'valueTypeid']);
-Route::post('/teller/validate',[TellerController::class, 'validationLoginTeller']);
+Route::post('/teller/typeid-value', [TellerController::class, 'valueTypeid']);
+Route::post('/teller/validate', [TellerController::class, 'validationLoginTeller']);
 Route::post('/tellers/dropdown', [TellerController::class, 'viewTellerDropdown']);
 Route::post('/teller/queue-logs', [TellerController::class, 'queueLogs']);
-Route::post('/teller/waiting_Time-fetch',[Waiting_timeController::class,'index']);
-Route::post('/teller/image',[TellerController::class,'fetchImage']);
-Route::post('/teller/image-teller',[TellerController::class,'fetchImageTeller']);
-Route::post('/teller/image-fetch-csdashboard',[TellerController::class, 'fetchImageTellerCsDashboaard']);
+Route::post('/teller/waiting_Time-fetch', [Waiting_timeController::class, 'index']);
+Route::post('/teller/image', [TellerController::class, 'fetchImage']);
+Route::post('/teller/image-teller', [TellerController::class, 'fetchImageTeller']);
+Route::post('/teller/image-fetch-csdashboard', [TellerController::class, 'fetchImageTellerCsDashboaard']);
 Route::post('/teller/logout', [TellerController::class, 'tellerLogout']);
 
 Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
@@ -134,7 +135,7 @@ Route::post('/waiting_Time', [ResetWindowSettingController::class, 'store']);
 
 
 //Reset-Settings Automatic 
-Route::post ('/windows/fetch-reset-settings', [ResetSettingController::class, 'fetchSettings']);
+Route::post('/windows/fetch-reset-settings', [ResetSettingController::class, 'fetchSettings']);
 Route::post('/windows/reset-settings', [ResetSettingController::class, 'saveSettings']);
 
 // adminside
@@ -143,12 +144,12 @@ Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
 
 Route::post('/send-email', [MailController::class, 'sendEmail']);
 Route::post('/sent-email-finish', [MailController::class, 'sendEmailFinish']);
-Route::post('/sent-email-dashboard',[MailController::class,'sentEmailDashboard']);
+Route::post('/sent-email-dashboard', [MailController::class, 'sentEmailDashboard']);
 
 //Waiting-Time 
-Route::post('/waiting_Time',[Waiting_timeController::class,'store']); 
-Route::post('/waiting_Time-fetch',[Waiting_timeController::class,'index']);
-Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
+Route::post('/waiting_Time', [Waiting_timeController::class, 'store']);
+Route::post('/waiting_Time-fetch', [Waiting_timeController::class, 'index']);
+Route::post('/waiting_Time-update', [Waiting_timeController::class, 'update']);
 
 //thank you page (survey)
 Route::post('/survey', [SurveyResponseController::class, 'store']);
