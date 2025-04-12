@@ -14,9 +14,12 @@ use App\Http\Controllers\ResetSettingController;
 use App\Http\Controllers\WindowArchiveController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\BreakTimeController;
+use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\ServingTimeController;
 use App\Http\Controllers\SurveyResponseController;
-
+use App\Http\Controllers\BranchController;
+use App\Http\Controllers\ResetWindowSettingController;
+use App\Models\Branch;
 
 /*
 |--------------------------------------------------------------------------
@@ -151,3 +154,24 @@ Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
 Route::post('/survey', [SurveyResponseController::class, 'store']);
 Route::get('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
 
+// Manager Routes
+Route::post('/manager/index', [ManagerController::class, 'index']);
+Route::post('/manager/create', [ManagerController::class, 'create']);
+Route::post('/manager/update', [ManagerController::class, 'update']);
+Route::post('/manager/delete', [ManagerController::class, 'delete']);
+Route::post('/manager/image',[ManagerController::class,'fetchImage']);
+Route::post('/manager/validate',[ManagerController::class, 'validationLoginManager']);
+
+// Branch Routes
+Route::post('/branch/index', [BranchController::class, 'index']);
+Route::post('/admin-branch/fetchManager', [BranchController::class, 'fetchManager']);
+Route::post('/branch/create', [BranchController::class, 'create']);
+Route::post('/branch/update', [BranchController::class, 'update']);
+Route::post('/branch/delete', [BranchController::class, 'delete']);
+Route::post('/branch/image',[ManagerController::class,'fetchImage']);
+
+// fetching PSGC API
+Route::post('/api/regions', [BranchController::class, 'getRegions']);
+Route::post('/api/provinces', [BranchController::class, 'getProvinces']);
+Route::post('/api/cities', [BranchController::class, 'getCities']);
+Route::post('/api/barangays', [BranchController::class, 'getBarangays']);

@@ -80,7 +80,7 @@ class AdminController extends Controller
                 // Get the ID from the request
                 $id = $request->input('id');
         
-                // Validate the ID (Ensure it's required and exists in the admins table)
+  /*               // Validate the ID (Ensure it's required and exists in the admins table)
                 $validator = Validator::make(['id' => $id], [
                     'id' => 'required|exists:admins,id'  // Ensure it's an integer and exists in the database
                 ]);
@@ -91,24 +91,57 @@ class AdminController extends Controller
                         'message' => 'Validation failed',
                         'errors' => $validator->errors()
                     ], 422);  // Return 422 for validation errors
-                }
+                } */
         
                 // Fetch the admin data based on the ID
                 $adminInfo = DB::table('admins')
                             ->where('id', $id)
                             ->first();
-        
-                // Return the admin data if found
-                return response()->json([
-                    'dataValue' => [
-                        'id' => $adminInfo->id,
-                        'Firstname' => $adminInfo->Firstname,
-                        'Lastname' => $adminInfo->Lastname,
-                        'Username' => $adminInfo->Username,
-                        'Image' => $adminInfo->Image ? asset($adminInfo->Image) 
-                                                     : asset('assets/no-image-user.png')
-                    ]
-                ]);
+
+                if ($adminInfo) {
+                    // Return the admin data if found
+                    return response()->json([
+                        'dataValue' => [
+                            'id' => $adminInfo->id,
+                            'Firstname' => $adminInfo->Firstname,
+                            'Lastname' => $adminInfo->Lastname,
+                            'Username' => $adminInfo->Username,
+                            'Image' => $adminInfo->Image ? asset($adminInfo->Image) 
+                                                        : asset('assets/no-image-user.png')
+                        ]
+                    ]);
+                }
+
+                    // Fetch the admin data based on the ID
+                    $managerInfo = DB::table('managers as m')
+                        ->select([
+                            'm.id',
+                            'm.manager_firstname',
+                            'm.manager_lastname',
+                            'm.manager_username',
+                            'm.Image',
+                            'm.branch_id',
+                            'b.branch_name'
+                        ])
+                        ->where('m.id', $id)
+                        ->leftJoin('branchs as b','b.id','=','m.branch_id')
+                        ->first();
+   
+                   if ($managerInfo) {
+                       // Return the admin data if found
+                       return response()->json([
+                           'dataValue' => [
+                               'id' => $managerInfo->id,
+                               'Firstname' => $managerInfo->manager_firstname,
+                               'Lastname' => $managerInfo->manager_lastname,
+                               'Username' => $managerInfo->manager_username,
+                               'Image' => $managerInfo->Image ? asset($managerInfo->Image) 
+                                                           : asset('assets/no-image-user.png'),
+                                'branch_id' => $managerInfo->branch_id,
+                                'branch_name' => $managerInfo->branch_name,
+                           ]
+                       ]);
+                   }
         
             } catch (\Exception $e) {
                 // Return any exception that occurs during processing

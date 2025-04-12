@@ -94,28 +94,45 @@ export default {
             JSON.stringify(data.adminInformation)
           );
 
-          // If login is successful, redirect to the admin dashboard
-          $notify("positive", "done", data.message);
           router.push("/admin/dashboard"); // Change the path to your desired route
         } else {
           const { data } = await $axios.post(
-            "/teller/validate",
+            "/manager/validate",
             formData.value
           );
-          if (data.result == "teller") {
-            if (data.tellerInformation.type_id != null) {
+          if (data.result == "manager") {
+            if (data.managerInformation.manager_status === 'Active') {
               // Store token in localStorage instead of localStorage
+              localStorage.setItem("authTokenManager", data.token);
               localStorage.setItem(
-                "authTokenTeller",
-                data.tellerInformation.token
+                "managerInformation",
+                JSON.stringify(data.managerInformation)
               );
-              localStorage.setItem(
-                "tellerInformation",
-                JSON.stringify(data.tellerInformation)
-              );
-              router.push("/teller/Layout"); // Change the path to your desired route
-            } else {
-              $notify("negative", "error", "No service type has been assigned");
+
+              router.push("/admin/dashboard"); // Change the path to your desired route
+            }else {
+              $notify('negative','error','Your account is deactivated please aware the admin')
+            }
+          }else {
+            const { data } = await $axios.post(
+              "/teller/validate",
+              formData.value
+            );
+            if (data.result == "teller") {
+              if (data.tellerInformation.type_id != null) {
+                // Store token in localStorage instead of localStorage
+                localStorage.setItem(
+                  "authTokenTeller",
+                  data.tellerInformation.token
+                );
+                localStorage.setItem(
+                  "tellerInformation",
+                  JSON.stringify(data.tellerInformation)
+                );
+                router.push("/teller/Layout"); // Change the path to your desired route
+              } else {
+                $notify("negative", "error", "No service type has been assigned");
+              }
             }
           }
         }

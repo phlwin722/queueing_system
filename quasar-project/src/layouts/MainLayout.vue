@@ -416,13 +416,21 @@ export default defineComponent({
     // Set an interval to update the time every second
     onMounted(() => {
       const storedAdminInfo = localStorage.getItem("adminInformation");
+      const storeManagerInfo = localStorage.getItem("managerInformation");
       if (storedAdminInfo) {
         adminInformation.value = JSON.parse(storedAdminInfo);
         fetchAdminInformation();
         updateFormattedTime(); // Call it once on mount
         setInterval(fetchAdminInformation, 6000);
         setInterval(updateFormattedTime, 1000); // Update every second
-      } else {
+      } else if (storeManagerInfo) {
+        adminInformation.value = JSON.parse(storeManagerInfo);
+        fetchAdminInformation();
+        updateFormattedTime(); // Call it once on mount
+        setInterval(fetchAdminInformation, 6000);
+        setInterval(updateFormattedTime, 1000); // Update every second
+      }
+        else {
         console.error("No admin information found in localStorage");
       }
     });
@@ -431,6 +439,8 @@ export default defineComponent({
     const logout = () => {
       localStorage.removeItem("authTokenAdmin"); // Remove auth token
       localStorage.removeItem("adminInformation");
+      localStorage.removeItem("authTokenManager"); // Remove auth token
+      localStorage.removeItem("managerInformation");
       router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation
@@ -498,9 +508,6 @@ export default defineComponent({
         console.error("Error fetching break time:", error);
       }
     }
-
-
-
 
     const process = async () => {
       isLoading.value = true;
@@ -662,6 +669,16 @@ export default defineComponent({
         title: "Admin Queue",
         icon: "admin_panel_settings",
         link: "/admin/admin_Queue",
+      },
+      {
+        title: 'Manager',
+        icon: 'groups',
+        link: '/admin/bank_manager'
+      },
+      {
+        title: 'Branch',
+        icon: 'groups',
+        link: '/admin/branch'
       },
       {
         title: "Currency Conversion",

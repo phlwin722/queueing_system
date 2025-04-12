@@ -17,10 +17,14 @@ export default route(function () {
     // Check if the user is authenticated as a teller (get token from session storage)
     const isAuthenticatedTeller = localStorage.getItem("authTokenTeller");
 
+    // Check if the user is authenticated as an admin (get token from session storage)
+    const isAuthenticatedManager = localStorage.getItem("authTokenManager");
+
+
     // Check if the route requires authentication (meta field 'requiresAuth')
     if (to.matched.some((record) => record.meta.requiresAuth)) {
       // If the route requires authentication, check if neither admin nor teller is authenticated
-      if (!isAuthenticatedAdmin && !isAuthenticatedTeller) {
+      if (!isAuthenticatedAdmin && !isAuthenticatedTeller && !isAuthenticatedManager) {
         localStorage.clear(); // Clear session storage if neither is authenticated
         next("/login"); // Redirect to login page
       } else {
