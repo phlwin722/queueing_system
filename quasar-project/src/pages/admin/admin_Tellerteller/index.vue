@@ -63,6 +63,22 @@
               </q-tooltip>
             </q-btn>
           </div>
+
+          <div v-if="!adminInformation" class="class-auto">
+            <q-select
+              style="width: 250px;"
+              outlined
+              label="Branch name"
+              hide-bottom-space
+              dense
+              v-model="branch_name"
+              emit-value
+              map-options
+              :options="branchList"
+              option-label="branch_name"
+              option-value="id"
+            />
+          </div>
         </div>
       </template>
  
@@ -129,7 +145,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, onUnmounted } from "vue";
+import { defineComponent, ref, onMounted, onUnmounted, watch } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import MyForm from "pages/admin/admin_Tellerteller/form.vue";
 import { useQuasar } from "quasar";
@@ -142,57 +158,32 @@ export default defineComponent({
   setup() {
     const $dialog = useQuasar();
     const rows = ref([]);
-    const columns = ref([
-      {
-        name: "teller_firstname",
-        label: "First Name",
-        align: "left",
-        field: "teller_firstname",
-        sortable: true,
-      },
-      {
-        name: "teller_lastname",
-        label: "Last Name",
-        align: "left",
-        field: "teller_lastname",
-        sortable: true,
-      },
-      {
-        name: "teller_username",
-        label: "Username",
-        align: "left",
-        field: "teller_username",
-        sortable: true,
-      },
-      {
-        name: "type_names",
-        label: "Type",
-        align: "left",
-        field: "type_names",
-        sortable: true,
-      },
-      {
-        name: "status",
-        label: "Status",
-        align: "left",
-        field: "status",
-      },
-      {
-        name: "actions",
-        label: "Actions",
-        align: "left",
-        sortable: false,
-      },
-    ]);
+    const branchList = ref([ { id: 0, branch_name:'All Branches'} ])
+    const branch_name = ref(null);
+    const columns = ref([]);
 
     const selected = ref([]);
     const dialogForm = ref(null);
+    const adminInformation = ref (null);
 
     const getTableData = async () => {
       try {
-        const { data } = await $axios.post(URL + "/index");
-        rows.value.splice(0, rows.value.length, ...data.rows);
-        console.log("try",data.rows.value);  // Add this line to check the rows
+        if (adminInformation.value && adminInformation.value.branch_id != null) {
+          const { data } = await $axios.post(URL + "/index",{
+            branch_id: adminInformation.value.branch_id
+          });
+          rows.value.splice(0, rows.value.length, ...data.rows);
+        } else {
+          if (branch_name.value != null) {
+            const { data } = await $axios.post(URL + "/index",{
+              branch_id: branch_name.value
+            });
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }else {
+            const { data } = await $axios.post(URL + "/index");
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }
+        }
       } catch (error) {
         console.log(error);
       }
@@ -264,15 +255,137 @@ export default defineComponent({
       }
     };
 
-    
-
     let dataTimeout;
     const optimizedFetchData = async () => {
           await getTableData()
           dataTimeout = setTimeout(optimizedFetchData, 5000); // Recursive Timeout
         };
 
+        const fetchBranch = async () => {
+          try {
+            const { data } = await $axios.post('/type/Branch');
+
+            branchList.value = [{id: 0, branch_name: 'All Branches'}, ...data.branch]
+          } catch (error) {
+            if (error.response.status === 422) 
+              console.log(error)
+            }
+        }
+
+        const fetchColumn = async () => {
+          try {
+            if (adminInformation.value && adminInformation.value.branch_id != null) {
+              columns.value = [
+               {
+                  name: "teller_firstname",
+                  label: "First Name",
+                  align: "left",
+                  field: "teller_firstname",
+                  sortable: true,
+                },
+                {
+                  name: "teller_lastname",
+                  label: "Last Name",
+                  align: "left",
+                  field: "teller_lastname",
+                  sortable: true,
+                },
+                {
+                  name: "teller_username",
+                  label: "Username",
+                  align: "left",
+                  field: "teller_username",
+                  sortable: true,
+                },
+                {
+                  name: "type_names",
+                  label: "Type",
+                  align: "left",
+                  field: "type_names",
+                  sortable: true,
+                },
+                {
+                  name: "status",
+                  label: "Status",
+                  align: "left",
+                  field: "status",
+                },
+                {
+                  name: "actions",
+                  label: "Actions",
+                  align: "left",
+                  sortable: false,
+                },
+              ]
+            }else {
+              columns.value = [
+                {
+                  name: "teller_firstname",
+                  label: "First Name",
+                  align: "left",
+                  field: "teller_firstname",
+                  sortable: true,
+                },
+                {
+                  name: "teller_lastname",
+                  label: "Last Name",
+                  align: "left",
+                  field: "teller_lastname",
+                  sortable: true,
+                },
+                {
+                  name: "teller_username",
+                  label: "Username",
+                  align: "left",
+                  field: "teller_username",
+                  sortable: true,
+                },
+                {
+                  name: "branch_name",
+                  label: "Branch name",
+                  align: "left",
+                  field: "branch_name",
+                  sortable: "true",
+                },
+                {
+                  name: "type_names",
+                  label: "Type",
+                  align: "left",
+                  field: "type_names",
+                  sortable: true,
+                },
+                {
+                  name: "status",
+                  label: "Status",
+                  align: "left",
+                  field: "status",
+                },
+                {
+                  name: "actions",
+                  label: "Actions",
+                  align: "left",
+                  sortable: false,
+                },
+              ]
+            }
+          } catch (error) {
+            if (error.response.status === 422) {
+              console.log(error)
+            }
+          }
+        }
+
+        watch(()=> branch_name.value, async (newVal) => {
+          getTableData()
+        })
+        
         onMounted(() => {
+          const storeManagerInfo = localStorage.getItem('managerInformation');
+          if (storeManagerInfo) {
+            adminInformation.value = JSON.parse(storeManagerInfo)
+          }
+          fetchColumn()
+          fetchBranch()
           optimizedFetchData()
           getTypes()
         })
@@ -290,6 +403,9 @@ export default defineComponent({
       handleShowForm,
       URL,
       beforeDelete,
+      adminInformation,
+      branchList,
+      branch_name
     };
   },
 });

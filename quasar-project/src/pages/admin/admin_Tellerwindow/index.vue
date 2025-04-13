@@ -82,6 +82,21 @@
               </q-tooltip>
             </q-btn>
           </div>
+          <div v-if="!adminInformation" class="col-auto">
+              <q-select
+                style="width: 250px;"
+                outlined
+                v-model="branch_name"
+                label="Branch name"
+                hide-bottom-space
+                dense
+                emit-value
+                map-options
+                :options="branchList"
+                option-label="branch_name"
+                option-value="id"
+            />
+          </div>
         </div>
       </template>
 
@@ -134,7 +149,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
+import { defineComponent, ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import MyForm from "pages/admin/admin_Tellerwindow/form.vue";
 import { useQuasar } from "quasar";
@@ -151,32 +166,11 @@ export default defineComponent({
     const autoReset = ref(false);
     const resetMinutes = ref(5); // Default to 5 minutes if not set
     let intervalId = null;
+    const adminInformation = ref (null);
+    const branchList = ref ([]);
+    const branch_name = ref (null);
 
-    const columns = ref([
-      {
-        name: "window_name",
-        label: "Window Name",
-        align: "left",
-        field: "window_name",
-        sortable: true,
-      },
-      {
-        name: "type_id",
-        label: "Window Type",
-        align: "left",
-        field: "type_id",
-        sortable: true,
-      },
-      {
-        name: "teller_id",
-        label: "Assigned Personnel",
-        align: "left",
-        field: "teller_id",
-        sortable: true,
-      },
-      /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
-      { name: "actions", label: "Actions", align: "left" },
-    ]);
+    const columns = ref([]);
 
     const filteredRows = computed(() => {
       return rows.value.filter((row) =>
@@ -191,14 +185,25 @@ export default defineComponent({
 
     const getTableData = async () => {
       try {
-        const { data } = await $axios.post(URL + "/getWindows");
-        rows.value = data.rows.map((row) => ({
-          id: row.id,
-          window_name: row.window_name,
-          type_id: row.type_id,
-          teller_id: row.teller_id,
-          pId: row.pId,
-        }));
+        // if managaer login 
+        if (adminInformation.value && adminInformation.value.branch_id != null) {
+          const { data } = await $axios.post(URL + "/getWindows",{
+            branch_id: adminInformation.value.branch_id
+          });
+          rows.value.splice(0, rows.value.length, ...data.rows);
+        }
+        // if super login 
+        else {
+          if (branch_name.value != null) {
+            const { data } = await $axios.post(URL + "/getWindows",{
+              branch_id: branch_name.value
+            });
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }else {
+            const { data } = await $axios.post(URL + "/getWindows");
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }
+        }
       } catch (error) {
         console.log(error);
       }
@@ -352,9 +357,93 @@ export default defineComponent({
       }
     };
 
+    const fetchColumn = async () => {
+      if (adminInformation.value && adminInformation.value.branch_id) {
+        columns.value = [
+           {
+            name: "window_name",
+            label: "Window Name",
+            align: "left",
+            field: "window_name",
+            sortable: true,
+          },
+          {
+            name: "type_id",
+            label: "Window Type",
+            align: "left",
+            field: "type_id",
+            sortable: true,
+          },
+          {
+            name: "teller_id",
+            label: "Assigned Personnel",
+            align: "left",
+            field: "teller_id",
+            sortable: true,
+          },
+          /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
+          { name: "actions", label: "Actions", align: "left" },
+        ]
+      } else {
+        columns.value = [
+           {
+            name: "window_name",
+            label: "Window Name",
+            align: "left",
+            field: "window_name",
+            sortable: true,
+          },
+          {
+            name: "type_id",
+            label: "Window Type",
+            align: "left",
+            field: "type_id",
+            sortable: true,
+          },
+          {
+            name: "teller_id",
+            label: "Assigned Personnel",
+            align: "left",
+            field: "teller_id",
+            sortable: true,
+          },
+          {
+            name: "branch_name",
+            label: "Branch name",
+            align: "left",
+            field: "branch_name",
+            sortable: true,
+          },
+          /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
+          { name: "actions", label: "Actions", align: "left" },
+        ]
+      }
+    }
+
+    const fetchBranch = async () => {
+      try {
+       const { data } = await $axios.post('/type/Branch');
+       branchList.value = [{id: 0, branch_name: 'All Branches'}, ...data.branch]
+      } catch (error) {
+        if (error.response.status == 422) {
+          console.log(error)
+        } 
+      }
+    }
+
+    watch(()=> branch_name.value, async (newVal) => {
+      getTableData()
+    });
+    
     onMounted(() => {
+      const storeManagerInfo = localStorage.getItem('managerInformation');
+      if (storeManagerInfo) {
+            adminInformation.value = JSON.parse(storeManagerInfo);
+        }
+      fetchColumn();
       getTableData();
       fetchSettings();
+      fetchBranch()
     });
 
     onUnmounted(() => {
@@ -375,6 +464,9 @@ export default defineComponent({
       filteredRows,
       setTimeout,
       text,
+      branch_name,
+      branchList,
+      adminInformation,
     };
   },
 });

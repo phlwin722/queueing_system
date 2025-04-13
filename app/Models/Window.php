@@ -12,6 +12,7 @@ class Window extends Model
         'teller_id', 
         'type_id',
         'status',
+        'branch_id',
     ];
 
 }

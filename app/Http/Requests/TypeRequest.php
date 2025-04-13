@@ -28,8 +28,15 @@ class TypeRequest extends FormRequest
             'name' => ['required','max:255','unique:types,name,' . $id . ',id'],
             'indicator' =>['required','unique:types,indicator,' . $id . ',id'],
             'serving_time' =>['required','numeric','min:1'],
+            'branch_id' => ['required'],
         ];
     }
+    public function messages(): array
+    {
+       return [
+           'branch_id.required' => 'The branch name field is requierd',
+        ];
+   }
     protected function failedValidation(Validator $validator){
         $errors = [];
         $messages = $validator->getMessageBag();

@@ -53,6 +53,22 @@
                             min="1"
                         />
                     </div>
+                    <div v-if="!adminInformation" class="col-12">
+                            <q-select
+                            outlined 
+                            v-model="formData.branch_id" 
+                            :options="branchList"
+                            option-label="branch_name"
+                            option-value="id"
+                            label="Branch name" 
+                            hide-bottom-space
+                            :error="formError.hasOwnProperty('branch_id')"
+                            :error-message="formError.branch_id"
+                            dense
+                            emit-value
+                            map-options
+                        /> 
+                    </div>
                 </div>
             </q-card-section>
 
@@ -74,7 +90,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import { defineComponent, ref, toRefs, onMounted } from "vue";
 import { $axios, $notify } from 'boot/app';
 
 export default defineComponent({
@@ -91,10 +107,13 @@ export default defineComponent({
             name: '',
             indicator: '',
             serving_time: '',
+            branch_id: '',
         });
         const formData = ref(initFormData());
         const formError = ref({});
         const formMode = ref('New');
+        const adminInformation = ref(null);
+        const branchList = ref([]);
 
         const closeDialog = () => {
             isShow.value = false;
@@ -118,19 +137,24 @@ export default defineComponent({
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
 
+                // Check if adminInformation is available before accessing branch_id
+                if (adminInformation.value && adminInformation.value.branch_id != null) {
+                    formData.value.branch_id = adminInformation.value.branch_id;
+                }
+                
                 const mode = formMode.value === 'New' ? '/create' : '/update';
                 const { data } = await $axios.post(props.url + mode, formData.value);
                 const rows = toRefs(props).rows;
                 
-                if (formMode.value === 'New') {
+                if (mode === '/create') {
                     rows.value.unshift(data.row);
                 } else {
-                    const index = rows.value.findIndex(x => x.id === formData.value.id);
-                    if (index > -1) {
-                        rows.value[index] = Object.assign({}, formData.value);
+                    const rows = toRefs(props).rows
+                    const index = rows.value.findIndex(x => x.id === data.row.id)
+                    if(index > -1){
+                        rows.value[index] = Object.assign({}, data.row)
                     }
                 }
-                
                 $notify('positive', 'done', data.message);
                 closeDialog();
             } catch (error) {
@@ -144,6 +168,28 @@ export default defineComponent({
             }
         };
 
+        const fetchBranch = async () => {
+            try {
+                const { data } = await $axios.post('/type/Branch')
+
+                branchList.value = data.branch
+                console.log('bramc', branchList.value)
+            } catch (error) {
+                if (error.response.status === 422) {
+                    console.log(error)
+                }
+            }
+        }
+
+        onMounted(() => {
+        const storeManagerInfo = localStorage.getItem('managerInformation');
+            if (storeManagerInfo) {
+                adminInformation.value = JSON.parse(storeManagerInfo);
+            }
+
+            fetchBranch();
+        });
+
         return {
             isShow,
             isLoading,
@@ -152,7 +198,9 @@ export default defineComponent({
             formData,
             formError,
             formMode,
-            handleSubmitForm
+            handleSubmitForm,
+            adminInformation,
+            branchList,
         };
     }
 });

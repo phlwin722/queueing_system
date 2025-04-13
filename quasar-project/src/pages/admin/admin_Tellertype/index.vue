@@ -63,6 +63,21 @@
               </q-tooltip>
             </q-btn>
           </div>
+            <div v-if="!adminInformation" class="col-auto">
+              <q-select
+                style="width: 250px;"
+                outlined
+                v-model="branch_namee"
+                label="Branch name"
+                hide-bottom-space
+                dense
+                emit-value
+                map-options
+                :options="branchList"
+                option-label="branch_name"
+                option-value="id"
+            />
+          </div>
         </div>
       </template>
 
@@ -84,7 +99,7 @@
                 :offset="[10, 10]"
                 class="bg-secondary"
               >
-                Edit Window Type
+                Edit Service
               </q-tooltip>
             </q-btn>
 
@@ -103,7 +118,7 @@
                 :offset="[10, 10]"
                 class="bg-secondary"
               >
-                Delete Window Type
+                Delete Service
               </q-tooltip>
             </q-btn>
           </div>
@@ -115,7 +130,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import MyForm from "pages/admin/admin_Tellertype/form.vue";
 import { useQuasar } from "quasar";
@@ -127,47 +142,40 @@ export default defineComponent({
   setup() {
     const $dialog = useQuasar();
     const rows = ref([]);
-    const columns = ref([
-      {
-        name: "name",
-        label: "Type Name",
-        align: "left",
-        field: "name",
-        sortable: true,
-      },
-      {
-        name: "indicator",
-        label: "Indicator",
-        align: "left",
-        field: "indicator",
-        sortable: false,
-      },
-      { 
-        name:'serving_time',
-        label:'Serving Time',
-        align: 'left', 
-        field: row => row.serving_time || '10',
-        sortable: false
-      },
-      { 
-        name: "actions", 
-        label: "Actions", 
-        align: "left", 
-        sortable: false 
-      },
+    const adminInformation = ref (null);
+    const columns = ref([]);
+    const branch_namee = ref (null);
+    const branchList = ref ([
+      { id:0 ,branch_name: "All branches" }
     ]);
 
     const selected = ref([]);
     const dialogForm = ref(null);
     const getTableData = async () => {
-      try {
-        const { data } = await $axios.post(URL + "/index");
-        rows.value.splice(0, rows.value.length, ...data.rows);
+      try {          
+        // if managaer login 
+        if (adminInformation.value && adminInformation.value.branch_id != null) {
+          const { data } = await $axios.post(URL + "/index",{
+            branch_id: adminInformation.value.branch_id
+          });
+          rows.value.splice(0, rows.value.length, ...data.rows);
+        }
+        // if super login 
+        else {
+          if (branch_namee.value != null) {
+            const { data } = await $axios.post(URL + "/index",{
+              branch_id: branch_namee.value
+            });
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }else {
+            const { data } = await $axios.post(URL + "/index");
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }
+        }
       } catch (error) {
         console.log("Error fetching types:", error);
       }
     };
-    getTableData();
 
     const handleShowForm = (mode, row) => {
       dialogForm.value.showDialog(mode, row);
@@ -232,6 +240,108 @@ export default defineComponent({
         });
     };
 
+    const fetchColumn = async () => {
+      if (adminInformation.value && adminInformation.value.branch_id) {
+        columns.value = [
+          {
+            name: "name",
+            label: "Type Name",
+            align: "left",
+            field: "name",
+            sortable: true,
+          },
+          {
+            name: "indicator",
+            label: "Indicator",
+            align: "left",
+            field: "indicator",
+            sortable: false,
+          },
+          { 
+            name:'serving_time',
+            label:'Serving Time',
+            align: 'left', 
+            field: row => row.serving_time || '10',
+            sortable: false
+          },
+          { 
+            name: "actions", 
+            label: "Actions", 
+            align: "left", 
+            sortable: false 
+          },
+        ]
+      } else {
+        columns.value = [
+          {
+            name: "name",
+            label: "Type Name",
+            align: "left",
+            field: "name",
+            sortable: true,
+          },
+          {
+            name: "indicator",
+            label: "Indicator",
+            align: "left",
+            field: "indicator",
+            sortable: false,
+          },
+          { 
+            name:'serving_time',
+            label:'Serving Time',
+            align: 'left', 
+            field: row => row.serving_time || '10',
+            sortable: false
+          },
+          {
+            name: "branch_name",
+            label: "Branch_name",
+            align: "left",
+            field: "branch_name",
+            sortable: false,
+          },
+          { 
+            name: "actions", 
+            label: "Actions", 
+            align: "left", 
+            sortable: false 
+          },
+        ]
+      }
+    }
+
+    const fetchBranch = async () => {
+      try {
+        const { data } = await $axios.post('/type/Branch')
+            // Add real data after fetching
+        branchList.value = [{ id: 0, branch_name: "All Branches" }, ...data.branch];
+
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
+    setInterval(()=> {
+      getTableData()
+    },5000);
+
+    watch(()=> branch_namee.value, async (newVal) => {
+      getTableData()
+    })
+
+    onMounted (() => {
+      const storeManagerInfo = localStorage.getItem('managerInformation');
+        if (storeManagerInfo) {
+            adminInformation.value = JSON.parse(storeManagerInfo);
+        }
+        fetchBranch();
+        fetchColumn();
+        getTableData();
+    })
+
     return {
       rows,
       columns,
@@ -241,6 +351,9 @@ export default defineComponent({
       handleShowForm,
       URL,
       beforeDelete,
+      adminInformation,
+      branch_namee,
+      branchList,
     };
   },
 });

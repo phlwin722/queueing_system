@@ -10,6 +10,7 @@ use App\Models\Type;
 use App\Models\Currency;
 use Database\Factories\Customer_logFactory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class QueueSeeder extends Seeder
 {
@@ -77,7 +78,8 @@ class QueueSeeder extends Seeder
         // insert teller records that match your factory data (1-5)
         //You are inserting multiple records at once.
         Teller::insert([
-            [
+            [   
+                'id' => '1',
                 'teller_firstname' => 'Rafael', 
                 'teller_lastname' => 'Baldonado', 
                 'teller_username' => 'rafael', 
@@ -89,6 +91,7 @@ class QueueSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
+                'id' => '2',
                 'teller_firstname' => 'Alvin', 
                 'teller_lastname' => 'Abogado', 
                 'teller_username' => 'alvin', 
@@ -99,6 +102,7 @@ class QueueSeeder extends Seeder
                 'created_at' => now(), 
                 'updated_at' => now()],
             [
+                'id' => '3',
                 'teller_firstname' => 'John Carlo', 
                 'teller_lastname' => 'Rica', 
                 'teller_username' => 'rica', 
@@ -107,8 +111,10 @@ class QueueSeeder extends Seeder
                 'type_ids_selected' => '["1","3","4","5"]', 
                 'Image' => 'assets/teller/3/image.png',
                 'created_at' => now(), 
-                'updated_at' => now()],
+                'updated_at' => now()
+            ],
             [
+                'id' => '4',
                 'teller_firstname' => 'Jercy', 
                 'teller_lastname' => 'Guevarra', 
                 'teller_username' => 'jercy', 
@@ -117,8 +123,10 @@ class QueueSeeder extends Seeder
                 'type_ids_selected' => '["3"]', 
                 'Image' => 'assets/teller/4/image.png',
                 'created_at' => now(), 
-                'updated_at' => now()],
+                'updated_at' => now()
+            ],
             [
+                'id' => '5',
                 'teller_firstname' => 'Dexter', 
                 'teller_lastname' => 'Jamero', 
                 'teller_username' => 'dexter', 
@@ -212,11 +220,154 @@ class QueueSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-            
         ]);
 
-        
+        //You are inserting multiple records at once.
+        DB::table('branchs')
+        ->insert([
+            [
+                'id' => '1',
+                'branch_name' => 'VRT - San jose del monte', 
+                'region' => 'Region III (Central Luzon)', 
+                'province' => 'Bulacan', 
+                'city' => 'Norzagaray',
+                'Barangay' => 'Friendship Village Resources',
+                'address' => 'blk 30 lot 5',
+                'status' => 'Active',
+                'opening_date' => '2025-04-12',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+            [
+                'id' => '2',
+                'branch_name' => 'VRT - Caloocan', 
+                'region' => 'Region III (Central Luzon)', 
+                'province' => 'Bulacan', 
+                'city' => 'Norzagaray',
+                'Barangay' => 'Friendship Village Resources',
+                'address' => 'blk 30 lot 5',
+                'status' => 'Active',
+                'opening_date' => '2025-04-12',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+        ]);
 
+         //You are inserting multiple records at once.
+         DB::table('managers')
+         ->insert([
+            [
+                'id' => '1',
+                'manager_firstname' => 'Dexter', 
+                'manager_lastname' => 'Jamero', 
+                'manager_username' => 'dex', 
+                'manager_password' => bcrypt('dex'), 
+                'Image' => 'assets/teller/1/image.png',
+                'manager_status' => 'Active',
+                'branch_id' => '1',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+            [
+                'id' => '2',
+                'manager_firstname' => 'Alvin', 
+                'manager_lastname' => 'Abogado', 
+                'manager_username' => 'alv', 
+                'manager_password' => bcrypt('alv'), 
+                'Image' => 'assets/teller/2/image.png',
+                'manager_status' => 'Active',
+                'branch_id' => '2',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+        ]);
+
+        // update branchs
+        DB::table ('branchs')
+            ->where('id','1')
+            ->update(['manager_id' => '1']);
+
+        // update branchs
+        DB::table ('branchs')
+            ->where('id','2')
+            ->update(['manager_id' => '2']);
+
+        // update teller
+        DB::table ('tellers')
+            ->where('id','1')
+            ->update(['branch_id' => '2']);
+
+        // update teller
+        DB::table ('tellers')
+        ->where('id','2')
+        ->update(['branch_id' => '2']);
+
+        // update teller
+        DB::table ('tellers')
+            ->where('id','3')
+            ->update(['branch_id' => '2']);
+
+        // update teller
+        DB::table ('tellers')
+        ->where('id','4')
+        ->update(['branch_id' => '1']);
+
+        // update teller
+        DB::table ('tellers')
+        ->where('id','5')
+        ->update(['branch_id' => '1']);
+    
+        
+        // update type
+        DB::table ('types')
+            ->where('id','1')
+            ->update(['branch_id' => '2']);
+
+        // update type
+        DB::table ('types')
+        ->where('id','2')
+        ->update(['branch_id' => '2']);
+
+        // update type
+        DB::table ('types')
+            ->where('id','3')
+            ->update(['branch_id' => '2']);
+
+        // update type
+        DB::table ('types')
+        ->where('id','4')
+        ->update(['branch_id' => '1']);
+
+        // update types
+        DB::table ('types')
+        ->where('id','5')
+        ->update(['branch_id' => '1']);
+
+        // update types
+        DB::table ('types')
+        ->where('id','6')
+        ->update(['branch_id' => '1']);
+
+         // update types
+         DB::table ('windows')
+         ->where('id','1')
+         ->update(['branch_id' => '1']);
+
+        // update types
+        DB::table ('windows')
+        ->where('id','2')
+        ->update(['branch_id' => '1']);
+
+        // update types
+        DB::table ('windows')
+        ->where('id','3')
+        ->update(['branch_id' => '2']);
+
+        // update types
+        DB::table ('windows')
+        ->where('id','4')
+        ->update(['branch_id' => '2']);
+         
 
         // Create 10 orders with random Customer logs 
         Queue::factory(1000)->create();

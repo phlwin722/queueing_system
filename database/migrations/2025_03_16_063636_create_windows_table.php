@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('teller_id')
             ->nullable()->constrained('tellers');
             $table->string('status')->nullable();
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }

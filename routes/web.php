@@ -97,13 +97,14 @@ Route::post('/types/create', [TypeController::class, 'create']);
 Route::post('/types/update', [TypeController::class, 'update']);
 Route::post('/types/delete', [TypeController::class, 'delete']);
 Route::post('/types/dropdown', [TypeController::class, 'viewTypesDropdown']);
-
+Route::post('/type/Branch', [TypeController::class, 'fetchBranch']);
 
 // Window Routes
 Route::post('/windows/index', [WindowController::class, 'index']);
 Route::post('/windows/create', [WindowController::class, 'create']);
 Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
+Route::post('/windows/types/dropdown',[WindowController::class,'viewTypesDropdown']);
 
 //Reset-Manual button
 Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
@@ -111,6 +112,8 @@ Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);
 Route::post('/windows/reset-tellers', [WindowController::class, 'resetTellers']);
 //window-Logs Get Data Table
 Route::post('/admin/window-logs', [WindowArchiveController::class, 'getWindowLogs']);
+
+Route::post('/window/tellers/dropdown', [WindowController::class, 'viewTellerDropdown']);
 
 //Automatic Reset 
 Route::post('/windows/reset-windows', [WindowController::class, 'resetWindows']);

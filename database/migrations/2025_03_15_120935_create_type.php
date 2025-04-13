@@ -18,6 +18,7 @@ return new class extends Migration
             ->nullable();
             $table->string('indicator')
             ->nullable();
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }

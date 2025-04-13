@@ -24,9 +24,26 @@
                     autofocus
                     />
                 </div>
+                <div v-if="!adminInformation" class="col-12">
+                    <q-select
+                        outlined 
+                        v-model="formData.branch_id" 
+                        :options="branch_list"
+                        option-label="branch_name"
+                        option-value="id"
+                        label="Branch name" 
+                        hide-bottom-space
+                        :error="formError.hasOwnProperty('branch_id')"
+                        :error-message="formError.branch_id"
+                        dense
+                        emit-value
+                        map-options
+                    /> 
+                </div>
                 <div class="col-12">
                     <q-select 
                     outlined 
+                    :disable="!adminInformation? !formData.branch_id : ''"
                     v-model="formData.type_id" 
                     :options="windowTypeList" 
                     label="Window type" 
@@ -41,6 +58,7 @@
                 <div class="col-12">
                     <q-select 
                     outlined 
+                    :disable="!formData.fetchPersonnel"
                     v-model="formData.teller_id"
                     :options="personnelList"
                     label="Assign personnel" 
@@ -101,16 +119,21 @@
         const personnelList = ref([])
         const icon = ref(false)
         const isLoading= ref(false)
-        const tempId = ref()
         const tempTelId =ref()
-        const initFormData = ()=>   {
-            return{
+        const branch_list = ref ([]);
+        const adminInformation = ref(null);
+    
+        const initFormData = () => (
+            {
                 id: null,
                 window_name: "",
                 type_id: "",
                 teller_id: "",
+                branch_id: "",
+                fetchPersonnel: "",
             }
-        }
+         )
+
         const formData = ref(initFormData())
         const formError = ref({})
         const formMode = ref('New')
@@ -130,7 +153,6 @@
     
                 formData.value = Object.assign({},row)
                 tempTelId.value = row.pId
-                console.log(tempTelId.value)
                 fetchtypeId()
                 
             }
@@ -154,17 +176,17 @@
                 $notify('positive', 'check', data.message)
                 closeDialog()
             }else{
-                if (typeof formData.value.teller_id === 'string') {
+/*                 if (typeof formData.value.teller_id === 'string') {
                     formData.value.teller_id = tempTelId.value
                 }else if(formData.value.teller_id === null){
                     formData.value.teller_id = ''
-                }
-                console.log(formData.value.teller_id)
+                } */
                 const {data} = await $axios.post(props.url +mode,{
                     id: formData.value.id,
                     window_name: formData.value.window_name,
-                    type_id: tempId.value,
-                    teller_id: formData.value.teller_id
+                    type_id: formData.value.type_id,
+                    teller_id: formData.value.teller_id,
+                    branch_id: formData.value.branch_id ? formData.value.branch_id : adminInformation.value.branch_id
                 })
                 const rows = toRefs(props).rows
                 const index = rows.value.findIndex(x => x.id === data.row.id)
@@ -190,7 +212,10 @@
 
         const fetchWindowTypes = async () => { 
             try {
-                const response = await $axios.post('/types/dropdown');
+                formData.value.branch_id = adminInformation.value ? adminInformation.value.branch_id : formData.value.branch_id 
+                const response = await $axios.post('/windows/types/dropdown',{
+                    branch_id: formData.value.branch_id
+                });
                     if (Array.isArray(response.data.rows)) {
                     // Map id and section_name correctly
                     windowTypeList.value = response.data.rows.map(sec => ({
@@ -210,24 +235,21 @@
         
         const fetchPersonnel = async () => { 
             try {
-                if (!formData.value.type_id) return; // Stop if no grade level is selected
-                const response = await $axios.post('/tellers/dropdown', {
-                    type_id: formData.value.type_id 
+                formData.value.branch_id = adminInformation.value ? adminInformation.value.branch_id : formData.value.branch_id 
+                const response = await $axios.post('/window/tellers/dropdown', {
+                    type_id: formData.value.type_id,
+                    branch_id: formData.value.branch_id,
                 });
-
-                console.log(response.tellers)
-                if (Array.isArray(response.data.rows)) {
-                    personnelList.value = response.data.rows; // Response is already in { label, value } format
-                } else {
-                    console.error('Expected "rows" to be an array, but got:', response.data.rows);
-                }
+                    // Ensure response.data.rows is always an array
+                    personnelList.value = response.data.rows;
+                    formData.value.fetchPersonnel = personnelList.value.length > 0 ? true : false;
 
             } catch (error) {
                 console.error('Error fetching sections:', error); 
             }
         };
         
-        const fetchtypeId = async () => { 
+/*         const fetchtypeId = async () => { 
             try {
                 const response = await $axios.post('/tellers/dropdown', {
                     type_id: formData.value.type_id // Send selected grade level
@@ -238,16 +260,20 @@
             } catch (error) {
                 console.error('Error fetching sections:', error); 
             }
-        };
+        }; */
 
         
-        watch(() => formData.value.type_id, async (newVal) => {
-            if (newVal) {
+        watch(() => 
+        [formData.value.type_id,formData.value.branch_id], 
+        async ([newVal,branch_id],[oldnewVal, oldBranch_id]) => {
+            if (!adminInformation.value) {
+                if (newVal === null && branch_id === oldBranch_id) {
                 personnelList.value = []; // Clear previous personnel list
 
+                alert('hha')
                 await fetchPersonnel(); // Fetch new personnel based on selected type
 
-                // Wait for Vue to update the list, then set the first teller
+/*                 // Wait for Vue to update the list, then set the first teller
                 nextTick(() => {
                     if (typeof formData.value.type_id === 'string') {
                         formData.value.teller_id = formData.value.teller_id // Assign first teller's ID
@@ -264,12 +290,39 @@
                         
                         fetchtypeId()
                     }
-                });
-            }
+                }); */
+                }else if (branch_id !== oldBranch_id) {
+                    // clear the previos data
+                    windowTypeList.value = [];
+                    formData.value.type_id = '';
+                    alert('bobo')
+                    await fetchWindowTypes()
+                } else if (newVal) {
+                    alert('bobobla')
+                    await fetchPersonnel(); // Fetch new personnel based on selected type
+                }
+            }  
         });
+
+        const fetchBranch = async () => {
+            try {
+                const { data } = await $axios.post('/type/Branch')
+
+                branch_list.value = data.branch
+            } catch (error) {
+                if (error.response.status === 422) {
+                    console.log(error)
+                }
+            }
+        }
+
             onMounted(() => {
-                fetchPersonnel()
-                fetchWindowTypes()
+                const storeManagerInfo = localStorage.getItem('managerInformation');
+                if (storeManagerInfo) {
+                    adminInformation.value = JSON.parse(storeManagerInfo);
+                    fetchWindowTypes()
+                }
+                fetchBranch();
             })
 
         return{
@@ -284,7 +337,8 @@
             handleSubmitForm,
             personnelList,
             windowTypeList,
-
+            branch_list,
+            adminInformation,
         }
     }
     })

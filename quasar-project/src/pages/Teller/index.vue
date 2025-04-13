@@ -765,74 +765,55 @@ export default {
   let autoServingInterval = null; // Store the interval ID
   let serveStartTime = null
   watch(autoServing, (newValue) => {
-    console.log(onBreak.value)
-    if(onBreak.value == true){
-      $notify(
+  console.log(onBreak.value);
 
-          "positive",
-          "check",
-          "I'm ready to get back to work"
-      );
-      autoServing.value = false
-    }else{
-        if (newValue) {
-        $notify(
-            "positive",
-            "check",
-            "Auto Serving Enabled"
-          );
-        console.log("Auto Serving Enabled");
-        // Start the interval when autoServing is turned on
-        autoServingInterval = setInterval(() => {
-          if (
-            queueList.value.length > 0 &&
-            queueList.value[0].status === "waiting" &&
-            currentServing.value == null
-          ) {
-            const nextCustomer = queueList.value[0];
+  if (onBreak.value === true) {
+    $notify("positive", "check", "I'm ready to get back to work");
+    autoServing.value = false;
+  } else {
+    if (newValue) {
+      $notify("positive", "check", "Auto Serving Enabled");
+      console.log("Auto Serving Enabled");
 
-            if (nextCustomer) {
-              setTimeout(() => {
-                caterCustomer(nextCustomer.id, nextCustomer.type_id);
-                startWait(nextCustomer.id, nextCustomer.queue_number);
-                serveStartTime = new Date();
-                const startingTime = serveStartTime.toLocaleTimeString();
-                localStorage.setItem('serveStartTime'+tellerInformation.value.id.toString(), serveStartTime);
-                localStorage.setItem('startingTime'+tellerInformation.value.id.toString(), startingTime);
-              }, 2000);
-            }
+      // Start the interval when autoServing is turned on
+      autoServingInterval = setInterval(() => {
+        if (
+          queueList.value.length > 0 &&
+          queueList.value[0].status === "waiting" &&
+          currentServing.value == null
+        ) {
+          const nextCustomer = queueList.value[0];
 
+          if (nextCustomer) {
+            setTimeout(() => {
+              caterCustomer(nextCustomer.id, nextCustomer.type_id);
+              startWait(nextCustomer.id, nextCustomer.queue_number);
+              serveStartTime = new Date();
+              const startingTime = serveStartTime.toLocaleTimeString();
+              localStorage.setItem(
+                "serveStartTime" + tellerInformation.value.id.toString(),
+                serveStartTime
+              );
+              localStorage.setItem(
+                "startingTime" + tellerInformation.value.id.toString(),
+                startingTime
+              );
+            }, 2000);
           }
-        }, 2000); // Check every 3 seconds (adjust as needed)
-      } else {
-        $notify(
-            "positive",
-            "check",
-            "Auto Serving Disabled"
-          );
-        console.log("Auto Serving Disabled");
-        // Clear the interval when autoServing is turned off
-        if (autoServingInterval) {
-          clearInterval(autoServingInterval);
-          autoServingInterval = null;
         }
-      }, 2000); // Check every 3 seconds (adjust as needed)
+      }, 2000);
     } else {
-      $notify(
-          "primary",
-          "info",
-          "I'm taking a break"
-        );
- 
+      $notify("positive", "check", "Auto Serving Disabled");
+      console.log("Auto Serving Disabled");
+
       // Clear the interval when autoServing is turned off
       if (autoServingInterval) {
         clearInterval(autoServingInterval);
         autoServingInterval = null;
-
       }
     }
-
-  }); 
+  }
+});
 
 
   const serveEnd = async () => {
@@ -1115,11 +1096,6 @@ export default {
 
     let currencyInterval;
     let intervalId = null;
-
-
-
-
-
 
     onMounted(() => {
       try {

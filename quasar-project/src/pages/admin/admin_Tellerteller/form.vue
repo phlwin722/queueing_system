@@ -138,6 +138,23 @@
                                     option-value="id"
                                 />    
                             </div>
+
+                            <div v-if="!adminInformation" class="col-12">
+                                <q-select
+                                    outlined
+                                    v-model="formData.branch_id"
+                                    :options="branch_list"
+                                    option-label="branch_name"
+                                    option-value="id"
+                                    label="Branch name"
+                                    hide-bottom-space
+                                    :error="formError.hasOwnProperty('branch_id')"
+                                    :error-message="formError.branch_id"
+                                    dense
+                                    emit-value
+                                    map-options
+                                />
+                            </div>
                             
                             <!-- File Upload -->
                             <div class="col-12">
@@ -186,7 +203,7 @@
 
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import { defineComponent, onMounted, ref, toRefs } from "vue";
 import { $axios, $notify } from 'boot/app'; // Axios for API requests, Notify for UI feedback
 
 export default defineComponent({
@@ -206,6 +223,8 @@ export default defineComponent({
         const selectedImage = ref(null);
         const imageUrl = ref(null);
         const showPreview = ref(false);
+        const adminInformation = ref (null);
+        const branch_list = ref ([]);
 
         const initFormData = () => ({
             id: null,
@@ -215,6 +234,7 @@ export default defineComponent({
             teller_password: '', 
             type_ids_selected: [],
             Image: '',
+            branch_id: '',
         });
 
         const initDataPassword = () => ({
@@ -322,18 +342,22 @@ export default defineComponent({
         };
 
         const handleSubmitForm = async () => {
-            const mode = formMode.value === 'New' ? '/create' : '/update';
-            isLoading.value = true;
-            formError.value = {}; // Reset form errors
-
-            // Check if passwords match
-            if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
-                $notify('negative', 'error', 'Passwords do not match. Please check your input data');
-                isLoading.value = false;
-                return;
-            }
-
             try {
+                const mode = formMode.value === 'New' ? '/create' : '/update';
+                isLoading.value = true;
+                formError.value = {}; // Reset form errors
+
+                // check if admininformation is available token from manager
+                if (adminInformation.value && adminInformation.value.branch_id) {
+                    formData.value.branch_id = adminInformation.value.branch_id
+                }
+
+                // Check if passwords match
+                if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
+                    $notify('negative', 'error', 'Passwords do not match. Please check your input data');
+                    isLoading.value = false;
+                    return;
+                }
                 // If updating and a new password is provided, update the password in formData
                 if (mode === '/update') {
                     if (formDataPassword.value.teller_newPassword !== ''){
@@ -363,7 +387,6 @@ export default defineComponent({
 
                 // Handle response data and update the rows accordingly
                 if (mode === '/create') {
-                    console.log(data.row)
                     rows.value.unshift(data.row); // Add new row at the beginning
                 } else {
                     const index = rows.value.findIndex(x => x.id === data.row.id); // Find the index of the edited row
@@ -392,6 +415,25 @@ export default defineComponent({
             }
         };
 
+        const fetchBranch = async () => {
+            try {
+                const { data } = await $axios.post('/type/Branch')
+                branch_list.value = data.branch
+            } catch (error) {
+                if (error.response.status === 422) {
+                    console.log(error)
+                }
+            }
+        }
+
+        onMounted(() => {
+            const managerInformation = localStorage.getItem('managerInformation');
+            if (managerInformation) {
+                adminInformation.value = JSON.parse(managerInformation)
+            }
+            fetchBranch();
+        })
+
 
         // Return necessary variables and methods for the template
         return {
@@ -409,6 +451,8 @@ export default defineComponent({
             imageUrl,
             showPreview,
             previewImage,
+            branch_list,
+            adminInformation,
         };
     }
 });
