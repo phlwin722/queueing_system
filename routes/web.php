@@ -16,6 +16,7 @@ use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\BreakTimeController;
 use App\Http\Controllers\ServingTimeController;
 use App\Http\Controllers\SurveyResponseController;
+use App\Http\Controllers\AppointmentController;
 
 
 /*
@@ -150,4 +151,10 @@ Route::post('/waiting_Time-update',[Waiting_timeController::class,'update']);
 //thank you page (survey)
 Route::post('/survey', [SurveyResponseController::class, 'store']);
 Route::get('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
+
+//online appointment
+Route::post('/appointments', [AppointmentController::class, 'store']);
+Route::get('/branches/{branchName}/slots', [AppointmentController::class, 'getSlots']);
+
+
 

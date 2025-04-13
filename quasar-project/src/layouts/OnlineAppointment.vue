@@ -1,106 +1,32 @@
 <template>
     <q-layout view="hHh lpR fFf">
       <!-- Header Section with Tabs -->
-      <q-header elevated class="bg-white text-black flex flex-center" height-hint="98">
-        <div style="width: 100%; max-width: 92%;">
-          <q-toolbar>
-            <q-toolbar-title>
-            <div class="row ">
-                <div class="col-2">
-                    <q-img
-                        class="q-mt-sm"
-                        :src="require('assets/vrtlogoblack.png')"
-                        :style="{ height: '40px', width: '200px', cursor: 'pointer' }"
-                    />
-                </div>
-                <div class="col-4">
-                    <!-- Tabs for Navigation with arrows -->
-                    <q-tabs v-model="tabModel" align="left">
-                        <q-route-tab
-                            label="Page One"
-                            @mouseenter="hoverTab = 'page1'"
-                            @mouseleave="hoverTab = ''"
-                        >
-                        <template v-slot:prepend>
-                            <q-icon
-                            :name="hoverTab === 'page1' ? 'arrow_drop_down' : 'arrow_drop_down'"
-                            class="tab-arrow"
-                            />
-                        </template>
-                        </q-route-tab>
-            
-                        <q-route-tab
-                            label="Page Two"
-                            @mouseenter="hoverTab = 'page2'"
-                            @mouseleave="hoverTab = ''"
-                        >
-                        <template v-slot:prepend>
-                            <q-icon
-                            :name="hoverTab === 'page2' ? 'arrow_drop_down' : 'arrow_drop_down'"
-                            class="tab-arrow"
-                            />
-                        </template>
-                        </q-route-tab>
-            
-                        <q-route-tab
-                            label="Page Three"
-                            @mouseenter="hoverTab = 'page3'"
-                            @mouseleave="hoverTab = ''"
-                        >
-                        <template v-slot:prepend>
-                            <q-icon
-                            :name="hoverTab === 'page3' ? 'arrow_drop_down' : 'arrow_drop_down'"
-                            class="tab-arrow"
-                            />
-                        </template>
-                        </q-route-tab>
-                    </q-tabs>
-                </div>
-            </div>
-            </q-toolbar-title>
-          </q-toolbar>
-        </div>
+      <q-header>
+        <q-toolbar>
+        <q-img
+          src="~assets/vrtlogowhite1.png"
+          alt="Logo"
+          fit="full"
+          :style="{
+            maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+            cursor: 'pointer', // Fix cursor property
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          }"
+          @click="goonDashboard"
+          class="q-ml-sm"
+        />
+
+        <q-space />
+        
+        </q-toolbar>
+        
+        
       </q-header>
   
-      <!-- Hover-based Content Display -->
-      <div 
-        v-show="hoverTab === 'page1'" 
-        class="hover-tab-content q-mt-xl"
-        :style="hoverStyle"
-      >
-        <q-card-section>
-          <h3>Content for Page One</h3>
-          <p>More details about page one.</p>
-        </q-card-section>
-      </div>
-  
-      <div 
-        v-show="hoverTab === 'page2'" 
-        class="hover-tab-content q-mt-xl"
-        :style="hoverStyle"
-      >
-        <q-card-section>
-          <h3>Content for Page Two</h3>
-          <p>More details about page two.</p>
-        </q-card-section>
-      </div>
-  
-      <div 
-        v-show="hoverTab === 'page3'" 
-        class="hover-tab-content q-mt-xl"
-        :style="hoverStyle"
-      >
-        <q-card-section>
-          <h3>Content for Page Three</h3>
-          <p>More details about page three.</p>
-        </q-card-section>
-      </div>
-  
       <!-- Page Content Area -->
-      <q-page-container :style="{ marginTop: hoverTab === '' ? '10px' : '10px', }">
-        <!-- Default Route Content -->
-        <router-view />
-      </q-page-container>
+      <q-page-container style="padding-bottom: 20px;">
+      <router-view />
+    </q-page-container>
     </q-layout>
   </template>
   

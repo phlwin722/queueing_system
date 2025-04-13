@@ -43,7 +43,12 @@ const routes = [
       {
         path: "/vrtsystem/onlineAppointment",
         component: ()=> import ('pages/customer/customer_onlineAppointment/firstpage.vue')
+      },
+      {
+        path: '/book-appointment',
+        component: () => import('pages/customer/customer_onlineAppointment/AppointmentBooking.vue')
       }
+      
     ]
   },
   {
