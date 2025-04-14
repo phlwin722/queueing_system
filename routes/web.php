@@ -21,6 +21,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ResetWindowSettingController;
 use App\Models\Branch;
+use App\Models\Window;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +86,7 @@ Route::post('/teller/image', [TellerController::class, 'fetchImage']);
 Route::post('/teller/image-teller', [TellerController::class, 'fetchImageTeller']);
 Route::post('/teller/image-fetch-csdashboard', [TellerController::class, 'fetchImageTellerCsDashboaard']);
 Route::post('/teller/logout', [TellerController::class, 'tellerLogout']);
+Route::post('/dropdown/types',[TellerController::class, 'dropdownTypes']);
 
 Route::post('/teller/queue-list', [TellercaterController::class, 'getTellerQueueList']);
 Route::post('/teller/cater', [TellercaterController::class, 'caterTellerCustomer']);
@@ -98,13 +100,15 @@ Route::post('/types/create', [TypeController::class, 'create']);
 Route::post('/types/update', [TypeController::class, 'update']);
 Route::post('/types/delete', [TypeController::class, 'delete']);
 Route::post('/types/dropdown', [TypeController::class, 'viewTypesDropdown']);
-
+Route::post('/type/Branch',[TypeController::class,'fetchBranch']);
 
 // Window Routes
 Route::post('/windows/index', [WindowController::class, 'index']);
 Route::post('/windows/create', [WindowController::class, 'create']);
 Route::post('/windows/update', [WindowController::class, 'update']);
 Route::post('/windows/delete', [WindowController::class, 'delete']);
+Route::post('/windows/types/dropdown',[WindowController::class,'viewTypesDropdown']);
+Route::post('/window/tellers/dropdown',[WindowController::class,'viewtellersDropdown']);
 
 //Reset-Manual button
 Route::post('/windows/getWindows', [WindowController::class, 'getWindows']);

@@ -170,28 +170,92 @@ class WindowController extends Controller
     // }
 
 
-    public function getWindows($id = null){
-        $res = DB::table('windows as wd')
-            ->select(
-                "wd.id",
-                "wd.window_name",
-                "tp.name as type_id",
-                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
-                "ts.id as pId"
-            )
-            ->leftJoin("types as tp", "tp.id", "wd.type_id")
-            ->leftJoin("tellers as ts", "ts.id", "wd.teller_id")
-            ->orderBy('wd.created_at', 'desc');
-    
-        if ($id) {
-            $res = $res->where("wd.id", $id)->first();
-        } else {
-            $res = $res->get();
+    public function getWindows(Request $request){
+            if ($request->branch_id == null) {
+            $res = DB::table('windows as wd')
+                ->select(
+                    "wd.id",
+                    "wd.window_name",
+                    "tp.name as type_id",
+                    "wd.branch_id", 
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                    "ts.id as pId",
+                    'b.branch_name'
+                )
+                ->leftJoin("types as tp", "tp.id", "wd.type_id")
+                ->leftJoin('branchs as b', 'b.id', '=','wd.branch_id')
+                ->leftJoin("tellers as ts", "ts.id", "wd.teller_id")
+                ->orderBy('wd.created_at', 'desc')
+                ->get();
+        
+            return response()->json([
+                'rows' => $res
+            ]);
+        }else {
+            $res = DB::table('windows as wd')
+                ->select(
+                    "wd.id",
+                    "wd.window_name",
+                    "tp.name as type_id",
+                    "wd.branch_id", 
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                    "ts.id as pId",
+                    'b.branch_name'
+                )
+                ->leftJoin("types as tp", "tp.id", "wd.type_id")
+                ->leftJoin('branchs as b', 'b.id', '=','wd.branch_id')
+                ->leftJoin("tellers as ts", "ts.id", "wd.teller_id")
+                ->where('wd.branch_id',$request->branch_id)
+                ->orderBy('wd.created_at', 'desc')
+                ->get();
+        
+            return response()->json([
+                'rows' => $res
+            ]);
         }
-    
-        return response()->json([
-            'rows' => $res
-        ]);
+    }
+
+    public function viewTypesDropdown (Request $request) {
+        try {
+            $rows = DB::table('types as tp')
+                    ->select([
+                        'tp.id',
+                        'tp.name',
+                        'tp.branch_id'
+                    ])
+                    ->where('tp.branch_id',$request->branch_id)
+                    ->get();
+            return response()->json([
+                'rows' => $rows
+            ]);
+        }  catch (\Exception $e) {
+            return response()->json([
+               'message' => $e->getMessage() 
+            ]);
+        }
+    }
+
+    public function viewtellersDropdown (Request $request) {
+        try {
+            $rows = DB::table('tellers as t')
+                    ->select([
+                        't.id as value',
+                        DB::raw('CONCAT(t.teller_firstname, " ", t.teller_lastname) as label'),
+                        't.branch_id',
+                        't.type_id',
+                        't.type_ids_selected'
+                    ])
+                    ->where('t.branch_id',$request->branch_id)
+                    ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)',[json_encode(strval($request->type_ids_selected))]) // Ensure ID is treated as a string
+                    ->get();
+            return response()->json([
+                'rows' => $rows
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
     }
     
 
@@ -201,8 +265,10 @@ class WindowController extends Controller
             ->select(
                 "wd.id",
                 "wd.window_name",
+                "wd.branch_id",
                 "tp.name as type_id",
-                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id")
+                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                "b.branch_name",
             )
             ->leftJoin(
                 "types as tp",
@@ -213,6 +279,12 @@ class WindowController extends Controller
                 "tellers as ts",
                 "ts.id",
                 "wd.teller_id"
+            )
+            ->leftJoin(
+                "b.branch_id as b",
+                "b.id",
+                "=",
+                "wd.branch_id",
             )
             ->orderBy('wd.created_at', 'desc');
         

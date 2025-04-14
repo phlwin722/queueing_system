@@ -7,6 +7,7 @@ use App\Models\Type;
 use App\Http\Requests\TypeRequest;
 use \App\Models\Teller;
 use \App\Models\Window;
+use GuzzleHttp\Psr7\Request as Psr7Request;
 use Illuminate\Support\Facades\DB;
 
 class TypeController extends Controller
@@ -14,8 +15,41 @@ class TypeController extends Controller
     public function index(Request $request) 
     {
         try {
-            $rows = Type::all(); // Use Eloquent instead of DB::table
-            return response()->json([ 'rows' => $rows ]);
+            if ($request->branch_id != 0) {
+                $rows = DB::table('types as tp')
+                        ->select ([
+                            'tp.id',
+                            'tp.name',
+                            'tp.indicator',
+                            'tp.serving_time',
+                            'tp.branch_id',
+                            'b.branch_name'
+                        ])
+                        ->where('tp.branch_id',"=",$request->branch_id)
+                        ->leftJoin('branchs as b', 'b.id','=','tp.branch_id')
+                        ->orderBy('tp.created_at','desc')
+                        ->get();
+                    return response()->json([
+                        'rows' => $rows
+                    ]);
+            }else {
+                $rows = DB::table('types as tp')
+                ->select ([
+                    'tp.id',
+                    'tp.name',
+                    'tp.indicator',
+                    'tp.serving_time',
+                    'tp.branch_id',
+                    'b.branch_name'
+                ])
+                ->leftJoin('branchs as b', 'b.id','=','tp.branch_id')
+                ->orderBy('tp.created_at','desc')
+                ->get();
+            return response()->json([
+                'rows' => $rows
+            ]);
+                return response()->json([ 'rows' => $rows ]);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 "message" => env('APP_DEBUG') 
@@ -66,12 +100,30 @@ class TypeController extends Controller
         }
     }
 
+    public function fetchBranch (Request $request) {
+        try{ 
+            $branch = DB::table('branchs')
+                     ->select('id','branch_name')
+                     ->get();
+            
+            return response()->json([
+                'branch'=> $branch
+            ]);
+        }catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
     public function create(TypeRequest $request) 
     {
         try {
             $row = Type::create($request->all());
+            $rows = $this->getData($row->id);
+
             return response()->json([
-                "row" => $row,
+                "row" => $rows,
                 "message" => "Successfully Created!"
             ]);
         } catch (\Exception $e) {
@@ -89,8 +141,10 @@ class TypeController extends Controller
         try {
             $row = Type::findOrFail($id);
             $row->update($request->all());
+
+            $getData = $this->getData($id);
             return response()->json([
-                "row" => $row->fresh(), // Return updated record
+                "row" => $getData, // Return updated record
                 "message" => "Successfully Updated!"
             ]);
         } catch (\Exception $e) {
@@ -127,5 +181,28 @@ class TypeController extends Controller
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
             ]);
         }
+    }
+
+    public function getData($id = null){
+        
+        $res = DB::table('types as tp')
+                    ->select ([
+                        'tp.id',
+                        'tp.name',
+                        'tp.indicator',
+                        'tp.serving_time',
+                        'tp.branch_id',
+                        'b.branch_name'
+                    ])
+                    ->leftJoin('branchs as b', 'b.id','=','tp.branch_id')
+                    ->orderBy('tp.created_at','desc');
+        if($id){
+            $res = $res
+                ->where("tp.id",$id)
+                -> first();
+        }else{
+            $res = $res->get();
+        }
+        return $res; 
     }
 }

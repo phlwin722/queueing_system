@@ -32,6 +32,7 @@ class TellerRequest extends FormRequest
             'teller_password' => ['required'],
             'type_ids_selected' => ['required', 'array', 'min:1'],  // Ensure it's an array and not empty
             'Image' => ['required'],
+            'branch_id' => ['required'],
         ];
     }
 
@@ -51,6 +52,7 @@ class TellerRequest extends FormRequest
             'teller_lastname.regex' => 'Invalid lastname! Only letters and spaces are allowed.',
             'teller_username.required' => 'The username field is required',
             'teller_password.required' => 'The password field is requierd',
+            'branch_id.required' => 'The Branch name field is required'
          ];
     }
     protected function failedValidation(Validator $validator)
