@@ -17,6 +17,7 @@ use App\Http\Controllers\BreakTimeController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\ServingTimeController;
 use App\Http\Controllers\SurveyResponseController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ResetWindowSettingController;
 use App\Models\Branch;
@@ -155,6 +156,10 @@ Route::post('/waiting_Time-update', [Waiting_timeController::class, 'update']);
 Route::post('/survey', [SurveyResponseController::class, 'store']);
 Route::get('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
 
+//online appointment
+Route::post('/appointments', [AppointmentController::class, 'store']);
+Route::get('/branches/{branchName}/slots', [AppointmentController::class, 'getSlots']);
+
 // Manager Routes
 Route::post('/manager/index', [ManagerController::class, 'index']);
 Route::post('/manager/create', [ManagerController::class, 'create']);
@@ -176,3 +181,4 @@ Route::post('/api/regions', [BranchController::class, 'getRegions']);
 Route::post('/api/provinces', [BranchController::class, 'getProvinces']);
 Route::post('/api/cities', [BranchController::class, 'getCities']);
 Route::post('/api/barangays', [BranchController::class, 'getBarangays']);
+

@@ -49,7 +49,7 @@
 
         <!-- Teller Table Section -->
       <div class="row q-col-gutter-sm q-mt-sm">
-        <div class="col-xs-6 col-md-6">
+        <div class="col-xs-6 col-md-12">
           <q-card>
             <q-card-section class="">
               <div class="text-primary">Teller Workstations</div>
@@ -75,6 +75,8 @@
           </q-card>
         </div>
       </div>
+
+      
 
       </div>
 
@@ -250,7 +252,7 @@ export default {
                 datasets: [{
                   label: 'Rating',
                   data: Object.values(data.ratings),
-                  backgroundColor: '#42a5f5'
+                  backgroundColor: '#4caf50'
                 }]
               },
               options: { responsive: true }
@@ -277,7 +279,7 @@ export default {
               datasets: [{
                 label: 'Waiting Time',
                 data: Object.values(data.waiting_time_satisfaction), // Y-axis values
-                backgroundColor: '#ff9800'
+                backgroundColor: '#F2C037'
               }]
             },
             options: {
