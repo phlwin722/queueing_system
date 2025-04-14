@@ -79,69 +79,60 @@ class AdminController extends Controller
             try {
                 // Get the ID from the request
                 $id = $request->input('id');
-        
-  /*               // Validate the ID (Ensure it's required and exists in the admins table)
-                $validator = Validator::make(['id' => $id], [
-                    'id' => 'required|exists:admins,id'  // Ensure it's an integer and exists in the database
-                ]);
-        
-                // Check if validation fails
-                if ($validator->fails()) {
-                    return response()->json([
-                        'message' => 'Validation failed',
-                        'errors' => $validator->errors()
-                    ], 422);  // Return 422 for validation errors
-                } */
-        
-                // Fetch the admin data based on the ID
-                $adminInfo = DB::table('admins')
-                            ->where('id', $id)
-                            ->first();
+                $branch_id = $request->branch_id;
 
-                if ($adminInfo) {
-                    // Return the admin data if found
-                    return response()->json([
-                        'dataValue' => [
-                            'id' => $adminInfo->id,
-                            'Firstname' => $adminInfo->Firstname,
-                            'Lastname' => $adminInfo->Lastname,
-                            'Username' => $adminInfo->Username,
-                            'Image' => $adminInfo->Image ? asset($adminInfo->Image) 
-                                                        : asset('assets/no-image-user.png')
-                        ]
-                    ]);
-                }
-
+                if ($branch_id != null) {
+                        
                     // Fetch the admin data based on the ID
                     $managerInfo = DB::table('managers as m')
-                        ->select([
-                            'm.id',
-                            'm.manager_firstname',
-                            'm.manager_lastname',
-                            'm.manager_username',
-                            'm.Image',
-                            'm.branch_id',
-                            'b.branch_name'
-                        ])
-                        ->where('m.id', $id)
-                        ->leftJoin('branchs as b','b.id','=','m.branch_id')
-                        ->first();
-   
-                   if ($managerInfo) {
-                       // Return the admin data if found
-                       return response()->json([
-                           'dataValue' => [
-                               'id' => $managerInfo->id,
-                               'Firstname' => $managerInfo->manager_firstname,
-                               'Lastname' => $managerInfo->manager_lastname,
-                               'Username' => $managerInfo->manager_username,
-                               'Image' => $managerInfo->Image ? asset($managerInfo->Image) 
-                                                           : asset('assets/no-image-user.png'),
-                                'branch_id' => $managerInfo->branch_id,
-                                'branch_name' => $managerInfo->branch_name,
-                           ]
-                       ]);
-                   }
+                    ->select([
+                        'm.id',
+                        'm.manager_firstname',
+                        'm.manager_lastname',
+                        'm.manager_username',
+                        'm.Image',
+                        'm.branch_id',
+                        'b.branch_name'
+                    ])
+                    ->where('m.id', $id)
+                    ->leftJoin('branchs as b','b.id','=','m.branch_id')
+                    ->first();
+
+               if ($managerInfo) {
+                   // Return the admin data if found
+                   return response()->json([
+                       'dataValue' => [
+                           'id' => $managerInfo->id,
+                           'Firstname' => $managerInfo->manager_firstname,
+                           'Lastname' => $managerInfo->manager_lastname,
+                           'Username' => $managerInfo->manager_username,
+                           'Image' => $managerInfo->Image ? asset($managerInfo->Image) 
+                                                       : asset('assets/no-image-user.png'),
+                            'branch_id' => $managerInfo->branch_id,
+                            'branch_name' => $managerInfo->branch_name,
+                       ]
+                   ]);
+               }
+                }else {
+                    // Fetch the admin data based on the ID
+                    $adminInfo = DB::table('admins')
+                    ->where('id', $id)
+                    ->first();
+
+                    if ($adminInfo) {
+                        // Return the admin data if found
+                        return response()->json([
+                            'dataValue' => [
+                                'id' => $adminInfo->id,
+                                'Firstname' => $adminInfo->Firstname,
+                                'Lastname' => $adminInfo->Lastname,
+                                'Username' => $adminInfo->Username,
+                                'Image' => $adminInfo->Image ? asset($adminInfo->Image) 
+                                                            : asset('assets/no-image-user.png')
+                            ]
+                        ]);
+                    }
+                }
         
             } catch (\Exception $e) {
                 // Return any exception that occurs during processing
@@ -154,8 +145,50 @@ class AdminController extends Controller
     
       public function updateqInformation (Request $request) {
         try {
+            if ($request->branch_id != null) {
+                // Validate Firstname and Lastname fields
+            $validator = Validator::make($request->all(), [
+                'Firstname' => [
+                    'required',
+                    'string', 
+                    'max:255'
+                ],
+                "Username" => [
+                    'required',
+                    'regex:/^[a-zA-Z\s]+$/'
+                ],
 
-            // Validate Firstname and Lastname fields
+                'Lastname' => [
+                    'required',
+                    'string', 
+                    'max:255'
+                ],
+            ]);
+
+            // Check if validation fails
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // update information
+            DB:: table('managers')
+                ->where('id',$request->id)
+                ->update([
+                    'manager_username' => $request->Username,
+                    'manager_firstname' => $request->Firstname,
+                    'manager_lastname' => $request->Lastname,
+                    'updated_at' => now(),
+                ]);
+
+                return response()->json([
+                    'message' => 'Admin Information updated successfully'
+                ]);
+            
+            }else {
+                // Validate Firstname and Lastname fields
             $validator = Validator::make($request->all(), [
                 'Firstname' => [
                     'required',
@@ -196,6 +229,7 @@ class AdminController extends Controller
                     'message' => 'Admin Information updated successfully'
                 ]);
             
+            }
         } catch (\Exception $e) {
             $message =$e->getMessage();
             return response()->json([
@@ -206,8 +240,9 @@ class AdminController extends Controller
 
       public function updatePassword (AdminpasswordRequest $request) {
         try {
-            // Ensure the admin exists before updating
-            $admin = DB::table('admins')->where('id', $request->id)->first();
+           if ($request->branch_id != null) {
+                 // Ensure the admin exists before updating
+            $admin = DB::table('managers')->where('id', $request->id)->first();
             
             if (!$admin) {
                 return response()->json([
@@ -216,10 +251,10 @@ class AdminController extends Controller
             }
     
             // Proceed to update the password
-            $affectedRows = DB::table('admins')
+            $affectedRows = DB::table('managers')
                 ->where('id', $request->id)
                 ->update([
-                    "Password" => Hash::make($request->newPassword),
+                    "manager_password" => Hash::make($request->newPassword),
                     "updated_at" => now()
                 ]);
             
@@ -233,6 +268,35 @@ class AdminController extends Controller
             return response()->json([
                 "message" => "Admin password updated successfully"
             ]);
+           }else {
+             // Ensure the admin exists before updating
+             $admin = DB::table('admins')->where('id', $request->id)->first();
+            
+             if (!$admin) {
+                 return response()->json([
+                     "message" => "Admin with the given ID not found."
+                 ], 404);
+             }
+     
+             // Proceed to update the password
+             $affectedRows = DB::table('admins')
+                 ->where('id', $request->id)
+                 ->update([
+                     "Password" => Hash::make($request->newPassword),
+                     "updated_at" => now()
+                 ]);
+             
+             // Check if any rows were affected
+             if ($affectedRows === 0) {
+                 return response()->json([
+                     "message" => "No rows were updated, possibly incorrect ID."
+                 ], 400);
+             }
+     
+             return response()->json([
+                 "message" => "Admin password updated successfully"
+             ]);
+           }
         } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json([
@@ -244,58 +308,113 @@ class AdminController extends Controller
     public function uploadImage(Request $request)
     {
         try {
-            // Validate input
-            $request->validate([
-                'id' => 'required|exists:admins,id',
-                'Image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
-            ]);
-    
-            // Get the admin ID
-            $adminId = $request->id;
-    
-            // Retrieve admin record
-            $admin = DB::table('admins')->where('id', $adminId)->first();
-            
-            if (!$admin) {
-                return response()->json(['message' => 'Admin not found'], 404);
-            }
-
-            // Delete the old image if it exists
-            if ($admin->Image) {
-                $oldImagePath = public_path($admin->Image);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath); // Delete the file
-                }
-            }
-    
-            // Process and save the uploaded file
-            if ($request->hasFile('Image')) {
-                $file = $request->file('Image');
-                $filename = time() . '.' . $file->getClientOriginalExtension();
+            if ($request->branch_id != null) {
+                // Validate input
+                $request->validate([
+                    'Image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+                ]);
+        
+                // Get the admin ID
+                $adminId = $request->id;
+        
+                // Retrieve admin record
+                $admin = DB::table('managers')->where('id', $adminId)->first();
                 
-                // Define the folder path (inside public directory)
-                $folderPath = public_path('assets/admin/' . $adminId);  
-    
-                // Ensure the folder exists
-                if (!file_exists($folderPath)) {
-                    mkdir($folderPath, 0755, true); // Create folder with proper permissions
+                if (!$admin) {
+                    return response()->json(['message' => 'Admin not found'], 404);
                 }
-    
-                // Move file to the folder
-                $file->move($folderPath, $filename);
-    
-                // Correct URL for public access
-                $filePath = "assets/admin/{$adminId}/{$filename}";
-    
-                // **FIXED:** Update database using Query Builder (no `save()` method)
-                DB::table('admins')->where('id', $adminId)->update([
-                    'Image' => $filePath
+
+                // Delete the old image if it exists
+                if ($admin->Image) {
+                    $oldImagePath = public_path($admin->Image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath); // Delete the file
+                    }
+                }
+        
+                // Process and save the uploaded file
+                if ($request->hasFile('Image')) {
+                    $file = $request->file('Image');
+                    $filename = time() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Define the folder path (inside public directory)
+                    $folderPath = public_path('assets/manager/' . $adminId);  
+        
+                    // Ensure the folder exists
+                    if (!file_exists($folderPath)) {
+                        mkdir($folderPath, 0755, true); // Create folder with proper permissions
+                    }
+        
+                    // Move file to the folder
+                    $file->move($folderPath, $filename);
+        
+                    // Correct URL for public access
+                    $filePath = "assets/manager/{$adminId}/{$filename}";
+        
+                    // **FIXED:** Update database using Query Builder (no `save()` method)
+                    DB::table('managers')->where('id', $adminId)->update([
+                        'Image' => $filePath
+                    ]);
+        
+                    return response()->json([
+                        'message' => 'Image uploaded successfully!',
+                        'Image' => asset($filePath) // Convert relative path to full URL
+                    ]);
+                }
+            }else {
+                // Validate input
+                $request->validate([
+                    'id' => 'required|exists:admins,id',
+                    'Image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
                 ]);
-    
-                return response()->json([
-                    'message' => 'Image uploaded successfully!',
-                    'Image' => asset($filePath) // Convert relative path to full URL
-                ]);
+        
+                // Get the admin ID
+                $adminId = $request->id;
+        
+                // Retrieve admin record
+                $admin = DB::table('admins')->where('id', $adminId)->first();
+                
+                if (!$admin) {
+                    return response()->json(['message' => 'Admin not found'], 404);
+                }
+
+                // Delete the old image if it exists
+                if ($admin->Image) {
+                    $oldImagePath = public_path($admin->Image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath); // Delete the file
+                    }
+                }
+        
+                // Process and save the uploaded file
+                if ($request->hasFile('Image')) {
+                    $file = $request->file('Image');
+                    $filename = time() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Define the folder path (inside public directory)
+                    $folderPath = public_path('assets/admin/' . $adminId);  
+        
+                    // Ensure the folder exists
+                    if (!file_exists($folderPath)) {
+                        mkdir($folderPath, 0755, true); // Create folder with proper permissions
+                    }
+        
+                    // Move file to the folder
+                    $file->move($folderPath, $filename);
+        
+                    // Correct URL for public access
+                    $filePath = "assets/admin/{$adminId}/{$filename}";
+        
+                    // **FIXED:** Update database using Query Builder (no `save()` method)
+                    DB::table('admins')->where('id', $adminId)->update([
+                        'Image' => $filePath
+                    ]);
+        
+                    return response()->json([
+                        'message' => 'Image uploaded successfully!',
+                        'Image' => asset($filePath) // Convert relative path to full URL
+                    ]);
+                }
             }
     
             return response()->json(['message' => 'No image uploaded'], 400);

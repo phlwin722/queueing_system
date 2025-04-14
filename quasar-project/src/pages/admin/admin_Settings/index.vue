@@ -311,7 +311,9 @@
                     return;
                 }
                 // Proceed to update password
-                const { data } = await $axios.post('/admin/updatePassword', adminPassword.value);
+                const { data } = await $axios.post('/admin/updatePassword',  { 
+                  ...adminPassword.value, branch_id: adminInfo.value.branch_id
+                   });
                 if (data) {
                     $notify('positive', 'done', data.message); // Notify success
                 }
@@ -330,12 +332,23 @@
 
       const fetchAdminInfo = async () => {
         try {
-          const { data } = await $axios.post('/admin/Information',{
+          if (adminInfo.value.branch_id != null) {
+            const { data } = await $axios.post('/admin/Information',{
+              id: idAdmin.value,
+              branch_id: adminInfo.value.branch_id
+             });
+            
+            if (data.dataValue) { 
+              adminInfo.value = data.dataValue
+            }
+          }else {
+            const { data } = await $axios.post('/admin/Information',{
             id: idAdmin.value
-          });
-          
-          if (data.dataValue) { 
-            adminInfo.value = data.dataValue
+             });
+            
+            if (data.dataValue) { 
+              adminInfo.value = data.dataValue
+            }
           }
         } catch (error) {
           console.log(error);
@@ -344,11 +357,21 @@
 
       const fetchingImage = async () => {
         try {
-          const { data } = await $axios.post('/admin/Information',{
-            id: idAdmin.value
-          });
-          if (data.dataValue) { 
-            previewAdminImage.value = data.dataValue
+          if (adminInfo.value.branch_id != null) {
+            const { data } = await $axios.post('/admin/Information',{
+             id: idAdmin.value,
+             branch_id: adminInfo.value.branch_id
+            });
+            if (data.dataValue) { 
+              previewAdminImage.value = data.dataValue
+            }
+          }else {
+            const { data } = await $axios.post('/admin/Information',{
+              id: idAdmin.value
+            });
+            if (data.dataValue) { 
+              previewAdminImage.value = data.dataValue
+            }
           }
         } catch (error) {
           console.log(error);
@@ -402,6 +425,7 @@
               let formData = new FormData();
               formData.append('id', idAdmin.value); // Ensure the ID is passed
               formData.append('Image', selectedImage.value);
+              formData.append('branch_id', adminInfo.value.branch_id);
 
               try {
                 const { data } = await $axios.post('/upload-image', formData, {
@@ -441,6 +465,7 @@
         } else if (storeManagerinfo) {
           const adminData = JSON.parse(storeManagerinfo);
           idAdmin.value = adminData.id;  // Make sure you're only storing the ID here
+          adminInfo.value.branch_id = adminData.branch_id
           fetchAdminInfo()
           optimizedFetchImage()
         }

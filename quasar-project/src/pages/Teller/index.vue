@@ -762,26 +762,30 @@ export default {
     },
     { deep: false } // We're creating a new reference so deep isn't needed
   );
+   
   let autoServingInterval = null; // Store the interval ID
-  let serveStartTime = null
-  watch(autoServing, (newValue) => {
-    console.log(onBreak.value)
-    if(onBreak.value == true){
-      $notify(
+  let serveStartTime = null;
 
-          "positive",
-          "check",
-          "I'm ready to get back to work"
-      );
-      autoServing.value = false
-    }else{
-        if (newValue) {
-        $notify(
-            "positive",
-            "check",
-            "Auto Serving Enabled"
-          );
+  // Watch for changes in autoServing state
+  watch(autoServing, (newValue) => {
+    console.log(onBreak.value);
+
+    // Check if the user is on break first
+    if (onBreak.value) {
+      // Notify user that they're on break
+      $notify("primary", "info", "I'm taking a break");
+      
+      // Clear the interval if it was running
+      if (autoServingInterval) {
+        clearInterval(autoServingInterval);
+        autoServingInterval = null;
+      }
+    } else {
+      if (newValue) {
+        // Auto Serving is enabled
+        $notify("positive", "check", "Auto Serving Enabled");
         console.log("Auto Serving Enabled");
+
         // Start the interval when autoServing is turned on
         autoServingInterval = setInterval(() => {
           if (
@@ -797,42 +801,36 @@ export default {
                 startWait(nextCustomer.id, nextCustomer.queue_number);
                 serveStartTime = new Date();
                 const startingTime = serveStartTime.toLocaleTimeString();
-                localStorage.setItem('serveStartTime'+tellerInformation.value.id.toString(), serveStartTime);
-                localStorage.setItem('startingTime'+tellerInformation.value.id.toString(), startingTime);
-              }, 2000);
+                
+                // Store serving time in localStorage
+                localStorage.setItem('serveStartTime' + tellerInformation.value.id.toString(), serveStartTime);
+                localStorage.setItem('startingTime' + tellerInformation.value.id.toString(), startingTime);
+              }, 2000); // Delay for 2 seconds before serving the customer
             }
-
           }
-        }, 2000); // Check every 3 seconds (adjust as needed)
+        }, 2000); // Check every 2 seconds
       } else {
-        $notify(
-            "positive",
-            "check",
-            "Auto Serving Disabled"
-          );
+        // Auto Serving is disabled
+        $notify("positive", "check", "Auto Serving Disabled");
         console.log("Auto Serving Disabled");
+
         // Clear the interval when autoServing is turned off
         if (autoServingInterval) {
           clearInterval(autoServingInterval);
           autoServingInterval = null;
         }
-      }, 2000); // Check every 3 seconds (adjust as needed)
-    } else {
-      $notify(
-          "primary",
-          "info",
-          "I'm taking a break"
-        );
- 
-      // Clear the interval when autoServing is turned off
-      if (autoServingInterval) {
-        clearInterval(autoServingInterval);
-        autoServingInterval = null;
-
       }
     }
+  });
 
-  }); 
+  // Watch for changes in queueList (this seems like a separate watch you’re using)
+  watch(
+    () => [...queueList.value], // Creates a new array reference to trigger on reordering
+    () => {
+      debouncedUpdateQueuePositions();
+    },
+    { deep: false } // Since we're creating a new reference, deep isn't necessary
+  );
 
 
   const serveEnd = async () => {

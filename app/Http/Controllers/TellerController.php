@@ -20,12 +20,51 @@ class TellerController extends Controller
     {
 
         try {
-            $rows = $this->getData();
+            if ($request->branch_id != null) {
+                $res = DB::table('tellers as t')
+                ->select(
+                    "t.id",
+                    "t.teller_firstname",
+                    "t.teller_lastname",
+                    "t.teller_username",
+                    "t.teller_password",
+                    "t.type_id",
+                    "t.type_ids_selected",
+                    "t.Image",
+                    "t.branch_id",
+                    "b.branch_name",
+                    DB::raw("IFNULL(ts.status, 'Offline') as status"), // Set 'Offline' if null
+                    DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')
+                )
+                ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
+                ->leftJoin('branchs as b',"b.id","=","t.branch_id")
+                ->leftJoin('windows as ts', 't.id', '=', 'ts.teller_id')
+                ->where('t.branch_id', $request->branch_id )
+                ->groupBy(
+                    "t.id",
+                    "t.teller_firstname",
+                    "t.teller_lastname",
+                    "t.teller_username",
+                    "t.teller_password",
+                    "t.type_ids_selected",
+                    "t.Image",
+                    "ts.status"
+                )
+                ->orderBy('t.created_at', 'desc')
+                ->get();
+        
+                return response()->json([
+                    'rows' => $res
+                ]);
+    
+            }else {
+                $rows = $this->getData();
 
-            return response()->json([
-                'rows' => $rows
-            ]);
-
+                return response()->json([
+                    'rows' => $rows
+                ]);
+    
+            }
         } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json([
@@ -67,6 +106,7 @@ class TellerController extends Controller
                 'teller_username' => $request->teller_username,
                 'teller_password' => Hash::make($request->teller_password),
                 'type_ids_selected' => json_encode($request->type_ids_selected), // Store selected types as JSON
+                'branch_id' => $request->branch_id,
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
@@ -118,9 +158,12 @@ class TellerController extends Controller
                     "t.teller_password",
                     "t.type_ids_selected",
                     "t.Image",
+                    't.branch_id',
+                    'b.branch_name',
                     DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
                 )
                 ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
+                ->leftJoin("branchs as b","b.id","=","t.branch_id")
                 ->where("t.id", $tellerID)
                 ->groupBy("t.id")
                 ->first();
@@ -230,6 +273,7 @@ class TellerController extends Controller
             $teller->teller_lastname = $request->teller_lastname;
             $teller->teller_username = $request->teller_username;
             $teller->type_ids_selected = $request->type_ids_selected;
+            $teller->branch_id = $request->branch_id;
 
             // Update password only if provided
             if ($request->filled('teller_password')) {
@@ -274,6 +318,21 @@ class TellerController extends Controller
             return response()->json([
                 "row" => $row,
                 "message" => "Teller Successfully Updated!"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : "An error occurred"
+            ]);
+        }
+    }
+
+    public function dropdownTypes (Request $request) {
+        try {
+            $rows = DB::table('types')
+                    ->where('branch_id',$request->branch_id)
+                    ->get();
+            return response()->json([
+                'rows' =>  $rows
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -461,10 +520,13 @@ class TellerController extends Controller
                 "t.type_id",
                 "t.type_ids_selected",
                 "t.Image",
+                "t.branch_id",
+                "b.branch_name",
                 DB::raw("IFNULL(ts.status, 'Offline') as status"), // Set 'Offline' if null
                 DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')
             )
             ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
+            ->leftJoin('branchs as b',"b.id","=","t.branch_id")
             ->leftJoin('windows as ts', 't.id', '=', 'ts.teller_id')
             ->groupBy(
                 "t.id",
@@ -531,28 +593,7 @@ class TellerController extends Controller
                     'error' => 'Invalid credentials'
                 ],400);
             }
-            // Generate a simple authentication token (or use Laravel Sanctum for better security)
-            $token = base64_encode(Str::random(40));
-
-            // If authentication is successful, return a success response
-            return response()->json([
-                'tellerInformation' => [
-                    'id' => $teller->id,
-                    'tellerFirstname' => $teller->teller_firstname,
-                    'tellerLastname' => $teller->teller_lastname,
-                    'tellerUsername' => $teller->teller_username,
-                    'token' => $token,
-                    'type_id' => $teller->type_id
-                ],
-                'message' => "Login sucessfull teller",
-                'result' => 'teller'
-            ]);
-        } else {
-            return response()->json([
-                'error' => 'Invalid credentials'
-            ], 400);
-        }
-    }
+        }   
 
     public function tellerLogout (Request $request) {
         try {

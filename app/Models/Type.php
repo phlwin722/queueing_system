@@ -11,6 +11,7 @@ class Type extends Model
     protected $fillable = [
         'name',
         'indicator',
-        'serving_time'
+        'serving_time',
+        'branch_id'
     ];
 }

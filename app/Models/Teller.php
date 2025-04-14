@@ -12,7 +12,8 @@ class Teller extends Model
         'teller_lastname',
         'teller_username',
         'teller_password',
-        'type_id'
+        'type_id',
+        'branch_id',
     ];
     public function types()
     {

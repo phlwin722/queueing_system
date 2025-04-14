@@ -23,6 +23,7 @@ return new class extends Migration
             ->constrained('types');
             $table->string('type_ids_selected')->nullable();
             $table->string('Image')->nullable();
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }

@@ -351,6 +351,8 @@ export default defineComponent({
     const currentServing = ref(null);
     const isQueuelistEmpty = ref(false);
     const $dialog = useQuasar();
+    const linksList = ref([]);
+
     const adminInformationContent = ref({
       id: "",
       Firstname: "",
@@ -382,19 +384,37 @@ export default defineComponent({
 
     const fetchAdminInformation = async () => {
       try {
-        const { data } = await $axios.post("/admin/Information", {
-          id: adminInformation.value.id,
-        });
+        if (adminInformation.value.branch_id) {
+          const { data } = await $axios.post("/admin/Information", {
+            id: adminInformation.value.id,
+            branch_id: adminInformation.value.branch_id
+          });
 
-        if (data.dataValue) {
-          adminInformationContent.value = data.dataValue; // Use the object directly, no need for
-          previewAdminImage.value = data.dataValue.Image;
-        } else {
-          console.error("No data found or invalid structure", data);
-          adminInformationContent.value = {
-            Firstname: "N/A",
-            Lastname: "N/A",
-          };
+          if (data.dataValue) {
+            adminInformationContent.value = data.dataValue; // Use the object directly, no need for
+            previewAdminImage.value = data.dataValue.Image;
+          } else {
+            console.error("No data found or invalid structure", data);
+            adminInformationContent.value = {
+              Firstname: "N/A",
+              Lastname: "N/A",
+            };
+          }
+        }else {
+          const { data } = await $axios.post("/admin/Information", {
+            id: adminInformation.value.id,
+          });
+
+          if (data.dataValue) {
+            adminInformationContent.value = data.dataValue; // Use the object directly, no need for
+            previewAdminImage.value = data.dataValue.Image;
+          } else {
+            console.error("No data found or invalid structure", data);
+            adminInformationContent.value = {
+              Firstname: "N/A",
+              Lastname: "N/A",
+            };
+          }
         }
       } catch (error) {
         console.error("Error fetching admin info", error);
@@ -441,10 +461,10 @@ export default defineComponent({
       localStorage.removeItem("adminInformation");
       localStorage.removeItem("authTokenManager"); // Remove auth token
       localStorage.removeItem("managerInformation");
-      router.push("/login"); // Redirect to login page
+      let rout = router.push("/login"); // Redirect to login page
       setTimeout(() => {
         window.location.reload(); // Prevent back navigation
-      }, 100);
+      }, 500);
     };
 
     // waiting time function section
@@ -628,105 +648,192 @@ export default defineComponent({
       }
     };
 
+    const fetchLinks = async () => {
+      if (adminInformation.value.branch_id != null) {
+        linksList.value = [
+          {
+            title: "Dashboard",
+            icon: "dashboard",
+            link: "/admin/dashboard",
+          },
+          {
+            title: "Teller",
+            icon: "person",
+            children: [
+              {
+                title: "Service Types",
+                icon: "category",
+                link: "/admin/teller/types",
+              },
+              {
+                title: "Personnel",
+                icon: "groups",
+                link: "/admin/teller/tellers",
+              },
+              {
+                title: "Window",
+                icon: "computer",
+                link: "/admin/teller/window",
+              },
+            ],
+          },
+          {
+            title: "Admin Queue",
+            icon: "admin_panel_settings",
+            link: "/admin/admin_Queue",
+          },
+          {
+            title: "Currency Conversion",
+            icon: "currency_exchange",
+            link: "/admin/currency_conversion",
+          },
+          {
+            title: "Customer Logs",
+            icon: "description",
+            link: "/admin/customer-logs",
+          },
+          {
+            title: "Teller customer logs",
+            icon: "person",
+            link: "/admin/teller-customer-logs",
+          },
+          {
+            title: "Window Logs",
+            icon: "upload_file",
+            link: "/admin/window-logs",
+          },
+          {
+            title: "Serving Time Logs",
+            icon: "timer",
+            link: "/admin/serving-time-logs",
+          },
+          {
+            title: "Reports",
+            icon: "bar_chart",
+            link: "/admin/reports",
+          },
+          {
+            title: "Settings",
+            icon: "settings",
+            children: [
+              {
+                title: "Personal Info",
+                icon: "computer",
+                link: "/admin/settings",
+              },
+              {
+                title: "Reset Window",
+                icon: "reset_tv",
+                link: "/admin/reset-window",
+              },
+            ],
+          },
+        ];
+      } else {
+        linksList.value =  [
+        {
+          title: "Dashboard",
+          icon: "dashboard",
+          link: "/admin/dashboard",
+        },
+        {
+          title: "Teller",
+          icon: "person",
+          children: [
+            {
+              title: "Service Types",
+              icon: "category",
+              link: "/admin/teller/types",
+            },
+            {
+              title: "Personnel",
+              icon: "groups",
+              link: "/admin/teller/tellers",
+            },
+            {
+              title: "Window",
+              icon: "computer",
+              link: "/admin/teller/window",
+            },
+          ],
+        },
+  /*       {
+          title: "Archive",
+          icon: "archive",
+          link: "/admin/archive",
+        }, */
+        {
+          title: "Admin Queue",
+          icon: "admin_panel_settings",
+          link: "/admin/admin_Queue",
+        },
+        {
+          title: 'Manager',
+          icon: 'groups',
+          link: '/admin/bank_manager'
+        },
+        {
+          title: 'Branch',
+          icon: 'groups',
+          link: '/admin/branch'
+        },
+        {
+          title: "Currency Conversion",
+          icon: "currency_exchange",
+          link: "/admin/currency_conversion",
+        },
+        {
+          title: "Customer Logs",
+          icon: "description",
+          link: "/admin/customer-logs",
+        },
+        {
+          title:"Teller customer logs",
+          icon: "person",
+          link: "/admin/teller-customer-logs",
+        },
+        {
+          title: "Window Logs",
+          icon: "upload_file",
+          link: "/admin/window-logs",
+        },
+        {
+          title: "Serving Time Logs",
+          icon: "timer",
+          link: "/admin/serving-time-logs",
+        },
+        {
+          title: "Reports",
+          icon: "bar_chart",
+          link: "/admin/reports",
+        },
+        {
+          title: "Settings",
+          icon: "settings",
+          children: [
+            {
+              title: "Personal Info",
+              icon: "computer",
+              link: "/admin/settings",
+            },
+            {
+              title: "Reset Window",
+              icon: "reset_tv",
+              link: "/admin/reset-window",
+            },
+          ],
+        },
+      ];
+      }
+    };
+
+
     onMounted(() => {
+      fetchLinks();
       fetchWaitingtime();
       fetchBreakTime()
     });
 
-    const linksList = [
-      {
-        title: "Dashboard",
-        icon: "dashboard",
-        link: "/admin/dashboard",
-      },
-      {
-        title: "Teller",
-        icon: "person",
-        children: [
-          {
-            title: "Service Types",
-            icon: "category",
-            link: "/admin/teller/types",
-          },
-          {
-            title: "Personnel",
-            icon: "groups",
-            link: "/admin/teller/tellers",
-          },
-          {
-            title: "Window",
-            icon: "computer",
-            link: "/admin/teller/window",
-          },
-        ],
-      },
-/*       {
-        title: "Archive",
-        icon: "archive",
-        link: "/admin/archive",
-      }, */
-      {
-        title: "Admin Queue",
-        icon: "admin_panel_settings",
-        link: "/admin/admin_Queue",
-      },
-      {
-        title: 'Manager',
-        icon: 'groups',
-        link: '/admin/bank_manager'
-      },
-      {
-        title: 'Branch',
-        icon: 'groups',
-        link: '/admin/branch'
-      },
-      {
-        title: "Currency Conversion",
-        icon: "currency_exchange",
-        link: "/admin/currency_conversion",
-      },
-      {
-        title: "Customer Logs",
-        icon: "description",
-        link: "/admin/customer-logs",
-      },
-      {
-        title:"Teller customer logs",
-        icon: "person",
-        link: "/admin/teller-customer-logs",
-      },
-      {
-        title: "Window Logs",
-        icon: "upload_file",
-        link: "/admin/window-logs",
-      },
-      {
-        title: "Serving Time Logs",
-        icon: "timer",
-        link: "/admin/serving-time-logs",
-      },
-      {
-        title: "Reports",
-        icon: "bar_chart",
-        link: "/admin/reports",
-      },
-      {
-        title: "Settings",
-        icon: "settings",
-        children: [
-          {
-            title: "Personal Info",
-            icon: "computer",
-            link: "/admin/settings",
-          },
-          {
-            title: "Reset Window",
-            icon: "reset_tv",
-            link: "/admin/reset-window",
-          },
-        ],
-      },
-    ];
 
     return {
       leftDrawerOpen,
