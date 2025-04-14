@@ -2,7 +2,7 @@
     <q-dialog v-model="icon" @hide="closeDialog">
         <q-card>
             <q-card-section class="row items-center q-pb-none">
-                <div class="text-h6 text-primary">{{formMode}} Window</div>
+                <div class="text-h6 text-primary">{{formMode}} Currency</div>
                 <q-space />
                 <q-btn icon="close" flat round dense v-close-popup style="width: 24px; height: 24px;" />
             </q-card-section>

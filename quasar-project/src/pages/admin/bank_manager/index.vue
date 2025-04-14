@@ -4,16 +4,15 @@
       <q-breadcrumbs class="q-mx-sm">
         <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
         <q-breadcrumbs-el
-          label="Currency Conversion"
-          icon="currency_exchange"
-          to="/admin/currency_conversion"
+          label="Manager"
+          icon="groups"
+          to="/admin/bank_manager"
         />
       </q-breadcrumbs>
     </div>
-
     <q-table
-      title="Currency"
-      :rows="filteredRows"
+      title="Personnel"
+      :rows="rows"
       :columns="columns"
       row-key="id"
       virtual-scroll
@@ -26,11 +25,10 @@
     >
       <template v-slot:top>
         <div class="row q-col-gutter-sm q-pb-xs">
-          <div class="">
+          <div class="col-auto">
             <q-btn
               color="primary"
               icon="add"
-              dense
               @click="handleShowForm('new')"
               class="custom-btn"
               glossy
@@ -41,7 +39,7 @@
                 self="center right"
                 :offset="[10, 10]"
               >
-                <strong>Add </strong> Currency
+                <strong>Add </strong> Manager
               </q-tooltip>
             </q-btn>
           </div>
@@ -49,7 +47,6 @@
             <q-btn
               color="red"
               icon="delete"
-              dense
               :disable="selected.length === 0"
               @click="beforeDelete(true)"
               class="custom-btn"
@@ -61,28 +58,40 @@
                 self="center left"
                 :offset="[10, 10]"
               >
-                <strong>Delete </strong> Currency
+                <strong>Delete </strong> Manager
               </q-tooltip>
             </q-btn>
           </div>
         </div>
       </template>
 
-      <template v-slot:body-cell-flag="props">
+      <!-- Branch name -->
+       <template v-slot:body-cell-branch_name="props">
+          <q-td :props="props">
+            {{ props.row.branch_name === null ? 'No assigned' : props.row.branch_name }}
+          </q-td>
+       </template>
+ 
+      <!-- Status cell template for the table -->
+      <template v-slot:body-cell-status="props">
         <q-td :props="props">
-          <span :class="['fi', props.row.flag]" style="font-size: 1.5em"></span>
+          <q-badge
+            :color="props.row.manager_status === 'Active' ? 'green' : 'red'" 
+          >
+            {{ props.row.manager_status === null ? 'Offline' : props.row.manager_status}}  <!-- Display the status text -->
+          </q-badge>
         </q-td>
       </template>
 
+
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <div class="q-gutter-x-sm">
+          <div class="q-gutter-x-sm ">
             <q-btn
               square
               color="positive"
               icon="edit"
               dense
-              glossy
               size="sm"
               class="custom-btn2"
               @click="handleShowForm('edit', props.row)"
@@ -93,16 +102,14 @@
                 :offset="[10, 10]"
                 class="bg-secondary"
               >
-                Edit Currency
+                Edit Manager
               </q-tooltip>
             </q-btn>
-
             <q-btn
               square
-              color="negative"
+              color="negative "
               icon="delete"
               dense
-              glossy
               size="sm"
               class="custom-btn2"
               @click="beforeDelete(false, props.row)"
@@ -113,105 +120,118 @@
                 :offset="[10, 10]"
                 class="bg-secondary"
               >
-                Delete Currency
+                Delete Manager
               </q-tooltip>
             </q-btn>
           </div>
         </q-td>
       </template>
     </q-table>
+
+    <my-form ref="dialogForm" :url="URL" :rows="rows" :types="types" />
   </q-page>
-  <my-form ref="dialogForm" :url="URL" :rows="rows" />
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from "vue";
-import { $axios, $notify, Dialog } from "boot/app";
-import MyForm from "pages/admin/admin_Currency_Conversion/form.vue";
+import { defineComponent, ref } from "vue";
+import { $axios, $notify } from "boot/app";
+import MyForm from "pages/admin/bank_manager/form.vue";
 import { useQuasar } from "quasar";
 
-const URL = "/currency";
+const URL = "/manager";
 
 export default defineComponent({
-  name: "IndexPage",
+  name: "TellerIndexPage",
   components: { MyForm },
   setup() {
-    const text = ref("");
-    const rows = ref([]);
     const $dialog = useQuasar();
-
+    const rows = ref([]);
     const columns = ref([
       {
-        name: "currency_name",
-        label: "Currency Name",
+        name: "manager_firstname",
+        label: "First Name",
         align: "left",
-        field: "currency_name",
+        field: "manager_firstname",
         sortable: true,
       },
       {
-        name: "currency_symbol",
-        label: "Currency Symbol",
+        name: "manager_lastname",
+        label: "Last Name",
         align: "left",
-        field: "currency_symbol",
+        field: "manager_lastname",
         sortable: true,
       },
       {
-        name: "flag",
-        label: "Flag",
-        align: "center",
-        field: "flag",
-        sortable: true,
-        format: (val) => val,
-      },
-      {
-        name: "buy_value",
-        label: "Buy Value",
+        name: "manager_username",
+        label: "Username",
         align: "left",
-        field: "buy_value",
+        field: "manager_username",
         sortable: true,
       },
       {
-        name: "sell_value",
-        label: "Sell Value",
+        name: "branch_name",
+        label: "Branch",
         align: "left",
-        field: "sell_value",
+        field: "branch_name",
         sortable: true,
       },
-      { name: "actions", label: "Actions", align: "left", sortable: false },
+      {
+        name: "status",
+        label: "Status",
+        align: "left",
+        field: "status",
+      },
+      {
+        name: "actions",
+        label: "Actions",
+        align: "left",
+        sortable: false,
+      },
     ]);
-
-    const filteredRows = computed(() => {
-      return rows.value.filter((row) =>
-        Object.values(row).some((value) =>
-          String(value).toLowerCase().includes(text.value.toLowerCase())
-        )
-      );
-    });
 
     const selected = ref([]);
     const dialogForm = ref(null);
 
     const getTableData = async () => {
       try {
-        const { data } = await $axios.post(URL + "/showData");
+        const { data } = await $axios.post(URL + "/index");
         rows.value.splice(0, rows.value.length, ...data.rows);
+        console.log("try",rows.value);  // Add this line to check the rows
       } catch (error) {
         console.log(error);
       }
     };
+    getTableData();
 
     const handleShowForm = (mode, row) => {
       dialogForm.value.showDialog(mode, row);
     };
 
-    const beforeDelete = (isMany, row) => {
-      const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
-      const itemNames = isMany ? "Currencies" : row.currency_name;
+    const handleDelete = async (ids) => {
+      try {
+        const { data } = await $axios.post(URL + "/delete", { ids });
+        $notify("positive", "check", data.message);
 
+        for (const x of ids) {
+          const index = rows.value.findIndex((o) => o.id === x);
+          if (index !== -1) {
+            rows.value.splice(index, 1);
+          }
+        }
+        selected.value.splice(0, selected.value.length);
+      } catch (error) {
+        console.error("Error deleting managers:", error);
+        $notify("negative", "error", error.response.data.message);
+      }
+    };
+
+    const beforeDelete = (isMany, row) => {
+     const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
+      const itemName = isMany ? 'all managers' : `${row.manager_firstname} ${row.manager_lastname}`
       $dialog
         .dialog({
           title: "Confirm",
-          message: `Are you sure you want to delete ${itemNames}?`,
+          message: `Are you sure you want to delete ${itemName}?`,
           cancel: true,
           persistent: true,
           ok: {
@@ -230,38 +250,35 @@ export default defineComponent({
         })
         .onOk(async () => {
           handleDelete(ids);
+        })
+        .onDismiss(() => {
+          // console.log('I am triggered on both OK and Cancel')
         });
     };
 
-    const handleDelete = async (ids) => {
+    const types = ref([]);
+
+    const getTypes = async () => {
       try {
-        if (!Array.isArray(ids)) {
-          ids = [ids];
-        }
-        const { data } = await $axios.post(URL + "/delete", { ids });
-        rows.value = rows.value.filter((row) => !ids.includes(row.id));
-        $notify("positive", "check", data.message);
-        selected.value = [];
+        const { data } = await $axios.post(URL + "/index");
+        console.log("Fetched Types:", data.rows);
+        types.value.splice(0, types.value.length, ...data.rows);
       } catch (error) {
-        console.log("error", error);
-        $notify("negative", "error", error.response.data.message);
+        console.error("Error fetching manager types:", error);
       }
     };
 
-    onMounted(() => {
-      getTableData()
-    });
+    getTypes();
 
     return {
       rows,
       columns,
-      dialogForm,
       selected,
+      pagination: ref({ rowsPerPage: 0 }),
+      dialogForm,
       handleShowForm,
       URL,
       beforeDelete,
-      filteredRows,
-      text,
     };
   },
 });
@@ -276,18 +293,9 @@ export default defineComponent({
 }
 
 .custom-btn2 {
-  width: 25px;
+  width: 25px; /* Adjust as needed */
   height: 25px;
   margin-left: 5px;
   border-radius: 5px;
 }
-</style>
-
-<style>
-@import "flag-icons/css/flag-icons.min.css";
-</style>
-<style >
-  span.q-table__bottom-item{
-    width: 200px;
-  }
 </style>

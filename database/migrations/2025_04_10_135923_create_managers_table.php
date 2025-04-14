@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('admins', function (Blueprint $table) {
+        Schema::create('managers', function (Blueprint $table) {
             $table->id();
-            $table->string('Firstname');
-            $table->string('Lastname');
-            $table->string('Username');
-            $table->string('Password');
+            $table->string('manager_firstname');
+            $table->string('manager_lastname');
+            $table->string('manager_username')->unique();
+            $table->string('manager_password');
             $table->string('Image')->nullable();
-            $table->string('Role')->nullable();
+            $table->string('manager_status');
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('admins');
+        Schema::dropIfExists('managers');
     }
 };

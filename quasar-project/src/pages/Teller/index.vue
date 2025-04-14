@@ -71,7 +71,34 @@
           <!-- Main Row Container -->
           <div class="row q-col-gutter-md justify-center full-height">
             <!-- First Item -->
-            <div class="col-12 col-md-6">
+            <div v-if="newFormattedTime >= fromBreak && formattedCurrentTime < toBreak" class="col-12 col-md-8">
+            <q-card class="q-pa-xl q-mx-auto" style="max-width: 550px; border-left: 8px solid #1c5d99;">
+              <q-card-section class="text-center">
+                <q-icon name="access_time" size="60px" style="color: #1c5d99;" class="q-mb-md" />
+                <div class="text-h4 text-weight-bold" style="color: #1c5d99;">Break Time</div>
+                <div class="text-subtitle1 text-grey-7">You’re currently on break</div>
+              </q-card-section>
+
+              <q-separator spaced />
+
+              <q-card-section class="row justify-around items-center q-pt-lg">
+                <div class="column items-center">
+                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
+                  <div class="text-caption text-grey-7 q-mt-xs">From</div>
+                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(fromBreak) }}</div>
+                </div>
+                <q-icon name="arrow_forward" size="32px" color="grey-6" />
+                <div class="column items-center">
+                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
+                  <div class="text-caption text-grey-7 q-mt-xs">To</div>
+                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(toBreak) }}</div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+
+            <div v-else class="col-12 col-md-6">
               <q-card class="q-pa-md">
                 <q-card-section>
                   <q-item>
@@ -415,7 +442,10 @@ export default {
     });
 
     // Fetch queue data with error handling
+    const QueueListlastUpdatedAt = ref(null); // default to null
+    let polling = true;
     const fetchQueue = async () => {
+      if (!polling) return;
       try {
         isLoading.value = true;
         
@@ -425,52 +455,48 @@ export default {
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
+          last_updated: QueueListlastUpdatedAt.value,
         });
 
-        const fetchedQueue = response.data.queue.filter(
-          (q) => !["finished", "cancelled"].includes(q.status)
-        );
+        if (response.data.updated) {
+          const fetchedQueue = response.data.queue.filter(
+            (q) => !["finished", "cancelled"].includes(q.status)
+          );
 
-        // Update and store current serving
-        currentServing.value = response.data.current_serving;
-        localStorage.setItem(
-          "currentServing",
-          JSON.stringify(currentServing.value)
-        );
+          // Update and store current serving
+          currentServing.value = response.data.current_serving;
+          localStorage.setItem(
+            "currentServing",
+            JSON.stringify(currentServing.value)
+          );
 
-        // Remove current serving from the queue list
-        const updatedQueue = fetchedQueue.filter(
-          (q) => q.id !== currentServing.value?.id
-        );
+          // Remove current serving from the queue list
+          const updatedQueue = fetchedQueue.filter(
+            (q) => q.id !== currentServing.value?.id
+          );
 
-        // Preserve the local order while updating new queue items
-        queueList.value = reorderQueue(storedQueue, updatedQueue);
+          // Preserve the local order while updating new queue items
+          queueList.value = reorderQueue(storedQueue, updatedQueue);
 
-        // Save updated queue order
-        localStorage.setItem("queueList", JSON.stringify(queueList.value));
+          // Save updated queue order
+          localStorage.setItem("queueList", JSON.stringify(queueList.value));
 
-        noOfQueue.value = queueList.value.length;
-        // if (queueList.value.length > 0 &&
-        //     queueList.value[0].status === "waiting" &&
-        //     currentServing.value == null
-        // ) {
-        //   const nextCustomer = queueList.value[0];
-        //   console.log(nextCustomer.id)
-        //   console.log(nextCustomer.type_id)
-        //   if (nextCustomer) {
-        //     setTimeout(() => {
-        //       caterCustomer(nextCustomer.id, nextCustomer.type_id);
-        //       startWait(nextCustomer.id, nextCustomer.queue_number);
-        //     }, 2000);
-        //   }
-        // }
+          noOfQueue.value = queueList.value.length;
 
-        isQueuelistEmpty.value = queueList.value.length == 0;
+
+          isQueuelistEmpty.value = queueList.value.length == 0;
+          QueueListlastUpdatedAt.value = response.data.last_updated_at;
+        }
       } catch (error) {
         console.error("Error fetching queue:", error);
         $notify("negative", "error", "Failed to fetch queue data");
       } finally {
         isLoading.value = false;
+        if(noOfQueue.value >5){
+          if (polling) setTimeout(fetchQueue, 10000);
+        }else{
+          if (polling) setTimeout(fetchQueue, 3000);
+        }
       }
     };
 
@@ -482,18 +508,27 @@ export default {
           (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
       );
     };
-
+    const fetchIdLastUpdatedAt = ref(null); // last update tracker
+    let fetchIdPolling = true; // Flag to control recursive polling
     const fetchId = async () => {
+      if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
       try {
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
+          last_updated: fetchIdLastUpdatedAt.value,
         });
-        if (response.data.current_serving) {
+        if (response.data.updated) {
+          if (response.data.current_serving) {
           cusId.value = response.data.current_serving.id;
         }
+          fetchIdLastUpdatedAt.value = response.data.last_updated_at;
+        }
+
       } catch (error) {
         console.error("Error fetching customer ID:", error);
+      }finally {
+        if (fetchIdPolling) setTimeout(fetchId, 3000); // Poll every 3 seconds
       }
     };
     // Cater customer with error handling
@@ -647,16 +682,34 @@ export default {
       }, 1000);
     };
 
+    const formatTo12Hour = (time) => {
+        const [hour, minute] = time.split(":").map(Number);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const formattedHour = hour % 12 || 12; // Convert 0 or 12 to 12, 13 to 1, etc.
+        return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+      };
+
     // Fetch waiting time with error handling
+    const fetchWaitingtimelastUpdatedAt = ref(null); // default to null
+    let fetchWaitingtimepolling = true;
     const fetchWaitingtime = async () => {
+      if (!fetchWaitingtimepolling) return;
       try {
-        const { data } = await $axios.post("/admin/waiting_Time-fetch");
-        if (data?.dataValue?.length > 0) {
-          waitTime.value = data.dataValue[0].Waiting_time;
-          prepared.value = data.dataValue[0].Prepared;
+        const { data } = await $axios.post("/admin/waiting_Time-fetch",{
+          last_updated: fetchWaitingtimelastUpdatedAt.value,
+        });
+        if (data.updated) {
+          if (data?.dataValue?.length > 0) {
+            waitTime.value = data.dataValue[0].Waiting_time;
+            prepared.value = data.dataValue[0].Prepared;
+          }
+          fetchWaitingtimelastUpdatedAt.value = data.last_updated_at;
         }
+        
       } catch (error) {
         console.error("Error fetching waiting time:", error);
+      }finally {
+        if (fetchWaitingtimepolling) setTimeout(fetchWaitingtime, 10000);
       }
     };
 
@@ -712,30 +765,56 @@ export default {
   let autoServingInterval = null; // Store the interval ID
   let serveStartTime = null
   watch(autoServing, (newValue) => {
-    if (newValue) {
+    console.log(onBreak.value)
+    if(onBreak.value == true){
       $notify(
+
           "positive",
           "check",
           "I'm ready to get back to work"
-        );
- 
-      // Start the interval when autoServing is turned on
-      autoServingInterval = setInterval(() => {
-        if (
-          queueList.value.length > 0 &&
-          queueList.value[0].status === "waiting" &&
-          currentServing.value == null
-        ) {
-          const nextCustomer = queueList.value[0];
+      );
+      autoServing.value = false
+    }else{
+        if (newValue) {
+        $notify(
+            "positive",
+            "check",
+            "Auto Serving Enabled"
+          );
+        console.log("Auto Serving Enabled");
+        // Start the interval when autoServing is turned on
+        autoServingInterval = setInterval(() => {
+          if (
+            queueList.value.length > 0 &&
+            queueList.value[0].status === "waiting" &&
+            currentServing.value == null
+          ) {
+            const nextCustomer = queueList.value[0];
 
-          if (nextCustomer) {
-            setTimeout(() => {
-              caterCustomer(nextCustomer.id, nextCustomer.type_id);
-              startWait(nextCustomer.id, nextCustomer.queue_number);
-              serveStartTime = new Date();
-              localStorage.setItem('serveStartTime'+tellerInformation.value.id.toString(), serveStartTime);
-            }, 2000);
+            if (nextCustomer) {
+              setTimeout(() => {
+                caterCustomer(nextCustomer.id, nextCustomer.type_id);
+                startWait(nextCustomer.id, nextCustomer.queue_number);
+                serveStartTime = new Date();
+                const startingTime = serveStartTime.toLocaleTimeString();
+                localStorage.setItem('serveStartTime'+tellerInformation.value.id.toString(), serveStartTime);
+                localStorage.setItem('startingTime'+tellerInformation.value.id.toString(), startingTime);
+              }, 2000);
+            }
+
           }
+        }, 2000); // Check every 3 seconds (adjust as needed)
+      } else {
+        $notify(
+            "positive",
+            "check",
+            "Auto Serving Disabled"
+          );
+        console.log("Auto Serving Disabled");
+        // Clear the interval when autoServing is turned off
+        if (autoServingInterval) {
+          clearInterval(autoServingInterval);
+          autoServingInterval = null;
         }
       }, 2000); // Check every 3 seconds (adjust as needed)
     } else {
@@ -749,16 +828,20 @@ export default {
       if (autoServingInterval) {
         clearInterval(autoServingInterval);
         autoServingInterval = null;
+
       }
     }
-  }, { immediate: true }); // immediate: true will run the callback immediately on mount
+
+  }); 
 
 
   const serveEnd = async () => {
   const savedStartTimeStr  = localStorage.getItem('serveStartTime'+tellerInformation.value.id.toString());
-  if (savedStartTimeStr ) {
+  const startingTime  = localStorage.getItem('startingTime'+tellerInformation.value.id.toString());
+  if (savedStartTimeStr && startingTime ) {
     const savedStartTime = new Date(savedStartTimeStr); // ✅ convert to Date
     const now = new Date();
+    const endingTime = now.toLocaleTimeString();
     const diffMs = now - savedStartTime; // in ms
     let minutes = Math.round(diffMs / 60000); // convert to minutes
     if (minutes < 1) minutes = 1;
@@ -769,10 +852,14 @@ export default {
     try {
       await $axios.post("/teller/save-serving-time", {
         minutes,
+        startingTime,
+        endingTime,
         type_id: tellerInformation.value.type_id,
         teller_id: tellerInformation.value.id,
       });
       console.log("Serving time saved:", minutes, "minutes");
+      console.log("Start time saved:", startingTime, "startingTime");
+      console.log("End time saved:", endingTime, "endingTime");
     } catch (err) {
       console.error("Failed to save serving time", err);
     }
@@ -780,6 +867,95 @@ export default {
 
   }
 };
+
+    const fromBreak = ref("")
+    const toBreak = ref("")
+    const formattedCurrentTime = ref("")
+    const newTime = ref("")
+    const newFormattedTime = ref("")
+    const originalFromBreak = ref("")
+    const hasNotified = ref(false)
+    const onBreak = ref(false)
+    const fetchBreakTime = async () => {
+      try {
+        const { data } = await $axios.post("/admin/fetch_break_time");
+        // ✅ Correctly assign break start & end times
+        if(fromBreak.value !== null && toBreak.value !== null){
+          fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
+          toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
+          // ✅ Get current time in HH:mm format
+          const currentTime = new Date();
+          const currentHour = currentTime.getHours().toString().padStart(2, "0");
+          const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+          formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
+          const totalMinutes = parseTime(fromBreak.value)-5
+          newTime.value = formatTime2(totalMinutes);
+          const OrgtotalMinutes = parseTime(fromBreak.value)
+          originalFromBreak.value = formatTime2(OrgtotalMinutes);
+          const totalFormatMinutes = parseTime(formattedCurrentTime.value)
+          newFormattedTime.value = formatTime2(totalFormatMinutes);
+          
+          if(newFormattedTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && hasNotified.value == false){
+            hasNotified.value = true
+            $notify(
+              "positive",
+              "check",
+              "5 minutes before break time, please consider turning off auto serving"
+            );
+          }
+
+          if(newFormattedTime.value >= fromBreak.value && formattedCurrentTime.value < toBreak.value ){
+            hasNotified.value = false
+            onBreak.value = true
+            if(autoServing.value == true){
+              autoServing.value = false
+              $dialog
+              .dialog({
+                title: "Turn off Auto Serving",
+                message: "Auto serving will be turned off automatically",
+                cancel: false,
+                persistent: true,
+                color: "primary",
+                ok: {
+                  label: "OK",
+                  color: "primary", // Make confirm button red
+                  unelevated: true, // Flat button style
+                  style: "width: 125px;",
+                },
+                style: "border-radius: 12px; padding: 16px;",
+              })
+              .onOk(async () => {
+                autoServing.value = false
+              })
+              .onDismiss(() => {
+                autoServing.value = false
+              });
+            }
+          }else{
+            onBreak.value = false
+          }
+        }
+
+      } catch (error) {
+        console.error("Error fetching break time:", error);
+      }
+    }
+
+    function parseTime(timeString) {
+        // Make sure we're working with a string (access .value if it's a Vue ref)
+        const timeStr = typeof timeString === 'object' && 'value' in timeString 
+            ? timeString.value 
+            : timeString;
+        
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    function formatTime2(totalMinutes) {
+        const hours = Math.floor(totalMinutes / 60) % 24;
+        const minutes = totalMinutes % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
 
   const fetchTodayServingStats = async () => {
     try {
@@ -869,9 +1045,11 @@ export default {
           teller_id: tellerInformation.value.id,
           type_id: tellerInformation.value.type_id
         });
-
         localStorage.removeItem("authTokenTeller");
         localStorage.removeItem("tellerInformation");
+        polling = false;
+        fetchWaitingtimepolling = false;
+        fetchIdPolling = false;
         router.push("/login");
         setTimeout(() => {
           window.location.reload();
@@ -934,41 +1112,14 @@ export default {
     };
 
     // Timer references for cleanup
-    let waitingTimeout;
-    let queueTimeout;
-    let fetchIdTimeout;
+
     let currencyInterval;
+    let intervalId = null;
 
-    // Optimized fetch functions with error handling
-    const optimizedFetchQueueData = async () => {
-      try {
-        await fetchQueue();
-      } catch (error) {
-        console.error("Error in queue data fetch:", error);
-      } finally {
-        queueTimeout = setTimeout(optimizedFetchQueueData, 3000);
-      }
-    };
 
-    const optimizedFetchWaitingtime = async () => {
-      try {
-        await fetchWaitingtime();
-      } catch (error) {
-        console.error("Error in waiting time fetch:", error);
-      } finally {
-        waitingTimeout = setTimeout(optimizedFetchWaitingtime, 3000);
-      }
-    };
 
-    const optimizedFetchId = async () => {
-      try {
-        await fetchId();
-      } catch (error) {
-        console.error("Error in customer ID fetch:", error);
-      } finally {
-        fetchIdTimeout = setTimeout(optimizedFetchId,3000);
-      }
-    };
+
+
 
     onMounted(() => {
       try {
@@ -977,16 +1128,18 @@ export default {
           tellerInformation.value = JSON.parse(storedTellerInfo);
           fetchType_idValue();
           fetch_Image();
-
           // Start periodic data fetching
-          optimizedFetchQueueData();
-          optimizedFetchWaitingtime();
-          optimizedFetchId();
+          fetchQueue()
+          fetchWaitingtime()
+          fetchId()
           fetchTodayServingStats()
           // Start currency data fetching
           fetchCurrency();
           currencyInterval = setInterval(fetchCurrency, 30000);
-
+          fetchBreakTime();
+          intervalId = setInterval(() => {
+            fetchBreakTime();
+          }, 30000);
           // Restore wait timer if exists
           const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
           const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
@@ -1006,9 +1159,6 @@ export default {
 
     onUnmounted(() => {
       // Cleanup all timers and intervals
-      clearTimeout(waitingTimeout);
-      clearTimeout(queueTimeout);
-      clearTimeout(fetchIdTimeout);
       clearInterval(currencyInterval);
       if (waitTimer) clearInterval(waitTimer);
       if (refreshInterval) clearInterval(refreshInterval);
@@ -1016,6 +1166,9 @@ export default {
     onBeforeUnmount(() => {
       if (autoServingInterval) {
         clearInterval(autoServingInterval);
+      }
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     });
 
@@ -1056,6 +1209,11 @@ export default {
       rowsCurrency,
       isLoading,
       autoServing,
+      newFormattedTime,
+      fromBreak,
+      formattedCurrentTime,
+      toBreak,
+      formatTo12Hour
     };
   },
 };

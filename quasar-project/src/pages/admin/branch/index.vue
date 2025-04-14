@@ -4,7 +4,7 @@
       <q-breadcrumbs class="q-mx-sm">
         <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
         <q-breadcrumbs-el
-          label="Currency Conversion"
+          label="Branch"
           icon="currency_exchange"
           to="/admin/currency_conversion"
         />
@@ -41,7 +41,7 @@
                 self="center right"
                 :offset="[10, 10]"
               >
-                <strong>Add </strong> Currency
+                <strong>Add </strong> Manager
               </q-tooltip>
             </q-btn>
           </div>
@@ -61,16 +61,26 @@
                 self="center left"
                 :offset="[10, 10]"
               >
-                <strong>Delete </strong> Currency
+                <strong>Delete </strong> Manager
               </q-tooltip>
             </q-btn>
           </div>
         </div>
       </template>
 
-      <template v-slot:body-cell-flag="props">
+      <template v-slot:body-cell-manager="props">
         <q-td :props="props">
-          <span :class="['fi', props.row.flag]" style="font-size: 1.5em"></span>
+            {{ props.row.manager_name || 'No assigned' }}
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-status="props">
+        <q-td :props="props">
+          <q-badge
+            :color="props.row.status === 'Active' ? 'green' : 'red'"
+          >
+          {{ props.row.status }}
+          </q-badge>
         </q-td>
       </template>
 
@@ -93,7 +103,7 @@
                 :offset="[10, 10]"
                 class="bg-secondary"
               >
-                Edit Currency
+                Edit Branch
               </q-tooltip>
             </q-btn>
 
@@ -113,7 +123,7 @@
                 :offset="[10, 10]"
                 class="bg-secondary"
               >
-                Delete Currency
+                Delete Branch
               </q-tooltip>
             </q-btn>
           </div>
@@ -127,10 +137,10 @@
 <script>
 import { defineComponent, ref, computed, onMounted } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
-import MyForm from "pages/admin/admin_Currency_Conversion/form.vue";
+import MyForm from "pages/admin/branch/form.vue";
 import { useQuasar } from "quasar";
 
-const URL = "/currency";
+const URL = "/branch";
 
 export default defineComponent({
   name: "IndexPage",
@@ -142,42 +152,74 @@ export default defineComponent({
 
     const columns = ref([
       {
-        name: "currency_name",
-        label: "Currency Name",
+        name: "branch_name",
+        label: "Branch Name",
         align: "left",
-        field: "currency_name",
+        field: "branch_name",
         sortable: true,
       },
       {
-        name: "currency_symbol",
-        label: "Currency Symbol",
+        name: "manager",
+        label: "Manager assigned",
         align: "left",
-        field: "currency_symbol",
+        field: "manager_name",
         sortable: true,
       },
       {
-        name: "flag",
-        label: "Flag",
-        align: "center",
-        field: "flag",
-        sortable: true,
-        format: (val) => val,
-      },
-      {
-        name: "buy_value",
-        label: "Buy Value",
+        name: "region",
+        label: "Region",
         align: "left",
-        field: "buy_value",
+        field: "region",
         sortable: true,
       },
       {
-        name: "sell_value",
-        label: "Sell Value",
+        name: "province",
+        label: "Province",
         align: "left",
-        field: "sell_value",
+        field: "province",
         sortable: true,
       },
-      { name: "actions", label: "Actions", align: "left", sortable: false },
+      {
+        name: "city",
+        label: "City",
+        align: "left",
+        field: "city",
+        sortable: true,
+      },
+      {
+        name: "Barangay",
+        label: "Barangay",
+        align: "left",
+        field: "Barangay",
+        sortable: true,
+      },
+      {
+        name: "address",
+        label: "Address",
+        align: "left",
+        field: "address",
+        sortable: true,
+      },
+      {
+        name: "status",
+        label: "Status",
+        align: "left",
+        field: "status",
+        sortable: true,
+      },
+      {
+        name: "opening_date",
+        label: "Opening date",
+        align: "left",
+        field: "opening_date",
+        sortable: true,
+      },
+      { 
+        name: "actions", 
+        label: "Actions", 
+        align: "left", 
+        sortable: false
+      },
     ]);
 
     const filteredRows = computed(() => {
@@ -193,7 +235,7 @@ export default defineComponent({
 
     const getTableData = async () => {
       try {
-        const { data } = await $axios.post(URL + "/showData");
+        const { data } = await $axios.post(URL + "/index");
         rows.value.splice(0, rows.value.length, ...data.rows);
       } catch (error) {
         console.log(error);
@@ -206,7 +248,7 @@ export default defineComponent({
 
     const beforeDelete = (isMany, row) => {
       const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
-      const itemNames = isMany ? "Currencies" : row.currency_name;
+      const itemNames = isMany ? "all branches" : row.branch_name;
 
       $dialog
         .dialog({
@@ -243,13 +285,16 @@ export default defineComponent({
         $notify("positive", "check", data.message);
         selected.value = [];
       } catch (error) {
-        console.log("error", error);
-        $notify("negative", "error", error.response.data.message);
+        if (error.response.status === 400) {
+          $notify("negative", "error", error.response.data.message);
+        }else {
+          console.log("error", error);
+        }
       }
     };
 
     onMounted(() => {
-      getTableData()
+      getTableData();
     });
 
     return {
@@ -285,9 +330,4 @@ export default defineComponent({
 
 <style>
 @import "flag-icons/css/flag-icons.min.css";
-</style>
-<style >
-  span.q-table__bottom-item{
-    width: 200px;
-  }
 </style>

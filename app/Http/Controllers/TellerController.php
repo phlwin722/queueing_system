@@ -16,19 +16,20 @@ use Illuminate\Support\Facades\Log;
 class TellerController extends Controller
 {
 
-    public function index(Request $request){
+    public function index(Request $request)
+    {
 
-        try{
-            $rows =  $this->getData();
-            
+        try {
+            $rows = $this->getData();
+
             return response()->json([
                 'rows' => $rows
             ]);
 
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json([
-                "message"=>env('APP_DEBUG')
+                "message" => env('APP_DEBUG')
                     ? $message
                     : "Something went wrong!"
             ]);
@@ -56,7 +57,8 @@ class TellerController extends Controller
     //     }
     // }
 
-    public function create(TellerRequest $request){
+    public function create(TellerRequest $request)
+    {
         try {
             // Insert a new teller and get the ID
             $tellerID = DB::table('tellers')->insertGetId([
@@ -71,41 +73,41 @@ class TellerController extends Controller
 
             // insert image on database
             $teller = DB::table('tellers')
-                ->where('id',$tellerID)
+                ->where('id', $tellerID)
                 ->first();
             // delete the old message if it exist
             if ($teller->Image) {
                 $oldImagePath = public_path($teller->Image);
                 if (file_exists($oldImagePath)) {
-                    unlink ($oldImagePath); // Delete the file
+                    unlink($oldImagePath); // Delete the file
                 }
             }
 
             // Process and save the uploaded file
             if ($request->hasFile('Image')) {
                 $file = $request->file('Image');
-                $filename = time(). '.' . $file->getClientOriginalExtension();
+                $filename = time() . '.' . $file->getClientOriginalExtension();
 
                 // define the folder path (inside public directory)
                 $folderPath = public_path('assets/teller/' . $tellerID);
-                    
+
                 // Ensure the folder exists
                 if (!file_exists($folderPath)) {
-                    mkdir($folderPath,0755,true);  // Create folder with proper permissions
+                    mkdir($folderPath, 0755, true);  // Create folder with proper permissions
                 }
 
                 // move file to the folder
-                $file->move($folderPath,$filename);
+                $file->move($folderPath, $filename);
 
                 // correct url public access
                 $filePath = "assets/teller/{$tellerID}/{$filename}";
 
                 /// **FIXED:** Update database using Query Builder (no `save()` method)
                 DB::table('tellers')
-                    ->where('id',$tellerID)
+                    ->where('id', $tellerID)
                     ->update(['Image' => $filePath]);
             }
-    
+
             // Fetch the newly inserted teller and join with the types table
             $newTeller = DB::table('tellers as t')
                 ->select(
@@ -123,7 +125,7 @@ class TellerController extends Controller
                 ->groupBy("t.id")
                 ->first();
 
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Teller added successfully!',
@@ -138,11 +140,12 @@ class TellerController extends Controller
     }
 
     // fetching image each of teller admin teller 
-    public function fetchImage (Request $request) {
+    public function fetchImage(Request $request)
+    {
         $id = $request->id;
-        
+
         $tellerImage = DB::table('tellers')
-            ->where('id',$id)
+            ->where('id', $id)
             ->first();
 
         return response()->json([
@@ -152,38 +155,40 @@ class TellerController extends Controller
 
 
     // fetching image each of teller layout
-    public function fetchImageTeller (Request $request){
-        try{
-            $id = $request->id;
-
-            $tellerImage = DB::table('tellers')
-                ->where('id',$id)
-                ->first();
-
-                return response()->json([
-                    'Image' => $tellerImage->Image ? asset($tellerImage->Image) : asset('assets/no-image-user.png')
-                ]);
-        } catch (\Exception $e) {
-                return response()->json([
-                    'error' => $e->getMessage()
-                ]);
-        }
-    }
-
-    // customer dashboard folder
-    public function fetchImageTellerCsDashboaard (Request $request) {
+    public function fetchImageTeller(Request $request)
+    {
         try {
             $id = $request->id;
 
             $tellerImage = DB::table('tellers')
-                ->where('id',$id)
+                ->where('id', $id)
                 ->first();
-    
-                return response()->json([
-                    'Image' => $tellerImage->Image ? asset($tellerImage->Image) : asset('assets/no-image-user.png')
-                ]);
+
+            return response()->json([
+                'Image' => $tellerImage->Image ? asset($tellerImage->Image) : asset('assets/no-image-user.png')
+            ]);
         } catch (\Exception $e) {
-            return response ()-> json([
+            return response()->json([
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    // customer dashboard folder
+    public function fetchImageTellerCsDashboaard(Request $request)
+    {
+        try {
+            $id = $request->id;
+
+            $tellerImage = DB::table('tellers')
+                ->where('id', $id)
+                ->first();
+
+            return response()->json([
+                'Image' => $tellerImage->Image ? asset($tellerImage->Image) : asset('assets/no-image-user.png')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
                 'error' => $e->getMessage()
             ]);
         }
@@ -196,7 +201,7 @@ class TellerController extends Controller
             $rows = DB::table("types")
                 ->select('id as value', 'name as label')
                 ->get();
-            
+
             return response()->json([
                 "types" => $rows,
             ]);
@@ -212,60 +217,60 @@ class TellerController extends Controller
     {
         try {
             $teller = Teller::find($request->id);
-    
+
             // Check if teller exists
             if (!$teller) {
                 return response()->json([
                     "message" => "Teller not found!"
                 ], 404);
             }
-    
+
             // Update fields manually
             $teller->teller_firstname = $request->teller_firstname;
             $teller->teller_lastname = $request->teller_lastname;
             $teller->teller_username = $request->teller_username;
             $teller->type_ids_selected = $request->type_ids_selected;
-    
+
             // Update password only if provided
             if ($request->filled('teller_password')) {
                 $teller->teller_password = Hash::make($request->teller_password);
             }
-    
+
             // Update the image if provided
             if ($request->hasFile('Image')) {
                 // Delete the old image if it exists
                 if ($teller->Image && file_exists(public_path($teller->Image))) {
                     unlink(public_path($teller->Image)); // Delete the old image file
                 }
-    
+
                 // Process and save the new uploaded image
                 $file = $request->file('Image');
                 $filename = time() . '.' . $file->getClientOriginalExtension();
-    
+
                 // Define the folder path (inside the public directory)
                 $folderPath = public_path('assets/teller/' . $request->id);
-    
+
                 // Ensure the folder exists
                 if (!file_exists($folderPath)) {
                     mkdir($folderPath, 0755, true);  // Create folder with proper permissions
                 }
-    
+
                 // Move the file to the folder
                 $file->move($folderPath, $filename);
-    
+
                 // Save the file path in the database
                 $filePath = "assets/teller/{$request->id}/{$filename}";
-    
+
                 // Update the image path using Eloquent
                 $teller->Image = $filePath;
             }
-    
+
             // Save the updates (will save the image path as well)
             $teller->save();
-    
+
             // Fetch updated data
             $row = $this->getData($teller->id);
-    
+
             return response()->json([
                 "row" => $row,
                 "message" => "Teller Successfully Updated!"
@@ -276,9 +281,10 @@ class TellerController extends Controller
             ]);
         }
     }
-    
 
-    public function delete(Request $request){
+
+    public function delete(Request $request)
+    {
         try {
             // Check if any windows are using this teller
             $windowCount = \App\Models\Window::whereIn('teller_id', $request->ids)->count();
@@ -296,7 +302,7 @@ class TellerController extends Controller
                 "message" => "Successfully Deleted!"
             ]);
         } catch (\Exception $e) {
-        return response()->json([
+            return response()->json([
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!"
             ]);
         }
@@ -307,11 +313,11 @@ class TellerController extends Controller
             // Get the 'teller_id' from the incoming request
             $teller_id = $request->teller_id;
             $date = $request->date;
-    
+
             // Begin querying the 'queues' table with alias 'qs'
             $res = DB::table('queues as qs')
                 // Add a condition to filter the results by the 'teller_id' 
-                ->where('teller_id', $teller_id)
+                // ->where('teller_id', $teller_id)
                 // Select specific columns from the 'queues' table and related tables
                 ->select(
                     "qs.name", // Customer name from the 'queues' table
@@ -327,25 +333,25 @@ class TellerController extends Controller
                 // Perform a LEFT JOIN with the 'tellers' table on 'teller_id'
                 ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
                 // Exclude queues that are in the 'serving' or 'waiting' statuses
-                ->whereNotIn('qs.status', ['serving', 'waiting']) 
+                ->whereNotIn('qs.status', ['serving', 'waiting'])
                 // Order the results by 'updated_at' in descending order (latest first)
                 ->orderBy('qs.updated_at', 'desc');
+
+
+                if (!empty($teller_id)) {
+                    $res->where('qs.teller_id', $teller_id);
+                }
     
-            // Check if a 'date' filter is provided in the request
-            if ($date != null) {
-                // Filter the results by the 'updated_at' date (exact match)
-                $res->whereDate('qs.updated_at', $date); // Use the alias 'qs' for the 'updated_at' column
-            }else {
-                $dateNow = Carbon::now(); // get current date
-                $formatted = $dateNow->format('Y-m-d'); // Format as YYYY-MM-DD
-                $res->whereDate('qs.updated_at',$formatted);
-            }
+                if ($request->has('date') && $request->input('date')) {
+                    $date = $request->input('date');
+                    $res->whereDate('qs.updated_at', $date); // Use the alias 'qs'
+                }
     
             // Return the query results as a JSON response
             return response()->json([
                 'rows' => $res->get() // Execute the query and return the rows
             ]);
-    
+
         } catch (\Exception $e) {
             // In case of an error, catch the exception and return an error message
             $message = $e->getMessage(); // Get the exception message
@@ -354,14 +360,15 @@ class TellerController extends Controller
             ]);
         }
     }
-    
-    public function windowFetch(Request $request) {
+
+    public function windowFetch(Request $request)
+    {
         try {
             // Query the 'tellers' table to retrieve the 'id', 'teller_firstname', and 'teller_lastname' columns
             $tellers = DB::table('tellers')
-                ->select('id','teller_firstname', 'teller_lastname') // Selecting the necessary columns
+                ->select('id', 'teller_firstname', 'teller_lastname') // Selecting the necessary columns
                 ->get(); // Execute the query and get the results
-    
+
             // Format the results to prepare for a dropdown list
             $formattedTellers = $tellers->map(function ($teller) {
                 return [
@@ -369,7 +376,7 @@ class TellerController extends Controller
                     'label' => $teller->teller_firstname . ' ' . $teller->teller_lastname // Combine first and last name as the label for the dropdown
                 ];
             });
-    
+
             // Return the formatted list of tellers as a JSON response
             return response()->json([
                 'rows' => $formattedTellers, // Return the formatted tellers
@@ -380,7 +387,7 @@ class TellerController extends Controller
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "Something went wrong!" // Return the error message or a generic one based on the app's debug mode
             ]);
         }
-    }    
+    }
 
     public function viewTellerDropdown(Request $request)
     {
@@ -391,7 +398,7 @@ class TellerController extends Controller
             if (is_string($type_id) && !is_numeric($type_id)) {
                 // Resolve the ID based on type_id (name of the type)
                 $id = DB::table('types')->where('name', $type_id)->value('id');
-                
+
                 // Ensure $id is in the right format for comparison
                 $tellers = DB::table('tellers')
                     ->whereRaw('JSON_CONTAINS(type_ids_selected, ?)', [json_encode([strval($id)])]) // Ensure ID is treated as a string
@@ -440,7 +447,10 @@ class TellerController extends Controller
     }
 
 
-    public function getData($id = null){
+
+
+    public function getData($id = null)
+    {
         $res = DB::table('tellers as t')
             ->select(
                 "t.id",
@@ -451,33 +461,37 @@ class TellerController extends Controller
                 "t.type_id",
                 "t.type_ids_selected",
                 "t.Image",
-                "ts.Status", // Assuming the status is in the window table
-                DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
+                DB::raw("IFNULL(ts.status, 'Offline') as status"), // Set 'Offline' if null
+                DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')
             )
             ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
-            ->leftJoin('windows as ts', 't.id', '=', 'ts.teller_id') // Join with the teller_status table
+            ->leftJoin('windows as ts', 't.id', '=', 'ts.teller_id')
             ->groupBy(
-                "t.id", 
-                "t.teller_firstname", 
-                "t.teller_lastname", 
-                "t.teller_username", 
-                "t.teller_password", 
+                "t.id",
+                "t.teller_firstname",
+                "t.teller_lastname",
+                "t.teller_username",
+                "t.teller_password",
                 "t.type_ids_selected",
                 "t.Image",
-                "ts.Status"
+                "ts.status"
             )
-            ->orderBy('t.created_at', 'desc'); // Ordering by created_at in descending order
+            ->orderBy('t.created_at', 'desc');
     
+
         if ($id) {
             $res = $res->where("t.id", $id)->first();
         } else {
             $res = $res->get();
         }
-        
+    
+
         return $res;
     }
     
+    
     public function validationLoginTeller (AdminRequest $request) {
+
         $teller = DB::table('tellers')
             ->where('teller_username', $request->Username)
             ->first();
@@ -517,6 +531,27 @@ class TellerController extends Controller
                     'error' => 'Invalid credentials'
                 ],400);
             }
+            // Generate a simple authentication token (or use Laravel Sanctum for better security)
+            $token = base64_encode(Str::random(40));
+
+            // If authentication is successful, return a success response
+            return response()->json([
+                'tellerInformation' => [
+                    'id' => $teller->id,
+                    'tellerFirstname' => $teller->teller_firstname,
+                    'tellerLastname' => $teller->teller_lastname,
+                    'tellerUsername' => $teller->teller_username,
+                    'token' => $token,
+                    'type_id' => $teller->type_id
+                ],
+                'message' => "Login sucessfull teller",
+                'result' => 'teller'
+            ]);
+        } else {
+            return response()->json([
+                'error' => 'Invalid credentials'
+            ], 400);
+        }
     }
 
     public function tellerLogout (Request $request) {
@@ -624,19 +659,86 @@ class TellerController extends Controller
             $type_id = $request->type_id;
 
             $serviceType = DB::table('types')
-                            ->where('id',$type_id)
-                            ->first();
+                ->where('id', $type_id)
+                ->first();
 
             return response()->json([
-                'servicename' =>  $serviceType ? $serviceType->name : null,
+                'servicename' => $serviceType ? $serviceType->name : null,
                 'indicator' => $serviceType ? $serviceType->indicator : null,
             ]);
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
             return response()->json([
-                'message' => env('APP_DEBUG')? $message : $message
+                'message' => env('APP_DEBUG') ? $message : $message
             ]);
         }
     }
+
+    public function fetchingAssignedTeller(Request $request)
+    {
+        try {
+            // Get all service types
+            $types = DB::table('types as tp')
+                ->select('tp.id as type_id', 'tp.name as type_name', 'tp.indicator as type_indicator')
+                ->get();
+
+            $typeList = [];
+
+            foreach ($types as $type) {
+                // Get tellers (including those without assigned windows)
+                $tellers = DB::table('tellers as t')
+                    ->leftJoin('windows as w', 'w.teller_id', '=', 't.id') // Join with windows table
+                    ->select('t.id', 't.teller_firstname', 't.teller_lastname', 'w.window_name')
+                    ->where('t.type_id', $type->type_id)
+                    ->get(); // No filtering for null, so we get all tellers
+
+                $currency = DB::table('currencies')->get();
+
+                // Add the waiting queue length, customer details, and currently served customer for each teller
+                foreach ($tellers as $teller) {
+                    // Get the customers waiting for this teller
+                    $waitingCustomers = DB::table('queues as q')
+                        ->leftJoin('currencies as c', 'c.id', '=', 'q.currency_selected')
+                        ->where('q.teller_id', $teller->id)
+                        ->where('q.status', 'waiting')
+                        ->select('q.name', 'q.queue_number', 'q.currency_selected', 'q.priority_service', 'c.currency_name', 'c.currency_symbol', 'c.flag')
+                        ->get();
+
+                    $teller->waiting_customers = $waitingCustomers;
+
+                    // Get the currently served customer for this teller
+                    $currentlyServed = DB::table('queues')
+                        ->where('teller_id', $teller->id)
+                        ->where('status', 'serving')
+                        ->select('name', 'queue_number')
+                        ->first();
+
+                    $teller->currently_served = $currentlyServed;
+
+                    // Add a flag to indicate if the teller is unassigned (no window)
+                    $teller->is_unassigned = $teller->window_name === null;
+                }
+
+                $typeList[] = [
+                    'type_id' => $type->type_id,
+                    'type_name' => $type->type_name,
+                    'type_indicator' => $type->type_indicator,
+                    'tellers' => $tellers, // Will contain both assigned and unassigned tellers
+                ];
+            }
+
+            return response()->json([
+                'services' => $typeList // Return the list of services with tellers, including unassigned ones
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while fetching data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
 }

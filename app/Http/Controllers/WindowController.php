@@ -202,8 +202,7 @@ class WindowController extends Controller
                 "wd.id",
                 "wd.window_name",
                 "tp.name as type_id",
-                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
-                "ts.id as pId"
+                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id")
             )
             ->leftJoin(
                 "types as tp",

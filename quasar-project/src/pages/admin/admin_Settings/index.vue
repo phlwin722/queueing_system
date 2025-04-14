@@ -39,7 +39,12 @@
               </template>
               <template v-else>
                 {{ previewAdminImage?.Firstname + " " + previewAdminImage?.Lastname }}
+                <div v-if="previewAdminImage?.branch_name">
+                  <p class="text-gray q-mt-md">{{ previewAdminImage?.branch_name }} </p>
+                    <p class="text-gray" style="margin-top: -30px;font-size: 15px; color: #1c5d99;">Branch</p>
+                </div>
               </template>
+
           </div>
       </div>
       </div>
@@ -215,6 +220,8 @@
         Username: '',
         Firstname: '',
         Lastname: '',
+        branch_id: '',
+        branch_name: '',
       });
   
       const adminPassword = ref({
@@ -425,12 +432,19 @@
       onMounted(() => {
         // check if have localStorage 
         const storedAdminfo = localStorage.getItem('adminInformation')
+        const storeManagerinfo = localStorage.getItem('managerInformation');
         if (storedAdminfo) {
           const adminData = JSON.parse(storedAdminfo);
           idAdmin.value = adminData.id;  // Make sure you're only storing the ID here
           fetchAdminInfo()
           optimizedFetchImage()
-        } else {
+        } else if (storeManagerinfo) {
+          const adminData = JSON.parse(storeManagerinfo);
+          idAdmin.value = adminData.id;  // Make sure you're only storing the ID here
+          fetchAdminInfo()
+          optimizedFetchImage()
+        }
+        else {
           console.error("No admin information found in localStorage");
         }
       });

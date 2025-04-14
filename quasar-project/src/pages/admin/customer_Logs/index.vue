@@ -103,7 +103,8 @@
       ref,
       computed,
       onMounted,
-      onUnmounted
+      onUnmounted,
+      watch,
     } from 'vue'
     
     
@@ -114,7 +115,7 @@
     } from 'boot/app'
 
     import BarChart from 'components/BarChart.vue';
-    
+    import { debounce } from 'lodash';
     export default defineComponent({
       name: 'IndexPage',
       components: { BarChart },
@@ -219,18 +220,19 @@
           finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
 
         };
-        let dataTimeout
 
-        const optimizedFecthData = async () => {
-          await getTableData()
-          dataTimeout = setTimeout(optimizedFecthData, 3000); // Recursive Timeout
-        };
-        onMounted(() => {
-          optimizedFecthData()
-        })
-        onUnmounted(() => {
-          clearTimeout(dataTimeout);
-        });
+      const debouncedGetTableData = debounce(() => {
+        getTableData()
+      }, 300);
+
+      watch(selectedDate, () => {
+          debouncedGetTableData(); // Only call getTableData once when either value changes
+      });
+
+      onMounted(() => {
+        getTableData()
+      })
+    
     
         return{
           rows,

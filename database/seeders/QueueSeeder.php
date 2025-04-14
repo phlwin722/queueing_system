@@ -215,6 +215,8 @@ class QueueSeeder extends Seeder
             
         ]);
 
+        
+
 
         // Create 10 orders with random Customer logs 
         Queue::factory(1000)->create();

@@ -159,19 +159,33 @@ export default defineComponent({
     const columns = ref([
         
         {
-        name: 'minutes',
-        label: 'Minutes',
-        align: 'left',
-        field: 'minutes',
-        sortable: true
+          name: 'minutes',
+          label: 'Minute/s',
+          align: 'left',
+          field: 'minutes',
+          sortable: true
         },
         {
-            name: 'window_type',
-            label: 'Window Type',
-            align: 'left',
-            field: 'window_type',
-            sortable: true
-          },
+          name: 'start_time',
+          label: 'Start Time',
+          align: 'left',
+          field: 'start_time',
+          sortable: true
+        },
+        {
+          name: 'end_time',
+          label: 'End Time',
+          align: 'left',
+          field: 'end_time',
+          sortable: true
+        },
+        {
+          name: 'window_type',
+          label: 'Window Type',
+          align: 'left',
+          field: 'window_type',
+          sortable: true
+        },
     ]);
     let refreshInterval = null
     const filteredRows = computed(() => {
@@ -202,7 +216,7 @@ export default defineComponent({
 
         // Update rows
         rows.value.splice(0, rows.value.length, ...data.rows);
-
+        console.log(data.rows.minutes); // Test display
         // Extract the minutes directly from the response
         const minutes = data.minutes;
 
@@ -258,10 +272,7 @@ export default defineComponent({
         getTableData()
         fetchWindowTypes()
     })
-    onUnmounted(() => {
-        clearTimeout(dataTimeout);
-    });
-    
+
 
 
     return{

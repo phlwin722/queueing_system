@@ -56,8 +56,9 @@
   </template>
   
   <script>
-  import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
+  import { defineComponent, ref, computed, onMounted, onUnmounted, watch } from 'vue';
   import { $axios } from 'boot/app';
+  import { debounce } from 'lodash';
   
   export default defineComponent({
     name: 'WindowLogsPage',
@@ -101,18 +102,19 @@
 };
 
   
-  let dataTimeout
+const debouncedGetTableData = debounce(() => {
+          getTableData()
+        }, 300);
 
-  const optimizedFecthData = async () => {
-      await getTableData()
-      dataTimeout = setTimeout(optimizedFecthData, 3000); // Recursive Timeout
-  };
+    watch(selectedDate, () => {
+        debouncedGetTableData(); // Only call getTableData once when either value changes
+    });
+
+
   onMounted(() => {
-      optimizedFecthData()
+    getTableData()
   })
-  onUnmounted(() => {
-      clearTimeout(dataTimeout);
-  });
+
   
       return {
         rows,
