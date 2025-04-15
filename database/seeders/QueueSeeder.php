@@ -87,6 +87,7 @@ class QueueSeeder extends Seeder
                 'type_id' => '1', 
                 'type_ids_selected' => '["1","2"]',
                 'Image' => 'assets/teller/1/image.png',
+                'branch_id' => '2',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
@@ -96,9 +97,10 @@ class QueueSeeder extends Seeder
                 'teller_lastname' => 'Abogado', 
                 'teller_username' => 'alvin', 
                 'teller_password' => bcrypt('alvin'), 
-                'type_id' => '2', 
-                'type_ids_selected' => '["2"]',
+                'type_id' => '3', 
+                'type_ids_selected' => '["3"]',
                 'Image' => 'assets/teller/2/image.png',
+                'branch_id' => '1',
                 'created_at' => now(), 
                 'updated_at' => now()],
             [
@@ -107,33 +109,36 @@ class QueueSeeder extends Seeder
                 'teller_lastname' => 'Rica', 
                 'teller_username' => 'rica', 
                 'teller_password' => bcrypt('rica'), 
-                'type_id' => '1',
-                'type_ids_selected' => '["1","3","4","5"]', 
+                'type_id' => '6', 
+                'type_ids_selected' => '["1","2","3" ]', 
+                'branch_id' => '2',
                 'Image' => 'assets/teller/3/image.png',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
             [
                 'id' => '4',
-                'teller_firstname' => 'Jercy', 
-                'teller_lastname' => 'Guevarra', 
-                'teller_username' => 'jercy', 
-                'teller_password' => bcrypt('jercy'), 
-                'type_id' => '3',
-                'type_ids_selected' => '["3"]', 
+                'teller_firstname' => 'John Kenneth', 
+                'teller_lastname' => 'Guiterez', 
+                'teller_username' => 'Kenneth', 
+                'teller_password' => bcrypt('Kenneth'), 
+                'type_id' => '4',
+                'type_ids_selected' => '["4","5","6"]', 
                 'Image' => 'assets/teller/4/image.png',
+                'branch_id' => '1',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
             [
                 'id' => '5',
-                'teller_firstname' => 'Dexter', 
-                'teller_lastname' => 'Jamero', 
-                'teller_username' => 'dexter', 
-                'teller_password' => bcrypt('dexter'), 
-                'type_id' => null, 
-                'type_ids_selected' => '["4"]',
+                'teller_firstname' => 'Rovir Gian', 
+                'teller_lastname' => 'Degula', 
+                'teller_username' => 'Gian', 
+                'teller_password' => bcrypt('Gian'), 
+                'type_id' => '5', 
+                'type_ids_selected' => '["4","5"]',
                 'Image' => 'assets/teller/5/image.png',
+                "branch_id" => '1',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
@@ -142,33 +147,37 @@ class QueueSeeder extends Seeder
         Window::insert([
             [
                 'window_name' => 'Window 1',
-                'type_id' => '1',
-                'teller_id' => '1',
+                'type_id' => '4',
+                'teller_id' => '4',
                 'status' => 'Offline',
+                'branch_id' => '1',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
             [
                 'window_name' => 'Window 2',
-                'type_id' => '2',
+                'type_id' => '3',
                 'teller_id' => '2',
                 'status' => 'Offline',
+                'branch_id' => '2',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
             [
                 'window_name' => 'Window 3',
                 'type_id' => '1',
-                'teller_id' => '3',
+                'teller_id' => '1',
                 'status' => 'Offline',
+                'branch_id' => '2',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
             [
                 'window_name' => 'Window 4',
-                'type_id' => '3',
-                'teller_id' => '4',
+                'type_id' => '5',
+                'teller_id' => '5',
                 'status' => 'Offline',
+                'branch_id' => '1',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
@@ -356,7 +365,7 @@ class QueueSeeder extends Seeder
         // update types
         DB::table ('windows')
         ->where('id','2')
-        ->update(['branch_id' => '1']);
+        ->update(['branch_id' => '2']);
 
         // update types
         DB::table ('windows')
@@ -366,7 +375,7 @@ class QueueSeeder extends Seeder
         // update types
         DB::table ('windows')
         ->where('id','4')
-        ->update(['branch_id' => '2']);
+        ->update(['branch_id' => '1']);
          
 
         // Create 10 orders with random Customer logs 
