@@ -190,7 +190,7 @@ export default defineComponent({
         console.log(error);
       }
     };
-    getTableData();
+
 
     const handleShowForm = (mode, row) => {
       dialogForm.value.showDialog(mode, row);
@@ -390,6 +390,7 @@ export default defineComponent({
           fetchBranch()
           optimizedFetchData()
           getTypes()
+          getTableData()
         })
 
         onUnmounted(() => {

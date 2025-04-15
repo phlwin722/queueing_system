@@ -115,41 +115,38 @@ class WindowController extends Controller
         }
     }
 
-
-
     public function delete(Request $request){
         try{
-            $row  = Window::find($request->id);
-            
-            if(!$row){
-                return response()->json([
-                    "message"=>"window not found!"
-                ],404);
-            }else{
-               $delete = DB::table('tellers')
-                    ->whereIn('id', $request->id)
-                    ->update(['type_id' => null]);
-
-                if ($delete) {
-                    Window::destroy($request->id);
-                        return response()->json([
-                         "message"=>"Window Succesfully Deleted!"
-                        ]);
-                }
-            }
-            
-        }catch(\Exception $e){
-            $message = $e->getMessage();
-            return response()->json([
-                "message"=>env('APP_DEBUG')
-                    ? $message
-                    : "Something went wrong!"
-            ]);
-        }
-        
-    }
+            $ids = $request->id;
     
-
+            if (!is_array($ids)) {
+                $ids = [$ids]; // wrap single ID into an array
+            }
+    
+            $windows = Window::whereIn('id', $ids)->get();
+    
+            if ($windows->isEmpty()) {
+                return response()->json([
+                    "message" => "Window not found!"
+                ], 404);
+            }
+    
+            DB::table('tellers')
+                ->whereIn('id', $ids)
+                ->update(['type_id' => null]);
+    
+            Window::destroy($ids);
+    
+            return response()->json([
+                "message" => "Windows successfully deleted!"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Error deleting window(s)",
+                "error" => $e->getMessage()
+            ], 500);
+        }
+    }
 
     // public function getWindowFormData()
     // {
@@ -176,10 +173,11 @@ class WindowController extends Controller
                 ->select(
                     "wd.id",
                     "wd.window_name",
-                    "tp.name as type_id",
+                    "tp.name as type_name",
+                    "tp.id as type_id",
                     "wd.branch_id", 
-                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
-                    "ts.id as pId",
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) teller_name"),
+                    "ts.id as teller_id",
                     'b.branch_name'
                 )
                 ->leftJoin("types as tp", "tp.id", "wd.type_id")
@@ -196,10 +194,11 @@ class WindowController extends Controller
                 ->select(
                     "wd.id",
                     "wd.window_name",
-                    "tp.name as type_id",
+                    "tp.name as type_name",
+                    "tp.id as type_id",
                     "wd.branch_id", 
-                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
-                    "ts.id as pId",
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) teller_name"),
+                    "ts.id as teller_id",
                     'b.branch_name'
                 )
                 ->leftJoin("types as tp", "tp.id", "wd.type_id")
@@ -239,8 +238,8 @@ class WindowController extends Controller
         try {
             $rows = DB::table('tellers as t')
                     ->select([
-                        't.id as value',
-                        DB::raw('CONCAT(t.teller_firstname, " ", t.teller_lastname) as label'),
+                        't.id as id',
+                        DB::raw('CONCAT(t.teller_firstname, " ", t.teller_lastname) as name'),
                         't.branch_id',
                         't.type_id',
                         't.type_ids_selected'
@@ -266,8 +265,9 @@ class WindowController extends Controller
                 "wd.id",
                 "wd.window_name",
                 "wd.branch_id",
-                "tp.name as type_id",
-                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                "wd.type_id",
+                "tp.name as type_name",
+                DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_name"),
                 "b.branch_name",
             )
             ->leftJoin(
@@ -281,7 +281,7 @@ class WindowController extends Controller
                 "wd.teller_id"
             )
             ->leftJoin(
-                "b.branch_id as b",
+                "branchs as b",
                 "b.id",
                 "=",
                 "wd.branch_id",

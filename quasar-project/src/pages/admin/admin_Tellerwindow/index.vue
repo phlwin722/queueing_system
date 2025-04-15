@@ -192,6 +192,7 @@ export default defineComponent({
             branch_id: adminInformation.value.branch_id
           });
           rows.value.splice(0, rows.value.length, ...data.rows);
+          console.log(rows.value)
         }
         // if super login 
         else {
@@ -372,14 +373,15 @@ export default defineComponent({
             name: "type_id",
             label: "Window Type",
             align: "left",
-            field: "type_id",
+            field: "type_name",
             sortable: true,
           },
           {
-            name: "teller_id",
+            name: "teller_name",
             label: "Assigned Personnel",
             align: "left",
-            field: "teller_id",
+            field: "teller_name",
+            sortable: true,
             sortable: true,
           },
           /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
@@ -398,14 +400,14 @@ export default defineComponent({
             name: "type_id",
             label: "Window Type",
             align: "left",
-            field: "type_id",
+            field: "type_name",
             sortable: true,
           },
           {
-            name: "teller_id",
+            name: "teller_name",
             label: "Assigned Personnel",
             align: "left",
-            field: "teller_id",
+            field: "teller_name",
             sortable: true,
           },
           {

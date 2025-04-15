@@ -68,6 +68,8 @@
                     :error-message="formError.teller_id"
                     emit-value
                     map-options
+                    option-label="name"
+                    option-value="id"
                     />
                 </div>
             </div>
@@ -119,8 +121,8 @@
         const personnelList = ref([])
         const icon = ref(false)
         const isLoading= ref(false)
-        const tempTelId =ref()
         const branch_list = ref ([]);
+        const editTypeID = ref ();
         const adminInformation = ref(null);
     
         const initFormData = () => (
@@ -131,6 +133,7 @@
                 teller_id: "",
                 branch_id: "",
                 fetchPersonnel: "",
+                type_id: '',
             }
          )
 
@@ -142,19 +145,28 @@
             icon.value=false
             formData.value = initFormData()
             formError.value = {}
+            editTypeID.value = null
         }
 
         
-        const showDialog = (mode, row) => {
+        const showDialog = async (mode, row) => {
             formMode.value = mode === 'new' ? 'New' : 'Edit';
             
 
             if (mode === 'edit') {
-    
                 formData.value = Object.assign({},row)
-                tempTelId.value = row.pId
-                fetchtypeId()
-                
+                editTypeID.value = row.type_id
+
+                console.log('assign', Object.assign({},row))
+                await fetchWindowTypes()
+                await fetchPersonnel()
+
+                 // Map each selected type ID to its corresponding category from categoriesList
+                 const selectedCategory = windowTypeList.value.find(type => type.value === row.type_id);
+                 if (!adminInformation) {
+                    formData.value.type_id = selectedCategory.value
+                 }
+   
             }
 
             icon.value = true;
@@ -162,6 +174,7 @@
 
         const handleSubmitForm = async () =>{
             const mode = formMode.value === 'New' ? '/create' : '/update'
+           
             isLoading.value = true
             try{
                 formError.value = {}
@@ -197,14 +210,18 @@
                 closeDialog()
             } 
             }catch(error){
-            console.log(error.response.status)
-            if(error.response.status === 422){
-                formError.value = error.response.data
-                
-            }else if (error.response.status === 400) {
-                formError.value.teller_id = error.response.data.message
-            }
+                const status = error?.response?.status
 
+                console.log(status || 'Unknown error (no response)')
+
+                if (status === 422){
+                    formError.value = error.response.data
+                } else if (status === 400) {
+                    formError.value.teller_id = error.response.data.message
+                } else {
+                    console.error('Unexpected error:', error.message || error)
+                    $notify('negative', 'error', 'Something went wrong while saving. Please try again.')
+                }
             }finally{
             isLoading.value = false
             }
@@ -235,34 +252,23 @@
         
         const fetchPersonnel = async () => { 
             try {
+                console.log('tp',formData.value.type_id)
                 formData.value.branch_id = adminInformation.value ? adminInformation.value.branch_id : formData.value.branch_id 
                 const response = await $axios.post('/window/tellers/dropdown', {
-                    type_ids_selected: formData.value.type_id,
+                    type_ids_selected: editTypeID.value != null ? editTypeID.value : formData.value.type_id,
                     branch_id: formData.value.branch_id,
                 });
                     // Ensure response.data.rows is always an array
                     personnelList.value = response.data.rows;
                     formData.value.fetchPersonnel = personnelList.value.length > 0 ? true : false;
-
+                    if (personnelList.value.length == 0) {
+                        formData.value.teller_id = '';
+                    }
             } catch (error) {
                 console.error('Error fetching sections:', error); 
             }
         };
-        
-/*         const fetchtypeId = async () => { 
-            try {
-                const response = await $axios.post('/tellers/dropdown', {
-                    type_id: formData.value.type_id // Send selected grade level
-                });
-                tempId.value = response.data.id_type
-                console.log(tempId.value)
 
-            } catch (error) {
-                console.error('Error fetching sections:', error); 
-            }
-        }; */
-
-        
         watch(() => 
         [formData.value.type_id,formData.value.branch_id], 
         async ([newVal,branch_id],[oldnewVal, oldBranch_id]) => {
@@ -277,9 +283,11 @@
                     formData.value.type_id = '';
                     await fetchWindowTypes()
                 } else if (newVal) {
+                    personnelList.value = [];
                     await fetchPersonnel(); // Fetch new personnel based on selected type
                 }
             } else {
+                editTypeID.value = newVal
                 await fetchPersonnel()
             }
         });
@@ -319,6 +327,7 @@
             windowTypeList,
             branch_list,
             adminInformation,
+            editTypeID,
         }
     }
     })

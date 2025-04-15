@@ -139,7 +139,7 @@
                             <div class="col-12">
                                 <q-select
                                     outlined
-                                    :disable="!formData.branch_id"
+                                    :disable="!adminInformation && !formData.branch_id"
                                     v-model="formData.type_ids_selected" 
                                     label="Personnel Type"
                                     emit-value
@@ -249,6 +249,10 @@ export default defineComponent({
         // Fetch categories list from the server (for select input)
         const fetchCategories = async () => {
             try {
+                formData.value.type_ids_selected = []
+               if (adminInformation != null) {
+                    formData.value.branch_id = adminInformation.value.branch_id
+                } 
                 const { data } = await $axios.post('/dropdown/types',{
                     branch_id: formData.value.branch_id
                 });
