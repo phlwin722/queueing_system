@@ -65,6 +65,23 @@
               </q-tooltip>
             </q-btn>
           </div>
+          <div 
+            v-if="!adminManagerInformation" 
+            class="class-auto">
+            <q-select
+              dense
+              outlined 
+              style="width: 250px;" 
+              label="Branch name"
+              hide-bottom-space
+              v-model="branch_name"
+              emit-value
+              map-options
+              :options="branch_list"
+              option-label="branch_name"
+              option-value="id"
+            />
+          </div>
         </div>
       </template>
 
@@ -125,7 +142,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from "vue";
+import { defineComponent, ref, computed, onMounted, watch } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import MyForm from "pages/admin/admin_Currency_Conversion/form.vue";
 import { useQuasar } from "quasar";
@@ -139,46 +156,11 @@ export default defineComponent({
     const text = ref("");
     const rows = ref([]);
     const $dialog = useQuasar();
+    const adminManagerInformation = ref (null)
+    const branch_name = ref (null);
+    const branch_list =ref ([]);
 
-    const columns = ref([
-      {
-        name: "currency_name",
-        label: "Currency Name",
-        align: "left",
-        field: "currency_name",
-        sortable: true,
-      },
-      {
-        name: "currency_symbol",
-        label: "Currency Symbol",
-        align: "left",
-        field: "currency_symbol",
-        sortable: true,
-      },
-      {
-        name: "flag",
-        label: "Flag",
-        align: "center",
-        field: "flag",
-        sortable: true,
-        format: (val) => val,
-      },
-      {
-        name: "buy_value",
-        label: "Buy Value",
-        align: "left",
-        field: "buy_value",
-        sortable: true,
-      },
-      {
-        name: "sell_value",
-        label: "Sell Value",
-        align: "left",
-        field: "sell_value",
-        sortable: true,
-      },
-      { name: "actions", label: "Actions", align: "left", sortable: false },
-    ]);
+    const columns = ref([]);
 
     const filteredRows = computed(() => {
       return rows.value.filter((row) =>
@@ -193,8 +175,22 @@ export default defineComponent({
 
     const getTableData = async () => {
       try {
-        const { data } = await $axios.post(URL + "/showData");
-        rows.value.splice(0, rows.value.length, ...data.rows);
+        if (adminManagerInformation.value != null) {
+          const { data } = await $axios.post(URL + "/showData", {
+            branch_id: adminManagerInformation.value.branch_id
+          });
+          rows.value.splice(0, rows.value.length, ...data.rows);
+        }else {
+          if ( branch_name.value != null) {
+            const { data } = await $axios.post(URL + "/showData", {
+              branch_id: branch_name.value
+            });
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }else {
+            const { data } = await $axios.post(URL + "/showData");
+            rows.value.splice(0, rows.value.length, ...data.rows);
+          }
+        }
       } catch (error) {
         console.log(error);
       }
@@ -248,8 +244,126 @@ export default defineComponent({
       }
     };
 
-    onMounted(() => {
-      getTableData()
+    const fetchBranch = async () => {
+      try {
+        const { data } = await $axios.post('/type/Branch');
+        branch_list.value = [{id: 0, branch_name: 'All Branches'}, ...data.branch]
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
+    const columnCheck = async () => {
+      try {
+        if (adminManagerInformation.value === null) {
+          columns.value = [
+           {
+              name: "branch_name",
+              label: "Branch name",
+              align: "left",
+              field: "branch_name",
+              sortable: "true",
+            },
+            {
+              name: "currency_name",
+              label: "Currency Name",
+              align: "left",
+              field: "currency_name",
+              sortable: true,
+            },
+            {
+              name: "currency_symbol",
+              label: "Currency Symbol",
+              align: "left",
+              field: "currency_symbol",
+              sortable: true,
+            },
+            {
+              name: "flag",
+              label: "Flag",
+              align: "center",
+              field: "flag",
+              sortable: true,
+              format: (val) => val,
+            },
+            {
+              name: "buy_value",
+              label: "Buy Value",
+              align: "left",
+              field: "buy_value",
+              sortable: true,
+            },
+            {
+              name: "sell_value",
+              label: "Sell Value",
+              align: "left",
+              field: "sell_value",
+              sortable: true,
+            },
+            { name: "actions", label: "Actions", align: "left", sortable: false },
+          ]
+        }else {
+          columns.value = [
+           {
+              name: "currency_name",
+              label: "Currency Name",
+              align: "left",
+              field: "currency_name",
+              sortable: true,
+            },
+            {
+              name: "currency_symbol",
+              label: "Currency Symbol",
+              align: "left",
+              field: "currency_symbol",
+              sortable: true,
+            },
+            {
+              name: "flag",
+              label: "Flag",
+              align: "center",
+              field: "flag",
+              sortable: true,
+              format: (val) => val,
+            },
+            {
+              name: "buy_value",
+              label: "Buy Value",
+              align: "left",
+              field: "buy_value",
+              sortable: true,
+            },
+            {
+              name: "sell_value",
+              label: "Sell Value",
+              align: "left",
+              field: "sell_value",
+              sortable: true,
+            },
+            { name: "actions", label: "Actions", align: "left", sortable: false },
+          ]
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
+    watch (() => branch_name.value, (newVal) => {
+      getTableData();
+    })
+
+    onMounted( async () => {
+      const managerInformation = localStorage.getItem('managerInformation')
+      if (managerInformation) {
+        adminManagerInformation.value = JSON.parse(managerInformation)
+      }
+      await getTableData()
+      await fetchBranch()
+      await  columnCheck()
     });
 
     return {
@@ -262,6 +376,9 @@ export default defineComponent({
       beforeDelete,
       filteredRows,
       text,
+      adminManagerInformation,
+      branch_list,
+      branch_name
     };
   },
 });

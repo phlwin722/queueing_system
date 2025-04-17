@@ -19,6 +19,8 @@ return new class extends Migration
             /* $table->string('waiting_time_satisfaction'); */
             $table->integer('waiting_time_satisfaction');
             $table->text('suggestions')->nullable();
+            $table->unsignedBigInteger('branch_id')
+                ->nullable();
             $table->timestamps();
         });
     }

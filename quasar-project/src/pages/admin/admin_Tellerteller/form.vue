@@ -249,14 +249,17 @@ export default defineComponent({
         // Fetch categories list from the server (for select input)
         const fetchCategories = async () => {
             try {
-                formData.value.type_ids_selected = []
-               if (adminInformation != null) {
-                    formData.value.branch_id = adminInformation.value.branch_id
-                } 
-                const { data } = await $axios.post('/dropdown/types',{
+               if (adminInformation.value != null) {
+                    const { data } = await $axios.post('/dropdown/types',{
+                    branch_id: adminInformation.value.branch_id
+                  });
+                    categoriesList.value = data.rows; // Ensure this matches the API response structure
+                } else {
+                    const { data } = await $axios.post('/dropdown/types',{
                     branch_id: formData.value.branch_id
-                });
-                categoriesList.value = data.rows; // Ensure this matches the API response structure
+                  });
+                    categoriesList.value = data.rows; // Ensure this matches the API response structure
+                }
             } catch (error) {
                 console.error('Error fetching categories:', error); // Handle error if API request fails
             }
@@ -277,11 +280,6 @@ export default defineComponent({
             // Set the form mode based on the action (new or edit)
             formMode.value = mode === 'new' ? 'New' : 'Edit';
             
-            if (formData.value.branch_id != null) {
-              // Fetch the categories of personnel types
-              await fetchCategories(); // This is asynchronous, so wait for it to complete
-            }
-
             // If in 'edit' mode, populate the form with the row data
             if (mode === 'edit') {
                 // Clone the row data to formData for editing, avoiding direct mutation
@@ -432,9 +430,15 @@ export default defineComponent({
                 }
             }
         }
-        watch(()=> formData.value.branch_id, async (newVal) => {
+        
+        watch(()=> formData.value.branch_id, async (newVal, oldnewVal) => {
             if (newVal) {
+      
+                if (adminInformation.value == null && formMode.value === 'Edit' && oldnewVal !== '') {
+                    formData.value.type_ids_selected = []                  
+                }
                await fetchCategories()
+               
             }
         }) 
 

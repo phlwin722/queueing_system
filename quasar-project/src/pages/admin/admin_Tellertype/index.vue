@@ -274,6 +274,13 @@ export default defineComponent({
         ]
       } else {
         columns.value = [
+         {
+            name: "branch_name",
+            label: "Branch name",
+            align: "left",
+            field: "branch_name",
+            sortable: false,
+          },
           {
             name: "name",
             label: "Type Name",
@@ -294,13 +301,6 @@ export default defineComponent({
             align: 'left', 
             field: row => row.serving_time || '10',
             sortable: false
-          },
-          {
-            name: "branch_name",
-            label: "Branch_name",
-            align: "left",
-            field: "branch_name",
-            sortable: false,
           },
           { 
             name: "actions", 
@@ -341,6 +341,11 @@ export default defineComponent({
         fetchBranch();
         fetchColumn();
         getTableData();
+        
+          // Make sure `branch_name` is set to a meaningful default value
+          if (!branch_namee.value) {
+            branch_namee.value = 0;  // Set default to 'All branches' if needed
+          }
     })
 
     return {

@@ -157,13 +157,12 @@
                 formData.value = Object.assign({},row)
                 editTypeID.value = row.type_id
 
-                console.log('assign', Object.assign({},row))
                 await fetchWindowTypes()
                 await fetchPersonnel()
 
                  // Map each selected type ID to its corresponding category from categoriesList
                  const selectedCategory = windowTypeList.value.find(type => type.value === row.type_id);
-                 if (!adminInformation) {
+                 if (!adminInformation.value) {
                     formData.value.type_id = selectedCategory.value
                  }
    

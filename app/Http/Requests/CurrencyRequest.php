@@ -20,8 +20,16 @@ class CurrencyRequest extends FormRequest
             'currency_symbol' => ['required'],
             'buy_value' => ['required'],
             'sell_value' => ['required'],
+            'branch_id' => ['required'],
         ];
     }
+
+    public function messages(): array
+    {
+       return [
+           'branch_id.required' => 'The Branch name field is required',
+        ];
+     }
     protected function failedValidation(Validator $validator){
         $errors = [];
         $messages = $validator->getMessageBag();

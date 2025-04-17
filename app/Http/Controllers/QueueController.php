@@ -329,7 +329,28 @@ class QueueController extends Controller
     public function queueLogs(Request $request)
     {
         try {
-            $res = DB::table('queues as qs')
+            $res = '';
+            if ($request->branch_id != 0) {
+                $res = DB::table('queues as qs')
+                ->select(
+                    "qs.name",
+                    "qs.email",
+                    "qs.queue_number",
+                    'qs.branch_id',
+                    "tp.name as type_id",
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                    "qs.status",
+                    "qs.updated_at"
+                )
+                ->leftJoin("types as tp", "tp.id", "qs.type_id")
+                ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+                ->whereNotIn('qs.status', ['serving', 'waiting']) // Add 'qs.' to the status column
+                ->orderBy('qs.updated_at', 'desc')
+                ->where('qs.branch_id', $request->branch_id)
+                ->whereDate('qs.updated_at', $request->date)
+                ->get(); // Use the alias 'qs'
+            }else {
+                $res = DB::table('queues as qs')
                 ->select(
                     "qs.name",
                     "qs.email",
@@ -342,16 +363,15 @@ class QueueController extends Controller
                 ->leftJoin("types as tp", "tp.id", "qs.type_id")
                 ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
                 ->whereNotIn('qs.status', ['serving', 'waiting']) // Add 'qs.' to the status column
-                ->orderBy('qs.updated_at', 'desc');
-
-            // Check if a date filter is provided
-            if ($request->has('date') && $request->input('date')) {
-                $date = $request->input('date');
-                $res->whereDate('qs.updated_at', $date); // Use the alias 'qs'
+                ->orderBy('qs.updated_at', 'desc')
+                ->whereDate('qs.updated_at', $request->date)
+                ->get(); // Use the alias 'qs'
+            
             }
+            
 
             return response()->json([
-                'rows' => $res->get()
+                'rows' => $res
             ]);
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -364,11 +384,15 @@ class QueueController extends Controller
     public function fetchReports(Request $request)
     {
         try {
-            $res = DB::table('queues as qs')
+            $res = '';
+            if ($request->branch_id != 0) {
+                $res = DB::table('queues as qs')
                 ->select(
                     "qs.name",
                     "qs.email",
                     "qs.queue_number",
+                    "qs.branch_id",
+                    "b.branch_name",
                     "tp.name as type_id",
                     DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
                     "qs.status",
@@ -376,17 +400,48 @@ class QueueController extends Controller
                 )
                 ->leftJoin("types as tp", "tp.id", "qs.type_id")
                 ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+                ->leftJoin('branchs as b' ,'b.id', '=','qs.branch_id')
+                ->where('qs.branch_id',$request->branch_id)
                 ->whereNotIn('qs.status', ['serving', 'waiting'])
                 ->orderBy('qs.updated_at', 'asc');
 
-            // Filter by "From" date
-            if ($request->has('from_date') && !empty($request->input('from_date'))) {
-                $res->whereDate('qs.updated_at', '>=', $request->input('from_date'));
-            }
+                // Filter by "From" date
+                if ($request->has('from_date') && !empty($request->input('from_date'))) {
+                    $res->whereDate('qs.updated_at', '>=', $request->input('from_date'));
+                }
 
-            // Filter by "To" date
-            if ($request->has('to_date') && !empty($request->input('to_date'))) {
-                $res->whereDate('qs.updated_at', '<=', $request->input('to_date'));
+                // Filter by "To" date
+                if ($request->has('to_date') && !empty($request->input('to_date'))) {
+                    $res->whereDate('qs.updated_at', '<=', $request->input('to_date'));
+                }
+            }else {
+                $res = DB::table('queues as qs')
+                ->select(
+                    "qs.name",
+                    "qs.email",
+                    "qs.queue_number",
+                    "qs.branch_id",
+                    "b.branch_name",
+                    "tp.name as type_id",
+                    DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_id"),
+                    "qs.status",
+                    "qs.updated_at"
+                )
+                ->leftJoin("types as tp", "tp.id", "qs.type_id")
+                ->leftJoin("tellers as ts", "ts.id", "qs.teller_id")
+                ->leftJoin('branchs as b' ,'b.id', '=','qs.branch_id')
+                ->whereNotIn('qs.status', ['serving', 'waiting'])
+                ->orderBy('qs.updated_at', 'asc');
+
+                // Filter by "From" date
+                if ($request->has('from_date') && !empty($request->input('from_date'))) {
+                    $res->whereDate('qs.updated_at', '>=', $request->input('from_date'));
+                }
+
+                // Filter by "To" date
+                if ($request->has('to_date') && !empty($request->input('to_date'))) {
+                    $res->whereDate('qs.updated_at', '<=', $request->input('to_date'));
+                }
             }
 
             return response()->json([

@@ -12,7 +12,28 @@ class CurrencyController extends Controller
     public function showData(Request $request) 
     {
         try {
-            $rows = Currency::all(); // Use Eloquent instead of DB::table
+           $rows = '';
+           if ($request->branch_id != 0) {
+              $rows = DB::table('currencies as money')
+                ->select(
+                    'money.id',
+                    'money.branch_id',
+                    'money.currency_name',
+                    'money.currency_symbol',
+                    'money.flag',
+                    'money.buy_value',
+                    'money.sell_value',
+                    'b.branch_name',
+                )
+
+                ->leftJoin('branchs as b','b.id','=','money.branch_id')
+                ->where('money.branch_id',$request->branch_id)
+                ->orderBy('money.created_at','desc')
+                ->get();
+
+           }else {
+             $rows = $this->getData();
+           }
             return response()->json([ 'rows' => $rows ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -29,8 +50,11 @@ class CurrencyController extends Controller
     {
         try {
             $row = Currency::create($request->all());
+
+            $fetch = $this->getData($row->id);
+
             return response()->json([
-                "row" => $row,
+                "row" => $fetch,
                 "message" => "Successfully Created!"
             ]);
         } catch (\Exception $e) {
@@ -46,10 +70,12 @@ class CurrencyController extends Controller
     {
         $id = $request->id;
         try {
-            $row = Currency::findOrFail($id);
-            $row->update($request->all());
+            $row = Currency::findOrFail($id)
+                 ->update($request->all());
+
+            $fetch = $this->getData( $id );
             return response()->json([
-                "row" => $row->fresh(), // Return updated record
+                "row" => $fetch, // Return updated record
                 "message" => "Successfully Updated!"
             ]);
         } catch (\Exception $e) {
@@ -85,4 +111,34 @@ class CurrencyController extends Controller
         }
     }
     
+    public function getData ($id = null) {
+         try {
+           $res = DB::table('currencies as money')
+                ->select(
+                    'money.id',
+                    'money.currency_name',
+                    'money.currency_symbol',
+                    'money.flag',
+                    'money.buy_value',
+                    'money.sell_value',
+                    'money.branch_id',
+                    'b.branch_name',
+                )
+                ->leftJoin('branchs as b', 'b.id', '=', 'money.branch_id');
+
+            if ($id) {
+                $res = $res->where('money.id', $id)
+                            ->orderBy('money.created_at','desc')
+                            ->first();
+            }else {
+                $res = $res->orderBy('money.created_at','desc')
+                          ->get();
+            }
+            return $res;
+        }  catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ]);
+        } 
+    }
 }

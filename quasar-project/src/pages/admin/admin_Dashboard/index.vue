@@ -2,10 +2,24 @@
   <q-page class="q-px-sm">
 
     <!-- Breadcrumb -->
-    <div class="q-ma-md bg-white q-pa-sm shadow-1 ">
+    <div class="q-ma-md bg-white q-pa-md shadow-1" style="position: relative;">
       <q-breadcrumbs class="q-mx-sm">
         <q-breadcrumbs-el icon="home" />
         <q-breadcrumbs-el label="Dashboard" icon="dashboard" to="/admin/dashboard" />
+        <q-select
+                v-if="!adminMangerInformation"
+                style="width: 250px; position: absolute;  right: 10px;"
+                outlined
+                v-model="branch_name"
+                label="Branch name"
+                hide-bottom-space
+                dense
+                emit-value
+                map-options
+                :options="branchList"
+                option-label="branch_name"
+                option-value="id"
+            />
       </q-breadcrumbs>
     </div>
 
@@ -117,7 +131,8 @@ import {
   ref,
   computed,
   onMounted,
-  onUnmounted
+  onUnmounted,
+  watch
 } from 'vue'
 
 
@@ -144,11 +159,14 @@ export default {
     const ratingChart = ref(null)
     const easeOfUseChart = ref(null)
     const waitingTimeChart = ref(null)
+    const branchList = ref ([{id: 0, branch_name: 'All branches'}]);
+    const adminMangerInformation = ref ();
 
     const getTableData = async () => {
           try{           
             const { data } = await $axios.post('/admin/queue-logs',{
-              date: dateToday
+              date: dateToday,
+              branch_id: branch_name.value
             })
             
             rows.value.splice(0, rows.value.length, ...data.rows);
@@ -157,6 +175,7 @@ export default {
             console.log(error);
           }
         }
+
     const updateAllServingTime = async () => {
       try {
         const { data } = await $axios.post('/teller/update-all-serving-time');
@@ -189,27 +208,16 @@ export default {
         };
 
        const rowsWorkStation = ref([]);
-          const columnsWorkStation = ([
-            {
-              name:'name',
-              label:'Name',
-              align:'left',
-              field: 'teller_name',
-              sortable: true
-            },
-            {
-              name: 'status',
-              label: 'Status',
-              align: 'left',
-              field: 'status',
-              sortable: true
-            }
-          ])
+       const branch_name = ref (null)
+        const columnsWorkStation = ref([])
 
          // Fetch the information of teller if assigned
          const fetchWorkStation = async () => {
             try {
-              const { data } = await $axios.post('/tellers/index');
+             if (adminMangerInformation.value != null) {
+              const { data } = await $axios.post('/tellers/index',{
+                branch_id: adminMangerInformation.value.branch_id
+              });
               // Process rows data to assign the correct status and full name
               rowsWorkStation.value = data.rows.map(row => {
                 return {
@@ -217,9 +225,39 @@ export default {
                   // If type_id is null, status is 'Available', otherwise 'Assigned'
                   status: row.type_id === null ? 'Available' : 'Assigned',
                   // Combine teller_firstname and teller_lastname for the full name
-                  teller_name: `${row.teller_firstname} ${row.teller_lastname}`
+                  teller_name: `${row.teller_firstname} ${row.teller_lastname}`,
+                  branch_name: row.branch_name
                 };
               });
+             } else if (branch_name.value != null){
+              const { data } = await $axios.post('/tellers/index',{
+                branch_id: branch_name.value
+              });
+              // Process rows data to assign the correct status and full name
+              rowsWorkStation.value = data.rows.map(row => {
+                return {
+                  id: row.id,
+                  // If type_id is null, status is 'Available', otherwise 'Assigned'
+                  status: row.type_id === null ? 'Available' : 'Assigned',
+                  // Combine teller_firstname and teller_lastname for the full name
+                  teller_name: `${row.teller_firstname} ${row.teller_lastname}`,
+                  branch_name: row.branch_name
+                };
+              });
+             } else {
+                const { data } = await $axios.post('/tellers/index');
+                // Process rows data to assign the correct status and full name
+                rowsWorkStation.value = data.rows.map(row => {
+                  return {
+                    id: row.id,
+                    // If type_id is null, status is 'Available', otherwise 'Assigned'
+                    status: row.type_id === null ? 'Available' : 'Assigned',
+                    // Combine teller_firstname and teller_lastname for the full name
+                    teller_name: `${row.teller_firstname} ${row.teller_lastname}`,
+                    branch_name: row.branch_name
+                  };
+                });
+             }
             } catch (error) {
               if (error.response.status === 422) {
                 console.log(error.message);
@@ -232,118 +270,218 @@ export default {
 
         const optimizedFetchData = async () => {
           await getTableData()
+          await fetchWorkStation()
+          await renderSurveyCharts()
           dataTimeout = setTimeout(optimizedFetchData, 5000); // Recursive Timeout
         };
 
-          const optimizedFetchWork = async () => {
-            await fetchWorkStation()
-            workTimeout = setTimeout(optimizedFetchWork, 5000); // Recursive Timeout
-        };
-
         const renderSurveyCharts = async () => {
-          try {
-            const { data } = await $axios.get('/admin/survey-stats') // adjust your endpoint if needed
+        try {
+          let data;  // Declare a variable to store the fetched data from the server
 
-            // Chart 1: Ratings
-            new Chart(ratingChart.value, {
-              type: 'bar',
+          // Fetch data based on adminMangerInformation or branch_name
+          if (adminMangerInformation.value != null) {  // If manager information is available
+            // Fetch survey stats for the branch managed by the admin
+            const response = await $axios.post('/admin/survey-stats', {
+              branch_id: adminMangerInformation.value.branch_id  // Use the admin's branch ID
+            });
+            data = response.data;  // Store the fetched data in the variable
+          } else if (branch_name.value != null && branch_name.value != 0) {  // If a branch name is selected
+            // Fetch survey stats for the selected branch
+            const response = await $axios.post('/admin/survey-stats', {
+              branch_id: branch_name.value  // Use the selected branch ID
+            });
+            data = response.data;  // Store the fetched data in the variable
+          } else {  // If neither admin information nor a specific branch is available
+            // Fetch survey stats for all branches
+            const response = await $axios.post('/admin/survey-stats');
+            data = response.data;  // Store the fetched data in the variable
+          }
+
+          // Chart 1: Ratings (Reusing chart instance if exists)
+          if (window.ratingChartInstance) {  // If a chart instance for ratings already exists
+            // Update the existing chart with new data
+            window.ratingChartInstance.data.labels = Object.keys(data.ratings);  // Set the chart labels (rating values)
+            window.ratingChartInstance.data.datasets[0].data = Object.values(data.ratings);  // Set the data for the chart
+            window.ratingChartInstance.update();  // Update the chart to reflect the new data
+          } else {  // If no chart instance exists
+            // Create a new chart instance for ratings
+            window.ratingChartInstance = new Chart(ratingChart.value, {
+              type: 'bar',  // Set chart type to bar
               data: {
-                labels: Object.keys(data.ratings),
+                labels: Object.keys(data.ratings),  // Set chart labels (rating values)
                 datasets: [{
-                  label: 'Rating',
-                  data: Object.values(data.ratings),
-                  backgroundColor: '#4caf50'
-                }]
+                  label: 'Rating',  // Label for the dataset
+                  data: Object.values(data.ratings),  // The actual rating data
+                  backgroundColor: '#4caf50',  // Set color for the bars in the chart
+                }],
               },
-              options: { responsive: true }
-            })
+              options: { responsive: true },  // Make the chart responsive to screen size
+            });
+          }
 
-            // Chart 2: Ease of Use
-            new Chart(easeOfUseChart.value, {
-              type: 'pie',
+          // Chart 2: Ease of Use (Reusing chart instance if exists)
+          if (window.easeOfUseChartInstance) {  // If a chart instance for ease of use already exists
+            // Update the existing chart with new data
+            window.easeOfUseChartInstance.data.labels = Object.keys(data.ease_of_use);  // Set chart labels (ease of use values)
+            window.easeOfUseChartInstance.data.datasets[0].data = Object.values(data.ease_of_use);  // Set the data for the chart
+            window.easeOfUseChartInstance.update();  // Update the chart to reflect the new data
+          } else {  // If no chart instance exists
+            // Create a new chart instance for ease of use
+            window.easeOfUseChartInstance = new Chart(easeOfUseChart.value, {
+              type: 'pie',  // Set chart type to pie
               data: {
-                labels: Object.keys(data.ease_of_use),
+                labels: Object.keys(data.ease_of_use),  // Set chart labels (ease of use values)
                 datasets: [{
-                  data: Object.values(data.ease_of_use),
-                  backgroundColor: ['#4caf50', '#f44336']
-                }]
+                  data: Object.values(data.ease_of_use),  // The actual ease of use data
+                  backgroundColor: ['#4caf50', '#f44336'],  // Set colors for the pie chart sections
+                }],
               },
-              options: { responsive: true }
-            })
+              options: { responsive: true },  // Make the chart responsive to screen size
+            });
+          }
 
-            // Chart 3: Waiting Time
-            new Chart(waitingTimeChart.value, {
-            type: 'bar',
-            data: {
-              labels: Object.keys(data.waiting_time_satisfaction), // X-axis labels
-              datasets: [{
-                label: 'Waiting Time',
-                data: Object.values(data.waiting_time_satisfaction), // Y-axis values
-                backgroundColor: '#F2C037'
-              }]
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    // Modify the title (header) of the tooltip to show a custom label
-                    title: function(tooltipItem) {
-                      let xValue = tooltipItem[0].label; // Get the X-axis value (category)
-                      let labelText = '';
+          // Chart 3: Waiting Time (Reusing chart instance if exists)
+          if (window.waitingTimeChartInstance) {  // If a chart instance for waiting time already exists
+            // Update the existing chart with new data
+            window.waitingTimeChartInstance.data.labels = Object.keys(data.waiting_time_satisfaction);  // Set chart labels (waiting time satisfaction values)
+            window.waitingTimeChartInstance.data.datasets[0].data = Object.values(data.waiting_time_satisfaction);  // Set the data for the chart
+            window.waitingTimeChartInstance.update();  // Update the chart to reflect the new data
+          } else {  // If no chart instance exists
+            // Create a new chart instance for waiting time satisfaction
+            window.waitingTimeChartInstance = new Chart(waitingTimeChart.value, {
+              type: 'bar',  // Set chart type to bar
+              data: {
+                labels: Object.keys(data.waiting_time_satisfaction),  // Set chart labels (waiting time satisfaction values)
+                datasets: [{
+                  label: 'Waiting Time',  // Label for the dataset
+                  data: Object.values(data.waiting_time_satisfaction),  // The actual waiting time data
+                  backgroundColor: '#F2C037',  // Set color for the bars in the chart
+                }],
+              },
+              options: {
+                responsive: true,  // Make the chart responsive to screen size
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      title: function (tooltipItem) {
+                        let xValue = tooltipItem[0].label;  // Get the label of the tooltip (x-axis value)
+                        let labelText = '';
 
-                      // Map the X-axis value to a custom label
-                      switch(parseInt(xValue)) {
-                        case 1:
-                          labelText = 'Very Dissatisfied';
-                          break;
-                        case 2:
-                          labelText = 'Dissatisfied';
-                          break;
-                        case 3:
-                          labelText = 'Neutral';
-                          break;
-                        case 4:
-                          labelText = 'Satisfied';
-                          break;
-                        case 5:
-                          labelText = 'Very Satisfied';
-                          break;
-                        default:
-                          labelText = 'Unknown'; // In case there's an unexpected value
-                      }
+                        // Map the X-axis value to a custom label (waiting time satisfaction)
+                        switch (parseInt(xValue)) {
+                          case 1: labelText = 'Very Dissatisfied'; break;
+                          case 2: labelText = 'Dissatisfied'; break;
+                          case 3: labelText = 'Neutral'; break;
+                          case 4: labelText = 'Satisfied'; break;
+                          case 5: labelText = 'Very Satisfied'; break;
+                          default: labelText = 'Unknown';  // For unexpected values
+                        }
 
-                      // Return the custom title with the label
-                      return labelText;
+                        return labelText;  // Return the custom label for the tooltip
+                      },
+                      label: function (tooltipItem) {
+                        return `Waiting Time: ${tooltipItem.raw}`;  // Display the waiting time data in the tooltip
+                      },
                     },
-                    // Optionally, you can modify the label part of the tooltip (if needed)
-                    label: function(tooltipItem) {
-                      return `Waiting Time: ${tooltipItem.raw}`; // Show the raw value as label
-                    }
-                  }
-                }
-              }
+                  },
+                },
+              },
+            });
+          }
+
+        } catch (error) {  // If an error occurs during the data fetch or chart update process
+          console.error('Survey chart fetch failed:', error);  // Log the error to the console
+        }
+      };
+
+
+        const fetchBranch = async () => {
+          try {
+            const { data } = await $axios.post('/type/Branch');
+            branchList.value = [{id: 0, branch_name: 'All Branches'}, ...data.branch]
+          }  catch(error) {
+            if (error.response.status === 422) {
+              console.log(error)
             }
-          });
-
-
-          } catch (error) {
-            console.error('Survey chart fetch failed:', error)
           }
         }
 
+        const checkColumn = async () => {
+          if (adminMangerInformation.value != null) {
+             columnsWorkStation.value = [
+              {
+                name:'name',
+                label:'Name',
+                align:'left',
+                field: 'teller_name',
+                sortable: true
+              },
+              {
+                name: 'status',
+                label: 'Status',
+                align: 'left',
+                field: 'status',
+                sortable: true
+              }
+            ]
+          }else {
+            columnsWorkStation.value = [
+             { 
+                name:'name',
+                label:'Branch name',
+                align:'left',
+                field: 'branch_name',
+                sortable: true
+              },
+              {
+                name:'name',
+                label:'Name',
+                align:'left',
+                field: 'teller_name',
+                sortable: true
+              },
+              {
+                name: 'status',
+                label: 'Status',
+                align: 'left',
+                field: 'status',
+                sortable: true
+              }
+            ];
+          }
+        }
+
+        watch(() => branch_name, async (newVal) => {
+          // Check if the new value is a valid branch ID or 'All branches'
+
+            // Trigger fetch and render for 'All branches' scenario
+            await fetchWorkStation();
+            await renderSurveyCharts();
+            await getTableData();
+          
+        });
+
 
         onMounted(() => {
-          optimizedFetchData()
-          optimizedFetchWork()
-          updateAllServingTime()
-          renderSurveyCharts()
-        })
+          const mangerInformation = localStorage.getItem('managerInformation');
+          if (mangerInformation) {
+            adminMangerInformation.value = JSON.parse(mangerInformation)
+          }
+          optimizedFetchData();
+          updateAllServingTime();
+          renderSurveyCharts();
+          fetchBranch();
+          checkColumn();
 
-        onUnmounted(() => {
-          clearTimeout(dataTimeout);
-          clearTimeout(workTimeout);
+          // Make sure `branch_name` is set to a meaningful default value
+          if (!adminMangerInformation.value && !branch_name.value) {
+            branch_name.value = 0;  // Set default to 'All branches' if needed
+          }else {
+            branch_name.value = adminMangerInformation.value.branch_id
+          }
         });
+
 
     return {
       columnsWorkStation,
@@ -356,7 +494,10 @@ export default {
       total,
       ratingChart,
       easeOfUseChart,
-      waitingTimeChart
+      waitingTimeChart,
+      branchList, 
+      adminMangerInformation,
+      branch_name
     };
   },
 };

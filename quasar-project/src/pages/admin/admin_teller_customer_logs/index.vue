@@ -16,7 +16,22 @@
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-md">
-            <div class="col-3">
+            <div v-if="!adminManagerInformation"class="col-3">
+              <q-select
+                outlined
+                v-model="branch_value"
+                :options="branch_list"
+                label="Branch name"
+                hide-bottom-space
+                dense
+                emit-value
+                map-options
+                option-label="branch_name"
+                option-value="id"
+              />
+        </div>
+
+        <div class="col-3">
               <q-select
                 outlined
                 v-model="type_id"
@@ -29,8 +44,8 @@
                 label-value="name"
                 label-id="id"
               />
-
         </div>
+
 
             <q-space /> <!-- Pushes items to the right -->
 
@@ -49,6 +64,7 @@
 
             <!-- Date Picker Input -->
             <q-input 
+              :disable="!type_id"
               filled 
               dense 
               outlined 
@@ -60,6 +76,7 @@
             />
 
             <q-btn
+              :disable="!type_id"
               color="yellow-8"
               icon="download"
               @click="generatePDF"
@@ -142,6 +159,9 @@
       setup(){
         const text = ref("");
         const rows = ref([]);
+        const branch_value = ref (null);
+        const branch_list = ref ([]);
+        const adminManagerInformation = ref(null);
         const columns = ref([
           
         {
@@ -248,7 +268,9 @@
 
         const fetchTeller = async () => {
           try {
-            const { data } = await $axios.post('/tellers/indexx');
+            const { data } = await $axios.post('/tellers/indexx',{
+              branch_id : branch_value.value
+            });
 
             // Map the API response to match the expected structure for q-select
             tellerList.value = data.rows;
@@ -422,13 +444,47 @@
         }, 300); // Adjust debounce delay as needed
 
         // Watch for changes in both 'type_id' and 'selectedDate'
-        watch([type_id, selectedDate], () => {
-          debouncedGetTableData(); // Only call getTableData once when either value changes
+        watch([type_id, selectedDate, branch_value], async([newtype_id, newSelectedData, newBranch_value],[oldtype_id, oldSelecData, oldBranch_value]) => {
+          if (newBranch_value != oldBranch_value) {
+            type_id.value = ''
+            rows.value = [];
+            cancelledPercent.value = 0
+            finishedPercent.value = 0
+            cancelledCount.value = 0
+            finishedCount.value = 0
+            total.value = 0
+            fetchTeller()
+          }else if (newtype_id) {
+            debouncedGetTableData()
+          }
         });
 
+        const fetchBranch = async () => {
+          try {
+            const { data } = await $axios.post('/type/Branch');
+            branch_list.value = data.branch
+          } catch (error) {
+            if (error.response.status === 422) {
+              console.log(error)
+            }
+          }
+        }
+
         onMounted(() => {
-          fetchTeller()
-          getTableData()
+          const managerInformation = localStorage.getItem('managerInformation')
+          if (managerInformation) {
+            adminManagerInformation.value = JSON.parse(managerInformation);
+          }
+
+          if (adminManagerInformation.value == null) {
+            branch_value.value = 1
+          }else  {
+            branch_value.value = adminManagerInformation.value.branch_id
+          }
+
+          fetchTeller();
+
+          fetchBranch();
         })
     
         return{
@@ -445,6 +501,9 @@
           finishedCount,
           cancelledCount,
           total,
+          branch_value,
+          branch_list,
+          adminManagerInformation
         }
       }
     

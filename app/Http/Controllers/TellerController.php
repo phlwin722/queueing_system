@@ -426,6 +426,7 @@ class TellerController extends Controller
             // Query the 'tellers' table to retrieve the 'id', 'teller_firstname', and 'teller_lastname' columns
             $tellers = DB::table('tellers')
                 ->select('id', 'teller_firstname', 'teller_lastname') // Selecting the necessary columns
+                ->where('branch_id',$request->branch_id)
                 ->get(); // Execute the query and get the results
 
             // Format the results to prepare for a dropdown list
@@ -722,6 +723,7 @@ class TellerController extends Controller
             // Get all service types
             $types = DB::table('types as tp')
                 ->select('tp.id as type_id', 'tp.name as type_name', 'tp.indicator as type_indicator')
+                ->where('branch_id',$request->branch_id)
                 ->get();
 
             $typeList = [];

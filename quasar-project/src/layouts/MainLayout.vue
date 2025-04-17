@@ -687,11 +687,11 @@ export default defineComponent({
             icon: "currency_exchange",
             link: "/admin/currency_conversion",
           },
-          {
+/*           {
             title: "Customer Logs",
             icon: "description",
             link: "/admin/customer-logs",
-          },
+          }, */
           {
             title: "Teller customer logs",
             icon: "person",
@@ -782,11 +782,11 @@ export default defineComponent({
           icon: "currency_exchange",
           link: "/admin/currency_conversion",
         },
-        {
+/*         {
           title: "Customer Logs",
           icon: "description",
           link: "/admin/customer-logs",
-        },
+        }, */
         {
           title:"Teller customer logs",
           icon: "person",

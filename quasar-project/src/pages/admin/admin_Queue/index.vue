@@ -15,36 +15,24 @@
       <!-- Service Type Selector -->
       <div class="q-mb-md row q-col-gutter-md">
         <!-- Window Type Select -->
-        <div class="col-6">
+        <div v-if="!adminManagerInformation"class="col-6">
           <q-select
             outlined
-            v-model="type_id"
-            :options="serviceTypeList"
-            label="Window type"
+            v-model="branch_value"
+            :options="branch_list"
+            label="Branch name"
             hide-bottom-space
             dense
             emit-value
-            map-options
-          />
-        </div>
-
-        <!-- Assigned Personnel Select -->
-        <div class="col-6">
-          <q-select
-            outlined
-            v-model="teller_id"
-            :options="personnelList"
-            label="Assigned personnel"
-            dense
-            hide-bottom-space
-            emit-value
+            option-label="branch_name"
+            option-value="id"
             map-options
           />
         </div>
       </div>
 
       <!-- creating the list of all tellers -->
-      <div v-if="assignedTellers.length === 0">Loading...</div>
+      <div v-if="assignedTellers.length === 0">No Window Teller assigned...</div>
       <!-- v-for the service type eg. Deposit, Withdrawal and so on -->
       <div class="row q-col-gutter-md">
         <!-- Loop through each service -->
@@ -288,13 +276,15 @@ export default {
     const $dialog = useQuasar();
     const noOfQueue = ref();
     const type_id = ref();
+    const branch_value = ref()
     const teller_id = ref();
-    const serviceTypeList = ref([]);
+    const branch_list = ref([]);
     const personnelList = ref([]);
     const cusName = ref();
     const cusQueueNum = ref();
     const servingStatus = ref();
     const tellerFullName = ref();
+    const adminManagerInformation = ref();
 
     // Pagination
     const currentPage = ref(1);
@@ -341,21 +331,12 @@ export default {
       }
     };
 
-    const fetchWindowTypes = async () => {
+    const fetchBranch = async () => {
       try {
-        const response = await $axios.post("/types/dropdown");
-        if (Array.isArray(response.data.rows)) {
+        const response = await $axios.post("/type/Branch");
           // Map id and section_name correctly
-          serviceTypeList.value = response.data.rows.map((sec) => ({
-            label: sec.name, // This is what the user sees
-            value: sec.id, // This is what will be stored
-          }));
-        } else {
-          console.error(
-            'Expected "rows" to be an array, but got:',
-            response.data.rows
-          );
-        }
+          branch_list.value = response.data.branch
+          console.log(  branch_list.value )
       } catch (error) {
         console.error("Error fetching sections:", error);
       }
@@ -668,7 +649,9 @@ export default {
 
     const fetchAssignedTellers = async () => {
       try {
-        const response = await $axios.post("/tellers/fetch-assigned");
+        const response = await $axios.post("/tellers/fetch-assigned",{
+          branch_id: branch_value.value
+        });
         assignedTellers.value = response.data.services
           .map((service) => ({
             ...service,
@@ -726,7 +709,19 @@ export default {
 
     watch(lastFetched, fetchAssignedTellers);
 
+    watch(()=> branch_value.value, async (newVal)=> {
+      if (newVal) {
+        fetchAssignedTellers()
+      }
+    });
+
     onMounted(() => {
+      const managerInformation = localStorage.getItem('managerInformation');
+      if (managerInformation) {
+        adminManagerInformation.value = JSON.parse(managerInformation)
+        branch_value.value = adminManagerInformation.value.branch_id
+      }
+
       optimizedFetchQueue();
       fetchWaitingtime();
       const startTime = parseInt(localStorage.getItem("wait_start_time")) || 0;
@@ -736,7 +731,7 @@ export default {
         startTimer();
       }
       fetchId();
-      fetchWindowTypes();
+      fetchBranch();
       fetchPersonnel();
     });
 
@@ -755,6 +750,7 @@ export default {
       waitTime,
       tempTimer,
       beforeCancel,
+      branch_list,
       resetQueue,
       isQueuelistEmpty,
       prepared,
@@ -762,13 +758,14 @@ export default {
       cusId,
       noOfQueue,
       type_id,
-      serviceTypeList,
       cusName,
+      branch_value,
       cusQueueNum,
       servingStatus,
       tellerFullName,
       personnelList,
       teller_id,
+      adminManagerInformation,
 
       // Pagination
       currentPage,

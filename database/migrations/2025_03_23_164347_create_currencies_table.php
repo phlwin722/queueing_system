@@ -15,6 +15,7 @@ return new class extends Migration
         $table->id();
         $table->string('currency_name')->unique();
         $table->decimal('value', 18, 2); 
+        $table->unsignedBigInteger('branch_id')->nullable();
         $table->timestamps();
     });
 }
