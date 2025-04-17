@@ -11,13 +11,13 @@
             </div>
 
             <q-table
-  class="q-mt-md"
-  title="Data Reports"
-  :rows="filteredRows"
-  :columns="columns"
-  row-key="index"
-  dense
->
+              class="q-mt-md"
+              title="Data Reports"
+              :rows="filteredRows"
+              :columns="columns"
+              row-key="index"
+              dense
+            >
   <!-- Custom Table Header -->
   <template v-slot:top>
     <q-toolbar class="q-gutter-md">
@@ -26,6 +26,20 @@
 
       <q-space /> <!-- Pushes inputs to the right -->
 
+      <q-select
+          v-if="!adminManagerInformation"
+          style="width: 250px;"
+          outlined
+          v-model="branch_value"
+          label="Branch name"
+          hide-bottom-space
+          dense
+          emit-value
+          map-options
+          :options="branchList"
+          option-label="branch_name"
+          option-value="id"
+      />
       <span class="text-bold">Filter by date:</span>
 
       <!-- From Date -->
@@ -117,11 +131,6 @@ import {
 
 import BarChart from 'components/BarChart.vue';
 
-
-
-
-
-
 export default defineComponent({
     name: 'IndexPage',
     components: { BarChart },
@@ -129,16 +138,87 @@ export default defineComponent({
     setup(){
     const text = ref("");
     const rows = ref([]);
-    const columns = ref([
+    const columns = ref([]);
+    let refreshInterval = null
+
+    const filteredRows = computed(() => {
+        return rows.value.filter((row) =>
+        Object.values(row).some((value) =>
+            String(value).toLowerCase().includes(text.value.toLowerCase())
+        )
+        );
+    });
+    const cancelledPercent = ref(0);
+    const finishedPercent = ref(0);
+    const cancelledCount = ref (0)
+    const finishedCount = ref(0)
+    const total = ref(0)
+    const fromDate = ref(""); // Holds the "From" date
+    const toDate = ref(""); // Holds the "To" date
+    const branch_value = ref ();
+    const branchList = ref ([]);
+    const adminManagerInformation = ref ();
+
+    const getTableData = async () => {
         
-    {
+        try {
+            // Send both dates as a payload
+            const payload = {
+            from_date: fromDate.value,
+            to_date: toDate.value,
+            branch_id: branch_value.value
+            };
+
+            const { data } = await $axios.post('/admin/reports', payload);
+            rows.value.splice(0, rows.value.length, ...data.rows);
+            computePercentages();
+        } catch (error) {
+                console.log(error);
+        }
+    }
+
+    const computePercentages = () => {
+        total.value = rows.value.length;
+        if (total === 0) {
+        cancelledPercent.value = 0;
+        finishedPercent.value = 0;
+        return;
+        }
+
+        cancelledCount.value = rows.value.filter(row => row.status === 'cancelled').length;
+        finishedCount.value = rows.value.filter(row => row.status === 'finished').length;
+
+        cancelledPercent.value = ((cancelledCount.value / total.value) * 100).toFixed(2);
+        finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
+
+    };
+
+    const fetchBranch = async () => {
+      try {
+        const { data } = await $axios.post('/type/Branch') 
+        branchList.value = [{id:0, branch_name: 'All Branches'}, ...data.branch]
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
+    const debouncedGetTableData = debounce(() => {
+          getTableData()
+        }, 300);
+
+    const columnData = async () => {
+      if (adminManagerInformation.value) {
+        columns.value = [
+         {
             name: 'name',
             label: 'Customer Name',
             align: 'left',
             field: 'name',
             sortable: true
           },
-        {
+          {
             name: 'email',
             label: 'Email address',
             align: 'left',
@@ -180,71 +260,89 @@ export default defineComponent({
             field: 'updated_at',
             sortable: true
           },
-    ]);
-    let refreshInterval = null
-    const filteredRows = computed(() => {
-    return rows.value.filter((row) =>
-    Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(text.value.toLowerCase())
-    )
-    );
-});
-    const cancelledPercent = ref(0);
-    const finishedPercent = ref(0);
-    const cancelledCount = ref (0)
-    const finishedCount = ref(0)
-    const total = ref(0)
-    const fromDate = ref(""); // Holds the "From" date
-    const toDate = ref(""); // Holds the "To" date
-
-    const getTableData = async () => {
-        
-        try {
-            // Send both dates as a payload
-            const payload = {
-            from_date: fromDate.value,
-            to_date: toDate.value
-            };
-
-            const { data } = await $axios.post('/admin/reports', payload);
-            rows.value.splice(0, rows.value.length, ...data.rows);
-            computePercentages();
-        } catch (error) {
-                console.log(error);
-        }
+        ]
+      } else {
+        columns.value = [
+         {
+            name: 'branch_name',
+            label: 'Branch name',
+            align: 'left',
+            field: 'branch_name',
+            sortable: true
+          },
+          {
+            name: 'name',
+            label: 'Customer Name',
+            align: 'left',
+            field: 'name',
+            sortable: true
+          },
+         {
+            name: 'email',
+            label: 'Email address',
+            align: 'left',
+            field: 'email',
+            sortable: true
+          },
+          {
+            name: 'queue_number',
+            label: 'Queue Number',
+            align: 'left',
+            field: 'queue_number',
+            sortable: true
+          },
+          {
+            name: 'type_id',
+            label: 'Service Type',
+            align: 'left',
+            field: 'type_id',
+            sortable: true
+          },
+          {
+            name: 'teller_id',
+            label: 'Assigned Personnel',
+            align: 'left',
+            field: 'teller_id',
+            sortable: true
+          },
+          {
+            name: 'status',
+            label: 'Status',
+            align: 'left',
+            field: 'status',
+            sortable: true
+          },
+          {
+            name: 'updated_at',
+            label: 'Date and Time',
+            align: 'left',
+            field: 'updated_at',
+            sortable: true
+          },
+        ]
+      }
     }
 
-    const computePercentages = () => {
-        total.value = rows.value.length;
-        if (total === 0) {
-        cancelledPercent.value = 0;
-        finishedPercent.value = 0;
-        return;
-        }
-
-        cancelledCount.value = rows.value.filter(row => row.status === 'cancelled').length;
-        finishedCount.value = rows.value.filter(row => row.status === 'finished').length;
-
-        
-
-        cancelledPercent.value = ((cancelledCount.value / total.value) * 100).toFixed(2);
-        finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
-
-    };
-
-    const debouncedGetTableData = debounce(() => {
-          getTableData()
-        }, 300);
-
-    watch([fromDate, toDate], () => {
-        debouncedGetTableData(); // Only call getTableData once when either value changes
+    watch([fromDate, toDate, branch_value], ([newFromdate, newTodate, newBranch_value]) => {
+          debouncedGetTableData() // Only call getTableData once when either value changes
     });
 
     onMounted(() => {
-      getTableData()
-    })
+      const managerInformation = localStorage.getItem('managerInformation');
 
-    
+      if (managerInformation) {
+        adminManagerInformation.value = JSON.parse(managerInformation)
+        branch_value.value = adminManagerInformation.value.branch_id
+      }
+
+      getTableData()
+      fetchBranch()
+      columnData()
+
+      if (branch_value.value == null) {
+        branch_value.value = 0;
+      }
+    })
 
 
     return{
@@ -258,7 +356,9 @@ export default defineComponent({
         cancelledCount,
         finishedCount,
         total,
-        
+        branch_value,
+        branchList,
+        adminManagerInformation
     }
     }
 

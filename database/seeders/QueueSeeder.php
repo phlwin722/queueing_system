@@ -28,6 +28,66 @@ class QueueSeeder extends Seeder
             'Password' => bcrypt('admin123'), // Hash the password using bcrypt
         ]);
 
+        //You are inserting multiple records at once.
+        DB::table('branchs')
+        ->insert([
+            [
+                'id' => '1',
+                'branch_name' => 'VRT - San jose del monte', 
+                'region' => 'Region III (Central Luzon)', 
+                'province' => 'Bulacan', 
+                'city' => 'Norzagaray',
+                'Barangay' => 'Friendship Village Resources',
+                'address' => 'blk 30 lot 5',
+                'status' => 'Active',
+                'opening_date' => '2025-04-12',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+            [
+                'id' => '2',
+                'branch_name' => 'VRT - Caloocan', 
+                'region' => 'Region III (Central Luzon)', 
+                'province' => 'Bulacan', 
+                'city' => 'Norzagaray',
+                'Barangay' => 'Friendship Village Resources',
+                'address' => 'blk 30 lot 5',
+                'status' => 'Active',
+                'opening_date' => '2025-04-12',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+        ]);
+
+            //You are inserting multiple records at once.
+            DB::table('managers')
+            ->insert([
+            [
+                'id' => '1',
+                'manager_firstname' => 'Dexter', 
+                'manager_lastname' => 'Jamero', 
+                'manager_username' => 'dex', 
+                'manager_password' => bcrypt('dex'), 
+                'Image' => 'assets/teller/1/image.png',
+                'manager_status' => 'Active',
+                'branch_id' => '1',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+            [
+                'id' => '2',
+                'manager_firstname' => 'Alvin', 
+                'manager_lastname' => 'Abogado', 
+                'manager_username' => 'alv', 
+                'manager_password' => bcrypt('alv'), 
+                'Image' => 'assets/teller/2/image.png',
+                'manager_status' => 'Active',
+                'branch_id' => '2',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+        ]);
+
         // insert types records that match your factory data (1-5)
         //You are inserting multiple records at once.
         Type::insert([
@@ -87,7 +147,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '1', 
                 'type_ids_selected' => '["1","2"]',
                 'Image' => 'assets/teller/1/image.png',
-                'branch_id' => '2',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
@@ -100,7 +159,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '3', 
                 'type_ids_selected' => '["3"]',
                 'Image' => 'assets/teller/2/image.png',
-                'branch_id' => '1',
                 'created_at' => now(), 
                 'updated_at' => now()],
             [
@@ -111,7 +169,6 @@ class QueueSeeder extends Seeder
                 'teller_password' => bcrypt('rica'), 
                 'type_id' => '6', 
                 'type_ids_selected' => '["1","2","3" ]', 
-                'branch_id' => '2',
                 'Image' => 'assets/teller/3/image.png',
                 'created_at' => now(), 
                 'updated_at' => now()
@@ -125,7 +182,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '4',
                 'type_ids_selected' => '["4","5","6"]', 
                 'Image' => 'assets/teller/4/image.png',
-                'branch_id' => '1',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
@@ -138,7 +194,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '5', 
                 'type_ids_selected' => '["4","5"]',
                 'Image' => 'assets/teller/5/image.png',
-                "branch_id" => '1',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
@@ -150,7 +205,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '4',
                 'teller_id' => '4',
                 'status' => 'Offline',
-                'branch_id' => '1',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
@@ -159,7 +213,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '3',
                 'teller_id' => '2',
                 'status' => 'Offline',
-                'branch_id' => '2',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
@@ -168,7 +221,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '1',
                 'teller_id' => '1',
                 'status' => 'Offline',
-                'branch_id' => '2',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
@@ -177,7 +229,6 @@ class QueueSeeder extends Seeder
                 'type_id' => '5',
                 'teller_id' => '5',
                 'status' => 'Offline',
-                'branch_id' => '1',
                 'created_at' => now(),
                 'updated_at' => now (),
             ],
@@ -190,6 +241,7 @@ class QueueSeeder extends Seeder
                 'flag' => 'fi-us',
                 'buy_value' => '12.00',
                 'sell_value' => '32.00',
+                'branch_id' => '1',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -199,6 +251,7 @@ class QueueSeeder extends Seeder
                 'flag' => 'fi-eu',
                 'buy_value' => '59.00',
                 'sell_value' => '32.00',
+                'branch_id' => '1',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -208,6 +261,7 @@ class QueueSeeder extends Seeder
                 'flag' => 'fi-ph',
                 'buy_value' => '25.00',
                 'sell_value' => '32.00',
+                'branch_id' => '2',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -217,6 +271,7 @@ class QueueSeeder extends Seeder
                 'flag' => 'fi-hk',
                 'buy_value' => '12.00',
                 'sell_value' => '32.00',
+                'branch_id' => '2',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -226,68 +281,9 @@ class QueueSeeder extends Seeder
                 'flag' => 'fi-eg',
                 'buy_value' => '10.00',
                 'sell_value' => '38.00',
+                'branch_id' => '1',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
-        ]);
-
-        //You are inserting multiple records at once.
-        DB::table('branchs')
-        ->insert([
-            [
-                'id' => '1',
-                'branch_name' => 'VRT - San jose del monte', 
-                'region' => 'Region III (Central Luzon)', 
-                'province' => 'Bulacan', 
-                'city' => 'Norzagaray',
-                'Barangay' => 'Friendship Village Resources',
-                'address' => 'blk 30 lot 5',
-                'status' => 'Active',
-                'opening_date' => '2025-04-12',
-                'created_at' => now(), 
-                'updated_at' => now()
-            ],
-            [
-                'id' => '2',
-                'branch_name' => 'VRT - Caloocan', 
-                'region' => 'Region III (Central Luzon)', 
-                'province' => 'Bulacan', 
-                'city' => 'Norzagaray',
-                'Barangay' => 'Friendship Village Resources',
-                'address' => 'blk 30 lot 5',
-                'status' => 'Active',
-                'opening_date' => '2025-04-12',
-                'created_at' => now(), 
-                'updated_at' => now()
-            ],
-        ]);
-
-         //You are inserting multiple records at once.
-         DB::table('managers')
-         ->insert([
-            [
-                'id' => '1',
-                'manager_firstname' => 'Dexter', 
-                'manager_lastname' => 'Jamero', 
-                'manager_username' => 'dex', 
-                'manager_password' => bcrypt('dex'), 
-                'Image' => 'assets/teller/1/image.png',
-                'manager_status' => 'Active',
-                'branch_id' => '1',
-                'created_at' => now(), 
-                'updated_at' => now()
-            ],
-            [
-                'id' => '2',
-                'manager_firstname' => 'Alvin', 
-                'manager_lastname' => 'Abogado', 
-                'manager_username' => 'alv', 
-                'manager_password' => bcrypt('alv'), 
-                'Image' => 'assets/teller/2/image.png',
-                'manager_status' => 'Active',
-                'branch_id' => '2',
-                'created_at' => now(), 
-                'updated_at' => now()
             ],
         ]);
 
@@ -377,6 +373,52 @@ class QueueSeeder extends Seeder
         ->where('id','4')
         ->update(['branch_id' => '1']);
          
+        // insert survey responses 
+        DB::table('survey_responses')
+        ->insert([  
+            [
+                'id' => '1',
+                'rating' => '1',
+                'ease_of_use' => 'Yes',
+                'waiting_time_satisfaction' => '1',
+                'branch_id' => '1'
+            ],
+            [
+                'id' => '2',
+                'rating' => '2',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '2',
+                'branch_id' => '1'
+            ],
+            [
+                'id' => '3',
+                'rating' => '3',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '3',
+                'branch_id' => '1'
+            ],
+            [
+                'id' => '4',
+                'rating' => '4',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '4',
+                'branch_id' => '2'
+            ],
+            [
+                'id' => '5',
+                'rating' => '5',
+                'ease_of_use' => 'Yes',
+                'waiting_time_satisfaction' => '5',
+                'branch_id' => '1'
+            ],
+            [
+                'id' => '6',
+                'rating' => '1',
+                'ease_of_use' => 'Yes',
+                'waiting_time_satisfaction' => '1',
+                'branch_id' => '2'
+            ]
+        ]);
 
         // Create 10 orders with random Customer logs 
         Queue::factory(1000)->create();

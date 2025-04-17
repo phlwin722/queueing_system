@@ -19,13 +19,15 @@ class WindowRequest extends FormRequest
             'window_name' => ['required'],
             'teller_id' => ['required'],
             'type_id' => ['required'],
+            'branch_id' => ['required'],
         ];
     }
     public function messages(): array
     {
        return [
            'teller_id.required' => 'The assign personel field is required',
-           'type_id.required' => 'The window type field is required'
+           'type_id.required' => 'The window type field is required',
+           'branch_id.required' => 'The Branch name field is required',
         ];
      }
  

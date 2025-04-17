@@ -1,4 +1,4 @@
-<template>
+j<template>
     <q-dialog v-model="icon" @hide="closeDialog">
         <q-card>
             <q-card-section class="row items-center q-pb-none">
@@ -10,6 +10,25 @@
             <q-card-section>
                 <div class="row q-col-gutter-md">
                     <!-- Currency Symbol Dropdown -->
+                     
+                    <div v-if="!adminManagerInformation" class="col-12">
+                        <q-select
+                         outlined
+                            label="Branch name"
+                            dense
+                            hide-bottom-space
+                            :options="branchList"
+                            option-label="branch_name"
+                            option-value="id"
+                            emit-value
+                            v-model="formData.branch_id"
+                            map-options
+                            @update:model-value="updateCurrencyName"
+                            :error="formError.hasOwnProperty('branch_id')"
+                            :error-message="formError.branch_id"
+                            autofocus
+                        />
+                    </div>
                     <div class="col-12">
                         <q-select
                         outlined
@@ -112,7 +131,7 @@
 
 
 <script>
-import { defineComponent, ref, toRefs } from 'vue';
+import { defineComponent, onMounted, ref, toRefs } from 'vue';
 import { $axios, $notify } from 'boot/app';
 import 'flag-icons/css/flag-icons.min.css';
 
@@ -125,7 +144,9 @@ export default defineComponent({
     },
     setup(props) {
         const icon = ref(false);
+        const adminManagerInformation = ref (null);
         const isLoading = ref(false);
+        const branchList =ref ([]);
 
         const allCurrencies = ref([
             { name: 'Argentine Peso', symbol: '$', flag: 'fi-ar' },
@@ -183,18 +204,14 @@ export default defineComponent({
             { name: 'Vietnamese Dong', symbol: '₫', flag: 'fi-vn' }
         ]);
 
-
-
-
-
-
         const initFormData = () => ({
             id: null,
             currency_name: '',
             currency_symbol: '',
             flag: '',
             buy_value: '',
-            sell_value: ''
+            sell_value: '',
+            branch_id: '',
         });
 
         const formData = ref(initFormData());
@@ -211,6 +228,12 @@ export default defineComponent({
         formMode.value = mode === 'new' ? 'New' : 'Edit';
         if (mode === 'edit') {
             formData.value = Object.assign({}, row);
+            console.log( Object.assign({}, row))
+            // Find the branch from branchList where the branch_name matches
+            const selectedBranch = branchList.value.find(label => label.branch_name === row.branch_name);
+            // If a matching branch is found, assign its 'id' to formData.branch_id
+            formData.value.branch_id = selectedBranch.id
+            console.log('list',branchList.value)
             // If the flag isn't already set, find it from the currency list
             if (!formData.value.flag) {
                 const currency = allCurrencies.value.find(
@@ -249,7 +272,8 @@ export default defineComponent({
                         currency_symbol: data.row.currency_symbol,
                         flag: data.row.flag,
                         buy_value: parseFloat(data.row.buy_value).toFixed(2),
-                        sell_value: parseFloat(data.row.sell_value).toFixed(2)
+                        sell_value: parseFloat(data.row.sell_value).toFixed(2),
+                        branch_name: data.row.branch_name,
                     });
                 } else {
                     const index = rows.value.findIndex(x => x.id === data.row.id);
@@ -260,7 +284,8 @@ export default defineComponent({
                             currency_symbol: data.row.currency_symbol,
                             flag: data.row.flag,
                             buy_value: parseFloat(data.row.buy_value).toFixed(2),
-                            sell_value: parseFloat(data.row.sell_value).toFixed(2)
+                            sell_value: parseFloat(data.row.sell_value).toFixed(2),
+                            branch_name: data.row.branch_name,
                         };
                     }
                 }
@@ -278,6 +303,28 @@ export default defineComponent({
             }
         };
 
+        const fetchBranch = async () => {
+            try {
+                const { data } = await $axios.post('/type/Branch') 
+                branchList.value = data.branch
+            } catch (error) {
+                if (error.response.status === 422) {
+                    console.log(error)
+                }
+            }
+        }
+
+        onMounted(() => {
+            const managerInfo = localStorage.getItem('managerInformation');
+
+            if (managerInfo) {
+                adminManagerInformation.value = JSON.parse(managerInfo)
+                formData.value.branch_id = adminManagerInformation.value.branch_id
+            }
+
+            fetchBranch()
+        });
+
         return {
             icon,
             formData,
@@ -288,7 +335,9 @@ export default defineComponent({
             showDialog,
             handleSubmitForm,
             allCurrencies,
-            updateCurrencyName
+            updateCurrencyName,
+            adminManagerInformation,
+            branchList,
         };
     }
 });

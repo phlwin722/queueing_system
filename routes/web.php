@@ -20,8 +20,7 @@ use App\Http\Controllers\SurveyResponseController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ResetWindowSettingController;
-use App\Models\Branch;
-use App\Models\Window;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -133,11 +132,11 @@ Route::post('/teller/update-serving-time', [ServingTimeController::class, 'updat
 Route::post('/teller/update-all-serving-time', [ServingTimeController::class, 'updateAllServingTime']);
 Route::post('/teller/fetch-serving-time', [ServingTimeController::class, 'fetchServingTime']);
 
-
+/* 
 //Reset-Window
 Route::post('/waiting_Time-fetch', [ResetWindowSettingController::class, 'fetch']);
 Route::post('/waiting_Time', [ResetWindowSettingController::class, 'store']);
-
+ */
 
 //Reset-Settings Automatic 
 Route::post('/windows/fetch-reset-settings', [ResetSettingController::class, 'fetchSettings']);
@@ -158,7 +157,7 @@ Route::post('/waiting_Time-update', [Waiting_timeController::class, 'update']);
 
 //thank you page (survey)
 Route::post('/survey', [SurveyResponseController::class, 'store']);
-Route::get('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
+Route::post('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
 
 //online appointment
 Route::post('/appointments', [AppointmentController::class, 'store']);

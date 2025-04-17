@@ -13,6 +13,7 @@ class Currency extends Model
         'flag',
         'buy_value',
         'sell_value',
+        'branch_id'
     ];
 
 }

@@ -389,6 +389,13 @@ export default defineComponent({
         ]
       } else {
         columns.value = [
+         {
+            name: "branch_name",
+            label: "Branch name",
+            align: "left",
+            field: "branch_name",
+            sortable: true,
+          },
            {
             name: "window_name",
             label: "Window Name",
@@ -408,13 +415,6 @@ export default defineComponent({
             label: "Assigned Personnel",
             align: "left",
             field: "teller_name",
-            sortable: true,
-          },
-          {
-            name: "branch_name",
-            label: "Branch name",
-            align: "left",
-            field: "branch_name",
             sortable: true,
           },
           /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
@@ -447,6 +447,10 @@ export default defineComponent({
       getTableData();
       fetchSettings();
       fetchBranch()
+          // Make sure `branch_name` is set to a meaningful default value
+          if (!branch_name.value) {
+            branch_name.value = 0;  // Set default to 'All branches' if needed
+          }
     });
 
     onUnmounted(() => {

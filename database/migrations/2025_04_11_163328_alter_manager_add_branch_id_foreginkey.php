@@ -19,6 +19,65 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('restrict'); // Adjust as needed: cascade, restrict, set null, etc.
         });
+
+        // foreign the type the branch id on branchs
+        Schema::table('types', function (Blueprint $table) {
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade'); // 
+        });
+
+        // foreign the teller branch id on branchs
+        Schema::table('tellers', function (Blueprint $table) {
+            // add foreign key
+            $table->foreign('branch_id')
+            ->references('id')
+            ->on('branchs')
+            ->onUpdate('cascade')
+            ->onDelete('cascade');
+        });
+
+        // foregin the window branch id on branchs 
+        Schema::table('windows', function(Blueprint $table) {
+            // add foregin key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+
+        // foregin the currencie branch id on branchs
+        Schema::table('currencies', function (Blueprint $table) {
+            // add foreign key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+
+        // foreign the survey_responses branch id on branchs
+        Schema::table('survey_responses', function (Blueprint $table) {
+            // add foregin key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+
+        // foreign the queues branch id on branchs
+        Schema::table('queues', function (Blueprint $table) {
+            // add foreign key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
     }
 
     /**
@@ -27,6 +86,30 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('managers', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('types', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('tellers', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('windows', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('currencies', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('survey_responses', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('queues', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
         });
     }

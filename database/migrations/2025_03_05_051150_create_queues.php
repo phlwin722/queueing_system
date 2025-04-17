@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('waiting_customer')->nullable();
             $table->unsignedBigInteger('currency_selected')->nullable();
             $table->string('priority_service')->nullable();
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }

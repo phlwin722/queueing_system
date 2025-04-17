@@ -321,6 +321,13 @@ export default defineComponent({
               ]
             }else {
               columns.value = [
+              {
+                  name: "branch_name",
+                  label: "Branch name",
+                  align: "left",
+                  field: "branch_name",
+                  sortable: "true",
+                },
                 {
                   name: "teller_firstname",
                   label: "First Name",
@@ -341,13 +348,6 @@ export default defineComponent({
                   align: "left",
                   field: "teller_username",
                   sortable: true,
-                },
-                {
-                  name: "branch_name",
-                  label: "Branch name",
-                  align: "left",
-                  field: "branch_name",
-                  sortable: "true",
                 },
                 {
                   name: "type_names",
@@ -391,6 +391,11 @@ export default defineComponent({
           optimizedFetchData()
           getTypes()
           getTableData()
+          
+          // Make sure `branch_name` is set to a meaningful default value
+          if (!branch_name.value) {
+            branch_name.value = 0;  // Set default to 'All branches' if needed
+          }
         })
 
         onUnmounted(() => {
