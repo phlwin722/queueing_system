@@ -1,4 +1,3 @@
-
 <template>
   <q-page class="q-px-sm" style="height: auto; min-height: unset">
     <div class="q-ma-md bg-white q-pa-sm shadow-1">
@@ -99,6 +98,12 @@
             />
           </div>
         </div>
+      </template>
+
+      <template v-slot:body-cell-teller_name="props">
+        <q-td :props="props">
+          {{ props.row.teller_name != null ? props.row.teller_name : 'No teller assigned' }}
+        </q-td>
       </template>
 
       <template v-slot:body-cell-actions="props">
@@ -298,11 +303,11 @@ export default defineComponent({
         return;
       }
 
-      console.log("Reset Teller API Called"); // Debug log
       try {
-        const { data } = await $axios.post("/windows/reset-windows");
-        console.log("API Response:", data); // Debug response
-        $notify("positive", "check", data.message);
+          const { data } = await $axios.post("/windows/reset-windows",{
+            branch_id: branch_name.value
+          });
+          $notify("positive", "check", data.message);
         await getTableData();
       } catch (error) {
         console.log("Error:", error.response?.data || error);
