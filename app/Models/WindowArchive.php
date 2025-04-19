@@ -13,6 +13,7 @@ class WindowArchive extends Model
         'type_id',
         'teller_id',
         'archived_at',
+        'branch_id',
     ];
     
     public $timestamps = true; 

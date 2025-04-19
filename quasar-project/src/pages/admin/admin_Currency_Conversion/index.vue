@@ -361,6 +361,10 @@ export default defineComponent({
       if (managerInformation) {
         adminManagerInformation.value = JSON.parse(managerInformation)
       }
+
+      if (adminManagerInformation.value == null ) {
+        branch_name.value = 0;
+      }
       await getTableData()
       await fetchBranch()
       await  columnCheck()

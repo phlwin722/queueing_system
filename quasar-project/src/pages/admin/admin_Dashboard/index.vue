@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-px-sm">
+  <q-page class="q-px-sm q-pb-md">
 
     <!-- Breadcrumb -->
     <div class="q-ma-md bg-white q-pa-md shadow-1" style="position: relative;">
@@ -269,10 +269,10 @@ export default {
         let workTimeout;
 
         const optimizedFetchData = async () => {
-          await getTableData()
-          await fetchWorkStation()
-          await renderSurveyCharts()
-          dataTimeout = setTimeout(optimizedFetchData, 5000); // Recursive Timeout
+            getTableData()
+            fetchWorkStation()
+            renderSurveyCharts()
+          dataTimeout = setTimeout(optimizedFetchData, 2000); // Recursive Timeout
         };
 
         const renderSurveyCharts = async () => {
@@ -456,9 +456,9 @@ export default {
           // Check if the new value is a valid branch ID or 'All branches'
 
             // Trigger fetch and render for 'All branches' scenario
-            await fetchWorkStation();
-            await renderSurveyCharts();
-            await getTableData();
+             fetchWorkStation();
+             renderSurveyCharts();
+             getTableData();
           
         });
 

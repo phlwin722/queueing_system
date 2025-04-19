@@ -18,7 +18,21 @@
       <q-toolbar-title>Window Logs</q-toolbar-title>
 
       <q-space /> <!-- Pushes inputs to the right -->
-
+     
+      <q-select
+          v-if="!adminManagerInformation"
+          outlined
+          style="width: 250px;"
+          v-model="branch_value"
+          label="Branch name"
+          hide-bottom-space
+          dense
+          emit-value
+          map-options
+          :options="branch_list"
+          option-label="branch_name"
+          option-value="id"
+      />
       <!-- Search Input -->
       <q-input
         filled
@@ -67,14 +81,11 @@
       const text = ref('');
       const rows = ref([]);
       const selectedDate = ref('');
+      const branch_list = ref([])
+      const branch_value = ref()
+      const adminManagerInformation = ref(null);
   
-      const columns = ref([
-    { name: 'window_name', label: 'Window Name', align: 'left', field: 'window_name', sortable: true },
-    { name: 'type_name', label: 'Window Type', align: 'left', field: 'type_name', sortable: true },
-    { name: 'teller_name', label: 'Assigned Personnel', align: 'left', field: 'teller_name', sortable: true },
-    { name: 'archived_at', label: 'Archived Date', align: 'left', field: 'archived_at', sortable: true }
-]);
-
+      const columns = ref([]);
   
       const filteredRows = computed(() => {
         return rows.value.filter(row =>
@@ -85,36 +96,85 @@
       });
   
       const getTableData = async () => {
-  try {
-    const payload = selectedDate.value ? { date: selectedDate.value } : {};
-    const { data } = await $axios.post('/admin/window-logs', payload);
+      try {
+    //    const payload = selectedDate.value ? date: selectedDate.value : '';
+        const { data } = await $axios.post('/admin/window-logs', {
+          date: selectedDate.value || '',
+          branch_id: branch_value.value
+        });
 
-    rows.value = data.rows.map(row => ({
-      id: row.id,
-      window_name: row.window_name,
-      type_name: row.type_name || 'Unknown Type',
-      teller_name: row.teller_name || 'Unassigned',
-      archived_at: row.archived_at
-    }));
-  } catch (error) {
-    console.log('Error fetching window logs:', error);
-  }
-};
+      rows.value = data.rows.map(row => ({
+        id: row.id,
+        window_name: row.window_name,
+        type_name: row.type_name || 'Unknown Type',
+        teller_name: row.teller_name || 'Unassigned',
+        archived_at: row.archived_at,
+        branch_name: row.branch_name,
+      }));
+    } catch (error) {
+      console.log('Error fetching window logs:', error);
+    }
+  };
 
   
-const debouncedGetTableData = debounce(() => {
-          getTableData()
-        }, 300);
+  const debouncedGetTableData = debounce(() => {
+    getTableData()
+  }, 300);
 
-    watch(selectedDate, () => {
-        debouncedGetTableData(); // Only call getTableData once when either value changes
-    });
+  const fetchBranch = async () => {
+    try {
+      const { data } = await $axios.post('type/Branch')
+      branch_list.value = [{id: 0 , branch_name: 'All branches'}, ...data.branch]
+    } catch(error) {
+      if (error.response.status === 422) {
+        console.log(error)
+      }
+    }
+  }
+
+  const columnsList =  async () => {
+    if (adminManagerInformation.value != null) {
+      columns.value = [
+        { name: 'window_name', label: 'Window Name', align: 'left', field: 'window_name', sortable: true },
+        { name: 'type_name', label: 'Window Type', align: 'left', field: 'type_name', sortable: true },
+        { name: 'teller_name', label: 'Assigned Personnel', align: 'left', field: 'teller_name', sortable: true },
+        { name: 'archived_at', label: 'Archived Date', align: 'left', field: 'archived_at', sortable: true }
+      ]
+    }else {
+      columns.value = [
+        { name: 'branch_name', label: 'Branch Name', align: 'left', field: 'branch_name', sortable: true },
+        { name: 'window_name', label: 'Window Name', align: 'left', field: 'window_name', sortable: true },
+        { name: 'type_name', label: 'Window Type', align: 'left', field: 'type_name', sortable: true },
+        { name: 'teller_name', label: 'Assigned Personnel', align: 'left', field: 'teller_name', sortable: true },
+        { name: 'archived_at', label: 'Archived Date', align: 'left', field: 'archived_at', sortable: true }
+      ]
+    }
+  }
+
+  watch([selectedDate,branch_value], (newSelectedDate, newBranch_value) => {
+      debouncedGetTableData(); // Only call getTableData once when either value changes
+      if (newBranch_value) {
+        debouncedGetTableData
+      }
+  });
 
 
   onMounted(() => {
-    getTableData()
-  })
+    const managerInformation = localStorage.getItem('managerInformation')
+    if (managerInformation) {
+      console.log(managerInformation)
+      adminManagerInformation.value = JSON.parse(managerInformation)
+    }
 
+    if (!managerInformation) {
+        branch_value.value = 0;
+    }else {
+      branch_value.value = adminManagerInformation.value.branch_id
+    }
+    getTableData()
+    fetchBranch()
+    columnsList();
+  })
   
       return {
         rows,
@@ -122,7 +182,11 @@ const debouncedGetTableData = debounce(() => {
         filteredRows,
         text,
         selectedDate,
-        getTableData
+        getTableData,
+        adminManagerInformation,
+        branch_list,
+        branch_value,
+        fetchBranch,
       };
     }
   });

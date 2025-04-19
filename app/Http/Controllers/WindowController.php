@@ -314,11 +314,40 @@ class WindowController extends Controller
     }
 
     // **🔄 Auto Reset with Archive**
-    public function resetWindows()
-{
-    Log::info("Reset Windows Function Triggered");
+    public function resetWindows(Request $request){
 
     try {
+        $branch_id = $request->branch_id;
+       if ($branch_id != 0) {
+        DB::transaction(function () use ($branch_id) {
+            // Get only windows that have an assigned teller
+            $windows = Window::where('branch_id', $branch_id)->whereNotNull('teller_id')->get();
+
+            if ($windows->isEmpty()) {
+                Log::info("⚠ No assigned tellers to reset.");
+                throw new \Exception("No assigned tellers to reset.");
+            }
+
+            foreach ($windows as $window) {
+                WindowArchive::create([
+                    'window_id'   => $window->id,
+                    'window_name' => $window->window_name,
+                    'type_id'     => $window->type_id,
+                    'teller_id'   => $window->teller_id,
+                    'branch_id' => $window->branch_id,
+                    'archived_at' => now(),
+                ]);
+            }
+
+            // Reset only affected rows
+            Window::where('branch_id', $branch_id)->whereNotNull('teller_id')->update(['teller_id' => null]);
+            Teller::where('branch_id', $branch_id)->whereIn('id', $windows->pluck('teller_id'))->update(['type_id' => null]);
+
+            Log::info("✅ Window Reset successfully.");
+        });
+
+        return response()->json(['message' => 'Windows with assigned tellers reset successfully']);
+       }else {
         DB::transaction(function () {
             // Get only windows that have an assigned teller
             $windows = Window::whereNotNull('teller_id')->get();
@@ -334,6 +363,7 @@ class WindowController extends Controller
                     'window_name' => $window->window_name,
                     'type_id'     => $window->type_id,
                     'teller_id'   => $window->teller_id,
+                    'branch_id'    => $window->branch_id,
                     'archived_at' => now(),
                 ]);
             }
@@ -346,6 +376,7 @@ class WindowController extends Controller
         });
 
         return response()->json(['message' => 'Windows with assigned tellers reset successfully']);
+       }
     } catch (\Exception $e) {
         Log::error("❌ Error resetting windows: " . $e->getMessage());
         return response()->json(['message' => $e->getMessage()], 500);
@@ -354,7 +385,7 @@ class WindowController extends Controller
 
 
     //For Automatic Call the Reset Settings 
-    public function autoResetWindows()
+    public function autoResetWindows(Request $request)
 {
     $settings = DB::table('reset_settings')->first();
 
@@ -379,7 +410,7 @@ class WindowController extends Controller
 
     if ($shouldReset) {
         Log::info("✅ Reset triggered automatically.");
-        $this->resetWindows();
+        $this->resetWindows($request);
     } else {
         Log::info("⏳ Not yet time for reset.");
     }
