@@ -35,7 +35,9 @@ class AppointmentController extends Controller
                         'name' => $request->name,
                         'email' => $request->email,
                         'type_id' => $request->service,
-                        'appointment_date' => $request->appointment_date
+                        'appointment_date' => $request->appointment_date,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
 
         // slots on available slots
@@ -55,7 +57,7 @@ class AppointmentController extends Controller
 
             return response()->json(['message' => 'Slot successfully booked']);
         } else {
-            return response()->json(['message' => 'No available slots left, please select available slot'], 400);
+            return response()->json(['error' => 'No available slots left, please select available slot'], 400);
         }
 
         return response()->json([
@@ -104,6 +106,7 @@ class AppointmentController extends Controller
             'branch_id' => 'required|exists:branchs,id',
             'slots_per_day' => 'required|integer|min:1',
             'start_date' => 'required|date',
+            'time' =>  'required',
             'end_date' => 'required|date',
         ]);
 
@@ -111,6 +114,7 @@ class AppointmentController extends Controller
         $endDate = Carbon::parse($validated['end_date']);
         $branchId = $validated['branch_id'];
         $slotsPerDay = $validated['slots_per_day'];
+        $time = $validated['time'];
 
         // Loop through each day from start to end date
         $currentDate = $startDate;
@@ -129,13 +133,17 @@ class AppointmentController extends Controller
                     DB::table('available_slots')
                         ->where('branch_id', $branchId)
                         ->where('date', $currentDate->toDateString())
-                        ->update(['is_available' => $slotsPerDay]);
+                        ->update([
+                            'is_available' => $slotsPerDay,
+                            'prepared_time' => $time,
+                        ]);
                 } else {
                     // Insert a new slot record for this day
                     DB::table('available_slots')
                         ->insert([
                             'branch_id' => $branchId,
                             'date' => $currentDate->toDateString(),
+                            'prepared_time' => $time,
                             'is_available' => $slotsPerDay,
                             'created_at' => now(),
                             'updated_at' => now(),
@@ -153,5 +161,115 @@ class AppointmentController extends Controller
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function validateAppointment (Request $request) {
+            $validate = $request->validate([
+                'referenceNum' => 'required'
+            ]);
+
+            if (!$validate) {
+                return response()->json(['error' => $validate],422);
+            }
+
+            $checkingReference = DB::table('appointments')
+                                ->where('referenceNumber', $request->referenceNum)
+                                ->first();
+            if ($checkingReference) {
+                return response()->json([
+                    'reference' => $checkingReference
+                ]);
+            }else {
+                return response()->json([
+                    'error' => 'The reference number could not be found. Please check your email and try again.'
+                ],400);
+            }
+
+    }
+    
+    public function cancelAppointment (Request $request) {
+        try {
+            $slots = DB::table('available_slots')
+                ->where('date', $request->appointment_date)
+                ->first();
+
+            if ($slots) {
+                DB::table('available_slots')
+                    ->where('branch_id', $request->branch_id)
+                    ->where('date', $request->appointment_date)
+                    ->update(['is_available' => $slots->is_available + 1]);
+
+                Db::table('appointments')
+                    ->where('id', $request->id)
+                    ->where('branch_id', $request->branch_id)
+                    ->delete();
+
+                return response()->json([
+                    'message' => 'The appointment has been successfully canceled.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ]); 
+        }
+    }
+
+    public function updateAppointment(Request $request) {
+        $validate = $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|string|regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+            'service' => 'required',
+            'branch_id' => 'required',
+            'appointment_date' => 'required|date',
+        ]);
+
+        if (!$validate) {
+            return response()->json([
+                'error' => $validate
+            ],422);
+        }
+ 
+        // get the previous value on appointment  date
+        $prevValue= DB::table ('appointments')
+            ->where('id', $request->id)
+            ->first();
+
+        if ($prevValue && $prevValue->appointment_date != $request->appointment_date) {
+            //update if not equal previous appointment and new appointment
+            
+            // decrease the previous date
+            $decreate = DB::table('available_slots')
+                ->where('date',$prevValue->appointment_date)
+                ->first();
+
+            DB::table('available_slots')
+                ->where('date',$prevValue->appointment_date)
+                ->update(['is_available' => $decreate->is_available - 1]);
+            
+            // increase the latest date
+            $increase = DB::table('available_slots')
+                ->where('date',$request->appointment_date)
+                ->first();
+
+            DB::table('available_slots')
+                ->where('date', $request->appointment_date)
+                ->update(['is_available' => $increase->is_available + 1]);
+        }
+
+        // update appointment
+        DB::table('appointments')
+            ->where('id',$request->id)
+            ->update([
+                'branch_id' => $request->branch_id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'type_id' => $request->type_id,
+                'appointment_date' => $request->appointment_date
+            ]);
+
+        return response()->json([
+            'message' => 'Appointment Booked Update Successfully!   '
+        ]);
     }
 }

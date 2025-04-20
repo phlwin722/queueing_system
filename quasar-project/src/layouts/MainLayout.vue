@@ -737,11 +737,6 @@ export default defineComponent({
                 icon: "computer",
                 link: "/admin/settings",
               },
-              {
-                title: "Reset Window",
-                icon: "reset_tv",
-                link: "/admin/reset-window",
-              },
             ],
           },
         ];

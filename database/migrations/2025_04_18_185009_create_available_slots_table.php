@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('available_slots', function (Blueprint $table) {
             $table->id();
             $table->date('date');
-            $table->string('preprared_time')->nullable();
+            $table->string('prepared_time')->nullable();
             $table->integer('is_available')->default(20); // Default to 20 available slots
             $table->unsignedBigInteger('branch_id');
             $table->timestamps();

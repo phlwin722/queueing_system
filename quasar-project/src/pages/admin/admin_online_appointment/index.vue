@@ -53,6 +53,20 @@
                         mask="date"
                     />
 
+                  <q-input v-model="form.time" label="Prepared Time" outlined dense type="time" mask="time">
+                    <template v-slot:append>
+                      <q-icon name="access_time" class="cursor-pointer">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-time v-model="form.time">
+                            <div class="row items-center justify-end">
+                              <q-btn v-close-popup label="Close" color="primary" flat />
+                            </div>
+                          </q-time>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+
                   <q-input
                     v-model="newSlotCount"
                     label="Available Slots per Day"
@@ -111,6 +125,7 @@ export default {
     const form = ref({
       startDate: "",
       endDate: "",
+      time: "",
     });
 
     const calendarOptions = ref({
@@ -139,6 +154,7 @@ export default {
             slots_per_day: newSlotCount.value,
             start_date: form.value.startDate,
             end_date: form.value.endDate,
+            time: form.value.time,
         });
 
         // Refresh the weekly slots display
