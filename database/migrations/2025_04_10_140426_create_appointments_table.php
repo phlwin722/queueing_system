@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
-            $table->string('branch_name');
+            $table->string('referenceNumber');      
+            $table->unsignedBigInteger('branch_id');
             $table->string('name');
-            $table->string('contact');
-            $table->string('service');
-            $table->string('branch');
+            $table->string('email');
+            $table->unsignedBigInteger('type_id');
             $table->date('appointment_date');
             $table->enum('status', ['Booked', 'Arrived', 'Completed'])->default('Booked');
             $table->timestamps();

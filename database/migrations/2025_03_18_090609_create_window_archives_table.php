@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('type_id')->nullable();
             $table->unsignedBigInteger('teller_id')->nullable();
             $table->timestamp('archived_at')->useCurrent(); 
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }
