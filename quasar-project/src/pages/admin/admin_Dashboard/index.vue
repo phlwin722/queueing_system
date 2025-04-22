@@ -159,7 +159,7 @@ export default {
     const ratingChart = ref(null)
     const easeOfUseChart = ref(null)
     const waitingTimeChart = ref(null)
-    const branchList = ref ([{id: 0, branch_name: 'All branches'}]);
+    const branchList = ref ([]);
     const adminMangerInformation = ref ();
 
     const getTableData = async () => {
@@ -269,15 +269,15 @@ export default {
         let workTimeout;
 
         const optimizedFetchData = async () => {
-            getTableData()
-            fetchWorkStation()
-            renderSurveyCharts()
-          dataTimeout = setTimeout(optimizedFetchData, 2000); // Recursive Timeout
+           setInterval(() => {
+              getTableData()
+              fetchWorkStation()
+           },5000)
         };
 
         const renderSurveyCharts = async () => {
         try {
-          let data;  // Declare a variable to store the fetched data from the server
+          let data = "";  // Declare a variable to store the fetched data from the server
 
           // Fetch data based on adminMangerInformation or branch_name
           if (adminMangerInformation.value != null) {  // If manager information is available
@@ -286,7 +286,7 @@ export default {
               branch_id: adminMangerInformation.value.branch_id  // Use the admin's branch ID
             });
             data = response.data;  // Store the fetched data in the variable
-          } else if (branch_name.value != null && branch_name.value != 0) {  // If a branch name is selected
+          } else if (branch_name.value != null && branch_name.value !== 0) {  // If a branch name is selected
             // Fetch survey stats for the selected branch
             const response = await $axios.post('/admin/survey-stats', {
               branch_id: branch_name.value  // Use the selected branch ID
@@ -297,15 +297,23 @@ export default {
             const response = await $axios.post('/admin/survey-stats');
             data = response.data;  // Store the fetched data in the variable
           }
+                    
+          // Destroy all chart instances first
+          if (window.ratingChartInstance) {
+            window.ratingChartInstance.destroy();
+            window.ratingChartInstance = null;
+          }
 
-          // Chart 1: Ratings (Reusing chart instance if exists)
-          if (window.ratingChartInstance) {  // If a chart instance for ratings already exists
-            // Update the existing chart with new data
-            window.ratingChartInstance.data.labels = Object.keys(data.ratings);  // Set the chart labels (rating values)
-            window.ratingChartInstance.data.datasets[0].data = Object.values(data.ratings);  // Set the data for the chart
-            window.ratingChartInstance.update();  // Update the chart to reflect the new data
-          } else {  // If no chart instance exists
-            // Create a new chart instance for ratings
+          if (window.easeOfUseChartInstance) {
+            window.easeOfUseChartInstance.destroy();
+            window.easeOfUseChartInstance = null;
+          }
+
+          if (window.waitingTimeChartInstance) {
+            window.waitingTimeChartInstance.destroy();
+            window.waitingTimeChartInstance = null;
+          }
+
             window.ratingChartInstance = new Chart(ratingChart.value, {
               type: 'bar',  // Set chart type to bar
               data: {
@@ -318,15 +326,7 @@ export default {
               },
               options: { responsive: true },  // Make the chart responsive to screen size
             });
-          }
-
-          // Chart 2: Ease of Use (Reusing chart instance if exists)
-          if (window.easeOfUseChartInstance) {  // If a chart instance for ease of use already exists
-            // Update the existing chart with new data
-            window.easeOfUseChartInstance.data.labels = Object.keys(data.ease_of_use);  // Set chart labels (ease of use values)
-            window.easeOfUseChartInstance.data.datasets[0].data = Object.values(data.ease_of_use);  // Set the data for the chart
-            window.easeOfUseChartInstance.update();  // Update the chart to reflect the new data
-          } else {  // If no chart instance exists
+       
             // Create a new chart instance for ease of use
             window.easeOfUseChartInstance = new Chart(easeOfUseChart.value, {
               type: 'pie',  // Set chart type to pie
@@ -339,15 +339,7 @@ export default {
               },
               options: { responsive: true },  // Make the chart responsive to screen size
             });
-          }
-
-          // Chart 3: Waiting Time (Reusing chart instance if exists)
-          if (window.waitingTimeChartInstance) {  // If a chart instance for waiting time already exists
-            // Update the existing chart with new data
-            window.waitingTimeChartInstance.data.labels = Object.keys(data.waiting_time_satisfaction);  // Set chart labels (waiting time satisfaction values)
-            window.waitingTimeChartInstance.data.datasets[0].data = Object.values(data.waiting_time_satisfaction);  // Set the data for the chart
-            window.waitingTimeChartInstance.update();  // Update the chart to reflect the new data
-          } else {  // If no chart instance exists
+          
             // Create a new chart instance for waiting time satisfaction
             window.waitingTimeChartInstance = new Chart(waitingTimeChart.value, {
               type: 'bar',  // Set chart type to bar
@@ -388,7 +380,7 @@ export default {
                 },
               },
             });
-          }
+          
 
         } catch (error) {  // If an error occurs during the data fetch or chart update process
           console.error('Survey chart fetch failed:', error);  // Log the error to the console
@@ -452,7 +444,7 @@ export default {
           }
         }
 
-        watch(() => branch_name, async (newVal) => {
+        watch(() => branch_name.value, async (newVal) => {
           // Check if the new value is a valid branch ID or 'All branches'
 
             // Trigger fetch and render for 'All branches' scenario
@@ -480,7 +472,8 @@ export default {
           }else {
             branch_name.value = adminMangerInformation.value.branch_id
           }
-        });
+
+    });
 
 
     return {

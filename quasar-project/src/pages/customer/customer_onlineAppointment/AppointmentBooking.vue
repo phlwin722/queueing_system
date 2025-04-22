@@ -165,6 +165,7 @@
             v-model="form.email"
             label="Email address"
             outlined
+            readonly
             dense
             :error="formError.hasOwnProperty('email')"
             :error-message="formError.email ? formError.email[0] : ''"
@@ -317,7 +318,7 @@ export default {
           branch_id: selectedBranch.value || form.value.branch_id,
         });
 
-        services.value = data.servce;
+        services.value = data.servce.filter(serve => serve.name !== 'Online Appointment');
       } catch (error) {
         if (error.response?.status === 422) {
           console.log(error);

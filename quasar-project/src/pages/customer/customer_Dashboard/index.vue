@@ -823,8 +823,6 @@ const fetchBreakTime = async () => {
               "hh:mm A"
             )}`
           );
-          
-
         }
       }
       }
