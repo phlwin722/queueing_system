@@ -255,10 +255,6 @@ class ManagerController extends Controller
 
                     'result' => 'manager'
                 ]);
-            }else {
-                return response()->json([
-                    'error' => 'Invalid credentials'
-                ],400);
             }
         }
 }

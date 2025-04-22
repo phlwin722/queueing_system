@@ -22,14 +22,28 @@
       <!-- Custom Table Header -->
       <template v-slot:top>
         <q-toolbar class="q-gutter-md">
-          <q-toolbar-title>Serving Time</q-toolbar-title>
           <q-space />
 
           <div class="row q-col-gutter-sm items-center">
+            <div v-if="!adminManagerInformation"class="col-2">
+              <q-select
+                outlined
+                v-model="branch_value"
+                :options="branch_list"
+                label="Branch name"
+                hide-bottom-space
+                dense
+                emit-value
+                map-options
+                option-label="branch_name"
+                option-value="id"
+              />
+        </div>
             <!-- Filter by Type -->
             <div class="col-auto">
               <span class="text-bold">Filter by Type:</span>
             </div>
+
             <div class="col-2">
               <q-select
                 filled
@@ -154,6 +168,9 @@ export default defineComponent({
     name: 'IndexPage',
 
     setup(){
+    const adminManagerInformation = ref(null);
+    const branch_value = ref (null);
+    const branch_list = ref ([]);
     const text = ref("");
     const rows = ref([]);
     const columns = ref([
@@ -186,6 +203,13 @@ export default defineComponent({
           field: 'window_type',
           sortable: true
         },
+        {
+          name: 'branch_name',
+          label: 'Branch Name',
+          align: 'left',
+          field: 'branch_name',
+          sortable: true
+        },
     ]);
     let refreshInterval = null
     const filteredRows = computed(() => {
@@ -209,7 +233,8 @@ export default defineComponent({
         const payload = {
             from_date: fromDate.value,
             to_date: toDate.value,
-            type_id: type_id.value
+            type_id: type_id.value,
+            branch_id: branch_value.value
         };
 
         const { data } = await $axios.post('/teller/fetch-serving-time', payload);
@@ -238,13 +263,24 @@ export default defineComponent({
     }
 };
 
+    const fetchBranch = async () => {
+      try {
+        const { data } = await $axios.post('/type/Branch');
+        branch_list.value = [{id:0, branch_name: 'All Branch'},...data.branch]
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
+
 
 
     const fetchWindowTypes = async () => {
       try {
         const response = await $axios.post("/types/dropdown");
         if (Array.isArray(response.data.rows)) {
-          // Map id and section_name correctly
+          
           serviceTypeList.value = response.data.rows.map((sec) => ({
             label: sec.name, // This is what the user sees
             value: sec.id, // This is what will be stored
@@ -263,14 +299,25 @@ export default defineComponent({
           getTableData();
         }, 300);
 
-    watch([type_id, fromDate, toDate], () => {
+    watch([type_id, fromDate, toDate, branch_value], () => {
         debouncedGetTableData(); // Only call getTableData once when either value changes
     });
   
 
     onMounted(() => {
         getTableData()
+        fetchBranch()
         fetchWindowTypes()
+        const managerInformation = localStorage.getItem('managerInformation')
+          if (managerInformation) {
+            adminManagerInformation.value = JSON.parse(managerInformation);
+          }
+
+          if (adminManagerInformation.value == null) {
+            branch_value.value = 0
+          }else  {
+            branch_value.value = adminManagerInformation.value.branch_id
+          }
     })
 
 
@@ -284,6 +331,9 @@ export default defineComponent({
         type_id,
         serviceTypeList,
         stats,
+        adminManagerInformation,
+        branch_value,
+        branch_list
     }
     }
 

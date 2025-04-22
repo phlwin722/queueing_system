@@ -8,6 +8,7 @@ use App\Models\Teller;
 use App\Http\Requests\QueueRequest;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class QueueController extends Controller
 {
@@ -15,11 +16,16 @@ class QueueController extends Controller
     {
         // Extracts the 'type_id' from the incoming request. This identifies the type of service (or window).
         $type_id = $request->type_id;
-    
+        $temp = $request->token;
+        $temp1 = substr($temp, 12);
+        $branch_id = (int)$temp1;
+        // Log::info('Last character as int: ' . $branch_id);
+        // return response()->json(['branch_id' => $branch_id]);
         // Fetch all tellers who are assigned to the specific window type and are currently "Online" (signed in).
         $tellers = DB::table('windows')
                        ->where('type_id', $type_id)        // Filters by 'type_id' for the current window type.
-                       ->where('status', 'Online')        // Filters to only include tellers who are online.
+                       ->where('status', 'Online')       // Filters to only include tellers who are online.
+                       ->where('branch_id', $branch_id) // Filters by the branch ID.
                        ->pluck('teller_id');              // Retrieves an array of teller IDs.
     
         // If no tellers are found, return a 400 error with an appropriate message.
@@ -38,6 +44,7 @@ class QueueController extends Controller
             $assignedCount = DB::table('queues')
                                 ->where('type_id', $type_id)        // Filters by the 'type_id' of the service.
                                 ->where('teller_id', $tellerID)     // Filters by each 'teller_id'.
+                                ->where('branch_id', $branch_id) // Filters by the branch ID.
                                 ->where('status', '!=', 'finished') // Excludes customers with a 'finished' status.
                                 ->count();                         // Counts how many customers meet the criteria.
             $tellerCount[$tellerID] = $assignedCount;  // Stores the count of assigned customers for each teller.
@@ -60,9 +67,15 @@ class QueueController extends Controller
         $lastQueue = DB::table('queue_numbers')
             ->where('type_id', $type_id)                  // Filters by 'type_id' for the current service.
             ->where('teller_id', $assignedTellerId)       // Filters by the selected teller.
+            ->where('branch_id', $branch_id) // Filters by the branch ID.
             ->where('status', '!=', 'finished')           // Excludes finished queues.
             ->orderBy('queue_number', 'desc')             // Orders by queue number in descending order (most recent).
-            ->first();                                    // Retrieves the first (latest) record.
+            ->first();
+                                            // Retrieves the first (latest) record.
+        
+
+
+
     
         // If a previous queue exists, increment the queue number by 1, else start at 1.
         $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
@@ -79,23 +92,24 @@ class QueueController extends Controller
             'status' => 'waiting',                            // Initial status for the new queue: 'waiting'.
             'waiting_customer' => null,                      // Placeholder for customer waiting status.
             'currency_selected' => $request->currency,       // The currency selected by the customer.
-            'priority_service' => $request->priority_service // Priority service flag.
+            'priority_service' => $request->priority_service, // Priority service flag.
+            'branch_id' => $branch_id,                     // The branch ID of the teller.
         ]);
     
-        // Log the created queue to ensure the correct assignment of tellers and queue numbers.
-        logger()->info("Queue Created: ", $queue->toArray());
-    
+
         // Insert a new entry in the 'queue_numbers' table to associate the queue with the teller and the customer.
         DB::table('queue_numbers')->insert([
             'status' => 'waiting',                            // Set the status as 'waiting' for the new queue number.
             'queue_number' => $nextQueueNumber,               // The next queue number for the customer.
             'type_id' => $type_id,                           // The 'type_id' for the service.
+            'branch_id' => $branch_id,                     // The branch ID of the teller.
             'teller_id' => $assignedTellerId,                // The assigned teller's ID.
             'customer_id' => $queue->id                      // The customer ID associated with this queue.
         ]);
     
         // Retrieve the window name associated with the assigned teller.
         $windowName = DB::table('windows')
+            ->where('branch_id', $branch_id) // Filters by the branch ID.
             ->where('teller_id', $queue->teller_id)           // Filters by the 'teller_id' of the assigned teller.
             ->select('window_name')                           // Selects the 'window_name' column.
             ->first();                                        // Retrieves the first result (since 'teller_id' is unique).
@@ -114,12 +128,13 @@ class QueueController extends Controller
         $customerID = $request->userId;
         $assignedTellerId = $request->teller_id;
         $type_id_teller = $request->type_id_teller;
-
+        $branch_id = $request->branch_id;
         try {
             // Get the next queue number
             $lastQueue = DB::table('queue_numbers')
                 ->where('type_id', $type_id_teller)
                 ->where('teller_id', $assignedTellerId)
+                ->where('branch_id', $branch_id)
                 ->where('status', '!=', 'finished')
                 ->orderBy('queue_number', 'desc')
                 ->first();
@@ -179,6 +194,19 @@ class QueueController extends Controller
         ]);
     }
 
+    // public function updateBranchId(Request $request)
+    // {
+
+    
+    //     $updated = Queue::where('id', $request->id)
+    //         ->update(['branch_id' => $request->branch_id]);
+    
+    //     return response()->json([
+    //         'success' => $updated ? true : false,
+    //         'message' => $updated ? 'Branch ID updated successfully.' : 'No matching id found.',
+    //     ]);
+    // }
+    
     public function getQueueList(Request $request)
     {
         $token = $request->input('token');
@@ -187,6 +215,10 @@ class QueueController extends Controller
         $typeId = DB::table('queues')
             ->where('token', $token)
             ->value('type_id');
+
+        $branchId = DB::table('queues')
+            ->where('token', $token)
+            ->value('branch_id');
 
         $tellerId = DB::table('queues')
             ->where('token', $token)
@@ -207,12 +239,14 @@ class QueueController extends Controller
         // Otherwise, return the updated list
         $queueList = Queue::where('type_id', $typeId)
             ->where('teller_id', $tellerId)
+            ->where('branch_id', $branchId)
             ->orderBy('position', 'asc')
             ->get();
 
         $currentServing = Queue::where('status', 'serving')
             ->where('type_id', $typeId)
             ->where('teller_id', $tellerId)
+            ->where('branch_id', $branchId)
             ->first()?->queue_number ?? 'N/A';
 
         return response()->json([
@@ -459,11 +493,11 @@ class QueueController extends Controller
     public function customerData(Request $request)
     {
         $token = $request->input('token');
-
+        $branch_id = $request->input('branch_id');
         // Get type_id and teller_id from the queues table
         $queue = DB::table('queues')
             ->where('token', $token)
-            ->select('type_id', 'teller_id', 'queue_number', 'email', 'name', 'email_status', 'token', 'id', )
+            ->select('type_id', 'teller_id', 'queue_number', 'email', 'name', 'email_status', 'token', 'id', 'branch_id' )
             ->first();
 
         // If the queue doesn't exist
@@ -587,9 +621,10 @@ class QueueController extends Controller
     {
         $token = $request->input('token');
         $lastUpdated = $request->input('last_updated');
-    
+        $branch_id = $request->input('branch_id');
         $queue = DB::table('queues')
             ->where('token', $token)
+            ->where('branch_id', $branch_id)
             ->first();
     
         // Get updated_at value of the matched queue

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('type_ids_selected')->nullable();
             $table->string('Image')->nullable();
             $table->unsignedBigInteger('branch_id')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }

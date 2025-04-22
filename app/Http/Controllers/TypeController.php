@@ -69,8 +69,10 @@ class TypeController extends Controller
                     "tp.indicator",
                     "tp.serving_time",
                     "ts.type_id",
+                    "ts.status",
 
                 )
+                ->where("tp.branch_id", $request->branch_id)
                 ->leftJoin("tellers as ts", "ts.type_id", "tp.id")
                 ->distinct(); // This ensures unique rows;
     

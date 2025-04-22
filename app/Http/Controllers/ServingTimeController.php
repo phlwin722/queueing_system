@@ -25,6 +25,7 @@ class ServingTimeController extends Controller
             'end_time' => $request->endingTime,
             'type_id' => $request->type_id,
             'teller_id' => $request->teller_id,
+            'branch_id' => $request->branch_id,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -36,11 +37,13 @@ class ServingTimeController extends Controller
     {
         try {
             $type_id = $request->input('type_id');
+            $branch_id = $request->input('branch_id');
             $from_date = $request->input('from_date');
             $to_date = $request->input('to_date');
     
             $res = DB::table('serving_times as st')
-                ->leftJoin("types as tp", "tp.id", "st.type_id");
+                ->leftJoin("types as tp", "tp.id", "st.type_id")
+                ->leftJoin("branchs as bc", "bc.id", "st.branch_id");
     
             if (!empty($type_id)) {
                 $res->where('st.type_id', $type_id);
@@ -53,9 +56,17 @@ class ServingTimeController extends Controller
             if (!empty($to_date)) {
                 $res->whereDate('st.created_at', '<=', $to_date);
             }
+
+            if (!empty($branch_id)) {
+                $res->where('st.branch_id', $branch_id);
+            }
     
             // Get rows
-            $rows = $res->select("st.minutes", "st.start_time", "st.end_time", "tp.name as window_type", "st.created_at")
+            $rows = $res->select("st.minutes", 
+                            "st.start_time", 
+                            "st.end_time", "tp.name as window_type", 
+                            "bc.branch_name" ,
+                            "st.created_at")
                         ->get();
     
             // Extract minutes separately for calculations
