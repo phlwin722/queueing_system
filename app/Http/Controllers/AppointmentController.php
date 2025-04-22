@@ -171,7 +171,7 @@ class AppointmentController extends Controller
             $currentDate->addDay();
         }
 
-        return response()->json(['message' => 'Slots applied successfully for the year.']);
+        return response()->json(['message' => 'Slots applied successfully.']);
     }
 
     public function validateAppointment (Request $request) {

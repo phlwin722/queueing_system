@@ -18,7 +18,8 @@ class QueueController extends Controller
         $type_id = $request->type_id;
         $temp = $request->token;
         $temp1 = substr($temp, 12);
-        $branch_id = (int)$temp1;
+        $branch_id = $request->token ? (int)$temp1 : $request->branch_idd;
+        
         // Log::info('Last character as int: ' . $branch_id);
         // return response()->json(['branch_id' => $branch_id]);
         // Fetch all tellers who are assigned to the specific window type and are currently "Online" (signed in).
@@ -72,11 +73,7 @@ class QueueController extends Controller
             ->orderBy('queue_number', 'desc')             // Orders by queue number in descending order (most recent).
             ->first();
                                             // Retrieves the first (latest) record.
-        
-
-
-
-    
+                                            
         // If a previous queue exists, increment the queue number by 1, else start at 1.
         $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
     
@@ -114,6 +111,11 @@ class QueueController extends Controller
             ->select('window_name')                           // Selects the 'window_name' column.
             ->first();                                        // Retrieves the first result (since 'teller_id' is unique).
     
+        if ($request->referenceNumber) {
+            DB::table('appointments')
+                ->where('referenceNumber', $request->referenceNumber)
+                ->update(['status' => 'Arrived']);
+        }
         // Return a JSON response to the user with the details of the newly joined queue.
         return response()->json([
             'message' => 'Successfully joined queue',         // Success message.
@@ -670,5 +672,46 @@ class QueueController extends Controller
             ->update(['teller_id' => $tellerId]);
     }
 
+    public function checkingReferenceNumber (Request $request) {
+
+        $validate = $request->validate([
+            'referenceNumber' => 'required'
+        ],[
+            'referenceNumber.required' => 'The reference number field is required'
+        ]);
+
+        if (!$validate) {
+            return response()->json([
+                'errors' => $validate
+            ],422);
+        }
+
+        $data = DB::table('appointments as ap')
+            ->select(
+                'ap.id',
+                'ap.referenceNumber',
+                'ap.branch_id',
+                'ap.name as fullname',
+                'ap.email',
+                'ap.type_id',
+                'ap.appointment_date',
+                'ap.status',
+                'b.branch_name',
+                'tp.name'
+            )
+            ->where('referenceNumber', $request->referenceNumber)
+            ->leftJoin('types as tp', 'tp.id', '=', 'ap.type_id')
+            ->leftJoin('branchs as b', 'b.id', '=', 'ap.branch_id')
+            ->first();
+        if ($data) {
+            return response()->json([
+                'value' => $data
+            ]);
+        } else {
+            return response()->json([
+                'errors' => 'The reference number could not be found.'
+            ],400);
+        }
+    }
 }
 

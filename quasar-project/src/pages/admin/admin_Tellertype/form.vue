@@ -18,8 +18,10 @@
                 <div class="row q-col-gutter-sm">
                     <div class="col-12">
                         <q-input 
-                            outlined 
+               
                             v-model="formData.name" 
+                            :readonly="formData.name === 'Foreign Exchange' || formData.name === 'Online Appointment'"
+                            outlined 
                             label="Type Name:" 
                             dense
                             hide-bottom-space
