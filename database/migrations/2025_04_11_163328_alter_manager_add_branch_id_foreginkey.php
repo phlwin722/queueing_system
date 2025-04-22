@@ -124,6 +124,15 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
+
+        Schema::table('waiting_times', function (Blueprint $table) {
+            // add foreign key 
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
     }
 
     /**
@@ -175,6 +184,10 @@ return new class extends Migration
         });
 
         Schema::table('appointments', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('waiting_times', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
         });
     }

@@ -158,23 +158,34 @@ class TypeController extends Controller
             ]);
         }
     }
-
-        public function delete(Request $request)
+    public function delete(Request $request)
     {
         try {
+            // Ensure dataHandleDelete is not null or empty
+            if (empty($request->dataHandleDelete)) {
+                return response()->json([
+                    "message" => "No data provided for deletion."
+                ], 400);
+            }
+    
             // Check if any tellers or windows are using this type
-            $tellerCount = Teller::whereIn('Type_id', $request->ids)->count();
-            $windowCount = Window::whereIn('type_id', $request->ids)->count(); // Make sure key is 'type_id'
-
+            $tellerCount = Teller::whereIn('Type_id', array_column($request->dataHandleDelete, 'id'))->count();
+            $windowCount = Window::whereIn('type_id', array_column($request->dataHandleDelete, 'id'))->count();
+    
             if ($tellerCount > 0 || $windowCount > 0) {
                 return response()->json([
                     "message" => "Cannot delete type. It is still referenced in windows."
                 ], 400);
             }
-
-            // Proceed with deletion
-            Type::destroy($request->ids);
-
+    
+            // Get the ids from dataHandleDelete
+            $ids = array_column($request->dataHandleDelete, 'id');
+    
+            // Perform the deletion
+            DB::table('types')
+                ->whereIn('id', $ids)
+                ->delete();
+    
             return response()->json([
                 "message" => "Successfully Deleted!"
             ]);
@@ -184,6 +195,7 @@ class TypeController extends Controller
             ]);
         }
     }
+    
 
     public function getData($id = null){
         

@@ -463,7 +463,7 @@ export default {
             style: "border-radius: 12px; padding: 16px;",
           })
           .onOk(async () => {
-            handleDelete(data.reference)
+            handleDelete([data.reference])
           })
           .onDismiss(()=> {
 
@@ -488,12 +488,13 @@ export default {
       }
     }
 
-    const handleDelete = async (reference) => {
+    const handleDelete = async (dataHandleCancel) => {
       try {
           const { data } = await $axios.post('/cancel/Appointment', {
-            id: reference.id,
+            /* id: reference.id,
             appointment_date: reference.appointment_date,
-            branch_id: reference.branch_id,
+            branch_id: reference.branch_id, */
+            dataHandleCancel
           });
          
           if (data.message) {

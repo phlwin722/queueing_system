@@ -386,6 +386,7 @@ export default defineComponent({
           if (storeManagerInfo) {
             adminInformation.value = JSON.parse(storeManagerInfo)
           }
+          
           fetchColumn()
           fetchBranch()
           optimizedFetchData()

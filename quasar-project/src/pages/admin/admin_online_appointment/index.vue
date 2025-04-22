@@ -42,6 +42,8 @@
                         dense
                         type="date"
                         mask="date"
+                        :error="formError.hasOwnProperty('start_date')"
+                        :error-message="formError.start_date ? formError.start_date[0]: ''"
                     />
 
                     <q-input
@@ -51,9 +53,19 @@
                         type="date"
                         dense
                         mask="date"
+                        :error="formError.hasOwnProperty('end_date')"
+                        :error-message="formError.end_date ? formError.end_date[0] : ''"
                     />
 
-                  <q-input v-model="form.time" label="Prepared Time" outlined dense type="time" mask="time">
+                  <q-input 
+                    v-model="form.time" 
+                    label="Prepared Time" 
+                    outlined 
+                    dense type="time"
+                     mask="time"
+                     :error="formError.hasOwnProperty('time')"
+                     :error-message="formError.time ? formError.time[0] : ''"
+                     >
                     <template v-slot:append>
                       <q-icon name="access_time" class="cursor-pointer">
                         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -86,12 +98,9 @@
           <q-card class="q-ma-md" flat bordered>
             <q-card-section>
               <div class="text-h6">Weekdays Slots Overview</div>
-
-           
                 <FullCalendar 
                 :options="calendarOptions"
                 /> 
-   
             </q-card-section>
         </q-card>
     </q-page>
@@ -122,6 +131,8 @@ export default {
     const newSlotCount = ref(20); // New slot count to be applied
     const events = ref([]);
     const adminManagerInformation = ref ();
+    const formError = ref({})
+
     const form = ref({
       startDate: "",
       endDate: "",
@@ -160,7 +171,10 @@ export default {
         // Refresh the weekly slots display
         fetchWeeklySlots();
       } catch (error) {
-        console.error('Error applying slots for the week:', error);
+        if (error.response.status === 422) {
+          formError.value = error.response.data.errors
+          console.log(error.response.data.errors)
+        }
       }
     };
 
@@ -215,7 +229,8 @@ export default {
       applySlotsForWeek,
       fetchWeeklySlots,
       events,
-      adminManagerInformation
+      adminManagerInformation,
+      formError,
     };
   },
 };
