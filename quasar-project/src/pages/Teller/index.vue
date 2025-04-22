@@ -399,6 +399,8 @@ import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import { debounce } from 'quasar'
+import { BarController } from "chart.js";
+import { Bar } from "vue-chartjs";
 
 export default {
   setup() {
@@ -439,6 +441,7 @@ export default {
       tellerLastname: "",
       type_id: "",
       type_name: "",
+      branch_id: "",
     });
 
     // Fetch queue data with error handling
@@ -451,13 +454,14 @@ export default {
         
         // Load locally stored queue order if available
         const storedQueue = JSON.parse(localStorage.getItem("queueList")) || [];
-        
+        console.log(tellerInformation.value.branch_id);
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
           last_updated: QueueListlastUpdatedAt.value,
+          branch_id: tellerInformation.value.branch_id,
         });
-
+        
         if (response.data.updated) {
           const fetchedQueue = response.data.queue.filter(
             (q) => !["finished", "cancelled"].includes(q.status)
@@ -477,7 +481,9 @@ export default {
 
           // Preserve the local order while updating new queue items
           queueList.value = reorderQueue(storedQueue, updatedQueue);
-
+          if(currentServing.value !== null){
+            cusId.value = currentServing.value.id
+          }
           // Save updated queue order
           localStorage.setItem("queueList", JSON.stringify(queueList.value));
 
@@ -508,29 +514,31 @@ export default {
           (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
       );
     };
-    const fetchIdLastUpdatedAt = ref(null); // last update tracker
-    let fetchIdPolling = true; // Flag to control recursive polling
-    const fetchId = async () => {
-      if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
-      try {
-        const response = await $axios.post("/teller/queue-list", {
-          type_id: tellerInformation.value.type_id,
-          teller_id: tellerInformation.value.id,
-          last_updated: fetchIdLastUpdatedAt.value,
-        });
-        if (response.data.updated) {
-          if (response.data.current_serving) {
-          cusId.value = response.data.current_serving.id;
-        }
-          fetchIdLastUpdatedAt.value = response.data.last_updated_at;
-        }
+    // const fetchIdLastUpdatedAt = ref(null); // last update tracker
+    // let fetchIdPolling = true; // Flag to control recursive polling
+    // const fetchId = async () => {
+    //   if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
+    //   try {
+        
+    //     const response = await $axios.post("/teller/queue-list", {
+    //       type_id: tellerInformation.value.type_id,
+    //       teller_id: tellerInformation.value.id,
+    //       last_updated: fetchIdLastUpdatedAt.value,
+    //     });
+    //     if (response.data.updated) {
+    //       if (response.data.current_serving) {
+    //       cusId.value = response.data.current_serving.id;
+    //       console.log(cusId.value)
+    //     }
+    //       fetchIdLastUpdatedAt.value = response.data.last_updated_at;
+    //     }
 
-      } catch (error) {
-        console.error("Error fetching customer ID:", error);
-      }finally {
-        if (fetchIdPolling) setTimeout(fetchId, 3000); // Poll every 3 seconds
-      }
-    };
+    //   } catch (error) {
+    //     console.error("Error fetching customer ID:", error);
+    //   }finally {
+    //     if (fetchIdPolling) setTimeout(fetchId, 3000); // Poll every 3 seconds
+    //   }
+    // };
     // Cater customer with error handling
     const caterCustomer = async (customerId, type_id) => {
       try {
@@ -854,6 +862,7 @@ export default {
         endingTime,
         type_id: tellerInformation.value.type_id,
         teller_id: tellerInformation.value.id,
+        branch_id: tellerInformation.value.branch_id,
       });
       console.log("Serving time saved:", minutes, "minutes");
       console.log("Start time saved:", startingTime, "startingTime");
@@ -878,7 +887,7 @@ export default {
       try {
         const { data } = await $axios.post("/admin/fetch_break_time");
         // ✅ Correctly assign break start & end times
-        if(fromBreak.value !== null && toBreak.value !== null){
+        if(fromBreak.value !== "" && toBreak.value !== ""){
           fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
           toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
           // ✅ Get current time in HH:mm format
@@ -1047,7 +1056,7 @@ export default {
         localStorage.removeItem("tellerInformation");
         polling = false;
         fetchWaitingtimepolling = false;
-        fetchIdPolling = false;
+        // fetchIdPolling = false;
         router.push("/login");
         setTimeout(() => {
           window.location.reload();
@@ -1129,7 +1138,7 @@ export default {
           // Start periodic data fetching
           fetchQueue()
           fetchWaitingtime()
-          fetchId()
+          // fetchId()
           fetchTodayServingStats()
           // Start currency data fetching
           fetchCurrency();

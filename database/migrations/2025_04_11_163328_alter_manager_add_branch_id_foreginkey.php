@@ -79,6 +79,14 @@ return new class extends Migration
                 ->onDelete('cascade');
         });
 
+        Schema::table('serving_times', function (Blueprint $table) {
+            // add foreign key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
         // foreign the window_archives branch id on branchs
         Schema::table('window_archives', function (Blueprint $table) {
             // add foreign key
@@ -89,7 +97,7 @@ return new class extends Migration
                 ->onDelete('cascade');
         });
 
-        Schema::table('appointments', function (Blueprint $table) {
+        Schema::table('qr_codes', function (Blueprint $table) {
             // add foreign key
             $table->foreign('branch_id')
                 ->references('id')
@@ -97,6 +105,16 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
+        Schema::table('appointments', function (Blueprint $table) {
+
+            // add foreign key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+
 
         Schema::table('appointments', function (Blueprint $table) {
             // add foreign key 
@@ -138,6 +156,13 @@ return new class extends Migration
         });
 
         Schema::table('queues', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('serving_times', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+        Schema::table('qr_codes', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
         });
 

@@ -9,20 +9,23 @@ use Illuminate\Support\Facades\DB;
 class QrCodeController extends Controller
 {
 
-    public function generateQrCode()
+    public function generateQrCode(Request $request)
     {
+        $branch_id = $request->input('branch_id'); // ✅ Get brand ID from request body
         // Check if an unused QR code exists
         $qrCode = DB::table('qr_codes')
             ->where('used', false)
+            ->where('branch_id', $branch_id)
             ->latest()
             ->first();
 
         if (!$qrCode) {
             // Generate a new QR code only if no unused one exists
-            $token = Str::random(10);
+            $token = Str::random(10) . "BR" .$branch_id; // Generate a random token
             DB::table('qr_codes')->insert([
                 'token' => $token,
                 'used' => false,
+                'branch_id' => $branch_id,
                 'created_at' => now(),
             ]);
         } else {
@@ -38,7 +41,7 @@ class QrCodeController extends Controller
     public function scanQrCode(Request $request)
     {
         $token = $request->input('token'); // ✅ Get token from request body
-    
+        $branch_id = $request->input('branch_id'); // ✅ Get brand ID from request body
         $qrCode = DB::table('qr_codes')
             ->where('token', $token)
             ->first();

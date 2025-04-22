@@ -45,6 +45,7 @@ Route::post('/customer-list', [QueueController::class, 'getQueueList']);
 Route::post('/customer-leave', [QueueController::class, 'leaveQueue']);
 Route::post('/customer-fetch', [QueueController::class, 'customerData']);
 Route::post('/update-teller_id', [QueueController::class, 'updateTellerId']);
+Route::post('/update-branch_id', [QueueController::class, 'updateBranchId']);
 
 Route::post('/admin/queue-list', [QueueController::class, 'getCQueueList']);
 Route::post('/admin/cater', [QueueController::class, 'caterCustomer']);
