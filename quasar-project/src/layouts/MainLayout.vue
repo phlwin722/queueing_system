@@ -678,6 +678,11 @@ export default defineComponent({
             ],
           },
           {
+            title: "Generated QrCode",
+            icon: "qr_code_2",
+            link: "/queue-qr",
+          },
+          {
             title: "Admin Queue",
             icon: "admin_panel_settings",
             link: "/admin/admin_Queue",
@@ -699,7 +704,7 @@ export default defineComponent({
             {
               title: "List Appointment",
               icon: "groups",
-              link: "/admin/teller/tellers",
+              link: "/admin/appointment/list",
             },
           ],
         },

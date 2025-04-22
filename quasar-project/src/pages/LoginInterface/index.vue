@@ -156,9 +156,21 @@ export default {
     };
 
     onMounted(() => {
-      //Prevent Users from using the back button after logout
-      history.pushState(null, null, location.href);
-      window.onpopstate = () => history.pushState(null, null, location.href);
+      const superAdmin = localStorage.getItem('adminInformation');
+      const managerAdmin = localStorage.getItem('managerInformation');
+      const tellerInformation = localStorage.getItem('tellerInformation');
+
+      if (superAdmin) {
+        router.push("/admin/dashboard");
+      } else if (managerAdmin) {
+        router.push("/admin/dashboard");
+      } else if (tellerInformation) {
+        router.push("/teller/Layout");  
+      }else {
+        //Prevent Users from using the back button after logout
+        history.pushState(null, null, location.href);
+        window.onpopstate = () => history.pushState(null, null, location.href);
+      }
     });
 
     return {

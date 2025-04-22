@@ -40,7 +40,7 @@
           />
           <q-select
             v-model="type_id"
-            label="Service Available"
+            :label="isServiceAvailable ? 'Service Available' : 'No Service Available'"
             transition-show="flip-up"
             transition-hide="flip-down"
             outlined
@@ -150,14 +150,17 @@ export default {
     const isLoading = ref(false);
     const formError = ref({});
     const customModel = ref('no')
-
+    const branch_id = ref();
     const route = useRoute(); // Use useRoute() correctly
     const token = ref(route.params.token); // Get token from URL
     const isUsedToken = ref(false);
 
     const processQrCode = async () => {
       try {
-        const response = await $axios.post("/scan-qr", { token: token.value });
+        const temp = token.value
+      const temp1 = temp.substring(12);         // Extract everything after the 12th character
+      const branch_id = parseInt(temp1, 10);
+        const response = await $axios.post("/scan-qr", { token: token.value, branch_id: branch_id });
         if (response.data.success) {
           $notify("positive", "check", "Please register to join the queue.");
         } else {
@@ -188,9 +191,9 @@ export default {
             return
           }
         }
-
         if (isUsedToken.value) {
           $notify("negative", "error", "Invalid or already used QR code.");
+         
         } else {
           console.log(email.value);
           name.value = name.value
@@ -224,16 +227,27 @@ export default {
         isLoading.value = false;
       }
     };
-
+    const isServiceAvailable = ref(false)
     const fetchCategories = async () => {
     try {
-      const { data } = await $axios.post("/types/filteredTypes");
+      const temp = token.value
+      const temp1 = temp.substring(12);         // Extract everything after the 12th character
+      const branch_id = parseInt(temp1, 10);    // Convert to integer (base 10)
+      console.log(branch_id)
+      const { data } = await $axios.post("/types/filteredTypes", {
+        branch_id: branch_id,
+      });
 
       // Filter rows where type_id is NOT null
-      const filteredRows = data.rows.filter(row => row.type_id !== null);
-
+      const filteredRows = data.rows.filter(row => row.type_id !== null && row.status == "Online");
+      console.log(filteredRows)
+      if(filteredRows.length === 0){
+        isServiceAvailable.value = false
+      }else{
+        isServiceAvailable.value = true
+      }
       // Log filtered type_id values
-      filteredRows.forEach(row => console.log(row.type_id));
+      filteredRows.forEach(row => console.log(row.type_id + " " + row.status));
 
       // Assign only valid rows to categoriesList.value
       categoriesList.value = filteredRows;
@@ -292,6 +306,7 @@ export default {
       fecthCurrencty,
       currentCiesList,
       prioritySelected,
+      isServiceAvailable,
 
       categoriesPriority: [
         'Elderly Customers', 
@@ -299,7 +314,6 @@ export default {
         'People with Disabilities', 
         'Premium Customers', 
         'Parents with Young Children', 
-        'Queue-Free Services'
       ]
     };
   },

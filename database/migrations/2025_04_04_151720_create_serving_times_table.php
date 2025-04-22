@@ -22,7 +22,8 @@ return new class extends Migration
             // Nullable foreign key to tellers table
             $table->unsignedBigInteger('teller_id')->nullable();
             $table->foreign('teller_id')->references('id')->on('tellers')->onDelete('set null');
-
+            
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }

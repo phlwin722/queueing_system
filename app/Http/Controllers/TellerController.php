@@ -568,10 +568,14 @@ class TellerController extends Controller
                     ],401);
                  }
 
-                 // update tellers has logged in
-                 DB::table('windows')
-                    ->where('teller_id', $teller->id)
-                    ->update(['status' => 'Online']);
+                // update tellers has logged in
+                DB::table('windows')
+                ->where('teller_id', $teller->id)
+                ->update(['status' => 'Online']);
+
+                DB::table('tellers')
+                ->where('id', $teller->id)
+                ->update(['status' => 'Online']);
 
                 // Generate a simple authentication token (or use Laravel Sanctum for better security)
                 $token = base64_encode(Str::random(40));
@@ -584,7 +588,8 @@ class TellerController extends Controller
                         'tellerLastname' => $teller->teller_lastname,
                         'tellerUsername' => $teller->teller_username,
                         'token' => $token,
-                        'type_id' => $teller->type_id
+                        'type_id' => $teller->type_id,
+                        'branch_id' => $teller->branch_id,
                     ],
 
                     'result' => 'teller'
@@ -606,6 +611,10 @@ class TellerController extends Controller
             DB::table('windows')
                 ->where('teller_id', $teller_id)  // Locate the teller by their ID.
                 ->update(['status' => 'Offline']); // Set their status to 'Offline'.
+            
+            DB::table('tellers')
+                ->where('id', $teller_id)  
+                ->update(['status' => 'Offline']); 
                     
             // Check if there are any customers currently waiting for this teller to serve them.
             $list_waiting = DB::table('queues')
@@ -734,6 +743,7 @@ class TellerController extends Controller
                     ->leftJoin('windows as w', 'w.teller_id', '=', 't.id') // Join with windows table
                     ->select('t.id', 't.teller_firstname', 't.teller_lastname', 'w.window_name')
                     ->where('t.type_id', $type->type_id)
+                    ->where('t.branch_id', $request->branch_id)
                     ->get(); // No filtering for null, so we get all tellers
 
                 $currency = DB::table('currencies')->get();

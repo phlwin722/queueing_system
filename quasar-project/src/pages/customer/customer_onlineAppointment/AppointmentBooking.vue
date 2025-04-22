@@ -214,6 +214,7 @@
             v-model="form.email"
             label="Email address"
             outlined
+            readonly
             dense
             :error="formError.hasOwnProperty('email')"
             :error-message="formError.email ? formError.email[0] : ''"
@@ -370,7 +371,7 @@ export default {
           branch_id: selectedBranch.value || form.value.branch_id,
         });
 
-        services.value = data.servce;
+        services.value = data.servce.filter(serve => serve.name !== 'Online Appointment');
       } catch (error) {
         if (error.response?.status === 422) {
           console.log(error);
@@ -516,7 +517,7 @@ export default {
             style: "border-radius: 12px; padding: 16px;",
           })
           .onOk(async () => {
-            handleDelete(data.reference)
+            handleDelete([data.reference])
           })
           .onDismiss(()=> {
 
@@ -541,12 +542,13 @@ export default {
       }
     }
 
-    const handleDelete = async (reference) => {
+    const handleDelete = async (dataHandleCancel) => {
       try {
           const { data } = await $axios.post('/cancel/Appointment', {
-            id: reference.id,
+            /* id: reference.id,
             appointment_date: reference.appointment_date,
-            branch_id: reference.branch_id,
+            branch_id: reference.branch_id, */
+            dataHandleCancel
           });
          
           if (data.message) {

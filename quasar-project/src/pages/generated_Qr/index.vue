@@ -170,14 +170,17 @@ export default {
     const fromBreak = ref("");
     const toBreak = ref("");
     const formattedCurrentTime = ref("");
-
+    const branch_id = ref(null)
+    const adminManagerInformation = ref(null);
     // Fetch a new QR code link from the backend
     const fetchQrCode = async () => {
       try {
-        const response = await $axios.post("/generate-qr");
+        const response = await $axios.post("/generate-qr", {
+          branch_id: branch_id.value,
+        });
 
         const fullUrl = response.data.qr_code_url; // Example: "http://192.168.1.164:8000/scan-qr/abcd1234"
-        const token = fullUrl.slice(26); // Extract token from URL
+        const token = fullUrl.slice(22); // Extract token from URL
 
         localStorage.setItem("token", token);
         registrationLink.value =
@@ -194,20 +197,24 @@ export default {
     const fetchBreakTime = async () => {
       try {
         const { data } = await $axios.post("/admin/fetch_break_time");
-        // ✅ Correctly assign break start & end times
-        fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
-        toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
-        // ✅ Get current time in HH:mm format
-        const currentTime = new Date();
-        const currentHour = currentTime.getHours().toString().padStart(2, "0");
-        const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
-        formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
-        const totalMinutes = parseTime(fromBreak.value)-5
-        newTime.value = formatTime(totalMinutes);
-        const OrgtotalMinutes = parseTime(fromBreak.value)
-        originalFromBreak.value = formatTime(OrgtotalMinutes);
-        const totalFormatMinutes = parseTime(formattedCurrentTime.value)
+
+        if(fromBreak.value !== "" && toBreak.value !== ""){
+          // ✅ Correctly assign break start & end times
+          fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
+          toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
+          // ✅ Get current time in HH:mm format
+          const currentTime = new Date();
+          const currentHour = currentTime.getHours().toString().padStart(2, "0");
+          const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+          formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
+          const totalMinutes = parseTime(fromBreak.value)-5
+          newTime.value = formatTime(totalMinutes);
+          const OrgtotalMinutes = parseTime(fromBreak.value)
+          originalFromBreak.value = formatTime(OrgtotalMinutes);
+          const totalFormatMinutes = parseTime(formattedCurrentTime.value)
         newFormattedTime.value = formatTime(totalFormatMinutes);
+        }
+
       } catch (error) {
         console.error("Error fetching break time:", error);
       }
@@ -255,6 +262,16 @@ export default {
       intervalId = setInterval(() => {
         fetchBreakTime();
       }, 30000); 
+      const managerInformation = localStorage.getItem('managerInformation')
+          if (managerInformation) {
+            adminManagerInformation.value = JSON.parse(managerInformation);
+          }
+
+          if (adminManagerInformation.value == null) {
+            branch_id.value = 0
+          }else  {
+            branch_id.value = adminManagerInformation.value.branch_id
+          }
     });
 
     onUnmounted(() => {

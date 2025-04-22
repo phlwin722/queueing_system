@@ -97,9 +97,8 @@
             </q-card>
           </div>
 
-
             <div v-else class="col-12 col-md-6">
-              <q-card class="q-pa-md">
+              <q-card class="q-pa-md" v-if="tellerInformation?.type_name != 'Online Appointment'">
                 <q-card-section>
                   <q-item>
                     <q-item-section>
@@ -228,7 +227,9 @@
 
               <div class="" style="margin-top: 15px">
                 <q-table
-                  style="height: 200px;"
+                  :style="{
+                    height: tellerInformation?.type_name == 'Online Appointment' ? '600px' : '200px'
+                  }"
                   flat
                   bordered
                   :rows="rowsCurrency"
@@ -256,7 +257,7 @@
               <q-card
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
               >
-              <q-card-section class="row items-center">
+              <q-card-section class="row items-center" v-if="tellerInformation?.type_name !== 'Online Appointment'">
                 <q-toggle v-model="autoServing"  color="green" />
                 <q-chip v-if="autoServing" color="green" text-color="white" class="q-ml-md">
                   Auto Serving ON
@@ -275,7 +276,7 @@
                   </q-item>
                 </q-card-section>
               </q-card>
-              <q-card class="q-pa-md">
+              <q-card class="q-pa-md" v-if="tellerInformation?.type_name != 'Online Appointment'">
                 <q-card-section>
                   <!-- If the cater line is not empty -->
                   <q-item v-if="currentServing">
@@ -361,6 +362,7 @@
                           </q-item>
                         </div>
 
+                        <!-- Online Appointment -->
                         <div v-else>
                           <q-item class="bg-grey-9 rounded-borders">
                             <q-item-section>
@@ -385,6 +387,120 @@
                   </q-item>
                 </q-card-section>
               </q-card>
+
+              <q-card class="q-pa-md" v-else
+                style="height: 480px;"
+                >
+                <q-card-section>
+                  <div class="row">
+                    <div class="col-10">
+                      <q-input
+                        v-model="tellerInformation.referenceNumber"
+                        outlined
+                        label="Reference number"
+                        hide-bottom-space
+                        dense
+                        :error="formError.hasOwnProperty('referenceNumber')"
+                      />
+                    </div>
+                    <div class="col-2">
+                      <q-btn 
+                          color="primary" 
+                          label="Validate" 
+                          @click="validateReference" 
+                          class="q-ml-md full-width" 
+                      />
+
+                    </div>
+                  </div>
+                </q-card-section>
+
+                <q-item v-if="customerInfoOnline != null">
+                  <q-item-section>
+                    <q-list style="max-height: 500px; padding: 10px;">
+                      <q-item>
+                        <q-item-section>
+                          <!-- ID -->
+                          <div class="q-mb-md">
+                            <strong>ID:</strong> {{ customerInfoOnline.id }}
+                          </div>
+
+                          <!-- Full name -->
+                          <div class="q-mb-md">
+                            <strong>Full Name:</strong> {{ customerInfoOnline.fullname }}
+                          </div>
+
+                          <!-- Branch Name -->
+                          <div class="q-mb-md">
+                            <strong>Branch:</strong> {{ customerInfoOnline.branch_name }}
+                          </div>
+
+                          <!-- Status -->
+                          <div class="q-mb-md">
+                            <strong>Status:</strong> {{ customerInfoOnline.status }}
+                          </div>
+
+                          <!-- Service Type -->
+                          <div class="q-mb-md">
+                            <strong>Service Type:</strong> {{ customerInfoOnline.name }}
+                          </div>
+
+                          <!-- Appointment Date -->
+                          <div class="q-mb-md">
+                            <strong>Appointment Date:</strong> {{ customerInfoOnline.appointment_date }}
+                          </div>
+
+                          <!-- Email -->
+                          <div class="q-mb-md">
+                            <strong>Email:</strong> {{ customerInfoOnline.email }}
+                          </div>
+                        </q-item-section>
+                      </q-item>
+
+                      <!-- Spacer for spacing -->
+                      <q-item>
+                        <q-item-section>
+                          <div class="q-gutter-y-xs q-my-sm">
+                            <q-btn 
+                                color="primary" 
+                                label="Assigned Teller" 
+                                @click="handleAssignedTeller(customerInfoOnline.id)" 
+                                class="full-width" 
+                                style="max-width: 150px;"
+                            />
+                          </div>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-item-section>
+                </q-item>
+
+                <q-item v-else>
+                    <q-item-section>
+                      <q-list style="max-height: 500px">
+                        <div>
+                          <q-item class="bg-grey-9 rounded-borders">
+                            <q-item-section>
+                              <h1
+                                class="q-mb-sm q-mt-md text-center text-white loading-dots"
+                              >
+                                Waiting<span>.</span><span>.</span
+                                ><span>.</span>
+                              </h1>
+                              <h6 class="text-center text-white"></h6>
+                            </q-item-section>
+                          </q-item>
+
+                          <q-item>
+                            <q-item-section>
+                              <div class="q-gutter-y-xs q-my-sm"></div>
+                            </q-item-section>
+                          </q-item>
+                        </div>
+                      </q-list>
+                    </q-item-section>
+                </q-item>
+              </q-card>
             </div>
           </div>
         </div>
@@ -399,6 +515,8 @@ import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import { debounce } from 'quasar'
+import { BarController } from "chart.js";
+import { Bar } from "vue-chartjs";
 
 export default {
   setup() {
@@ -419,6 +537,7 @@ export default {
     const isLoading = ref(false);
     const autoServing = ref(false);
     let refreshInterval = null;
+    const formError = ref({});
     const $dialog = useQuasar();
 
     // Pagination
@@ -432,6 +551,8 @@ export default {
       $q.fullscreen.toggle();
     };
 
+    const customerInfoOnline = ref(null);
+
     // Teller Information
     const tellerInformation = ref({
       id: "",
@@ -439,6 +560,8 @@ export default {
       tellerLastname: "",
       type_id: "",
       type_name: "",
+      branch_id: "",
+      referenceNumber: '',
     });
 
     // Fetch queue data with error handling
@@ -451,13 +574,13 @@ export default {
         
         // Load locally stored queue order if available
         const storedQueue = JSON.parse(localStorage.getItem("queueList")) || [];
-        
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
           last_updated: QueueListlastUpdatedAt.value,
+          branch_id: tellerInformation.value.branch_id,
         });
-
+        
         if (response.data.updated) {
           const fetchedQueue = response.data.queue.filter(
             (q) => !["finished", "cancelled"].includes(q.status)
@@ -477,7 +600,9 @@ export default {
 
           // Preserve the local order while updating new queue items
           queueList.value = reorderQueue(storedQueue, updatedQueue);
-
+          if(currentServing.value !== null){
+            cusId.value = currentServing.value.id
+          }
           // Save updated queue order
           localStorage.setItem("queueList", JSON.stringify(queueList.value));
 
@@ -508,29 +633,31 @@ export default {
           (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
       );
     };
-    const fetchIdLastUpdatedAt = ref(null); // last update tracker
-    let fetchIdPolling = true; // Flag to control recursive polling
-    const fetchId = async () => {
-      if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
-      try {
-        const response = await $axios.post("/teller/queue-list", {
-          type_id: tellerInformation.value.type_id,
-          teller_id: tellerInformation.value.id,
-          last_updated: fetchIdLastUpdatedAt.value,
-        });
-        if (response.data.updated) {
-          if (response.data.current_serving) {
-          cusId.value = response.data.current_serving.id;
-        }
-          fetchIdLastUpdatedAt.value = response.data.last_updated_at;
-        }
+    // const fetchIdLastUpdatedAt = ref(null); // last update tracker
+    // let fetchIdPolling = true; // Flag to control recursive polling
+    // const fetchId = async () => {
+    //   if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
+    //   try {
+        
+    //     const response = await $axios.post("/teller/queue-list", {
+    //       type_id: tellerInformation.value.type_id,
+    //       teller_id: tellerInformation.value.id,
+    //       last_updated: fetchIdLastUpdatedAt.value,
+    //     });
+    //     if (response.data.updated) {
+    //       if (response.data.current_serving) {
+    //       cusId.value = response.data.current_serving.id;
+    //       console.log(cusId.value)
+    //     }
+    //       fetchIdLastUpdatedAt.value = response.data.last_updated_at;
+    //     }
 
-      } catch (error) {
-        console.error("Error fetching customer ID:", error);
-      }finally {
-        if (fetchIdPolling) setTimeout(fetchId, 3000); // Poll every 3 seconds
-      }
-    };
+    //   } catch (error) {
+    //     console.error("Error fetching customer ID:", error);
+    //   }finally {
+    //     if (fetchIdPolling) setTimeout(fetchId, 3000); // Poll every 3 seconds
+    //   }
+    // };
     // Cater customer with error handling
     const caterCustomer = async (customerId, type_id) => {
       try {
@@ -545,8 +672,6 @@ export default {
           customer.status = "serving";
           currentServing.value = customer;
         }
-
-
       } catch (error) {
         console.error("Error catering customer:", error);
       }
@@ -738,133 +863,127 @@ export default {
     // Computed property for paginated queue list
     const paginatedQueueList = computed(() => queueList.value);
 
- 
-  const debouncedUpdateQueuePositions = debounce(async () => {
-    const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
-      id: customer.id,
-      position: index + 1,
-    }));
+    
+      const debouncedUpdateQueuePositions = debounce(async () => {
+        const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
+          id: customer.id,
+          position: index + 1,
+        }));
 
-    try {
-      await $axios.post("/update-queue-positions", { positions: updatedPositions });
-      // Consider adding success feedback
-    } catch (error) {
-      console.error("Error updating positions:", error);
-      // Add user feedback here (e.g., toast notification)
-    }
-  }, 300); // Reduced debounce time
+        try {
+          await $axios.post("/update-queue-positions", { positions: updatedPositions });
+          // Consider adding success feedback
+        } catch (error) {
+          console.error("Error updating positions:", error);
+          // Add user feedback here (e.g., toast notification)
+        }
+      }, 300); // Reduced debounce time
 
-  // Watch both length and array reference
-  watch(
-    () => [...queueList.value], // Creates a new array reference to trigger on reordering
-    () => {
-      debouncedUpdateQueuePositions();
-    },
-    { deep: false } // We're creating a new reference so deep isn't needed
-  );
-   
-  let autoServingInterval = null; // Store the interval ID
-  let serveStartTime = null;
-
-  // Watch for changes in autoServing state
-  watch(autoServing, (newValue) => {
-    console.log(onBreak.value);
-
-    // Check if the user is on break first
-    if (onBreak.value) {
-      // Notify user that they're on break
-      $notify("primary", "info", "I'm taking a break");
+      // Watch both length and array reference
+      watch(
+        () => [...queueList.value], // Creates a new array reference to trigger on reordering
+        () => {
+          debouncedUpdateQueuePositions();
+        },
+        { deep: false } // We're creating a new reference so deep isn't needed
+      );
       
-      // Clear the interval if it was running
-      if (autoServingInterval) {
-        clearInterval(autoServingInterval);
-        autoServingInterval = null;
-      }
-    } else {
-      if (newValue) {
-        // Auto Serving is enabled
-        $notify("positive", "check", "Auto Serving Enabled");
-        console.log("Auto Serving Enabled");
+      let autoServingInterval = null; // Store the interval ID
+      let serveStartTime = null;
 
-        // Start the interval when autoServing is turned on
-        autoServingInterval = setInterval(() => {
-          if (
-            queueList.value.length > 0 &&
-            queueList.value[0].status === "waiting" &&
-            currentServing.value == null
-          ) {
-            const nextCustomer = queueList.value[0];
+      // Watch for changes in autoServing state
+      watch(autoServing, (newValue) => {
 
-            if (nextCustomer) {
-              setTimeout(() => {
-                caterCustomer(nextCustomer.id, nextCustomer.type_id);
-                startWait(nextCustomer.id, nextCustomer.queue_number);
-                serveStartTime = new Date();
-                const startingTime = serveStartTime.toLocaleTimeString();
-                
-                // Store serving time in localStorage
-                localStorage.setItem('serveStartTime' + tellerInformation.value.id.toString(), serveStartTime);
-                localStorage.setItem('startingTime' + tellerInformation.value.id.toString(), startingTime);
-              }, 2000); // Delay for 2 seconds before serving the customer
+        // Check if the user is on break first
+        if (onBreak.value) {
+          // Notify user that they're on break
+          $notify("primary", "info", "I'm taking a break");
+          
+          // Clear the interval if it was running
+          if (autoServingInterval) {
+            clearInterval(autoServingInterval);
+            autoServingInterval = null;
+          }
+        } else {
+          if (newValue) {
+            // Auto Serving is enabled
+            $notify("positive", "check", "Auto Serving Enabled");
+
+            // Start the interval when autoServing is turned on
+            autoServingInterval = setInterval(() => {
+              if (
+                queueList.value.length > 0 &&
+                queueList.value[0].status === "waiting" &&
+                currentServing.value == null
+              ) {
+                const nextCustomer = queueList.value[0];
+
+                if (nextCustomer) {
+                  setTimeout(() => {
+                    caterCustomer(nextCustomer.id, nextCustomer.type_id);
+                    startWait(nextCustomer.id, nextCustomer.queue_number);
+                    serveStartTime = new Date();
+                    const startingTime = serveStartTime.toLocaleTimeString();
+                    
+                    // Store serving time in localStorage
+                    localStorage.setItem('serveStartTime' + tellerInformation.value.id.toString(), serveStartTime);
+                    localStorage.setItem('startingTime' + tellerInformation.value.id.toString(), startingTime);
+                  }, 2000); // Delay for 2 seconds before serving the customer
+                }
+              }
+            }, 2000); // Check every 2 seconds
+          } else {
+            // Auto Serving is disabled
+            $notify("positive", "check", "Auto Serving Disabled");
+
+            // Clear the interval when autoServing is turned off
+            if (autoServingInterval) {
+              clearInterval(autoServingInterval);
+              autoServingInterval = null;
             }
           }
-        }, 2000); // Check every 2 seconds
-      } else {
-        // Auto Serving is disabled
-        $notify("positive", "check", "Auto Serving Disabled");
-        console.log("Auto Serving Disabled");
-
-        // Clear the interval when autoServing is turned off
-        if (autoServingInterval) {
-          clearInterval(autoServingInterval);
-          autoServingInterval = null;
         }
-      }
-    }
-  });
-
-  // Watch for changes in queueList (this seems like a separate watch you’re using)
-  watch(
-    () => [...queueList.value], // Creates a new array reference to trigger on reordering
-    () => {
-      debouncedUpdateQueuePositions();
-    },
-    { deep: false } // Since we're creating a new reference, deep isn't necessary
-  );
-
-
-  const serveEnd = async () => {
-  const savedStartTimeStr  = localStorage.getItem('serveStartTime'+tellerInformation.value.id.toString());
-  const startingTime  = localStorage.getItem('startingTime'+tellerInformation.value.id.toString());
-  if (savedStartTimeStr && startingTime ) {
-    const savedStartTime = new Date(savedStartTimeStr); // ✅ convert to Date
-    const now = new Date();
-    const endingTime = now.toLocaleTimeString();
-    const diffMs = now - savedStartTime; // in ms
-    let minutes = Math.round(diffMs / 60000); // convert to minutes
-    if (minutes < 1) minutes = 1;
-    console.log("minutes: "+minutes)
-    // const seconds = Math.floor((diffMs % 60000) / 1000); // if you want seconds too
-
-    // Save to backend
-    try {
-      await $axios.post("/teller/save-serving-time", {
-        minutes,
-        startingTime,
-        endingTime,
-        type_id: tellerInformation.value.type_id,
-        teller_id: tellerInformation.value.id,
       });
-      console.log("Serving time saved:", minutes, "minutes");
-      console.log("Start time saved:", startingTime, "startingTime");
-      console.log("End time saved:", endingTime, "endingTime");
-    } catch (err) {
-      console.error("Failed to save serving time", err);
-    }
+
+      // Watch for changes in queueList (this seems like a separate watch you’re using)
+      watch(
+        () => [...queueList.value], // Creates a new array reference to trigger on reordering
+        () => {
+          debouncedUpdateQueuePositions();
+        },
+        { deep: false } // Since we're creating a new reference, deep isn't necessary
+      );
 
 
-  }
-};
+      const serveEnd = async () => {
+      const savedStartTimeStr  = localStorage.getItem('serveStartTime'+tellerInformation.value.id.toString());
+      const startingTime  = localStorage.getItem('startingTime'+tellerInformation.value.id.toString());
+      if (savedStartTimeStr && startingTime ) {
+        const savedStartTime = new Date(savedStartTimeStr); // ✅ convert to Date
+        const now = new Date();
+        const endingTime = now.toLocaleTimeString();
+        const diffMs = now - savedStartTime; // in ms
+        let minutes = Math.round(diffMs / 60000); // convert to minutes
+        if (minutes < 1) minutes = 1;
+        // const seconds = Math.floor((diffMs % 60000) / 1000); // if you want seconds too
+
+        // Save to backend
+        try {
+          await $axios.post("/teller/save-serving-time", {
+            minutes,
+            startingTime,
+            endingTime,
+            type_id: tellerInformation.value.type_id,
+            teller_id: tellerInformation.value.id,
+            branch_id: tellerInformation.value.branch_id,
+          });
+        } catch (err) {
+          console.error("Failed to save serving time", err);
+        }
+
+
+      }
+    };
 
     const fromBreak = ref("")
     const toBreak = ref("")
@@ -878,7 +997,7 @@ export default {
       try {
         const { data } = await $axios.post("/admin/fetch_break_time");
         // ✅ Correctly assign break start & end times
-        if(fromBreak.value !== null && toBreak.value !== null){
+        if(fromBreak.value !== "" && toBreak.value !== ""){
           fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
           toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
           // ✅ Get current time in HH:mm format
@@ -1047,7 +1166,7 @@ export default {
         localStorage.removeItem("tellerInformation");
         polling = false;
         fetchWaitingtimepolling = false;
-        fetchIdPolling = false;
+        // fetchIdPolling = false;
         router.push("/login");
         setTimeout(() => {
           window.location.reload();
@@ -1069,7 +1188,9 @@ export default {
     // Fetch currency data with error handling
     const fetchCurrency = async () => {
       try {
-        const { data } = await $axios.post('/currency/showData');
+        const { data } = await $axios.post('/currency/showData', {
+          branch_id: tellerInformation.value.branch_id
+        });
         rowsCurrency.value = data.rows.map(row => ({
           id: row.id,
           currency: {
@@ -1113,14 +1234,13 @@ export default {
 
     let currencyInterval;
     let intervalId = null;
-
-
-
-
-
-
+ 
     onMounted(() => {
       try {
+        $dialog.loading.show({
+          message: "Process is in progress. Hang on...",
+        });
+
         const storedTellerInfo = localStorage.getItem("tellerInformation");
         if (storedTellerInfo) {
           tellerInformation.value = JSON.parse(storedTellerInfo);
@@ -1129,7 +1249,7 @@ export default {
           // Start periodic data fetching
           fetchQueue()
           fetchWaitingtime()
-          fetchId()
+          // fetchId()
           fetchTodayServingStats()
           // Start currency data fetching
           fetchCurrency();
@@ -1153,7 +1273,95 @@ export default {
         console.error("Initialization error:", error);
         router.push("/login");
       }
+       finally {
+        setTimeout(() => {
+          $dialog.loading.hide();
+        },1200)
+       }
     });
+
+    const validateReference = async () => {
+      try {
+        $dialog.loading.show({
+          message: "Process is in progress. Hang on...",
+        });
+
+        formError.value = {};
+        const { data } = await $axios.post('/queue/ReferenceNumber', {
+          referenceNumber: tellerInformation.value.referenceNumber,
+          branch_id: tellerInformation.value.branch_id,
+        });
+
+        if (data.value) {
+          if (tellerInformation.value.branch_id != data.value.branch_id) {
+            customerInfoOnline.value = null;
+            $notify('negative', 'error', `Sorry, you do not have an appointment here. Your appointment is at the ${data.value.branch_name} branch.`);
+          } else if (data.value.status == 'Booked'){
+            customerInfoOnline.value = data.value;
+          } else {
+            $notify('negative', 'error','We’re sorry, but our records show that you have already checked in.')
+          }
+        }
+      } catch (error) {
+        if (error.response?.status === 422) {
+          customerInfoOnline.value = null;
+          $notify('negative', 'error', error.response.data.errors.referenceNumber);
+          formError.value.referenceNumber = error.response.data.errors.referenceNumber;
+        } else if (error.response?.status === 400) {
+          customerInfoOnline.value = null;
+          $notify('negative', 'error', error.response.data.errors);
+        }
+      } finally {
+        $dialog.loading.hide(); // ✅ Use the correct method
+      }
+    };
+
+    const handleAssignedTeller = async (customerId) => {
+      try {
+        $dialog.loading.show({
+          message: "Process is in progress. Hang on...",
+        })
+
+        const { data } = await $axios.post("/customer-join", {
+            token: '',
+            name: customerInfoOnline.value.fullname,
+            email: customerInfoOnline.value.email,
+            email_status: '',
+            type_id: customerInfoOnline.value.type_id,
+            currency: '',
+            referenceNumber: customerInfoOnline.value.referenceNumber,
+            priority_service: 'Online Appointment',
+            branch_idd: customerInfoOnline.value.branch_id
+          });
+
+          if (data.window_name) {
+            $dialog
+              .dialog({
+                title: "Window Assigned",
+                message: `You are assigned to ${data.window_name}?`,
+                cancel: false,
+                persistent: true,
+                ok: {
+                  label: "OK",
+                  color: "primary",
+                  unelevated: true,
+                  style: "width: 125px;",
+                },
+                style: "border-radius: 12px; padding: 16px;",
+              })
+              .onOk(() => {
+                customerInfoOnline.value = null    
+                tellerInformation.value.referenceNumber = null
+              });
+          }
+      } catch (error) {
+        if (error.response.status === 400) {
+          $notify('negative', 'error', error.response.data.message)
+        }
+      } finally {
+        $dialog.loading.hide()
+      }
+    }
 
     onUnmounted(() => {
       // Cleanup all timers and intervals
@@ -1171,6 +1379,7 @@ export default {
     });
 
     return {
+      formError,
       fetchCurrency,
       queueList,
       currentServing,
@@ -1211,7 +1420,10 @@ export default {
       fromBreak,
       formattedCurrentTime,
       toBreak,
-      formatTo12Hour
+      formatTo12Hour,
+      validateReference,
+      customerInfoOnline,
+      handleAssignedTeller
     };
   },
 };
@@ -1389,4 +1601,18 @@ export default {
   align-items: center;
   z-index: 9999;
 }
+
+
+.q-item-section {
+    background-color: #f9f9f9; /* Light background for each item */
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  .q-item {
+    margin-bottom: 15px; /* Add spacing between items */
+  }
+  .q-list {
+    padding-left: 0; /* Remove any padding from the list to align the items better */
+  }
 </style>

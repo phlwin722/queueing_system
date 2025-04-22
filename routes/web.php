@@ -45,6 +45,7 @@ Route::post('/customer-list', [QueueController::class, 'getQueueList']);
 Route::post('/customer-leave', [QueueController::class, 'leaveQueue']);
 Route::post('/customer-fetch', [QueueController::class, 'customerData']);
 Route::post('/update-teller_id', [QueueController::class, 'updateTellerId']);
+Route::post('/update-branch_id', [QueueController::class, 'updateBranchId']);
 
 Route::post('/admin/queue-list', [QueueController::class, 'getCQueueList']);
 Route::post('/admin/cater', [QueueController::class, 'caterCustomer']);
@@ -59,6 +60,7 @@ Route::post('/waitCustomer', [QueueController::class, 'WaitCustomer']);
 Route::post('/customer-check-waiting', [QueueController::class, 'checkWaitingCustomer']);
 Route::post('/waitCustomerReset', [QueueController::class, 'WaitingCustomerReset']);
 Route::post('/update-queue-positions', [QueueController::class, 'updatePositions']);
+Route::post('/queue/ReferenceNumber', [QueueController::class, 'checkingReferenceNumber']);
 
 Route::post('/admin/waiting_Time', [Waiting_timeController::class, 'store']);
 Route::post('/admin/waiting_Time-fetch', [Waiting_timeController::class, 'index']);
@@ -168,6 +170,8 @@ Route::post('/get_weekly_slots', [AppointmentController::class, 'getWeeklySlots'
 Route::post('/validate/Appointment', [AppointmentController::class, 'validateAppointment']);
 Route::post('/cancel/Appointment', [AppointmentController::class, 'cancelAppointment']);
 Route::post('/update/Appointment', [AppointmentController::class, 'updateAppointment']);
+Route::post('/appointment/index', [AppointmentController::class, 'index']);
+Route::post('/appointment/updateStats', [AppointmentController::class, 'updataStatusAppointment']);
 
 // Manager Routes
 Route::post('/manager/index', [ManagerController::class, 'index']);
