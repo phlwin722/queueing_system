@@ -7,8 +7,8 @@
           <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
           <q-breadcrumbs-el label="Branch Appointment" icon="person" />
           <q-breadcrumbs-el
-            label="Appoitnemnt"
-            icon="groups"
+            label="Appointment"
+            icon="event"
             to="/admin/appointment/create"
           />
         </q-breadcrumbs>

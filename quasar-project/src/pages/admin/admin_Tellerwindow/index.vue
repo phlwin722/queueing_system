@@ -84,7 +84,7 @@
           </div>
           <div v-if="!adminInformation" class="col-auto">
               <q-select
-                style="width: 250px;"
+                style="width: 250px; position: absolute;  right: 10px;"
                 outlined
                 v-model="branch_name"
                 label="Branch name"

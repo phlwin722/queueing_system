@@ -1,5 +1,5 @@
 <template>
-    <q-layout view="hHh lpR fFf">
+    <q-layout view="hHh lpR lfr">
       <!-- Header Section with Tabs -->
       <q-header>
         <q-toolbar>
@@ -24,9 +24,69 @@
       </q-header>
   
       <!-- Page Content Area -->
-      <q-page-container style="padding-bottom: 20px;">
+      <q-page-container>
       <router-view />
     </q-page-container>
+
+    <!-- Footer Section -->
+    <q-footer class="bg-secondary text-grey-4 q-pa-md">
+  <div class="row q-col-gutter-md wrap full-width items-start">
+
+    <!-- Column 1: About -->
+    <div class="col-12 col-sm-4">
+      <div class="text-weight-bold text-grey-3 q-mb-sm">About VRT</div>
+      <div class="text-caption">
+        VRTSystems Technologies Corporation is a Filipino-owned corporation involved in test systems integration, process automation, test program development, technical consulting, and equipment trading.
+      </div>
+<!--       <q-img
+        src="~assets/vrtlogowhite.webp"
+        alt="VRT Logo"
+        style="width: 125px; height: auto;"
+      /> -->
+    </div>
+
+    <!-- Column 2: Quick Links -->
+    <div class="col-12 col-sm-4">
+      <div class="text-weight-bold text-grey-3 q-mb-sm">Quick Links</div>
+      <q-list dense class="text-caption">
+        <q-item clickable v-ripple to="/book-appointment">
+          <q-item-section>Book Appointment</q-item-section>
+        </q-item>
+        <q-item clickable v-ripple to="/contact">
+          <q-item-section>Contact Us</q-item-section>
+        </q-item>
+        <q-item clickable v-ripple to="/privacy">
+          <q-item-section>Privacy Policy</q-item-section>
+        </q-item>
+      </q-list>
+    </div>
+
+    <!-- Column 3: Contact Info -->
+    <div class="col-12 col-sm-4">
+      <div class="text-weight-bold text-grey-3 q-mb-sm">Contact</div>
+      <div class="text-caption">
+        <q-icon name="phone" size="16px" class="q-mr-xs" />
+        (02) 1234-5678 //sample
+      </div>
+      <div class="text-caption q-mt-xs">
+        <q-icon name="email" size="16px" class="q-mr-xs" />
+          sample@vrtsystems.ph
+      </div>
+      <div class="q-mt-sm">
+        <q-btn flat round size="sm" icon="mdi-facebook" class="text-grey-4 q-mr-xs" />
+        <q-btn flat round size="sm" icon="mdi-twitter" class="text-grey-4 q-mr-xs" />
+        <q-btn flat round size="sm" icon="mdi-instagram" class="text-grey-4" />
+      </div>
+    </div>
+    
+    <!-- Footer Bottom Row -->
+    <div class="col-12 text-center text-caption text-grey-5">
+      © 2025 VRTSystems Technologies Corporation. All rights reserved.
+    </div>
+
+  </div>
+</q-footer>
+
     </q-layout>
   </template>
   

@@ -5,7 +5,7 @@
         <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
         <q-breadcrumbs-el
           label="Manager"
-          icon="groups"
+          icon="supervisor_account"
           to="/admin/bank_manager"
         />
       </q-breadcrumbs>

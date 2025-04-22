@@ -5,7 +5,7 @@
         <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
         <q-breadcrumbs-el
           label="Branch"
-          icon="currency_exchange"
+          icon="account_balance"
           to="/admin/currency_conversion"
         />
       </q-breadcrumbs>
