@@ -699,7 +699,7 @@ export default defineComponent({
             {
               title: "List Appointment",
               icon: "groups",
-              link: "/admin/teller/tellers",
+              link: "/admin/appointment/list",
             },
           ],
         },
@@ -805,7 +805,7 @@ export default defineComponent({
             {
               title: "List Appointment",
               icon: "groups",
-              link: "/admin/teller/tellers",
+              link: "/admin/appointment/list",
             },
           ],
         },

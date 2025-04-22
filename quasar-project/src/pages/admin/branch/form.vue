@@ -169,7 +169,7 @@
                             class="text-black col-1.5"
                             v-model="formData.opening_date" 
                             type="date" 
-                            label="Select Date"
+                            label="Opening Date"
                             :error="formError.hasOwnProperty('opening_date')"
                             :error-message="formError.opening_date"
                         />

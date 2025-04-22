@@ -168,6 +168,8 @@ Route::post('/get_weekly_slots', [AppointmentController::class, 'getWeeklySlots'
 Route::post('/validate/Appointment', [AppointmentController::class, 'validateAppointment']);
 Route::post('/cancel/Appointment', [AppointmentController::class, 'cancelAppointment']);
 Route::post('/update/Appointment', [AppointmentController::class, 'updateAppointment']);
+Route::post('/appointment/index', [AppointmentController::class, 'index']);
+Route::post('/appointment/updateStats', [AppointmentController::class, 'updataStatusAppointment']);
 
 // Manager Routes
 Route::post('/manager/index', [ManagerController::class, 'index']);

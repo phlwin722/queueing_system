@@ -98,7 +98,7 @@ class ManagerController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Teller added successfully!',
+            'message' => 'Manager added successfully!',
             'row' => $newManager
         ]);
     }
@@ -124,7 +124,7 @@ class ManagerController extends Controller
             // Check if manager exists
             if (!$manager) {
                 return response()->json([
-                    "message" => "Teller not found!"
+                    "message" => "Manager not found!"
                 ], 404);
             }
     

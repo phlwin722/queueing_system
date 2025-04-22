@@ -110,6 +110,24 @@ class BranchController extends Controller
             'updated_at' => now(),
         ]);
 
+        // create service offer on branch
+        DB::table('types')
+            ->insert([
+                [
+                    'name' => 'Foreign Exchange',
+                    'indicator' => 'FE',
+                    'serving_time' => '10',
+                    'branch_id' => $branchID
+                ],
+                [
+                    'name' => 'Online Appointment',
+                    'indicator' => 'OA',
+                    'serving_time' => '10',
+                    'branch_id' => $branchID
+                ]
+          ]);
+
+
         // update the managers table on branch
         DB::table('managers')
             ->where('id',$request->manager_name)
@@ -136,7 +154,7 @@ class BranchController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Teller added successfully!',
+            'message' => 'Branch added successfully!',
             'row' => $newBranch
         ]);
     }
@@ -175,7 +193,7 @@ class BranchController extends Controller
             // Check if teller exists
             if (!$manager) {
                 return response()->json([
-                    "message" => "Teller not found!"    
+                    "message" => "Branch not found!"    
                 ], 404);
             }
 

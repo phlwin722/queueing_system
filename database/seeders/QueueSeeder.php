@@ -92,6 +92,7 @@ class QueueSeeder extends Seeder
         //You are inserting multiple records at once.
         Type::insert([
             [
+                'id' => '1',
                 'name' => 'Foreign Exchange', 
                 'indicator' => 'FE', 
                 'serving_time' => '10',
@@ -99,13 +100,31 @@ class QueueSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
-                'name' => 'Online Application', 
+                'id' => '2',
+                'name' => 'Online Appointment', 
                 'indicator' => 'OA', 
                 'serving_time' => '10',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
             [
+                'id' => '3',
+                'name' => 'Foreign Exchange', 
+                'indicator' => 'FE', 
+                'serving_time' => '10',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+            [
+                'id' => '4',
+                'name' => 'Online Appointment', 
+                'indicator' => 'OA', 
+                'serving_time' => '10',
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+            [
+                'id' => '5',
                 'name' => 'Deposit', 
                 'indicator' => 'DP', 
                 'serving_time' => '10',
@@ -113,6 +132,7 @@ class QueueSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
+                'id' => '6',
                 'name' => 'WithDrawal', 
                 'indicator' => 'WD',  
                 'serving_time' => '10',
@@ -120,6 +140,7 @@ class QueueSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
+                'id' => '7',
                 'name' => 'Money Tranfer', 
                 'indicator' => 'MT',  
                 'serving_time' => '10',
@@ -127,6 +148,7 @@ class QueueSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
+                'id' => '8',
                 'name' => 'Customer Service', 
                 'indicator' => 'CS',  
                 'serving_time' => '10',
@@ -336,7 +358,7 @@ class QueueSeeder extends Seeder
         // update type
         DB::table ('types')
             ->where('id','3')
-            ->update(['branch_id' => '2']);
+            ->update(['branch_id' => '1']);
 
         // update type
         DB::table ('types')
@@ -352,6 +374,16 @@ class QueueSeeder extends Seeder
         DB::table ('types')
         ->where('id','6')
         ->update(['branch_id' => '1']);
+
+        // update types
+        DB::table ('types')
+        ->where('id','7')
+        ->update(['branch_id' => '1']);
+
+        // update types
+        DB::table ('types')
+        ->where('id','8')
+        ->update(['branch_id' => '2']);
 
          // update types
          DB::table ('windows')
