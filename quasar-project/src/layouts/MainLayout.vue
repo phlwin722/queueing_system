@@ -692,6 +692,22 @@ export default defineComponent({
             icon: "currency_exchange",
             link: "/admin/currency_conversion",
           },
+          {
+          title: "Branch Appointment",
+          icon: "person",
+          children: [
+            {
+              title: "Appointment",
+              icon: "category",
+              link: "/admin/appointment/create",
+            },
+            {
+              title: "List Appointment",
+              icon: "groups",
+              link: "/admin/teller/tellers",
+            },
+          ],
+        },
 /*           {
             title: "Customer Logs",
             icon: "description",
@@ -725,11 +741,6 @@ export default defineComponent({
                 title: "Personal Info",
                 icon: "computer",
                 link: "/admin/settings",
-              },
-              {
-                title: "Reset Window",
-                icon: "reset_tv",
-                link: "/admin/reset-window",
               },
             ],
           },
@@ -786,6 +797,22 @@ export default defineComponent({
           title: "Currency Conversion",
           icon: "currency_exchange",
           link: "/admin/currency_conversion",
+        },
+        {
+          title: "Branch Appointment",
+          icon: "person",
+          children: [
+            {
+              title: "Appointment",
+              icon: "category",
+              link: "/admin/appointment/create",
+            },
+            {
+              title: "List Appointment",
+              icon: "groups",
+              link: "/admin/teller/tellers",
+            },
+          ],
         },
 /*         {
           title: "Customer Logs",

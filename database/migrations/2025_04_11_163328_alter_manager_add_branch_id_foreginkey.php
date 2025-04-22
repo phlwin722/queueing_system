@@ -87,12 +87,40 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
+        // foreign the window_archives branch id on branchs
+        Schema::table('window_archives', function (Blueprint $table) {
+            // add foreign key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
 
         Schema::table('qr_codes', function (Blueprint $table) {
             // add foreign key
             $table->foreign('branch_id')
                 ->references('id')
                 ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+        Schema::table('appointments', function (Blueprint $table) {
+
+            // add foreign key
+            $table->foreign('branch_id')
+                ->references('id')
+                ->on('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+
+
+        Schema::table('appointments', function (Blueprint $table) {
+            // add foreign key 
+            $table->foreign('type_id')
+                ->references('id')
+                ->on('types')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
@@ -135,6 +163,18 @@ return new class extends Migration
             $table->dropForeign(['branch_id']);
         });
         Schema::table('qr_codes', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('window_archives', function (Blueprint $table) {
+            $table->dropForeign(['branch_id']);
+        });
+
+        Schema::table('appointments', function (Blueprint $table) {
+            $table->dropForeign(['type_id']);
+        });
+
+        Schema::table('appointments', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
         });
     }

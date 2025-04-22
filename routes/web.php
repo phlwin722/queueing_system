@@ -20,7 +20,7 @@ use App\Http\Controllers\SurveyResponseController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ResetWindowSettingController;
-
+use App\Models\Appointment;
 
 /*
 |--------------------------------------------------------------------------
@@ -162,7 +162,13 @@ Route::post('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStat
 
 //online appointment
 Route::post('/appointments', [AppointmentController::class, 'store']);
-Route::get('/branches/{branchName}/slots', [AppointmentController::class, 'getSlots']);
+Route::post('/branches/slots', [AppointmentController::class, 'getSlots']);
+Route::post('/type/service',[AppointmentController::class, 'services']);
+Route::post('/apply_slots', [AppointmentController::class, 'apply_slots']);
+Route::post('/get_weekly_slots', [AppointmentController::class, 'getWeeklySlots']);
+Route::post('/validate/Appointment', [AppointmentController::class, 'validateAppointment']);
+Route::post('/cancel/Appointment', [AppointmentController::class, 'cancelAppointment']);
+Route::post('/update/Appointment', [AppointmentController::class, 'updateAppointment']);
 
 // Manager Routes
 Route::post('/manager/index', [ManagerController::class, 'index']);
