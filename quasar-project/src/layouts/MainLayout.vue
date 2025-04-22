@@ -785,12 +785,12 @@ export default defineComponent({
         },
         {
           title: 'Manager',
-          icon: 'groups',
+          icon: 'supervisor_account',
           link: '/admin/bank_manager'
         },
         {
           title: 'Branch',
-          icon: 'groups',
+          icon: 'account_balance',
           link: '/admin/branch'
         },
         {
@@ -800,17 +800,17 @@ export default defineComponent({
         },
         {
           title: "Branch Appointment",
-          icon: "person",
+          icon: "date_range",
           children: [
             {
               title: "Appointment",
-              icon: "category",
+              icon: "event",
               link: "/admin/appointment/create",
             },
             {
               title: "List Appointment",
-              icon: "groups",
-              link: "/admin/appointment/list",
+              icon: "event_note",
+              link: "/admin/teller/tellers",
             },
           ],
         },
