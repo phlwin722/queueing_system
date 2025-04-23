@@ -39,13 +39,11 @@
             class="q-mt-md"
           />
           <q-select
-            v-model="type_id"
+            v-model="selectId"
             :label="isServiceAvailable ? 'Service Available' : 'No Service Available'"
             transition-show="flip-up"
             transition-hide="flip-down"
             outlined
-            emit-value
-            map-options
             @update:modelValue="fecthCurrencty"  
             :error="formError.hasOwnProperty('type_id')"
             :error-message="formError.type_id"
@@ -154,7 +152,7 @@ export default {
     const route = useRoute(); // Use useRoute() correctly
     const token = ref(route.params.token); // Get token from URL
     const isUsedToken = ref(false);
-
+    const selectId = ref(null);
     const processQrCode = async () => {
       try {
         const temp = token.value
@@ -172,7 +170,6 @@ export default {
         $notify("negative", "error", "Invalid or already used QR code.");
       }
     };
-
     const joinQueue = async () => {
       isLoading.value = true;
       formError.value = [];
@@ -200,7 +197,7 @@ export default {
           .split(' ')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
           .join(' ');
-    
+          type_id.value = selectId.value.id
           const response = await $axios.post("/customer-join", {
             token: token.value,
             name: name.value,
@@ -237,9 +234,8 @@ export default {
       const { data } = await $axios.post("/types/filteredTypes", {
         branch_id: branch_id,
       });
-
       // Filter rows where type_id is NOT null
-      const filteredRows = data.rows.filter(row => row.type_id !== null && row.status == "Online");
+      const filteredRows = data.rows.filter(row => row.type_id !== null && row.status == "Online" && row.name !== "Online Appointment");
       console.log(filteredRows)
       if(filteredRows.length === 0){
         isServiceAvailable.value = false
@@ -247,7 +243,7 @@ export default {
         isServiceAvailable.value = true
       }
       // Log filtered type_id values
-      filteredRows.forEach(row => console.log(row.type_id + " " + row.status));
+      filteredRows.forEach(row => console.log(row.type_id + " " + row.name));
 
       // Assign only valid rows to categoriesList.value
       categoriesList.value = filteredRows;
@@ -260,9 +256,7 @@ export default {
 
     const fecthCurrencty = async (selectedValue) => {
     try {
-      
-      categoryForeignExchange.value = selectedValue;
-      if (selectedValue === 1) {
+      if (selectedValue.name === "Foreign Exchange") {
         const { data } = await $axios.post('/currency/showData');
 
         currentCiesList.value = data.rows
@@ -289,6 +283,7 @@ export default {
     onMounted(() => {
       processQrCode();
       fetchCategories();
+      
     });
 
     return {
@@ -307,7 +302,7 @@ export default {
       currentCiesList,
       prioritySelected,
       isServiceAvailable,
-
+      selectId,
       categoriesPriority: [
         'Elderly Customers', 
         'Pregnant Women', 

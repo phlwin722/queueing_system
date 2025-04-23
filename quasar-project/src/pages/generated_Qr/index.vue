@@ -134,7 +134,7 @@ import QrcodeVue from "qrcode.vue";
 import { $axios } from "boot/app";
 import { useQuasar } from "quasar";
 import { watch } from "vue";
-
+import { isFullscreen } from 'src/composables/fullscreenState';
 export default {
   components: { QrcodeVue },
   setup() {
@@ -196,7 +196,9 @@ export default {
     const originalFromBreak = ref("")
     const fetchBreakTime = async () => {
       try {
-        const { data } = await $axios.post("/admin/fetch_break_time");
+        const { data } = await $axios.post("/admin/fetch_break_time",{
+          branch_id: branch_id.value,
+        });
 
         if(fromBreak.value !== "" && toBreak.value !== ""){
           // ✅ Correctly assign break start & end times
@@ -247,6 +249,7 @@ export default {
     watch(
       () => $q.fullscreen.isActive,
       (val) => {
+        isFullscreen.value = val;
         console.log(val ? "In fullscreen now" : "Exited fullscreen");
       }
     );

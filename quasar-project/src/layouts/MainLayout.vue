@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
-    <q-header>
+    <q-header v-if = "shouldShowSideNav">
       <q-toolbar>
         <q-img
           src="~assets/vrtlogowhite1.png"
@@ -50,7 +50,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer
+    <q-drawer v-if = "shouldShowSideNav"
       v-model="drawer"
       show-if-above
       :mini="miniState"
@@ -336,7 +336,8 @@ import { date } from "quasar";
 import { useRouter } from "vue-router";
 import { $axios, $notify } from "src/boot/app";
 import { useQuasar } from "quasar";
-
+import { computed } from 'vue';
+import { isFullscreen } from 'src/composables/fullscreenState';
 export default defineComponent({
   name: "MainLayout",
 
@@ -352,7 +353,9 @@ export default defineComponent({
     const isQueuelistEmpty = ref(false);
     const $dialog = useQuasar();
     const linksList = ref([]);
-
+    const branch_id = ref(null);
+    const manager_id = ref(null)
+    const shouldShowSideNav = computed(() => !isFullscreen.value);
     const adminInformationContent = ref({
       id: "",
       Firstname: "",
@@ -432,7 +435,7 @@ export default defineComponent({
         console.log(error);
       }
     };
-
+    
     // Set an interval to update the time every second
     onMounted(() => {
       const storedAdminInfo = localStorage.getItem("adminInformation");
@@ -445,6 +448,8 @@ export default defineComponent({
         setInterval(updateFormattedTime, 1000); // Update every second
       } else if (storeManagerInfo) {
         adminInformation.value = JSON.parse(storeManagerInfo);
+        branch_id.value = adminInformation.value.branch_id
+        manager_id.value = adminInformation.value.id
         fetchAdminInformation();
         updateFormattedTime(); // Call it once on mount
         setInterval(fetchAdminInformation, 6000);
@@ -456,7 +461,10 @@ export default defineComponent({
     });
 
     // Logout function
-    const logout = () => {
+    const logout = async () => {
+      await $axios.post('/manager/logout',{
+          manager_id: manager_id.value,
+          });
       localStorage.removeItem("authTokenAdmin"); // Remove auth token
       localStorage.removeItem("adminInformation");
       localStorage.removeItem("authTokenManager"); // Remove auth token
@@ -512,9 +520,10 @@ export default defineComponent({
     
     const fetchBreakTime = async () => {
       try {
-        const { data } = await $axios.post("/admin/fetch_break_time");
+        const { data } = await $axios.post("/admin/fetch_break_time",{
+          branch_id: branch_id.value,
+        });
         console.log("Fetched Data:", data);
-
         if (data?.dataValue) {
           formDataBreak.break_to = data.dataValue.break_to.slice(0, 5)
           formDataBreak.break_from = data.dataValue.break_from.slice(0, 5)
@@ -555,9 +564,12 @@ export default defineComponent({
     const saveBreakTime = async () => {
       isLoading.value = true;
       try {
-        const endpoint = "/admin/break_time"; // Always use the same endpoint
-
-        const { data } = await $axios.post(endpoint, formDataBreak);
+        const payload = {
+          ...formDataBreak,
+          branch_id: branch_id.value, // manually include refID
+        };
+        console.log(branch_id.value) //outputs the actual branch id
+        const { data } = await $axios.post("/admin/break_time", payload);
         formError.value = {}; // Reset form errors
 
         if (data) {
@@ -568,7 +580,7 @@ export default defineComponent({
         if (error.response.status === 422) {
           formError.value = error.response.data; // Handle validation errors
         } else {
-          $notify("negative", "error", 'The "From" time must be earlier than the "To" time.');
+          $notify("negative", "error", 'catch error');
           console.error("Error", error.response ? error.response.data : error); // ✅ Prevent undefined errors
         }
       } finally {
@@ -900,6 +912,7 @@ export default defineComponent({
       isQueuelistEmpty,
       fetchQueue,
       resetQueue,
+      shouldShowSideNav,
       
 
       toggleLeftDrawer() {

@@ -885,7 +885,9 @@ export default {
     const onBreak = ref(false)
     const fetchBreakTime = async () => {
       try {
-        const { data } = await $axios.post("/admin/fetch_break_time");
+        const { data } = await $axios.post("/admin/fetch_break_time",{
+          branch_id: tellerInformation.value.branch_id,
+        });
         // ✅ Correctly assign break start & end times
         if(fromBreak.value !== "" && toBreak.value !== ""){
           fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
@@ -973,6 +975,7 @@ export default {
       await $axios.post("/teller/update-serving-time", {
         minutes: updatedServingTime,
         type_id: tellerInformation.value.type_id,
+        branch_id: tellerInformation.value.branch_id,
       });
     } catch (error) {
       console.error("Failed to fetch today's serving stats", error);
@@ -1048,19 +1051,32 @@ export default {
 
     const logout = async () => {
       try {
-        await $axios.post('/teller/logout',{
+        let isfinishServing = currentServing.value == null
+        console.log(isfinishServing)
+        if (isfinishServing == false) {
+          $notify(
+            "negative",
+            "error",
+            "Please finish serving before logging out."
+          );
+          return;
+        }else{
+          await $axios.post('/teller/logout',{
           teller_id: tellerInformation.value.id,
-          type_id: tellerInformation.value.type_id
-        });
-        localStorage.removeItem("authTokenTeller");
-        localStorage.removeItem("tellerInformation");
-        polling = false;
-        fetchWaitingtimepolling = false;
-        // fetchIdPolling = false;
-        router.push("/login");
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
+          type_id: tellerInformation.value.type_id,
+          branch_id: tellerInformation.value.branch_id,
+          });
+          localStorage.removeItem("authTokenTeller");
+          localStorage.removeItem("tellerInformation");
+          polling = false;
+          fetchWaitingtimepolling = false;
+          // fetchIdPolling = false;
+          router.push("/login");
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
+        }
+       
       } catch (error) {
         if (error.response.status === 400) {
           $notify('negative','error',error.response.data.message)

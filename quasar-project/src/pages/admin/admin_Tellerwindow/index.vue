@@ -63,7 +63,8 @@
               </q-tooltip>
             </q-btn>
           </div>
-          <div class="col-auto">
+          <!-- v-if="!adminInformation" -->
+          <div  class="col-auto">
             <q-btn
               color="warning"
               icon="reset_tv"
@@ -297,26 +298,55 @@ export default defineComponent({
       const hasAssignedTellers = rows.value.some(
         (row) => row.teller_id !== null
       );
+      if(adminInformation.value && adminInformation.value.branch_id != null){
+        console.log("manager")
+        console.log(adminInformation.value.branch_id)
 
-      if (!hasAssignedTellers) {
+        if (!hasAssignedTellers) {
         $notify("warning", "info", "All windows are already reset.");
         return;
-      }
+        }
 
-      try {
-          const { data } = await $axios.post("/windows/reset-windows",{
-            branch_id: branch_name.value
-          });
-          $notify("positive", "check", data.message);
-        await getTableData();
-      } catch (error) {
-        console.log("Error:", error.response?.data || error);
-        $notify(
-          "negative",
-          "error",
-          error.response?.data?.message || "Failed to reset windows"
-        );
+        try {
+            const { data } = await $axios.post("/windows/reset-windows",{
+              branch_id: adminInformation.value.branch_id
+            });
+            $notify("positive", "check", data.message);
+          await getTableData();
+        } catch (error) {
+          console.log("Error:", error.response?.data || error);
+          $notify(
+            "negative",
+            "error",
+            error.response?.data?.message || "Failed to reset windows"
+          );
+        }
+      }else{
+        console.log("super")
+        if (!hasAssignedTellers) {
+        $notify("warning", "info", "All windows are already reset.");
+        return;
+        }
+
+        try {
+            const { data } = await $axios.post("/windows/reset-windows",{
+              branch_id: branch_name.value
+            });
+            $notify("positive", "check", data.message);
+          await getTableData();
+        } catch (error) {
+          console.log("Error:", error.response?.data || error);
+          $notify(
+            "negative",
+            "error",
+            error.response?.data?.message || "Failed to reset windows"
+          );
+        }
       }
+      
+
+
+      
     };
 
     const handleShowForm = (mode, row) => {

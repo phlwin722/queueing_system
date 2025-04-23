@@ -26,7 +26,8 @@ class QueueController extends Controller
                        ->where('type_id', $type_id)        // Filters by 'type_id' for the current window type.
                        ->where('status', 'Online')       // Filters to only include tellers who are online.
                        ->where('branch_id', $branch_id) // Filters by the branch ID.
-                       ->pluck('teller_id');              // Retrieves an array of teller IDs.
+                       ->pluck('teller_id')              // Retrieves an array of teller IDs.
+                       ->values(); // ensure it's indexed by 0, 1, 2...
     
         // If no tellers are found, return a 400 error with an appropriate message.
         if ($tellers->isEmpty()) {
@@ -35,33 +36,37 @@ class QueueController extends Controller
             ], 400);  // HTTP status code 400 for a bad request.
         }
     
+        // Get last teller used for this branch/type combo
+        $lastTellerData = DB::table('round_robin_trackers')
+        ->where('branch_id', $branch_id)
+        ->where('type_id', $type_id)
+        ->first();
+
         // Initialize an empty array to track how many customers each teller has assigned.
-        $tellerCount = [];
+        $nextTellerId = null;
     
         // Loop through each teller to count how many active customers (not finished) are assigned to them.
-        foreach ($tellers as $tellerID) {
-            // Count customers for each teller (those whose status is not 'finished').
-            $assignedCount = DB::table('queues')
-                                ->where('type_id', $type_id)        // Filters by the 'type_id' of the service.
-                                ->where('teller_id', $tellerID)     // Filters by each 'teller_id'.
-                                ->where('branch_id', $branch_id) // Filters by the branch ID.
-                                ->where('status', '!=', 'finished') // Excludes customers with a 'finished' status.
-                                ->count();                         // Counts how many customers meet the criteria.
-            $tellerCount[$tellerID] = $assignedCount;  // Stores the count of assigned customers for each teller.
-        }
-    
-        // Filters out tellers who have less than 1 customer assigned to them.
-        $availableTellers = array_filter($tellerCount, function($count) {
-            return $count < 1;  // Returns tellers with less than 1 active customer.
-        });
-    
-        // If all tellers are at the limit (i.e., have 1 or more assigned customers), choose a random teller.
-        if (count($availableTellers) === 0) {
-            $assignedTellerId = $tellers->random(); // Randomly selects a teller from the list.
+        if ($lastTellerData) {
+            $lastIndex = $tellers->search($lastTellerData->last_teller_id);
+            $nextIndex = ($lastIndex === false || $lastIndex === $tellers->count() - 1) ? 0 : $lastIndex + 1;
+            $nextTellerId = $tellers[$nextIndex];
+        
+            // Update tracker
+            DB::table('round_robin_trackers')
+                ->where('branch_id', $branch_id)
+                ->where('type_id', $type_id)
+                ->update(['last_teller_id' => $nextTellerId]);
         } else {
-            // If there are tellers available with less than 1 customer, assign the one with the least load.
-            $assignedTellerId = array_search(min($availableTellers), $availableTellers); // Finds the teller with the minimum assigned customers.
+            $nextTellerId = $tellers[0];
+            // Create tracker entry
+            DB::table('round_robin_trackers')->insert([
+                'branch_id' => $branch_id,
+                'type_id' => $type_id,
+                'last_teller_id' => $nextTellerId
+            ]);
         }
+        
+        $assignedTellerId = $nextTellerId;
     
         // Retrieve the last queue number for the specific 'type_id' and 'assignedTellerId', ordered by the most recent.
         $lastQueue = DB::table('queue_numbers')
