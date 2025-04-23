@@ -107,12 +107,13 @@ class ServingTimeController extends Controller
     public function updateServingTime(Request $request){
         $minutes = $request->minutes;
         $type_id = $request->type_id;
-
+        $branch_id = $request->branch_id;
 
 
         if ($minutes !== 0) {
             DB::table('types')
                 ->where('id', $type_id)
+                ->where('branch_id', $branch_id) // Ensure the branch_id matches
                 ->update(['serving_time' => $minutes]);
         }
     }
@@ -120,8 +121,11 @@ class ServingTimeController extends Controller
     public function updateAllServingTime(Request $request)
     {
         // Get all the type IDs
-        $type_ids = DB::table('types')->pluck('id');
-
+        $branch_id = $request->input('branch_id');
+        $type_ids = DB::table('types')
+        ->where('branch_id', $branch_id)
+        ->pluck('id');
+        
         // Get yesterday's date
         $yesterday = Carbon::yesterday();
 
@@ -129,6 +133,7 @@ class ServingTimeController extends Controller
         $stats = DB::table('serving_times')
             ->whereIn('type_id', $type_ids) // Filter by the selected type_ids
             ->whereDate('updated_at', $yesterday) // Filter by yesterday's date
+            ->where('branch_id', $branch_id) // Filter by branch_id
             ->selectRaw('type_id, AVG(minutes) as avg_minutes') // Select type_id and average minutes
             ->groupBy('type_id') // Group by type_id to get the average per type
             ->get();
@@ -141,6 +146,7 @@ class ServingTimeController extends Controller
             if ($stat && $stat->avg_minutes !== null) {
                 DB::table('types')
                     ->where('id', $type_id)
+                    ->where('branch_id', $branch_id) // Ensure the branch_id matches
                     ->update(['serving_time' => $stat->avg_minutes]);
             }
         }

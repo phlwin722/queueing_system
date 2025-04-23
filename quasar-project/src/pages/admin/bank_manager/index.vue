@@ -76,7 +76,7 @@
       <template v-slot:body-cell-status="props">
         <q-td :props="props">
           <q-badge
-            :color="props.row.manager_status === 'Active' ? 'green' : 'red'" 
+            :color="props.row.manager_status === 'Online' ? 'green' : 'red'" 
           >
             {{ props.row.manager_status === null ? 'Offline' : props.row.manager_status}}  <!-- Display the status text -->
           </q-badge>
@@ -133,7 +133,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, onMounted, ref, onUnmounted } from "vue";
 import { $axios, $notify } from "boot/app";
 import MyForm from "pages/admin/bank_manager/form.vue";
 import { useQuasar } from "quasar";
@@ -201,7 +201,6 @@ export default defineComponent({
         console.log(error);
       }
     };
-    getTableData();
 
     const handleShowForm = (mode, row) => {
       dialogForm.value.showDialog(mode, row);
@@ -267,8 +266,20 @@ export default defineComponent({
         console.error("Error fetching manager types:", error);
       }
     };
+    let dataTimeout;
+    const optimizedFetchData = async () => {
+          await getTableData()
+          dataTimeout = setTimeout(optimizedFetchData, 5000); // Recursive Timeout
+        };
 
-    getTypes();
+    onMounted(() => {
+      optimizedFetchData()
+      getTypes()
+    });
+
+    onUnmounted(() => {
+          clearTimeout(dataTimeout)
+        });
 
     return {
       rows,

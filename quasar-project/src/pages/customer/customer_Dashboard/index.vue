@@ -31,7 +31,7 @@
             </q-tooltip>
           </q-btn>
 
-          <q-btn
+          <q-btn v-if="queuePosition != 0 && customerStatus != 'serving'"
             @click="showSwitchDialog()"
             color="green-10"
             icon="switch_account"
@@ -711,6 +711,7 @@ const fetchBreakTime = async () => {
   try {
     const { data } = await $axios.post("/admin/fetch_break_time", {
       last_updated: fetchBreakTimeLastUpdatedAt.value,
+      branch_id: userInformation.value.branch_id,
     });
 
     if (!data.updated) return; // Skip if no update

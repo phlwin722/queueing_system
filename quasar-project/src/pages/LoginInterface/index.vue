@@ -100,8 +100,8 @@ export default {
             "/manager/validate",
             formData.value
           );
+          console.log(data.result)
           if (data.result === "manager") {
-            if (data.managerInformation.manager_status === 'Active') {
               // Store token in localStorage instead of localStorage
               localStorage.setItem("authTokenManager", data.token);
               localStorage.setItem(
@@ -110,9 +110,6 @@ export default {
               );
 
               router.push("/admin/dashboard"); // Change the path to your desired route
-            }else {
-              $notify('negative','error','Your account is deactivated please aware the admin')
-            }
           }else {
             const { data } = await $axios.post(
               "/teller/validate",
@@ -144,7 +141,7 @@ export default {
           // Reset formError to an empty object after successful validation
           formError.value = {}; // Clear error messages
 
-          $notify("negative", "error", "Invalid username or password");
+          $notify("negative", "error", error.response.data.error);
         } else if (error.response.status === 400) {
           $notify("negative", "error", "Invalid credentials");
         } else {

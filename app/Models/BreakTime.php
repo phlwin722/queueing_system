@@ -10,5 +10,6 @@ class BreakTime extends Model
     protected $fillable = [
         'break_from', 
         'break_to',
+        'branch_id'
     ];
 }

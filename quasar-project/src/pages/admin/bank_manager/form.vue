@@ -118,8 +118,8 @@
                                     :error-message="formError.manager_password"
                                 />
                             </div>
-
-                            <!-- Status -->
+<!-- 
+                            Status
                             <div class="col-12">
                                 <q-select
                                     outlined 
@@ -133,7 +133,7 @@
                                     emit-value
                                     map-options
                                 />
-                                </div>
+                                </div> -->
                             
                             <!-- File Upload -->
                             <div class="col-12">
@@ -287,9 +287,10 @@ export default defineComponent({
             try {
                 // If updating and a new password is provided, update the password in formData
                 if (mode === '/update') {
-                    if (formDataPassword.value.manager_newPassword !== ''){
+                    if (formDataPassword.value.manager_newPassword == '' && formDataPassword.value.manager_retypepassword == '') {
+                        formData.value.manager_password = "oldpass" 
+                    }else{
                         formData.value.manager_password = formDataPassword.value.manager_newPassword;
-                    
                     }
 
                     // check if selectedImage has not null

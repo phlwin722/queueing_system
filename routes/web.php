@@ -179,6 +179,7 @@ Route::post('/manager/create', [ManagerController::class, 'create']);
 Route::post('/manager/update', [ManagerController::class, 'update']);
 Route::post('/manager/delete', [ManagerController::class, 'delete']);
 Route::post('/manager/image',[ManagerController::class,'fetchImage']);
+Route::post('/manager/logout',[ManagerController::class,'managerLogout']);
 Route::post('/manager/validate',[ManagerController::class, 'validationLoginManager']);
 
 // Branch Routes
