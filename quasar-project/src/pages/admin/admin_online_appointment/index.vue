@@ -7,8 +7,8 @@
           <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
           <q-breadcrumbs-el label="Branch Appointment" icon="person" />
           <q-breadcrumbs-el
-            label="Appoitnemnt"
-            icon="groups"
+            label="Appointment"
+            icon="event"
             to="/admin/appointment/create"
           />
         </q-breadcrumbs>
@@ -112,6 +112,7 @@ import { QSelect, QInput, QBtn, QCard, QCardSection, QTable, QForm } from 'quasa
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { $notify } from 'src/boot/app';
 
 export default {
   name: 'AdminDashboard',
@@ -159,6 +160,7 @@ export default {
     // Apply slots for the entire week (Monday to Friday) for the selected branch
     const applySlotsForWeek = async () => {
       try {
+        formError.value = {}
         // Send request to backend to apply available slots to all days
         const response = await axios.post('/apply_slots', {
             branch_id: selectedBranch.value,
@@ -168,8 +170,12 @@ export default {
             time: form.value.time,
         });
 
-        // Refresh the weekly slots display
-        fetchWeeklySlots();
+        if (response.data.message) {
+          $notify('positive','check',response.data.message)
+          // Refresh the weekly slots display
+          fetchWeeklySlots();
+        }
+
       } catch (error) {
         if (error.response.status === 422) {
           formError.value = error.response.data.errors

@@ -199,6 +199,7 @@ export default {
           .join(' ');
           type_id.value = selectId.value.id
           const response = await $axios.post("/customer-join", {
+
             token: token.value,
             name: name.value,
             email: email.value,
@@ -309,7 +310,6 @@ export default {
         'People with Disabilities', 
         'Premium Customers', 
         'Parents with Young Children', 
-        'Queue-Free Services'
       ]
     };
   },

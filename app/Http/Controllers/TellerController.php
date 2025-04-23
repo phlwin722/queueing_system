@@ -747,6 +747,7 @@ class TellerController extends Controller
                     ->leftJoin('windows as w', 'w.teller_id', '=', 't.id') // Join with windows table
                     ->select('t.id', 't.teller_firstname', 't.teller_lastname', 'w.window_name')
                     ->where('t.type_id', $type->type_id)
+                    ->where('t.branch_id', $request->branch_id)
                     ->get(); // No filtering for null, so we get all tellers
 
                 $currency = DB::table('currencies')->get();
