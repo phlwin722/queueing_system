@@ -30,6 +30,8 @@
                     option-label="branch_name"
                     option-value="id"
                     filled
+                    :error="formError.hasOwnProperty('branch_id')"
+                    :error-message="formError.branch_id? 'The select branch field cannot be blank' :''"
                     required
                     dense
                   />

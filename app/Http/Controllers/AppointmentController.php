@@ -27,8 +27,8 @@ class AppointmentController extends Controller
 
         $referenceNumber = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 10)), 0, 10);
 
-        DB::table('appointments')
-                    ->insert([
+        $id = DB::table('appointments')
+                    ->insertGetId([
                         'referenceNumber' => $referenceNumber,
                         'branch_id' => $request->branch_id,
                         'name' => $request->name,
@@ -54,7 +54,11 @@ class AppointmentController extends Controller
                 ->where('date', $request->appointment_date)
                 ->update(['is_available' => $slot->is_available - 1]);
 
-            return response()->json(['message' => 'Slot successfully booked']);
+            return response()->json([
+                'message' => 'Slot successfully booked',
+                'id' => $id,
+                'referenceNumber' => $referenceNumber,
+            ]);
         } else {
             return response()->json(['error' => 'No available slots left, please select available slot'], 400);
         }
@@ -187,9 +191,22 @@ class AppointmentController extends Controller
                                 ->where('referenceNumber', $request->referenceNum)
                                 ->first();
             if ($checkingReference) {
-                return response()->json([
-                    'reference' => $checkingReference
-                ]);
+                if ($checkingReference->status == 'Booked') {
+                    $dateNow = Carbon::now()->toDateString();
+                    if ($checkingReference->appointment_date === $dateNow) {
+                        return response()->json([
+                            'reference' => $checkingReference
+                        ]);
+                    }else {
+                        return response()->json([
+                            'error' => "We regret to inform you that the appointment set for {$checkingReference->appointment_date} is no longer valid."
+                        ],400);
+                    }
+                }else {
+                    return response()->json([
+                        'error' => 'The reference number has already been completed.'
+                    ],400);
+                }
             }else {
                 return response()->json([
                     'error' => 'The reference number could not be found. Please check your email and try again.'

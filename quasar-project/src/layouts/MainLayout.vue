@@ -678,6 +678,11 @@ export default defineComponent({
             ],
           },
           {
+            title: "Archive",
+            icon: "archive",
+            link: "/admin/archive",
+          },
+          {
             title: "Generated QrCode",
             icon: "qr_code_2",
             link: "/queue-qr",
@@ -773,11 +778,11 @@ export default defineComponent({
             },
           ],
         },
-  /*       {
+        {
           title: "Archive",
           icon: "archive",
           link: "/admin/archive",
-        }, */
+        },
         {
           title: "Admin Queue",
           icon: "admin_panel_settings",

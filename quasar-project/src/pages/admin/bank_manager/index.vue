@@ -76,7 +76,7 @@
       <template v-slot:body-cell-status="props">
         <q-td :props="props">
           <q-badge
-            :color="props.row.manager_status === 'Active' ? 'green' : 'red'" 
+            :color="props.row.manager_status === 'Online' ? 'green' : 'red'" 
           >
             {{ props.row.manager_status === null ? 'Offline' : props.row.manager_status}}  <!-- Display the status text -->
           </q-badge>
@@ -220,13 +220,16 @@ export default defineComponent({
         }
         selected.value.splice(0, selected.value.length);
       } catch (error) {
-        console.error("Error deleting managers:", error);
-        $notify("negative", "error", error.response.data.message);
+        if (error.response.status === 422) {
+          $notify("negative", "error", error.response.data.error);
+        }else if (error.response.status === 400) {
+          $notify('negative', 'error', error.response.data.error)
+        }
       }
     };
 
     const beforeDelete = (isMany, row) => {
-     const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
+     const ids = isMany ? selected.value.map((x) =>  x.id) : [row.id];
       const itemName = isMany ? 'all managers' : `${row.manager_firstname} ${row.manager_lastname}`
       $dialog
         .dialog({

@@ -19,8 +19,9 @@ return new class extends Migration
             $table->string('teller_username')->unique();
             $table->string('teller_password');
             $table->foreignId('type_id')
-            ->nullable()
-            ->constrained('types');
+                    ->nullable()
+                    ->constrained('types')
+                    ->onDelete('cascade');
             $table->string('type_ids_selected')->nullable();
             $table->string('Image')->nullable();
             $table->unsignedBigInteger('branch_id')->nullable();

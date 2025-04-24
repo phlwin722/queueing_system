@@ -41,7 +41,7 @@
                 self="center right"
                 :offset="[10, 10]"
               >
-                <strong>Add </strong> Manager
+                <strong>Add </strong> Branch
               </q-tooltip>
             </q-btn>
           </div>
@@ -61,7 +61,7 @@
                 self="center left"
                 :offset="[10, 10]"
               >
-                <strong>Delete </strong> Manager
+                <strong>Disable </strong> Branch
               </q-tooltip>
             </q-btn>
           </div>
@@ -123,7 +123,7 @@
                 :offset="[10, 10]"
                 class="bg-secondary"
               >
-                Delete Branch
+              Disable Branch
               </q-tooltip>
             </q-btn>
           </div>
@@ -253,7 +253,7 @@ export default defineComponent({
       $dialog
         .dialog({
           title: "Confirm",
-          message: `Are you sure you want to delete ${itemNames}?`,
+          message: `Are you sure you want to disable ${itemNames}?`,
           cancel: true,
           persistent: true,
           ok: {

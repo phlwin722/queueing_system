@@ -101,7 +101,7 @@ export default {
             formData.value
           );
           if (data.result === "manager") {
-            if (data.managerInformation.manager_status === 'Active') {
+            if (data.managerInformation.manager_status === 'Online') {
               // Store token in localStorage instead of localStorage
               localStorage.setItem("authTokenManager", data.token);
               localStorage.setItem(

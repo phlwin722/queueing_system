@@ -240,14 +240,45 @@ class BranchController extends Controller
     public function delete(Request $request){
         try {
             // check if existing the id on manager
-            $hasExisting = DB::table('managers')
+            $hasExistingManager = DB::table('managers')
                             ->whereIn('branch_id', $request->ids)
                             ->exists();
-            if ($hasExisting) {
+            if ($hasExistingManager) {
                 return response()->json([
-                    "message" => "Cannot delete branch. One or more managers are assigned to this branch."
+                    "message" => "Cannot disable branch. One or more managers are assigned to this branch."
                 ],400);
             }
+
+            // check if existing the id on teller
+            $hasExistingTeller = DB::table('tellers')
+                                ->whereIn('branch_id', $request->ids)
+                                ->exists();
+            if ($hasExistingTeller) {
+                return response()->json([
+                    "message" => "Cannot disable branch. One or more teller are assigned to this branch."
+                ],400);
+            }
+
+            // check if existing the id on teller
+            $hasExistingTypes = DB::table('types')
+                                ->whereIn('branch_id', $request->ids)
+                                ->exists();
+            if ($hasExistingTypes) {
+                return response()->json([
+                    "message" => "Cannot disable branch. One or more service types are assigned to this branch."
+                ],400);
+            }
+
+            // check if existing the id on teller
+            $hasExistingWindow = DB::table('windows')
+                                ->whereIn('branch_id', $request->ids)
+                                ->exists();
+            if ($hasExistingWindow) {
+                return response()->json([
+                    "message" => "Cannot disable branch. One or more teller are assigned to this branch."
+                ],400);
+            }
+
             // Delete the branches
             $delete = DB::table('branchs')
                 ->whereIn('id', $request->ids)
@@ -255,7 +286,7 @@ class BranchController extends Controller
 
             if ($delete) {
                 return response()->json([
-                    "message" => "Successfully Deleted!"
+                    "message" => "Successfully disable!"
                 ]);
             }
         } catch (\Exception $e) {
