@@ -29,7 +29,6 @@ class ManagerRequest extends FormRequest
             'manager_lastname' => ['required', 'regex:/^[a-zA-Z\s]+$/'],
             'manager_username' => ['required','unique:managers,manager_username,' . $id . ',id'],
             'manager_password' => ['required'],
-            'manager_status' => ['required'],
             'Image' => ['required'],
         ];
     }

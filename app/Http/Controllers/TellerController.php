@@ -277,7 +277,7 @@ class TellerController extends Controller
             $teller->branch_id = $request->branch_id;
 
             // Update password only if provided
-            if ($request->filled('teller_password')) {
+            if ($request->teller_password != "oldpass") {
                 $teller->teller_password = Hash::make($request->teller_password);
             }
 
@@ -643,6 +643,7 @@ class TellerController extends Controller
             // Extract the teller_id and type_id from the incoming request.
             $teller_id = $request->teller_id;
             $type_id = $request->type_id;
+            $branch_id = $request->branch_id;
     
             // Update the status of the teller to 'Offline' when they log out.
             DB::table('windows')
@@ -664,6 +665,7 @@ class TellerController extends Controller
                 // Fetch all tellers who are signed in and assigned to this type of service (type_id).
                 $tellers = DB::table('windows')
                     ->where('type_id', $type_id)       // Find tellers for this specific type of service.
+                    ->where('branch_id', $branch_id)   // Filter by branch ID.
                     ->where('status', 'Online')      // Filter only tellers who are currently signed in.
                     ->pluck('teller_id');              // Get a list of teller IDs.
     
@@ -677,6 +679,7 @@ class TellerController extends Controller
                 // Get the last assigned queue for this type of service, ordered by the most recent.
                 $lastAssigned = DB::table('queues')
                                 ->where('type_id', $type_id)       // Filter by the type_id of the service.
+                                ->where('branch_id', $branch_id)   // Filter by branch ID.
                                 ->orderBy('created_at', 'desc')    // Sort by creation date, getting the latest assigned queue.
                                 ->first();                         // Retrieve only the most recent entry.
     
@@ -689,7 +692,7 @@ class TellerController extends Controller
                     // Get the teller ID at the calculated index.
                     $assignedTellerId = $tellers[$nextTellerIndex];
                 }
-                 else {
+                else {
                     // If no tellers are available, return an error message.
                     return response()->json([
                         'message' => 'Please log in some tellers or finish the pending customers'  // No tellers available for round-robin assignment
@@ -700,6 +703,7 @@ class TellerController extends Controller
                 $lastQueuenumber = DB::table('queue_numbers')
                     ->where('type_id', $type_id)                    // Filter by the type_id of the service.
                     ->where('teller_id', $assignedTellerId)         // Filter by the assigned teller.
+                    ->where('branch_id', $branch_id)                // Filter by branch ID.
                     ->where('status', '!=', 'finished')             // Only consider active queues (exclude 'finished' status).
                     ->orderBy('queue_number', 'desc')               // Sort by queue number in descending order to get the most recent one.
                     ->first();                                      // Get the first (latest) entry.

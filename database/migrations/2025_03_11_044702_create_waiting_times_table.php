@@ -14,7 +14,8 @@ return new class extends Migration {
             $table->id();
             $table->integer('Waiting_time');
             $table->timestamps();
-            $table->unsignedBigInteger('branch_id')->nullable();
+            $table->unsignedBigInteger('branch_id')
+                ->nullable();
         });
     }
 

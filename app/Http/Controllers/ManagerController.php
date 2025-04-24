@@ -38,7 +38,7 @@ class ManagerController extends Controller
             'manager_lastname' => $request->manager_lastname,
             'manager_username' => $request->manager_username,
             'manager_password' => Hash::make($request-> manager_password),
-            'manager_status' => $request->manager_status,
+            'manager_status' => 'Offline',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -133,10 +133,9 @@ class ManagerController extends Controller
             $manager->manager_firstname = $request->manager_firstname;
             $manager->manager_lastname = $request->manager_lastname;
             $manager->manager_username = $request->manager_username;
-            $manager->manager_status = $request->manager_status;
     
             // Update password only if provided
-            if ($request->filled('manager_password')) {
+            if ($request->manager_password != "oldpass") {
                 $manager->manager_password = Hash::make($request->manager_password);
             }
     
@@ -264,34 +263,57 @@ class ManagerController extends Controller
         $manager = DB::table('managers')
             ->where('manager_username', $request->Username)
             ->first();
-
-            if ($manager) {
-                 // Check if the admin exists and if the provided password matches the stored hashed password
-                 if (!$manager || !Hash::check($request->Password, $manager->manager_password)) {
-                    // If the username doesn't exist or the password is incorrect, return an error response
+            
+                if ($manager) {
+                    // Check if the admin exists and if the provided password matches the stored hashed password
+                    if (!$manager || !Hash::check($request->Password, $manager->manager_password)) {
+                        // If the username doesn't exist or the password is incorrect, return an error response
+                        return response()->json([
+                            'error' => 'Incorrect password'
+                        ],401);
+                    }else if( $manager->branch_id == null){
+                        // If the manager is not assigned to a branch, return an error response
+                        return response()->json([
+                            'error' => 'Manager not assigned to a branch'
+                        ], 401);
+                    }
+    
+                    // Generate a simple authentication token (or use Laravel Sanctum for better security)
+                    $token = base64_encode(Str::random(40));
+                    DB::table('managers')
+                    ->where('id', $manager->id)
+                    ->update(['manager_status' => 'Online']);
+                    // If authentication is successful, return a success response
                     return response()->json([
-                        'error' => 'Invalid Credentials'
-                    ],401);
-                 }
+                        'managerInformation' => [
+                            'id' => $manager->id,
+                            'manager_firstname' => $manager->manager_firstname,
+                            'manager_lastname' => $manager->manager_lastname,
+                            'manager_username' => $manager->manager_username,
+                            'Image' => $manager->Image,
+                            'manager_status' => $manager->manager_status,
+                            'branch_id' => $manager->branch_id,
+                            'token' => $token,
+                        ],
+    
+                        'result' => 'manager'
+                    ]);
+                } else {
+                    // If the username doesn't exist, return an error response
+                    return response()->json([
+                        'result' => 'teller'
+                    ]);
+                }
+        }
+    
 
-                // Generate a simple authentication token (or use Laravel Sanctum for better security)
-                $token = base64_encode(Str::random(40));
+        public function managerLogout(Request $request) {
+            $manager = DB::table('managers')
+                ->where('id', $request->manager_id)
+                ->update(['manager_status' => 'Offline']);
 
-                // If authentication is successful, return a success response
-                return response()->json([
-                    'managerInformation' => [
-                        'id' => $manager->id,
-                        'manager_firstname' => $manager->manager_firstname,
-                        'manager_lastname' => $manager->manager_lastname,
-                        'manager_username' => $manager->manager_username,
-                        'Image' => $manager->Image,
-                        'manager_status' => $manager->manager_status,
-                        'branch_id' => $manager->branch_id,
-                        'token' => $token,
-                    ],
-
-                    'result' => 'manager'
-                ]);
-            }
+            return response()->json([
+                'message' => 'Logout successful'
+            ]);
         }
 }

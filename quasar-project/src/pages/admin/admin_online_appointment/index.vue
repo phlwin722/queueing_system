@@ -1,123 +1,145 @@
- 
-
 <template>
-    <q-page class="q-px-sm" style="height: auto; min-height: unset">
-      <div class="q-ma-md bg-white q-pa-sm shadow-1">
-        <q-breadcrumbs class="q-mx-sm">
-          <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
-          <q-breadcrumbs-el label="Branch Appointment" icon="person" />
-          <q-breadcrumbs-el
-            label="Appointment"
-            icon="event"
-            to="/admin/appointment/create"
-          />
-        </q-breadcrumbs>
-      </div>
-      <q-card class="q-ma-md" flat bordered>
-            <q-card-section>
-              <div class="text-h6">Available Slots Configuration</div>
+  <q-page class="q-px-sm" style="height: auto; min-height: unset">
+    <div class="q-ma-md bg-white q-pa-sm shadow-1">
+      <q-breadcrumbs class="q-mx-sm">
+        <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
+        <q-breadcrumbs-el label="Branch Appointment" icon="person" />
+        <q-breadcrumbs-el
+          label="Appoitnemnt"
+          icon="groups"
+          to="/admin/appointment/create"
+        />
+      </q-breadcrumbs>
+    </div>
+    <q-card class="q-ma-md" flat bordered>
+      <q-card-section>
+        <div class="text-h6 q-mb-md">Available Slots Configuration</div>
+        <q-form @submit.prevent="applySlotsForWeek">
+          <div class="">
+            <!-- Branch Selection -->
+            <q-select
+              v-if="!adminManagerInformation"
+              v-model="selectedBranch"
+              :options="branches"
+              label="Select Branch"
+              map-options
+              emit-value
+              option-label="branch_name"
+              option-value="id"
+              filled
+              required
+              dense
+            />
 
-              <!-- Slot Configuration Form -->
-              <q-form @submit.prevent="applySlotsForWeek">
-                <div class="q-gutter-md">
-                  <q-select
-                    v-if="!adminManagerInformation"
-                    v-model="selectedBranch"
-                    :options="branches"
-                    label="Select Branch"
-                    map-options
-                    emit-value
-                    option-label="branch_name"
-                    option-value="id"
-                    filled
-                    :error="formError.hasOwnProperty('branch_id')"
-                    :error-message="formError.branch_id? 'The select branch field cannot be blank' :''"
-                    required
-                    dense
-                  />
-
-                  <!-- Input to select the start and end date -->
-                    <q-input
-                        v-model="form.startDate"
-                        label="Start Date (MM-DD-YYYY)"
-                        outlined
-                        dense
-                        type="date"
-                        mask="date"
-                        :error="formError.hasOwnProperty('start_date')"
-                        :error-message="formError.start_date ? formError.start_date[0]: ''"
-                    />
-
-                    <q-input
-                        v-model="form.endDate"
-                        label="End Date (MM-DD-YYYY)"
-                        outlined
-                        type="date"
-                        dense
-                        mask="date"
-                        :error="formError.hasOwnProperty('end_date')"
-                        :error-message="formError.end_date ? formError.end_date[0] : ''"
-                    />
-
-                  <q-input 
-                    v-model="form.time" 
-                    label="Prepared Time" 
-                    outlined 
-                    dense type="time"
-                     mask="time"
-                     :error="formError.hasOwnProperty('time')"
-                     :error-message="formError.time ? formError.time[0] : ''"
-                     >
-                    <template v-slot:append>
-                      <q-icon name="access_time" class="cursor-pointer">
-                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                          <q-time v-model="form.time">
-                            <div class="row items-center justify-end">
-                              <q-btn v-close-popup label="Close" color="primary" flat />
-                            </div>
-                          </q-time>
-                        </q-popup-proxy>
-                      </q-icon>
-                    </template>
-                  </q-input>
-
+            <!-- Date Picker -->
+            <VDatePicker
+              v-model="range"
+              is-range
+              mode="date"
+              :is-date-disabled="checkDate"
+              :attributes="attributes"
+              color="blue"
+              :min-date="new Date()"
+              :columns="columns"
+              expanded
+              class="q-my-md"
+            >
+              <template #default="{ inputValue, inputEvents }">
+                <div class="flex justify-center items-center gap-2">
                   <q-input
-                    v-model="newSlotCount"
-                    label="Available Slots per Day"
-                    type="number"
-                    filled
+                    v-model="inputValue.start"
+                    v-on="inputEvents.start"
                     dense
-                    required
+                    outlined
+                    label="Start Date"
                   />
-
-                  <q-btn label="Apply Slots" color="primary" type="submit" />
+                  <q-icon name="arrow_forward" class="q-mx-sm" />
+                  <q-input
+                    v-model="inputValue.end"
+                    v-on="inputEvents.end"
+                    dense
+                    outlined
+                    label="End Date"
+                  />
                 </div>
-              </q-form>
-            </q-card-section>
-          </q-card>
+              </template>
+            </VDatePicker>
 
-          <!-- Display the available slots for the week -->
-          <q-card class="q-ma-md" flat bordered>
-            <q-card-section>
-              <div class="text-h6">Weekdays Slots Overview</div>
-                <FullCalendar 
-                :options="calendarOptions"
-                /> 
-            </q-card-section>
-        </q-card>
-    </q-page>
-  </template>
+            <!-- Time Picker -->
+            <q-input
+              v-model="form.time"
+              label="Prepared Time"
+              outlined
+              dense
+              type="time"
+              mask="time"
+              class="q-my-sm"
+            >
+              <template v-slot:append>
+                <q-popup-proxy
+                  cover
+                  transition-show="scale"
+                  transition-hide="scale"
+                >
+                  <q-time v-model="form.time" icon="none">
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Close" color="primary" flat />
+                    </div>
+                  </q-time>
+                </q-popup-proxy>
+              </template>
+            </q-input>
+
+            <!-- Number of Slots per Day -->
+            <q-input
+              v-model="newSlotCount"
+              label="Available Slots per Day"
+              type="number"
+              filled
+              dense
+              required
+              class="q-my-sm"
+            />
+
+            <!-- Apply Slots Button -->
+            <q-btn
+              label="Apply Slots"
+              color="primary"
+              type="submit"
+              class="q-mt-md"
+            />
+          </div>
+        </q-form>
+      </q-card-section>
+    </q-card>
+
+    <!-- Display the available slots for the week -->
+    <q-card class="q-ma-md" flat bordered>
+      <q-card-section>
+        <div class="text-h6">Weekdays Slots Overview</div>
+        <FullCalendar ref="calendarRef" :options="calendarOptions" />
+      </q-card-section>
+    </q-card>
+  </q-page>
+</template>
 <script>
-import { ref, onMounted, watch } from 'vue';
-import axios from 'axios';
-import { QSelect, QInput, QBtn, QCard, QCardSection, QTable, QForm } from 'quasar';
-import FullCalendar from '@fullcalendar/vue3';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { $notify } from 'src/boot/app';
-
+import { ref, onMounted, watch, computed, nextTick } from "vue";
+import axios from "axios";
+import {
+  QSelect,
+  QInput,
+  QBtn,
+  QCard,
+  QCardSection,
+  QTable,
+  QForm,
+} from "quasar";
+import FullCalendar from "@fullcalendar/vue3";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { useScreens } from "vue-screen-utils";
 export default {
-  name: 'AdminDashboard',
+  name: "AdminDashboard",
   components: {
     QSelect,
     QInput,
@@ -126,7 +148,7 @@ export default {
     QCardSection,
     QTable,
     QForm,
-    FullCalendar
+    FullCalendar,
   },
   setup() {
     const branches = ref([]); // List of branches
@@ -142,17 +164,106 @@ export default {
       time: "",
     });
 
+    const { mapCurrent } = useScreens({
+      xs: "0px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+    });
+    const columns = mapCurrent({ lg: 2 }, 1);
+
+    const range = ref({
+      start: null,
+      end: null,
+    });
+
+    const isWeekend = (date) => {
+      const day = new Date(date).getDay();
+      return day === 0 || day === 6;
+    };
+
+    const attributes = computed(() => {
+      const attrs = [];
+
+      // Disable weekends (greyed out)
+      attrs.push({
+        key: "disabled-weekends",
+        dates: isWeekend,
+        contentStyle: {
+          backgroundColor: "#f0f0f0",
+          color: "#999",
+          pointerEvents: "none",
+          opacity: 0.6,
+        },
+      });
+
+      // Range highlight excluding weekends
+      if (range.value.start && range.value.end) {
+        const days = [];
+        const current = new Date(range.value.start);
+        const end = new Date(range.value.end);
+
+        while (current <= end) {
+          const day = current.getDay();
+          if (day !== 0 && day !== 6) {
+            days.push(new Date(current));
+          }
+          current.setDate(current.getDate() + 1);
+        }
+
+        attrs.push({
+          key: "highlight-range",
+          highlight: {
+            start: { fillMode: "outline" },
+            base: { fillMode: "light" },
+            end: { fillMode: "outline" },
+          },
+          dates: days,
+        });
+      }
+
+      return attrs;
+    });
+
+    watch(range, (val) => {
+      console.log('Selected Date Range:', {
+        raw: val,
+        formatted: {
+          start: val.start ? new Date(val.start.getTime() - (val.start.getTimezoneOffset() * 60000))
+            .toISOString().split('T')[0] : null,
+          end: val.end ? new Date(val.end.getTime() - (val.end.getTimezoneOffset() * 60000))
+            .toISOString().split('T')[0] : null
+        }
+      });
+      form.value.startDate = val.start;
+      form.value.endDate = val.end;
+      form.value.time = val.start
+        ? `${val.start.getHours().toString().padStart(2, "0")}:${val.start
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`
+        : "";
+    });
+
+    const checkDate = ({ date, mode }) => {
+      const day = new Date(date).getDay();
+      if (mode === "start" || mode === "end") {
+        return day === 0 || day === 6; // Sunday or Saturday
+      }
+      return false;
+    };
+
     const calendarOptions = ref({
       plugins: [dayGridPlugin, interactionPlugin],
-      initialView: 'dayGridMonth',
+      initialView: "dayGridMonth",
       //weekends: false,
-      events: events
-   });
+      events: events,
+    });
 
     // Fetch branches to populate the select field
     const fetchBranches = async () => {
       try {
-        const response = await axios.post('/type/Branch'); // Fetch branches
+        const response = await axios.post("/type/Branch"); // Fetch branches
         branches.value = response.data.branch;
       } catch (error) {
         console.error('Error fetching branches:', error);
@@ -189,47 +300,116 @@ export default {
     // Fetch the available slots for each weekday
     const fetchWeeklySlots = async () => {
       if (!selectedBranch.value) return;
+
+      // If we have a date range, use it; otherwise use today to end of month
+      let startDate = form.value.startDate;
+      let endDate = form.value.endDate;
+
+      if (!startDate || !endDate) {
+        const today = new Date();
+        startDate = today;
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of current month
+      }
+
+      // Format dates for API with timezone adjustment
+      const formattedStartDate = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000))
+        .toISOString().split('T')[0];
+      const formattedEndDate = new Date(endDate.getTime() - (endDate.getTimezoneOffset() * 60000))
+        .toISOString().split('T')[0];
+
+      console.log(
+        "Fetching slots for date range:",
+        formattedStartDate,
+        "to",
+        formattedEndDate
+      );
+
       try {
         const { data } = await axios.post(`/branches/slots`, {
-            branch_id: selectedBranch.value
+          branch_id: selectedBranch.value,
+          start_date: formattedStartDate,
+          end_date: formattedEndDate,
+          fetch_only_range: true, // Add this flag to tell backend to only return dates in range
         });
-        events.value = data.availableSlots.map(slot => ({
-          title: `${slot.is_available > 0 ? slot.is_available : 'No'} available`,
+        events.value = data.availableSlots.map((slot) => ({
+          title: `${
+            slot.is_available > 0 ? slot.is_available : "No"
+          } available`,
           start: `${slot.date}`,
           extendedProps: {
             slotId: slot.id,
-            isAvailable: slot.is_available
+            isAvailable: slot.is_available,
           },
-          color: slot.is_available > 0 ? '#28a745' : '#dc3545' // Green for available, Red for booked
+          color: slot.is_available > 0 ? "#28a745" : "#dc3545", // Green for available, Red for booked
         }));
       } catch (error) {
-        console.error('Error fetching weekly slots:', error);
+        console.error("Error fetching weekly slots:", error);
       }
     };
 
-    watch(()=> selectedBranch.value , (newVal) => {
-        if (newVal) {
-            fetchWeeklySlots()
+
+    // Update calendar view to display only the selected date range
+    const updateCalendarView = (startDate, endDate) => {
+      nextTick(() => {
+        if (calendarRef.value) {
+          const calendarApi = calendarRef.value.getApi();
+          if (calendarApi) {
+            calendarApi.gotoDate(startDate);
+
+            // Focus calendar view on the selected date range
+            const viewStart = new Date(startDate);
+            const viewEnd = new Date(endDate);
+            calendarApi.changeView("dayGridMonth", {
+              start: viewStart,
+              end: new Date(viewEnd.getTime() + 86400000), // Add one day to include end date
+            });
+          }
         }
-    });
+      });
+    };
+
+    watch(
+      () => selectedBranch.value,
+      (newVal) => {
+        if (newVal) {
+          fetchWeeklySlots();
+        }
+      }
+    );
 
     // Fetch branches and weekly slots on component mount
     onMounted(() => {
-      const managerInformation = localStorage.getItem('managerInformation')
+      const managerInformation = localStorage.getItem("managerInformation");
       if (managerInformation) {
-        adminManagerInformation.value = JSON.parse(managerInformation)
+        adminManagerInformation.value = JSON.parse(managerInformation);
       }
-      console.log(adminManagerInformation.value)
+      console.log(adminManagerInformation.value);
       fetchBranches();
       if (adminManagerInformation.value != null) {
-        selectedBranch.value = adminManagerInformation.value.branch_id
-        fetchWeeklySlots()
-      }
+        selectedBranch.value = adminManagerInformation.value.branch_id;
 
+        // Set default date range to current month for initial load
+        const today = new Date();
+        const endOfMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          0
+        ); // Last day of current month
+
+        // Update both the form values and the date picker range
+        form.value.startDate = today;
+        form.value.endDate = new Date(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          0
+        ); // Last day of current month
+
+        fetchWeeklySlots();
+      }
     });
 
     return {
-    form,
+      form,
       branches,
       selectedBranch,
       newSlotCount,
@@ -238,14 +418,16 @@ export default {
       fetchWeeklySlots,
       events,
       adminManagerInformation,
+      attributes,
+      range,
+      checkDate,
+      columns,
+      calendarRef: ref(null),
+      updateCalendarView,
       formError,
     };
   },
 };
 </script>
 
-  
-  <style scoped>
-   
-  </style>
- 
+<style scoped></style>

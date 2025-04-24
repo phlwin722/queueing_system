@@ -163,7 +163,7 @@ export default {
     const adminMangerInformation = ref ();
 
     const getTableData = async () => {
-          try{           
+          try{   
             const { data } = await $axios.post('/admin/queue-logs',{
               date: dateToday,
               branch_id: branch_name.value
@@ -178,7 +178,9 @@ export default {
 
     const updateAllServingTime = async () => {
       try {
-        const { data } = await $axios.post('/teller/update-all-serving-time');
+        const { data } = await $axios.post('/teller/update-all-serving-time',{
+          branch_id: branch_name.value
+        });
         console.log(data.status);
         if (data.status === 'success') {
           console.log("Updated Successfully.")
@@ -269,10 +271,12 @@ export default {
         let workTimeout;
 
         const optimizedFetchData = async () => {
-           setInterval(() => {
-              getTableData()
-              fetchWorkStation()
-           },5000)
+
+            getTableData()
+            fetchWorkStation()
+           
+          dataTimeout = setTimeout(optimizedFetchData, 3000); // Recursive Timeout
+
         };
 
         const renderSurveyCharts = async () => {

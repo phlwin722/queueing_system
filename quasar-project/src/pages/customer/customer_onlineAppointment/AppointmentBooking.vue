@@ -1,20 +1,6 @@
 <template>
   <q-page class="q-pa-md" style="min-height: 340px; max-width: 800px; margin: auto;">
 
-    <q-breadcrumbs class="q-mb-sm">
-      <template v-slot:separator>
-        <q-icon
-          size="1.5em"
-          name="chevron_right"
-          color="primary"
-        />
-      </template>
-
-      <q-breadcrumbs-el label="Home" icon="home" to="/vrtsystem/onlineAppointment" />
-      <q-breadcrumbs-el label="Appointment" icon="event_available" to="/book-appointment" />
-
-    </q-breadcrumbs>
-
     <!-- Create/Edit/Delete Options -->
     <q-card v-if="choosing" class="q-mt-md q-pa-lg q-rounded-xl shadow-2 bg-white">
       <q-card-section class="text-center">
@@ -27,7 +13,7 @@
           
           <!-- Create -->
           <q-card 
-            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer"
+            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer clickable-div"
             @click="startCreate"
             flat 
             bordered
@@ -41,13 +27,13 @@
 
           <!-- Edit -->
           <q-card 
-            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer"
+            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer clickable-div"
             @click="startEdit"
             flat 
             bordered
           >
             <q-card-section class="text-center">
-              <q-icon name="edit_calendar" size="36px" color="orange" />
+              <q-icon name="edit_calendar" size="36px" color="warning" />
               <div class="text-subtitle1 text-weight-medium q-mt-sm">Edit</div>
               <div class="text-caption text-grey-6">Change an existing appointment</div>
             </q-card-section>
@@ -55,7 +41,7 @@
 
           <!-- Cancel -->
           <q-card 
-            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer"
+            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer clickable-div"
             @click="startDelete"
             flat 
             bordered
@@ -100,6 +86,7 @@
             :error="formError.hasOwnProperty('name')"
             :error-message="formError.name ? 'The full name field is required': ''"
             dense
+            autofocus
           />
 
           <q-input
@@ -177,6 +164,7 @@
           :error="formError.hasOwnProperty('referenceNum')"
           :error-message="formError.referenceNum ? 'The reference number field is required.': ''"
           outlined
+          autofocus
         />
 
         <q-card-actions align="right">
@@ -207,6 +195,7 @@
             :error="formError.hasOwnProperty('name')"
             :error-message="formError.name ? 'The full name field is required' : ''"
             dense
+            autofocus
           />
 
           <q-input
@@ -283,6 +272,7 @@
           :error="formError.hasOwnProperty('referenceNum')"
           :error-message="formError.referenceNum ? 'The reference number field is required.': ''"
           outlined
+          autofocus
         />
 
         <q-card-actions align="right">
@@ -457,6 +447,9 @@ export default {
             text: error.response.data.error,
             confirmButtonText: "OK",  // Custom text for the button
             confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+            customClass: {
+              popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+            }
           });  
         }
       } finally {
@@ -497,6 +490,9 @@ export default {
             text: error.response.data.error,
             confirmButtonText: "OK",  // Custom text for the button
             confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+            customClass: {
+              popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+            }
           });
           displayEditCard.value = false;
         }
@@ -556,6 +552,9 @@ export default {
             text: error.response.data.error,
             confirmButtonText: "OK",  // Custom text for the button
             confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+            customClass: {
+              popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+            }
           }); 
         }
       }
@@ -745,4 +744,9 @@ export default {
   background-color: #f0f0f0;
   transform: scale(1.02);
 }
+
+.custom-swal {
+  margin-bottom: 50px; /* or whatever value you want */
+}
+
 </style>
