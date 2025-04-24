@@ -2,25 +2,60 @@
   <q-page class="q-pa-md" style="min-height: 340px; max-width: 800px; margin: auto;">
 
     <!-- Create/Edit/Delete Options -->
-    <q-card v-if="choosing" class="q-mt-md q-pa-lg">
-      <q-card-section>
-        <div class="text-h5 text-center">What would you like to do?</div>
+    <q-card v-if="choosing" class="q-mt-md q-pa-lg q-rounded-xl shadow-2 bg-white">
+      <q-card-section class="text-center">
+        <div class="text-h5 text-primary">What would you like to do?</div>
+        <div class="text-subtitle2 text-grey-7 q-mt-sm">Choose an action below</div>
       </q-card-section>
-      
-      <q-card-section class="q-gutter-md">
-        <div class="column" v-if="choosing = true" style="height: 250px; max-height: 100%; width: auto;">
-          <div class="col-12 clickable-div" @click="startCreate">
-           Create Appointment
-          </div>
-          <div class="col-6 clickable-div" @click="startEdit">
-            Edit Appointment
-          </div>
-          <div class="col-6 clickable-div" @click="startDelete">
-            Cancel Appointment
-          </div>
+
+      <q-card-section class="q-gutter-lg">
+        <div class="row q-col-gutter-md justify-center items-stretch">
+          
+          <!-- Create -->
+          <q-card 
+            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer clickable-div"
+            @click="startCreate"
+            flat 
+            bordered
+          >
+            <q-card-section class="text-center">
+              <q-icon name="event_available" size="36px" color="primary" />
+              <div class="text-subtitle1 text-weight-medium q-mt-sm">Create</div>
+              <div class="text-caption text-secondary">Book a new appointment</div>
+            </q-card-section>
+          </q-card>
+
+          <!-- Edit -->
+          <q-card 
+            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer clickable-div"
+            @click="startEdit"
+            flat 
+            bordered
+          >
+            <q-card-section class="text-center">
+              <q-icon name="edit_calendar" size="36px" color="warning" />
+              <div class="text-subtitle1 text-weight-medium q-mt-sm">Edit</div>
+              <div class="text-caption text-grey-6">Change an existing appointment</div>
+            </q-card-section>
+          </q-card>
+
+          <!-- Cancel -->
+          <q-card 
+            class="col-12 col-sm-4 action-card q-hoverable cursor-pointer clickable-div"
+            @click="startDelete"
+            flat 
+            bordered
+          >
+            <q-card-section class="text-center">
+              <q-icon name="event_busy" size="36px" color="negative" />
+              <div class="text-subtitle1 text-weight-medium q-mt-sm">Cancel</div>
+              <div class="text-caption text-grey-6">Remove an appointment</div>
+            </q-card-section>
+          </q-card>
+
         </div>
       </q-card-section>
-    </q-card>
+  </q-card>
 
     <!-- Appointment Form -->
     <q-card v-if="createCard && !choosing" class="q-pa-lg">
@@ -51,6 +86,7 @@
             :error="formError.hasOwnProperty('name')"
             :error-message="formError.name ? 'The full name field is required': ''"
             dense
+            autofocus
           />
 
           <q-input
@@ -128,6 +164,7 @@
           :error="formError.hasOwnProperty('referenceNum')"
           :error-message="formError.referenceNum ? 'The reference number field is required.': ''"
           outlined
+          autofocus
         />
 
         <q-card-actions align="right">
@@ -158,6 +195,7 @@
             :error="formError.hasOwnProperty('name')"
             :error-message="formError.name ? 'The full name field is required' : ''"
             dense
+            autofocus
           />
 
           <q-input
@@ -165,6 +203,7 @@
             v-model="form.email"
             label="Email address"
             outlined
+            readonly
             dense
             :error="formError.hasOwnProperty('email')"
             :error-message="formError.email ? formError.email[0] : ''"
@@ -233,6 +272,7 @@
           :error="formError.hasOwnProperty('referenceNum')"
           :error-message="formError.referenceNum ? 'The reference number field is required.': ''"
           outlined
+          autofocus
         />
 
         <q-card-actions align="right">
@@ -289,6 +329,10 @@ export default {
       dateClick: handleDateClick,
       events: events,
       eventClick: handleEventClick,
+
+/*       height: 'auto',
+      contentHeight: 'auto',
+      expandRows: true, // optional: helps fill available vertical space */
     });
 
     function handleDateClick(data) {
@@ -317,7 +361,7 @@ export default {
           branch_id: selectedBranch.value || form.value.branch_id,
         });
 
-        services.value = data.servce;
+        services.value = data.servce.filter(serve => serve.name !== 'Online Appointment');
       } catch (error) {
         if (error.response?.status === 422) {
           console.log(error);
@@ -387,6 +431,9 @@ export default {
             text: error.response.data.error,
             confirmButtonText: "OK",  // Custom text for the button
             confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+            customClass: {
+              popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+            }
           });  
         }
       }
@@ -424,6 +471,9 @@ export default {
             text: error.response.data.error,
             confirmButtonText: "OK",  // Custom text for the button
             confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+            customClass: {
+              popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+            }
           });
           displayEditCard.value = false;
         }
@@ -463,7 +513,7 @@ export default {
             style: "border-radius: 12px; padding: 16px;",
           })
           .onOk(async () => {
-            handleDelete(data.reference)
+            handleDelete([data.reference])
           })
           .onDismiss(()=> {
 
@@ -483,17 +533,21 @@ export default {
             text: error.response.data.error,
             confirmButtonText: "OK",  // Custom text for the button
             confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+            customClass: {
+              popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+            }
           }); 
         }
       }
     }
 
-    const handleDelete = async (reference) => {
+    const handleDelete = async (dataHandleCancel) => {
       try {
           const { data } = await $axios.post('/cancel/Appointment', {
-            id: reference.id,
+            /* id: reference.id,
             appointment_date: reference.appointment_date,
-            branch_id: reference.branch_id,
+            branch_id: reference.branch_id, */
+            dataHandleCancel
           });
          
           if (data.message) {
@@ -671,4 +725,9 @@ export default {
   background-color: #f0f0f0;
   transform: scale(1.02);
 }
+
+.custom-swal {
+  margin-bottom: 50px; /* or whatever value you want */
+}
+
 </style>

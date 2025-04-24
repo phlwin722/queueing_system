@@ -139,7 +139,6 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useScreens } from "vue-screen-utils";
-
 export default {
   name: "AdminDashboard",
   components: {
@@ -157,7 +156,9 @@ export default {
     const selectedBranch = ref(null); // Selected branch ID
     const newSlotCount = ref(20); // New slot count to be applied
     const events = ref([]);
-    const adminManagerInformation = ref();
+    const adminManagerInformation = ref ();
+    const formError = ref({})
+
     const form = ref({
       startDate: "",
       endDate: "",
@@ -266,7 +267,34 @@ export default {
         const response = await axios.post("/type/Branch"); // Fetch branches
         branches.value = response.data.branch;
       } catch (error) {
-        console.error("Error fetching branches:", error);
+        console.error('Error fetching branches:', error);
+      }
+    };
+
+    // Apply slots for the entire week (Monday to Friday) for the selected branch
+    const applySlotsForWeek = async () => {
+      try {
+        formError.value = {}
+        // Send request to backend to apply available slots to all days
+        const response = await axios.post('/apply_slots', {
+            branch_id: selectedBranch.value,
+            slots_per_day: newSlotCount.value,
+            start_date: form.value.startDate,
+            end_date: form.value.endDate,
+            time: form.value.time,
+        });
+
+        if (response.data.message) {
+          $notify('positive','check',response.data.message)
+          // Refresh the weekly slots display
+          fetchWeeklySlots();
+        }
+
+      } catch (error) {
+        if (error.response.status === 422) {
+          formError.value = error.response.data.errors
+          console.log(error.response.data.errors)
+        }
       }
     };
 
@@ -437,6 +465,7 @@ export default {
       columns,
       calendarRef: ref(null),
       updateCalendarView,
+      formError,
     };
   },
 };

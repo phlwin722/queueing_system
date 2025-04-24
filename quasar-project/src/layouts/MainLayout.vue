@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
-    <q-header>
+    <q-header v-if = "shouldShowSideNav">
       <q-toolbar>
         <q-img
           src="~assets/vrtlogowhite1.png"
@@ -55,7 +55,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer
+    <q-drawer v-if = "shouldShowSideNav"
       v-model="drawer"
       show-if-above
       :mini="miniState"
@@ -357,7 +357,8 @@ import { date } from "quasar";
 import { useRouter } from "vue-router";
 import { $axios, $notify } from "src/boot/app";
 import { useQuasar } from "quasar";
-
+import { computed } from 'vue';
+import { isFullscreen } from 'src/composables/fullscreenState';
 export default defineComponent({
   name: "MainLayout",
 
@@ -373,7 +374,9 @@ export default defineComponent({
     const isQueuelistEmpty = ref(false);
     const $dialog = useQuasar();
     const linksList = ref([]);
-
+    const branch_id = ref(null);
+    const manager_id = ref(null)
+    const shouldShowSideNav = computed(() => !isFullscreen.value);
     const adminInformationContent = ref({
       id: "",
       Firstname: "",
@@ -452,7 +455,7 @@ export default defineComponent({
         console.log(error);
       }
     };
-
+    
     // Set an interval to update the time every second
     onMounted(() => {
       const storedAdminInfo = localStorage.getItem("adminInformation");
@@ -465,6 +468,8 @@ export default defineComponent({
         setInterval(updateFormattedTime, 1000); // Update every second
       } else if (storeManagerInfo) {
         adminInformation.value = JSON.parse(storeManagerInfo);
+        branch_id.value = adminInformation.value.branch_id
+        manager_id.value = adminInformation.value.id
         fetchAdminInformation();
         updateFormattedTime(); // Call it once on mount
         setInterval(fetchAdminInformation, 6000);
@@ -475,7 +480,10 @@ export default defineComponent({
     });
 
     // Logout function
-    const logout = () => {
+    const logout = async () => {
+      await $axios.post('/manager/logout',{
+          manager_id: manager_id.value,
+          });
       localStorage.removeItem("authTokenAdmin"); // Remove auth token
       localStorage.removeItem("adminInformation");
       localStorage.removeItem("authTokenManager"); // Remove auth token
@@ -532,9 +540,10 @@ export default defineComponent({
 
     const fetchBreakTime = async () => {
       try {
-        const { data } = await $axios.post("/admin/fetch_break_time");
+        const { data } = await $axios.post("/admin/fetch_break_time",{
+          branch_id: branch_id.value,
+        });
         console.log("Fetched Data:", data);
-
         if (data?.dataValue) {
           formDataBreak.break_to = data.dataValue.break_to.slice(0, 5);
           formDataBreak.break_from = data.dataValue.break_from.slice(0, 5);
@@ -586,9 +595,12 @@ export default defineComponent({
     const saveBreakTime = async () => {
       isLoading.value = true;
       try {
-        const endpoint = "/admin/break_time"; // Always use the same endpoint
-
-        const { data } = await $axios.post(endpoint, formDataBreak);
+        const payload = {
+          ...formDataBreak,
+          branch_id: branch_id.value, // manually include refID
+        };
+        console.log(branch_id.value) //outputs the actual branch id
+        const { data } = await $axios.post("/admin/break_time", payload);
         formError.value = {}; // Reset form errors
 
         if (data) {
@@ -715,6 +727,11 @@ export default defineComponent({
             ],
           },
           {
+            title: "Generated QrCode",
+            icon: "qr_code_2",
+            link: "/queue-qr",
+          },
+          {
             title: "Admin Queue",
             icon: "admin_panel_settings",
             link: "/admin/admin_Queue",
@@ -725,22 +742,22 @@ export default defineComponent({
             link: "/admin/currency_conversion",
           },
           {
-            title: "Branch Appointment",
-            icon: "person",
-            children: [
-              {
-                title: "Appointment",
-                icon: "category",
-                link: "/admin/appointment/create",
-              },
-              {
-                title: "List Appointment",
-                icon: "groups",
-                link: "/admin/teller/tellers",
-              },
-            ],
-          },
-          /*           {
+          title: "Branch Appointment",
+          icon: "person",
+          children: [
+            {
+              title: "Appointment",
+              icon: "category",
+              link: "/admin/appointment/create",
+            },
+            {
+              title: "List Appointment",
+              icon: "groups",
+              link: "/admin/appointment/list",
+            },
+          ],
+        },
+/*       {
             title: "Customer Logs",
             icon: "description",
             link: "/admin/customer-logs",
@@ -809,44 +826,44 @@ export default defineComponent({
           title: "Archive",
           icon: "archive",
           link: "/admin/archive",
-        }, */
-          {
-            title: "Admin Queue",
-            icon: "admin_panel_settings",
-            link: "/admin/admin_Queue",
-          },
-          {
-            title: "Manager",
-            icon: "groups",
-            link: "/admin/bank_manager",
-          },
-          {
-            title: "Branch",
-            icon: "groups",
-            link: "/admin/branch",
-          },
-          {
-            title: "Currency Conversion",
-            icon: "currency_exchange",
-            link: "/admin/currency_conversion",
-          },
-          {
-            title: "Branch Appointment",
-            icon: "person",
-            children: [
-              {
-                title: "Appointment",
-                icon: "category",
-                link: "/admin/appointment/create",
-              },
-              {
-                title: "List Appointment",
-                icon: "groups",
-                link: "/admin/teller/tellers",
-              },
-            ],
-          },
-          /*         {
+        },
+        {
+          title: "Admin Queue",
+          icon: "admin_panel_settings",
+          link: "/admin/admin_Queue",
+        },
+        {
+          title: 'Manager',
+          icon: 'supervisor_account',
+          link: '/admin/bank_manager'
+        },
+        {
+          title: 'Branch',
+          icon: 'account_balance',
+          link: '/admin/branch'
+        },
+        {
+          title: "Currency Conversion",
+          icon: "currency_exchange",
+          link: "/admin/currency_conversion",
+        },
+        {
+          title: "Branch Appointment",
+          icon: "date_range",
+          children: [
+            {
+              title: "Appointment",
+              icon: "event",
+              link: "/admin/appointment/create",
+            },
+            {
+              title: "List Appointment",
+              icon: "event_note",
+              link: "/admin/teller/tellers",
+            },
+          ],
+        },
+/*         {
           title: "Customer Logs",
           icon: "description",
           link: "/admin/customer-logs",
@@ -929,6 +946,7 @@ export default defineComponent({
       isQueuelistEmpty,
       fetchQueue,
       resetQueue,
+      shouldShowSideNav,
 
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;

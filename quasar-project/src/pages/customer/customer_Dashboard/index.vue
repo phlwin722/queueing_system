@@ -31,7 +31,7 @@
             </q-tooltip>
           </q-btn>
 
-          <q-btn
+          <q-btn v-if="queuePosition != 0 && customerStatus != 'serving'"
             @click="showSwitchDialog()"
             color="green-10"
             icon="switch_account"
@@ -454,6 +454,7 @@ export default {
       teller_id: "",
       type_id: "",
       window_name: "",
+      branch_id: "",
     });
 
     const serviceTypeId = ref([]);
@@ -461,8 +462,10 @@ export default {
 
     const fetchType = async () => {
       try {
+       
         const { data } = await $axios.post("/customer-fetch", {
           token: tokenurl.value,
+          branch_id : userInformation.value.branch_id,
         });
 
         // get the current teller 
@@ -616,12 +619,13 @@ export default {
   }
 };
 
-
+  // const branch_id = ref()
     const getTableData = async () => {
       try {
         // fetching specific customer
         const { data } = await $axios.post("/customer-fetch", {
           token: tokenurl.value,
+          branch_id : userInformation.value.branch_id,
         });
         serviceType.value = data.row.name;
         indicator.value = data.row.indicator;
@@ -644,16 +648,28 @@ export default {
         userInformation.value.teller_id = data.userInfo.teller_id;
         userInformation.value.type_id = data.userInfo.type_id;
         userInformation.value.window_name = data.window.window_name;
+        userInformation.value.branch_id = data.userInfo.branch_id;
 
         fetchImage(tellerId.value);
         sendingDashboard(); // trigger sendingDashboard
-
+        // updateBranchId()
         //putTellerId()
 
       } catch (error) {
         console.log(error);
       }
     };
+
+    // const updateBranchId = async () => {
+    //   try {
+    //     const { data } = await $axios.post("/update-branch_id",{
+    //       id: userInformation.value.id,
+    //       branch_id : branch_id.value
+    //     });
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // }
     const approximateCaterTime = ref();
     const timeCater = ref("");
 
@@ -695,45 +711,47 @@ const fetchBreakTime = async () => {
   try {
     const { data } = await $axios.post("/admin/fetch_break_time", {
       last_updated: fetchBreakTimeLastUpdatedAt.value,
+      branch_id: userInformation.value.branch_id,
     });
 
     if (!data.updated) return; // Skip if no update
+    if(fromBreak.value !== "" && toBreak.value !== ""){
+      fromBreak.value = data.dataValue.break_from.slice(0, 5);
+      tempFromBreak.value = formatTo12Hour(fromBreak.value);
 
-    fromBreak.value = data.dataValue.break_from.slice(0, 5);
-    tempFromBreak.value = formatTo12Hour(fromBreak.value);
+      toBreak.value = data.dataValue.break_to.slice(0, 5);
+      tempToBreak.value = formatTo12Hour(toBreak.value);
 
-    toBreak.value = data.dataValue.break_to.slice(0, 5);
-    tempToBreak.value = formatTo12Hour(toBreak.value);
+      const currentTime = new Date();
+      const currentHour = currentTime.getHours().toString().padStart(2, "0");
+      const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+      formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
 
-    const currentTime = new Date();
-    const currentHour = currentTime.getHours().toString().padStart(2, "0");
-    const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
-    formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
+      const totalMinutes = parseTime(fromBreak.value) - 10;
+      newTime.value = formatTime2(totalMinutes);
 
-    const totalMinutes = parseTime(fromBreak.value) - 10;
-    newTime.value = formatTime2(totalMinutes);
+      const OrgtotalMinutes = parseTime(fromBreak.value);
+      originalFromBreak.value = formatTime2(OrgtotalMinutes);
 
-    const OrgtotalMinutes = parseTime(fromBreak.value);
-    originalFromBreak.value = formatTime2(OrgtotalMinutes);
+      const convertToBreak = parseTime(toBreak.value);
+      convertedToBreak.value = formatTime2(convertToBreak);
 
-    const convertToBreak = parseTime(toBreak.value);
-    convertedToBreak.value = formatTime2(convertToBreak);
+      const totalFormatMinutes = parseTime(formattedCurrentTime.value);
+      newFormattedTime.value = formatTime2(totalFormatMinutes);
 
-    const totalFormatMinutes = parseTime(formattedCurrentTime.value);
-    newFormattedTime.value = formatTime2(totalFormatMinutes);
-
-    // Condition to check if user is NOT being catered
-    if (
-      (newFormattedTime.value >= originalFromBreak.value &&
-        newFormattedTime.value < convertedToBreak.value &&
-        !isBeingServed.value) ||
-      (convertExpectedCaterTime.value >= newTime.value &&
-        newFormattedTime.value < originalFromBreak.value &&
-        !isBeingServed.value)
-    ) {
-      isNotBeingCatered.value = true;
-    } else {
-      isNotBeingCatered.value = false;
+      // Condition to check if user is NOT being catered
+      if (
+        (newFormattedTime.value >= originalFromBreak.value &&
+          newFormattedTime.value < convertedToBreak.value &&
+          !isBeingServed.value) ||
+        (convertExpectedCaterTime.value >= newTime.value &&
+          newFormattedTime.value < originalFromBreak.value &&
+          !isBeingServed.value)
+      ) {
+        isNotBeingCatered.value = true;
+      } else {
+        isNotBeingCatered.value = false;
+      }
     }
 
     // Save the latest update timestamp
@@ -806,8 +824,6 @@ const fetchBreakTime = async () => {
               "hh:mm A"
             )}`
           );
-          
-
         }
       }
       }
@@ -846,6 +862,7 @@ const fetchWaitingStatus = async () => {
     const { data } = await $axios.post("/customer-check-waiting", {
       token: tokenurl.value,
       last_updated: fetchWaitingStatuslastUpdatedAt.value,
+      branch_id: userInformation.value.branch_id,
     });
 
     if (data.updated) {
@@ -1082,7 +1099,7 @@ const fetchWaitingtime = async () => {
       await fetchQueueData();
       await getTableData();
       await fetchType();
-      queueTimeout = setTimeout(optimizedFetchQueueData, 2000); // Recursive Timeout
+      queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
     };
 
     const isMoneyRatesDialogOpen = ref(false);
@@ -1288,6 +1305,7 @@ const fetchWaitingtime = async () => {
               teller_id: item.teller_id,
               type_id_teller: item.type_id_teller,
               userId: userInformation.value.id, // Recipient's id
+              branch_id: userInformation.value.branch_id,
             });
             window.location.reload();
           } catch (error) {
@@ -1310,6 +1328,7 @@ const fetchWaitingtime = async () => {
       fetchBreakTime()
       setInterval(fetchCurrency(),30000);
       fetchType();
+      // updateBranchId()
     });
 
 

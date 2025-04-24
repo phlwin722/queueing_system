@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('token')->unique(); // Unique QR token
             $table->boolean('used')->default(false);
+            $table->UnsignedBigInteger('branch_id')->nullable();
             $table->timestamps();
         });
     }

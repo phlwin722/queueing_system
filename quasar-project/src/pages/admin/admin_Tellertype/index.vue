@@ -66,7 +66,7 @@
           </div>
             <div v-if="!adminInformation" class="col-auto">
               <q-select
-                style="width: 250px;"
+                style="width: 250px; position: absolute;  right: 10px;"
                 outlined
                 v-model="branch_namee"
                 label="Branch name"
@@ -182,12 +182,12 @@ export default defineComponent({
       dialogForm.value.showDialog(mode, row);
     };
 
-    const handleDelete = async (ids) => {
+    const handleDelete = async (dataHandleDelete) => {
       try {
-        const { data } = await $axios.post(URL + "/delete", { ids });
+        const { data } = await $axios.post(URL + "/delete", { dataHandleDelete });
         $notify("positive", "check", data.message);
 
-        for (const x of ids) {
+        for (const x of dataHandleDelete) {
           const index = rows.value.findIndex((o) => o.id === x);
 
           if (index !== -1) {
@@ -206,7 +206,17 @@ export default defineComponent({
     };
 
     const beforeDelete = (isMany, row) => {
-      const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
+      const ids = isMany 
+        ? 
+        selected.value.map((x) =>({
+          id: x.id,
+          name: x.name
+        })) 
+        : 
+        [{
+          id: row.id, 
+          name: row.name
+        }];
       $dialog
         .dialog({
           title: "Confirm",
@@ -229,12 +239,19 @@ export default defineComponent({
         })
         .onOk(async () => {
           for (const id of ids) {
-            if (id === 1) {
+            console.log(id.name)
+            if (id.name == 'Foreign Exchange' && id.name == 'Online Appointment') {
+              $notify("negative", "error", "Cannot delete Foreign exchange and Online Application");
+              return; // Stops further execution for this iteration, no handleDelete will be called
+            } else if (id.name === 'Foreign Exchange'){
               $notify("negative", "error", "Cannot delete foreign exchange");
+              return; // Stops further execution for this iteration, no handleDelete will be called
+            } else if (id.name === 'Online Appointment'){
+              $notify("negative", "error", "Cannot delete Online Appointment");
               return; // Stops further execution for this iteration, no handleDelete will be called
             }
           }
-          handleDelete(ids);
+           handleDelete(ids); 
         })
         .onDismiss(() => {
           // console.log('I am triggered on both OK and Cancel')
