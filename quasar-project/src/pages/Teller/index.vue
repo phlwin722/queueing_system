@@ -388,7 +388,7 @@
                 </q-card-section>
               </q-card>
 
-              <q-card class="q-pa-md" v-else
+              <q-card class="q-px-md" v-else
                 style="height: 480px;"
                 >
                 <q-card-section>
@@ -405,7 +405,7 @@
                     </div>
                     <div class="col-2">
                       <q-btn 
-                          color="primary" 
+                          color="warning" 
                           label="Validate" 
                           @click="validateReference" 
                           class="q-ml-md full-width" 
@@ -416,64 +416,49 @@
                 </q-card-section>
 
                 <q-item v-if="customerInfoOnline != null">
-                  <q-item-section>
-                    <q-list style="max-height: 500px; padding: 10px;">
-                      <q-item>
-                        <q-item-section>
-                          <!-- ID -->
-                          <div class="q-mb-md">
-                            <strong>ID:</strong> {{ customerInfoOnline.id }}
-                          </div>
+  <q-item-section>
+    <q-card class="q-px-sm shadow-2 rounded-borders bg-grey-1">
 
-                          <!-- Full name -->
-                          <div class="q-mb-md">
-                            <strong>Full Name:</strong> {{ customerInfoOnline.fullname }}
-                          </div>
+        <div class="text-subtitle2 text-primary q-my-sm">Customer Details</div>
+        <q-separator class="q-mb-md" />
 
-                          <!-- Branch Name -->
-                          <div class="q-mb-md">
-                            <strong>Branch:</strong> {{ customerInfoOnline.branch_name }}
-                          </div>
+        <q-list dense class="q-gutter-y-xs text-caption">
+          <div
+            v-for="(value, label) in {
+              'ID': customerInfoOnline.id,
+              'Full Name': customerInfoOnline.fullname,
+              'Branch': customerInfoOnline.branch_name,
+              'Status': customerInfoOnline.status,
+              'Service Type': customerInfoOnline.name,
+              'Appointment Date': customerInfoOnline.appointment_date,
+              'Email': customerInfoOnline.email
+            }"
+            :key="label"
+            class="row q-mb-xs items-center"
+          >
+            <div class="col-4 text-grey-7 text-weight-medium">
+              {{ label }}:
+            </div>
+            <div class="col-8 text-dark ellipsis">
+              {{ value }}
+            </div>
+          </div>
+        </q-list>
 
-                          <!-- Status -->
-                          <div class="q-mb-md">
-                            <strong>Status:</strong> {{ customerInfoOnline.status }}
-                          </div>
+    </q-card>
 
-                          <!-- Service Type -->
-                          <div class="q-mb-md">
-                            <strong>Service Type:</strong> {{ customerInfoOnline.name }}
-                          </div>
+    <div class="q-mt-md text-right">
+      <q-btn
+        color="primary"
+        label="Assigned Teller"
+        @click="handleAssignedTeller(customerInfoOnline.id)"
+        class="full-width"
+        style="max-width: 200px"
+      />
+    </div>
+  </q-item-section>
+</q-item>
 
-                          <!-- Appointment Date -->
-                          <div class="q-mb-md">
-                            <strong>Appointment Date:</strong> {{ customerInfoOnline.appointment_date }}
-                          </div>
-
-                          <!-- Email -->
-                          <div class="q-mb-md">
-                            <strong>Email:</strong> {{ customerInfoOnline.email }}
-                          </div>
-                        </q-item-section>
-                      </q-item>
-
-                      <!-- Spacer for spacing -->
-                      <q-item>
-                        <q-item-section>
-                          <div class="q-gutter-y-xs q-my-sm">
-                            <q-btn 
-                                color="primary" 
-                                label="Assigned Teller" 
-                                @click="handleAssignedTeller(customerInfoOnline.id)" 
-                                class="full-width" 
-                                style="max-width: 150px;"
-                            />
-                          </div>
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-item-section>
-                </q-item>
 
                 <q-item v-else>
                     <q-item-section>

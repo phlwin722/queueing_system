@@ -10,20 +10,7 @@
         <q-route-tab to="/page3" icon="category" label="Services" class="text-secondary"/>
       </q-tabs>
     </div> -->
-    <q-breadcrumbs class="q-mb-sm">
-      <template v-slot:separator>
-        <q-icon
-          size="1.5em"
-          name="chevron_right"
-          color="primary"
-        />
-      </template>
-
-      <q-breadcrumbs-el icon="dashboard" />
-      <q-breadcrumbs-el label="Home" icon="home" to="/vrtsystem/onlineAppointment" />
-
-    </q-breadcrumbs>
-
+    
     <!-- Main Container -->
     <div class="row q-col-gutter-md q-mb-lg">
       <!-- Image Section -->
@@ -61,6 +48,8 @@
 
     </div>
 
+    
+
     <!-- QUICK GUIDE SECTION -->
     <div class="q-mb-lg q-mx-xs">
       <q-card class="q-py-md q-px-sm bg-white" flat bordered>
@@ -72,11 +61,12 @@
           arrows
           infinite
           navigation
+          control-color="secondary"
         >
-          <q-carousel-slide :name="1" img-src="https://cdn.quasar.dev/img/mountains.jpg" />
-          <q-carousel-slide :name="2" img-src="https://cdn.quasar.dev/img/parallax1.jpg" />
-          <q-carousel-slide :name="3" img-src="https://cdn.quasar.dev/img/parallax2.jpg" />
-          <q-carousel-slide :name="4" img-src="https://cdn.quasar.dev/img/parallax2.jpg" />
+          <q-carousel-slide :name="1" img-src="~assets/step1.png" />
+          <q-carousel-slide :name="2" img-src="~assets/Step2.png" />
+          <q-carousel-slide :name="3" img-src="~assets/Step3.png" />
+          <q-carousel-slide :name="4" img-src="~assets/Step4.png" />
         </q-carousel>
 
         <q-stepper
@@ -87,10 +77,10 @@
           color="primary"
           class="q-mt-md"
         >
-          <q-step :name="1" title="Appointment Options">...</q-step>
-          <q-step :name="2" title="Select Bank Branch">...</q-step>
-          <q-step :name="3" title="Choose Schedule">...</q-step>
-          <q-step :name="4" title="Confirm Submission">...</q-step>
+          <q-step :name="1" title="Appointment Options">Select the appointment type</q-step>
+          <q-step :name="2" title="Select Bank Branch">Choose the branch where you want to book your appointment.</q-step>
+          <q-step :name="3" title="Choose Schedule">Pick a date and time that suits your schedule.</q-step>
+          <q-step :name="4" title="Confirm Submission">Review your details and submit your appointment.</q-step>
         </q-stepper>
       </q-card>
     </div>
@@ -102,15 +92,21 @@
 
         <!-- Example FAQ Entries -->
         <q-expansion-item icon="help" label="How do I book an appointment?" class="text-secondary" expand-separator>
+          <div class="q-ml-xl text-negative">
           Click on the 'Appointment Now' button, choose your bank and date, and confirm your booking.
+          </div>
         </q-expansion-item>
 
         <q-expansion-item icon="schedule" label="Can I reschedule my appointment?" class="text-secondary" expand-separator>
+          <div class="q-ml-xl text-negative">
           Yes! Use the 'Edit Appointment' option and select your new preferred schedule.
+          </div>
         </q-expansion-item>
 
         <q-expansion-item icon="cancel" label="How do I cancel an appointment?" class="text-secondary" expand-separator>
+          <div class="q-ml-xl text-negative">
           Simply go to 'Cancel Appointment' and follow the instructions.
+          </div>
         </q-expansion-item>
       </q-card>
     </div>
@@ -155,71 +151,9 @@ export default defineComponent({
   }
 
   .q-btn {
-    font-size: 10px !important;
+    font-size: 15px !important;
     padding: 10px 16px !important;
   }
 }
 
 </style>
-
-
-
-
-
-
-    <!-- <q-card 
-      class="full-width rounded-borders q-pa-md q-pa-xs"
-      style="
-        width: 100%; 
-        max-width: 1200px; 
-        border: 1px solid black; 
-        height: 370px;
-        margin-top: 30px;
-      "
-    >
-      <q-img
-        alt="Quasar logo"
-        src="~assets/quasar-logo-vertical.svg"
-        style="width: 200px; height: 200px"
-      />
-    </q-card> -->
-
-    <!-- footer -->
-    <!-- <div
-      class="full-width q-pa-md bg-grey-8 text-white flex flex-center"
-      style="margin-top: 30px;"
-    >
-      <div
-        class="full-width q-pa-md q-pa-xs bg-transparent"
-        style="width: 100%; max-width: 1200px;"
-      >
-        <div class="row q-mb-md">
-          <div class="col">d</div>
-          <div class="col">as</div>
-          <div class="col">
-            <div>
-              <div class="text-h6">
-                CORPORATE OFFICE
-              </div>
-              <p class="q-mt-md" style="font-size: 13px;">
-                B22, L5&7, GRACEVIllE 1 SUBD, MUZON-SOUTH, CITY OF SAN JOSE DEL MONTE BULACAN
-              </p>
-            </div>
-            <div class="q-mt-md">
-              <p class="text-h6">Follow us</p>
-              <q-avatar 
-                color="primary" 
-                icon="facebook" 
-                size="60px" 
-                :style="{cursor: 'pointer'}"
-              />
-            </div>
-          </div>
-        </div>
-        <q-separator />
-        <div class="row q-mt-md">
-          <div class="col">Contact us: vrtsystemtechnologycorp@gmail.com</div>
-          <div class="col text-right">&copy; 2025 VRTSYSTEMS TECHNOLOGY CORP. All rights reserved.</div>
-        </div>
-      </div>
-    </div> -->
