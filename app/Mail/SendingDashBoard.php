@@ -125,7 +125,7 @@ class SendingDashBoard extends Mailable
                     <!-- Email Content -->
                     <div class='content'>
 		            	<div class='queue-center'>
-                            <h4>Queing Number</h4>
+                            <h5>Queing Number</h5>
                             <h2>{$this->data['queue_number']}</h2>
 			            </div>
                         <h4>Hello, {$this->data['name']}</h4>

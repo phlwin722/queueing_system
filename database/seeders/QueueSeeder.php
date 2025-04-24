@@ -68,8 +68,8 @@ class QueueSeeder extends Seeder
                 'manager_lastname' => 'Jamero', 
                 'manager_username' => 'dex', 
                 'manager_password' => bcrypt('dex'), 
-                'Image' => 'assets/manager/1/profile.jpg',
-                'manager_status' => 'Online',
+                'Image' => 'assets/teller/1/image.png',
+                'manager_status' => 'Active',
                 'branch_id' => '1',
                 'created_at' => now(), 
                 'updated_at' => now()
@@ -80,8 +80,8 @@ class QueueSeeder extends Seeder
                 'manager_lastname' => 'Abogado', 
                 'manager_username' => 'alv', 
                 'manager_password' => bcrypt('alv'), 
-                'Image' => 'assets/manager/2/image.png',
-                'manager_status' => 'Online',
+                'Image' => 'assets/teller/2/image.png',
+                'manager_status' => 'Active',
                 'branch_id' => '2',
                 'created_at' => now(), 
                 'updated_at' => now()
@@ -168,12 +168,23 @@ class QueueSeeder extends Seeder
                 'teller_password' => bcrypt('rafael'), 
                 'type_id' => '1', 
                 'type_ids_selected' => '["1","2"]',
-                'Image' => 'assets/teller/1/profile.jpg',
+                'Image' => 'assets/teller/1/image.png',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
             [
                 'id' => '2',
+                'teller_firstname' => 'Alvin', 
+                'teller_lastname' => 'Abogado', 
+                'teller_username' => 'alvin', 
+                'teller_password' => bcrypt('alvin'), 
+                'type_id' => '3', 
+                'type_ids_selected' => '["3"]',
+                'Image' => 'assets/teller/2/image.png',
+                'created_at' => now(), 
+                'updated_at' => now()],
+            [
+                'id' => '3',
                 'teller_firstname' => 'John Carlo', 
                 'teller_lastname' => 'Rica', 
                 'teller_username' => 'rica', 
@@ -185,19 +196,19 @@ class QueueSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
-                'id' => '3',
+                'id' => '4',
                 'teller_firstname' => 'John Kenneth', 
                 'teller_lastname' => 'Guiterez', 
                 'teller_username' => 'Kenneth', 
                 'teller_password' => bcrypt('Kenneth'), 
                 'type_id' => '4',
                 'type_ids_selected' => '["4","5","6"]', 
-                'Image' => 'assets/teller/4/image.jpg',
+                'Image' => 'assets/teller/4/image.png',
                 'created_at' => now(), 
                 'updated_at' => now()
             ],
             [
-                'id' => '4',
+                'id' => '5',
                 'teller_firstname' => 'Rovir Gian', 
                 'teller_lastname' => 'Degula', 
                 'teller_username' => 'Gian', 
@@ -238,7 +249,7 @@ class QueueSeeder extends Seeder
             [
                 'window_name' => 'Window 4',
                 'type_id' => '5',
-                'teller_id' => '3',
+                'teller_id' => '5',
                 'status' => 'Offline',
                 'created_at' => now(),
                 'updated_at' => now (),

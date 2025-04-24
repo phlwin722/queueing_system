@@ -14,6 +14,7 @@
     <q-card class="q-ma-md" flat bordered>
       <q-card-section>
         <div class="text-h6 q-mb-md">Available Slots Configuration</div>
+
         <q-form @submit.prevent="applySlotsForWeek">
           <div class="">
             <!-- Branch Selection -->

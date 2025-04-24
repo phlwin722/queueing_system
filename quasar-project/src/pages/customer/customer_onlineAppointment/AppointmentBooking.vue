@@ -315,15 +315,12 @@ export default {
     const successUpdateCard = ref (false);
 
     const form = ref({
-      id: null,
+      id: '',
       branch_id: "",
       name: "",
       email: "",
       service: "",
       appointment_date: "",
-      branch_name: '',
-      service_name: '',
-      referenceNum: '',
     });
 
     const calendarOptions = ref({
@@ -403,38 +400,25 @@ export default {
         formError.value = {};
         form.value.branch_id = selectedBranch.value;
 
-        const { data } = await $axios.post("/appointments", form.value);
-        
-        if (data.id) {
-          form.value.id = data.id;
-          form.value.referenceNum = data.referenceNumber
-          const selectedBranches = branches.value.find(branch => branch.id == form.value.branch_id)
-          const selectedService = services.value.find(servicee => servicee.id == form.value.service)
+        await $axios.post("/appointments", form.value);
+        fetchAvailableSlot();
 
-          form.value.branch_name = selectedBranches.branch_name;
-          form.value.service_name = selectedService.name
-          
-          const response = await $axios.post('/sent-email-appointment', form.value);
-
-          if (response.data.message) {
-            setTimeout(() => {
-              Swal.fire({
-                      title: 'Appointment Booked Successfully!',
-                      message: 'Appointment booked! Please check your email for the reference number.',
-                      icon: "success",
-                      draggable: true,
-                      confirmButtonText: 'Book  ',
-                      confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
-                    }).then((result) =>  {
-                      if (result.isConfirmed) {
-                        choosing.value = true;
-                        createCard.value = false
-                      }
-                    });
-            }, 1000);
-          }
-        }
-
+        setTimeout(() => {
+          $quasar.loading.hide();
+          Swal.fire({
+                  title: 'Appointment Booked Successfully!',
+                  message: 'Appointment booked! Please check your email for the reference number.',
+                  icon: "success",
+                  draggable: true,
+                  confirmButtonText: 'Book  ',
+                  confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+                }).then((result) =>  {
+                  if (result.isConfirmed) {
+                    choosing.value = true;
+                    createCard.value = false
+                  }
+                });
+        }, 1500);
       } catch (error) {
         $quasar.loading.hide();
         if (error.response?.status === 422) {
@@ -452,9 +436,6 @@ export default {
             }
           });  
         }
-      } finally {
-        fetchAvailableSlot();
-        $quasar.loading.hide();
       }
     };
 
