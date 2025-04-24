@@ -156,8 +156,8 @@ export default {
     const selectedBranch = ref(null); // Selected branch ID
     const newSlotCount = ref(20); // New slot count to be applied
     const events = ref([]);
-    const adminManagerInformation = ref ();
-    const formError = ref({})
+    const adminManagerInformation = ref();
+    const formError = ref({});
 
     const form = ref({
       startDate: "",
@@ -227,14 +227,22 @@ export default {
     });
 
     watch(range, (val) => {
-      console.log('Selected Date Range:', {
+      console.log("Selected Date Range:", {
         raw: val,
         formatted: {
-          start: val.start ? new Date(val.start.getTime() - (val.start.getTimezoneOffset() * 60000))
-            .toISOString().split('T')[0] : null,
-          end: val.end ? new Date(val.end.getTime() - (val.end.getTimezoneOffset() * 60000))
-            .toISOString().split('T')[0] : null
-        }
+          start: val.start
+            ? new Date(
+                val.start.getTime() - val.start.getTimezoneOffset() * 60000
+              )
+                .toISOString()
+                .split("T")[0]
+            : null,
+          end: val.end
+            ? new Date(val.end.getTime() - val.end.getTimezoneOffset() * 60000)
+                .toISOString()
+                .split("T")[0]
+            : null,
+        },
       });
       form.value.startDate = val.start;
       form.value.endDate = val.end;
@@ -267,33 +275,32 @@ export default {
         const response = await axios.post("/type/Branch"); // Fetch branches
         branches.value = response.data.branch;
       } catch (error) {
-        console.error('Error fetching branches:', error);
+        console.error("Error fetching branches:", error);
       }
     };
 
     // Apply slots for the entire week (Monday to Friday) for the selected branch
     const applySlotsForWeek = async () => {
       try {
-        formError.value = {}
+        formError.value = {};
         // Send request to backend to apply available slots to all days
-        const response = await axios.post('/apply_slots', {
-            branch_id: selectedBranch.value,
-            slots_per_day: newSlotCount.value,
-            start_date: form.value.startDate,
-            end_date: form.value.endDate,
-            time: form.value.time,
+        const response = await axios.post("/apply_slots", {
+          branch_id: selectedBranch.value,
+          slots_per_day: newSlotCount.value,
+          start_date: form.value.startDate,
+          end_date: form.value.endDate,
+          time: form.value.time,
         });
 
         if (response.data.message) {
-          $notify('positive','check',response.data.message)
+          $notify("positive", "check", response.data.message);
           // Refresh the weekly slots display
           fetchWeeklySlots();
         }
-
       } catch (error) {
         if (error.response.status === 422) {
-          formError.value = error.response.data.errors
-          console.log(error.response.data.errors)
+          formError.value = error.response.data.errors;
+          console.log(error.response.data.errors);
         }
       }
     };
@@ -313,10 +320,16 @@ export default {
       }
 
       // Format dates for API with timezone adjustment
-      const formattedStartDate = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000))
-        .toISOString().split('T')[0];
-      const formattedEndDate = new Date(endDate.getTime() - (endDate.getTimezoneOffset() * 60000))
-        .toISOString().split('T')[0];
+      const formattedStartDate = new Date(
+        startDate.getTime() - startDate.getTimezoneOffset() * 60000
+      )
+        .toISOString()
+        .split("T")[0];
+      const formattedEndDate = new Date(
+        endDate.getTime() - endDate.getTimezoneOffset() * 60000
+      )
+        .toISOString()
+        .split("T")[0];
 
       console.log(
         "Fetching slots for date range:",
@@ -347,7 +360,6 @@ export default {
         console.error("Error fetching weekly slots:", error);
       }
     };
-
 
     // Update calendar view to display only the selected date range
     const updateCalendarView = (startDate, endDate) => {
@@ -404,6 +416,7 @@ export default {
           today.getMonth() + 1,
           0
         ); // Last day of current month
+        // hellow orld
 
         fetchWeeklySlots();
       }

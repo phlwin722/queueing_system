@@ -25,6 +25,7 @@ module.exports = configure(function (ctx) {
     boot: [
       'axios',
       'app',
+      'v-calendar'
     ],
 
     // https://legacy-app.quasar.dev/quasar-cli-webpack-v3/quasar-config-file#css
