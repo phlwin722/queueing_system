@@ -286,10 +286,11 @@ export default defineComponent({
                 formData.value = Object.assign({}, row);
 
                 try {
-                    // Attempt to fetch the teller's image from the backend based on the teller's ID
-                    const { data } = await $axios.post('teller/image', {
-                        id: formData.value.id // Sending the teller's ID to the backend
-                    });
+                     // Attempt to fetch the teller's image from the backend based on the teller's ID
+                     const { data } = await $axios.post('teller/image', {
+                         id: formData.value.id, // Sending the teller's ID to the backend
+                         image: formData.value.Image // Sending the teller's ID to the backend
+                     });
 
                     // Set the fetched image URL to imageUrl for displaying
                     imageUrl.value = data.Image;
