@@ -219,16 +219,13 @@ export default defineComponent({
         }
         selected.value.splice(0, selected.value.length);
       } catch (error) {
-        if (error.response.status === 422) {
-          $notify("negative", "error", error.response.data.error);
-        }else if (error.response.status === 400) {
-          $notify('negative', 'error', error.response.data.error)
-        }
+        console.error("Error deleting managers:", error);
+        $notify("negative", "error", error.response.data.message);
       }
     };
 
     const beforeDelete = (isMany, row) => {
-     const ids = isMany ? selected.value.map((x) =>  x.id) : [row.id];
+     const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
       const itemName = isMany ? 'all managers' : `${row.manager_firstname} ${row.manager_lastname}`
       $dialog
         .dialog({

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\Manager;
-use Illuminate\Support\Carbon;
 
 class ManagerController extends Controller
 {
@@ -187,42 +186,6 @@ class ManagerController extends Controller
 
     public function delete(Request $request){
         try {
-            $data = DB::table('managers')
-                        ->whereIn('id', $request->ids)
-                        ->get();
-
-            // Check if no data was found
-            if (!$data) {
-                return response()->json([
-                    'error' => "Manager not found."
-                ], 404);
-            }
-            
-            // Loop through each manager and check if they are online
-            foreach ($data as $val) {
-                  // Check if the manager is online
-                if ($val->manager_status == 'Online') {
-                    return response()->json([
-                        'error' => "Sorry, we cannot delete this manager because they are still online."
-                    ], 400);
-                }
-
-                // get date now
-                $dataNow = Carbon::now()->toDateString();
-                // Archive the manager's data
-                DB::table('archives')
-                ->insert([
-                    'First_name' => $val->manager_firstname,
-                    'Lastname' => $val->manager_lastname,
-                    'Username' => $val->manager_username,
-                    'Password' => $val->manager_password,
-                    'Branch_id' => $val->branch_id,
-                    'Image' => $val->Image,
-                    'types' => '0',
-                    'created_at' => $dataNow
-                ]);
-            }
-                    
             // Proceed with deletion
             Manager::destroy($request->ids);
 

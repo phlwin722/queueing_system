@@ -85,13 +85,6 @@
           </div>
         </div>
       </template>
-
-      <!-- types cell template for the table -->
-       <template v-slot:body-cell-type_names="props">
-        <q-td :props="props">
-          {{ props.row.type_names ? props.row.type_names : 'No service assigned' }}
-        </q-td>
-       </template>
  
       <!-- Status cell template for the table -->
       <template v-slot:body-cell-status="props">
@@ -219,13 +212,8 @@ export default defineComponent({
         selected.value.splice(0, selected.value.length);
       } catch (error) {
         console.error("Error deleting tellers:", error);
-      
-        if (error.response.status === 400) {
-          $notify('negative', 'error', error.response.data.error)
-        }
-        else {
-          $notify("negative", "error", error.response.data.message);}
-        }
+        $notify("negative", "error", error.response.data.message);
+      }
     };
 
     const beforeDelete = (isMany, row) => {

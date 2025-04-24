@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Queue;
 use App\Models\Teller;
 use App\Http\Requests\QueueRequest;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -710,22 +709,9 @@ class QueueController extends Controller
             ->leftJoin('branchs as b', 'b.id', '=', 'ap.branch_id')
             ->first();
         if ($data) {
-            if ($data->status == 'Booked') {
-                $dateNow = Carbon::now()->toDateString();
-                if ($data->appointment_date == $dateNow) {
-                    return response()->json([
-                        'value' => $data
-                    ]);
-                } else {
-                    return response()->json([
-                        'errors' => "The reference number appointment for Online Application is no longer valid."
-                    ],400);
-                }
-            } else {
-                return response()->json([
-                    'errors' => 'The customer has already been finished.'
-                ],400);
-            }
+            return response()->json([
+                'value' => $data
+            ]);
         } else {
             return response()->json([
                 'errors' => 'The reference number could not be found.'
