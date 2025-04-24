@@ -125,7 +125,7 @@
 </template>
 <script>
 import { ref, onMounted, watch, computed, nextTick } from "vue";
-import axios from "axios";
+import { $axios, $notify } from "boot/app";
 import {
   QSelect,
   QInput,
@@ -272,7 +272,7 @@ export default {
     // Fetch branches to populate the select field
     const fetchBranches = async () => {
       try {
-        const response = await axios.post("/type/Branch"); // Fetch branches
+        const response = await $axios.post("/type/Branch"); // Fetch branches
         branches.value = response.data.branch;
       } catch (error) {
         console.error("Error fetching branches:", error);
@@ -284,7 +284,7 @@ export default {
       try {
         formError.value = {};
         // Send request to backend to apply available slots to all days
-        const response = await axios.post("/apply_slots", {
+        const response = await $axios.post("/apply_slots", {
           branch_id: selectedBranch.value,
           slots_per_day: newSlotCount.value,
           start_date: form.value.startDate,
@@ -339,7 +339,7 @@ export default {
       );
 
       try {
-        const { data } = await axios.post(`/branches/slots`, {
+        const { data } = await $axios.post(`/branches/slots`, {
           branch_id: selectedBranch.value,
           start_date: formattedStartDate,
           end_date: formattedEndDate,

@@ -260,18 +260,18 @@ class ManagerController extends Controller
     }
 
     public function validationLoginManager (AdminRequest $request) {
-        $manager = DB::table('managers')
+        $managerr = DB::table('managers')
             ->where('manager_username', $request->Username)
             ->first();
             
-                if ($manager) {
+                if ($managerr) {
                     // Check if the admin exists and if the provided password matches the stored hashed password
-                    if (!$manager || !Hash::check($request->Password, $manager->manager_password)) {
+                    if (!$managerr || !Hash::check($request->Password, $managerr->manager_password)) {
                         // If the username doesn't exist or the password is incorrect, return an error response
                         return response()->json([
-                            'error' => 'Incorrect password'
+                            'error' => 'Invalid username or password'
                         ],401);
-                    }else if( $manager->branch_id == null){
+                    }else if( $managerr->branch_id == null){
                         // If the manager is not assigned to a branch, return an error response
                         return response()->json([
                             'error' => 'Manager not assigned to a branch'
@@ -281,8 +281,13 @@ class ManagerController extends Controller
                     // Generate a simple authentication token (or use Laravel Sanctum for better security)
                     $token = base64_encode(Str::random(40));
                     DB::table('managers')
-                    ->where('id', $manager->id)
+                    ->where('id', $managerr->id)
                     ->update(['manager_status' => 'Online']);
+
+                    $manager = DB::table('managers') 
+                        ->where('id',$managerr->id)
+                        ->first();
+
                     // If authentication is successful, return a success response
                     return response()->json([
                         'managerInformation' => [

@@ -100,8 +100,7 @@ export default {
             "/manager/validate",
             formData.value
           );
-          console.log(data.result)
-          if (data.result === "manager") {
+          if (data.result == "manager") {
             if (data.managerInformation.manager_status === 'Online') {
               // Store token in localStorage instead of localStorage
               localStorage.setItem("authTokenManager", data.token);

@@ -1,7 +1,7 @@
 const routes = [
   {
     path: "/", // The root URL ("/") of the application
-    redirect: "/login", // Automatically redirect to "/login" when accessing "/"
+    redirect: "/vrtsystem/onlineAppointment", // Automatically redirect to "/login" when accessing "/"
   },
   {
     path: "/login", // The login page path
