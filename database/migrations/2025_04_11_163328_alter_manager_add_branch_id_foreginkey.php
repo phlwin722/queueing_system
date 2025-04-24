@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -32,14 +33,14 @@ return new class extends Migration {
         Schema::table('tellers', function (Blueprint $table) {
             // add foreign key
             $table->foreign('branch_id')
-                ->references('id')
-                ->on('branchs')
-                ->onUpdate('cascade')
-                ->onDelete('cascade');
+            ->references('id')
+            ->on('branchs')
+            ->onUpdate('cascade')
+            ->onDelete('cascade');
         });
 
         // foregin the window branch id on branchs 
-        Schema::table('windows', function (Blueprint $table) {
+        Schema::table('windows', function(Blueprint $table) {
             // add foregin key
             $table->foreign('branch_id')
                 ->references('id')

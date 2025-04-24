@@ -22,22 +22,22 @@ class AppointmentController extends Controller
         if (!$validate) {
             return response()->json([
                 'error' => $validate
-            ], 422);
+            ],422);
         }
 
         $referenceNumber = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 10)), 0, 10);
 
         DB::table('appointments')
-            ->insert([
-                'referenceNumber' => $referenceNumber,
-                'branch_id' => $request->branch_id,
-                'name' => $request->name,
-                'email' => $request->email,
-                'type_id' => $request->service,
-                'appointment_date' => $request->appointment_date,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                    ->insert([
+                        'referenceNumber' => $referenceNumber,
+                        'branch_id' => $request->branch_id,
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'type_id' => $request->service,
+                        'appointment_date' => $request->appointment_date,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
 
         // slots on available slots
 
@@ -67,70 +67,67 @@ class AppointmentController extends Controller
     public function getSlots(Request $request)
     {
         $datenow = Carbon::now(); // get the current date and time
-        $previous_date = $datenow->subDay()->toDateString();
-        ; // substract 1 day
+        $previous_date = $datenow->subDay()->toDateString(); ; // substract 1 day
 
-        // check existing
-        DB::table('available_slots')
-            ->where('date', $previous_date)
-            ->delete();
-        // Fetch all available slots for the current week (Monday to Friday)
-        $availableSlots = DB::table('available_slots')
-            ->where('branch_id', $request->branch_id)
-            ->where('is_available', '>', 0)
-            ->get();
-
-        return response()->json(['availableSlots' => $availableSlots]);
+            // check existing
+            DB::table('available_slots')
+                            ->where('date', $previous_date)
+                            ->delete();
+          // Fetch all available slots for the current week (Monday to Friday)
+          $availableSlots = DB::table('available_slots')
+                                        ->where('branch_id', $request->branch_id)
+                                        ->where('is_available', '>', 0)
+                                        ->get();
+  
+          return response()->json(['availableSlots' => $availableSlots]);
 
     }
 
-    public function services(Request $request)
-    {
-        try {
+    public function services (Request $request) {
+        try {   
             $service = DB::table('types')
-                ->where('branch_id', $request->branch_id)
-                ->get();
+                        ->where('branch_id',$request->branch_id)
+                        ->get();
             return response()->json([
                 'servce' => $service
             ]);
-        } catch (\Exception $e) {
+        }  catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage()
             ]);
         }
     }
 
-    public function apply_slots(Request $request)
-    {
-        // Validate the incoming data
-        $validate = $request->validate([
-            'branch_id' => 'required|exists:branchs,id',
-            'slots_per_day' => 'required|min:1',
-            'start_date' => 'required',
-            'time' => 'required',
-            'end_date' => 'required',
-        ], [
-            'branch_id.required' => 'The branch ID is required.',
-            'branch_id.exists' => 'The branch ID must exist in the branch table.',
-            'slots_per_day.required' => 'The number of slots per day is required.',
-            'slots_per_day.min' => 'The number of slots per day must be at least 1.',
-            'start_date.required' => 'The start date is required.',
-            'time.required' => 'The time field is required.',
-            'end_date.required' => 'The end date is required.',
-        ]);
-
-        // If validation passes, you can continue processing the request
-        // Example: return response()->json(['success' => true]);
-
+    public function apply_slots (Request $request) {
+                // Validate the incoming data
+            $validate =  $request->validate([
+                'branch_id' => 'required|exists:branchs,id',
+                'slots_per_day' => 'required|min:1',
+                'start_date' => 'required',
+                'time' => 'required',
+                'end_date' => 'required',
+            ], [
+                'branch_id.required' => 'The branch ID is required.',
+                'branch_id.exists' => 'The branch ID must exist in the branch table.',
+                'slots_per_day.required' => 'The number of slots per day is required.',
+                'slots_per_day.min' => 'The number of slots per day must be at least 1.',
+                'start_date.required' => 'The start date is required.',
+                'time.required' => 'The time field is required.',
+                'end_date.required' => 'The end date is required.',
+            ]);
+            
+            // If validation passes, you can continue processing the request
+            // Example: return response()->json(['success' => true]);
+            
 
         if (!$validate) {
             return response()->json([
                 'errors' => $validate
-            ], 422);
+            ],422);
         }
 
-        $startDate = Carbon::parse($request->start_date)->startOfDay();
-        $endDate = Carbon::parse($request->end_date)->endOfDay();
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
         $branchId = $request->branch_id;
         $slotsPerDay = $request->slots_per_day;
         $time = $request->time;
@@ -177,43 +174,28 @@ class AppointmentController extends Controller
         return response()->json(['message' => 'Slots applied successfully.']);
     }
 
-    public function validateAppointment(Request $request)
-    {
-        $validate = $request->validate([
-            'referenceNum' => 'required'
-        ]);
-
-        if (!$validate) {
-            return response()->json(['error' => $validate], 422);
-        }
-
-        $checkingReference = DB::table('appointments')
-            ->where('referenceNumber', $request->referenceNum)
-            ->first();
-        if ($checkingReference) {
-            return response()->json([
-                'reference' => $checkingReference
+    public function validateAppointment (Request $request) {
+            $validate = $request->validate([
+                'referenceNum' => 'required'
             ]);
-        } else {
-            return response()->json([
-                'error' => 'The reference number could not be found. Please check your email and try again.'
-            ], 400);
-        }
 
-    }
-
-    public function cancelAppointment(Request $request)
-    {
-        try {
-            // ✅ Step 1: Get the incoming appointment data from the request
-            $appointments = $request->dataHandleCancel;
-
-            // ✅ Step 2: Validate that the data is present and is an array
-            if (!$appointments || !is_array($appointments)) {
-                return response()->json([
-                    'message' => 'Invalid data format.' // Send error if format is wrong
-                ], 422);
+            if (!$validate) {
+                return response()->json(['error' => $validate],422);
             }
+
+            $checkingReference = DB::table('appointments')
+                                ->where('referenceNumber', $request->referenceNum)
+                                ->first();
+            if ($checkingReference) {
+                return response()->json([
+                    'reference' => $checkingReference
+                ]);
+            }else {
+                return response()->json([
+                    'error' => 'The reference number could not be found. Please check your email and try again.'
+                ],400);
+            }
+
     }
     
     public function cancelAppointment(Request $request)
@@ -232,16 +214,16 @@ class AppointmentController extends Controller
             // ✅ Step 3: Extract the appointment IDs, branch IDs, and dates into separate arrays
             $ids = array_column($appointments, 'id');                      // [24, 25, ...]
             $branch_ids = array_column($appointments, 'branch_id');        // [1, 2, ...]
-            $appointment_dates = array_column($appointments, 'appointment_date'); // ['2025-04-21', ..
-
+            $appointment_dates = array_column($appointments, 'appointment_date'); // ['2025-04-21', ...]
+    
             // (Optional) Debug log for inspecting date data
             // Log::info($appointment_dates);
-
+    
             // ✅ Step 4: Check if at least one slot exists for any of the given dates
             $slots = DB::table('available_slots')
                 ->whereIn('date', $appointment_dates)
                 ->first();
-
+    
             // ✅ Step 5: If at least one slot is found, proceed with updates
             if ($slots) {
                 // ✅ Step 6: Loop through each appointment and update availability
@@ -251,13 +233,13 @@ class AppointmentController extends Controller
                         ->where('date', $appointment['appointment_date'])          // Match date
                         ->increment('is_available', 1);                            // Add 1 slot back
                 }
-
+    
                 // ✅ Step 7: Delete all the cancelled appointments (based on IDs and branches)
                 DB::table('appointments')
                     ->whereIn('id', $ids)
                     ->whereIn('branch_id', $branch_ids)
                     ->delete();
-
+    
                 // ✅ Step 8: Return success response
                 return response()->json([
                     'message' => 'The appointment has been successfully canceled.'
@@ -268,7 +250,7 @@ class AppointmentController extends Controller
                     'message' => 'No slots found for the selected dates.'
                 ], 404);
             }
-
+    
         } catch (\Exception $e) {
             // ❌ Catch any unexpected error and return a 500 server error response
             return response()->json([
@@ -276,7 +258,8 @@ class AppointmentController extends Controller
             ], 500);
         }
     }
-  
+    
+    
     public function updateAppointment(Request $request) {
         $validate = $request->validate([
             'name' => 'required|string|max:100',
@@ -289,29 +272,29 @@ class AppointmentController extends Controller
         if (!$validate) {
             return response()->json([
                 'error' => $validate
-            ], 422);
+            ],422);
         }
-
+ 
         // get the previous value on appointment  date
-        $prevValue = DB::table('appointments')
+        $prevValue= DB::table ('appointments')
             ->where('id', $request->id)
             ->first();
 
         if ($prevValue && $prevValue->appointment_date != $request->appointment_date) {
             //update if not equal previous appointment and new appointment
-
+            
             // decrease the previous date
             $decreate = DB::table('available_slots')
-                ->where('date', $prevValue->appointment_date)
+                ->where('date',$prevValue->appointment_date)
                 ->first();
 
             DB::table('available_slots')
-                ->where('date', $prevValue->appointment_date)
+                ->where('date',$prevValue->appointment_date)
                 ->update(['is_available' => $decreate->is_available - 1]);
-
+            
             // increase the latest date
             $increase = DB::table('available_slots')
-                ->where('date', $request->appointment_date)
+                ->where('date',$request->appointment_date)
                 ->first();
 
             DB::table('available_slots')
@@ -321,7 +304,7 @@ class AppointmentController extends Controller
 
         // update appointment
         DB::table('appointments')
-            ->where('id', $request->id)
+            ->where('id',$request->id)
             ->update([
                 'branch_id' => $request->branch_id,
                 'name' => $request->name,
@@ -343,7 +326,7 @@ class AppointmentController extends Controller
                 return response()->json([
                     'rows' => $data
                 ]);
-            } else {
+            }else {
                 $data = $this->getData();
                 return response()->json([
                     'rows' => $data
@@ -389,12 +372,11 @@ class AppointmentController extends Controller
         }
     }
 
-    public function updataStatusAppointment(Request $request)
-    {
+    public function updataStatusAppointment (Request $request) {
         try {
             $updateStat = DB::table('appointments')
-                ->where('id', $request->id)
-                ->update(['status' => $request->status]);
+                            ->where('id', $request->id)
+                            ->update(['status'=> $request->status]);
 
             if ($updateStat) {
                 return response()->json([
@@ -408,4 +390,3 @@ class AppointmentController extends Controller
         }
     }
 }
-

@@ -21,37 +21,32 @@
           {{ formattedString }}
         </div> -->
         <!-- Admin Account Dropdown (Moved from Drawer to Here) -->
-        <q-btn-dropdown
-          flat
-          dense
-          no-caps
-          dropdown-icon="keyboard_arrow_down"
-          style="max-width: 200px"
-        >
-          <template v-slot:label>
-            <q-avatar size="25px" class="bg-white">
-              <img :src="previewAdminImage" />
-            </q-avatar>
-            <span class="q-ml-sm">
-              {{
-                adminInformationContent && adminInformationContent.Firstname
-                  ? adminInformationContent.Firstname +
-                    " " +
-                    adminInformationContent.Lastname
-                  : "Loading..."
-              }}
-            </span>
-          </template>
+    <q-btn-dropdown flat dense no-caps dropdown-icon="keyboard_arrow_down" style="max-width: 200px;">
+      <template v-slot:label>
+          <q-avatar size="25px" class="bg-white">
+            <img :src="previewAdminImage"/>
+          </q-avatar>
+          <span class="q-ml-sm">
+            {{
+              adminInformationContent && adminInformationContent.Firstname
+                ? adminInformationContent.Firstname +
+                  " " +
+                  adminInformationContent.Lastname
+                : "Loading..."
+            }}
+          </span>
+      </template>
 
-          <q-list>
-            <q-item clickable v-ripple @click="logout">
-              <q-item-section avatar>
-                <q-icon name="logout" color="red" />
-              </q-item-section>
-              <q-item-section class="text-red">Logout</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+      <q-list>
+        <q-item clickable v-ripple @click="logout">
+          <q-item-section avatar>
+            <q-icon name="logout" color="red" />
+          </q-item-section>
+          <q-item-section class="text-red">Logout</q-item-section>
+        </q-item>
+      </q-list>
+    </q-btn-dropdown>
+
       </q-toolbar>
     </q-header>
 
@@ -65,7 +60,7 @@
       bordered
       content-class="fit"
       :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
-      class="q-px-sm shadow-1"
+      class="q-px-sm shadow-1 "
     >
       <q-scroll-area
         class="fit"
@@ -154,7 +149,11 @@
                       </q-menu>
                     </q-item>
 
-                    <q-item clickable v-ripple @click="resetQueue()">
+                    <q-item
+                      clickable
+                      v-ripple
+                      @click="resetQueue()"
+                    >
                       <q-item-section avatar class="q-pl-xl">
                         <q-icon name="restart_alt" />
                       </q-item-section>
@@ -165,15 +164,9 @@
 
                     <q-item clickable v-ripple>
                       <q-item-section avatar class="q-pl-xl">
-                        <q-icon
-                          name="schedule"
-                          :color="isMenuOpen ? 'primary' : 'secondary'"
-                        />
+                        <q-icon name="schedule" :color="isMenuOpen ? 'primary' : 'secondary'" />
                       </q-item-section>
-                      <q-item-section
-                        class="text-left"
-                        :class="{ 'text-primary': isMenuOpen }"
-                      >
+                      <q-item-section class="text-left" :class="{ 'text-primary': isMenuOpen }">
                         Break Time
                       </q-item-section>
 
@@ -189,18 +182,12 @@
                           <q-form @submit.prevent="saveBreakTime">
                             <q-item>
                               <q-item-section>
-                                <q-item-label class="text-h6"
-                                  >From:</q-item-label
-                                >
+                                <q-item-label class="text-h6">From:</q-item-label>
                                 <q-btn
                                   color="primary"
                                   icon="schedule"
-                                  :label="
-                                    formDataBreak.break_from || 'Select Time'
-                                  "
-                                  :error="
-                                    formError.hasOwnProperty('break_from')
-                                  "
+                                  :label="formDataBreak.break_from || 'Select Time'"
+                                  :error="formError.hasOwnProperty('break_from')"
                                   :error-message="formError.break_from"
                                   @click="showFromPicker = true"
                                 />
@@ -219,9 +206,7 @@
                                 <q-btn
                                   color="primary"
                                   icon="schedule"
-                                  :label="
-                                    formDataBreak.break_to || 'Select Time'
-                                  "
+                                  :label="formDataBreak.break_to || 'Select Time'"
                                   :error="formError.hasOwnProperty('break_to')"
                                   :error-message="formError.break_to"
                                   @click="showToPicker = true"
@@ -236,17 +221,13 @@
                             </q-item>
 
                             <div class="row justify-center q-mt-md">
-                              <q-btn
-                                color="primary"
-                                label="Save"
-                                icon="save"
-                                @click="saveBreakTime"
-                              />
+                              <q-btn color="primary" label="Save" icon="save" @click="saveBreakTime" />
                             </div>
                           </q-form>
                         </q-card>
                       </q-menu>
                     </q-item>
+
                   </template>
                 </template>
               </q-list>
@@ -324,8 +305,9 @@
           </q-list>
         </q-btn-dropdown>
       </div> -->
+
     </q-drawer>
-    <q-page-container style="padding-bottom: 20px">
+    <q-page-container style="padding-bottom: 20px;">
       <router-view />
     </q-page-container>
 
@@ -338,21 +320,18 @@
 
         <!-- Right Side: Formatted Time -->
         <div class="row items-center">
-          <q-icon
-            name="calendar_today"
-            color="white"
-            size="1em"
-            class="q-mr-xs"
-          />
+          <q-icon name="calendar_today" color="white" size="1em" class="q-mr-xs" />
           <span class="text-caption">{{ formattedString }}</span>
         </div>
       </div>
     </q-footer>
+
+
   </q-layout>
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, reactive, nextTick } from "vue";
+import { defineComponent, ref, onMounted, reactive, nextTick  } from "vue";
 import { date } from "quasar";
 import { useRouter } from "vue-router";
 import { $axios, $notify } from "src/boot/app";
@@ -394,6 +373,7 @@ export default defineComponent({
       );
     };
 
+
     const toggleMiniState = () => {
       miniState.value = !miniState.value;
     };
@@ -410,7 +390,7 @@ export default defineComponent({
         if (adminInformation.value.branch_id) {
           const { data } = await $axios.post("/admin/Information", {
             id: adminInformation.value.id,
-            branch_id: adminInformation.value.branch_id,
+            branch_id: adminInformation.value.branch_id
           });
 
           if (data.dataValue) {
@@ -423,7 +403,7 @@ export default defineComponent({
               Lastname: "N/A",
             };
           }
-        } else {
+        }else {
           const { data } = await $axios.post("/admin/Information", {
             id: adminInformation.value.id,
           });
@@ -474,7 +454,8 @@ export default defineComponent({
         updateFormattedTime(); // Call it once on mount
         setInterval(fetchAdminInformation, 6000);
         setInterval(updateFormattedTime, 1000); // Update every second
-      } else {
+      }
+        else {
         console.error("No admin information found in localStorage");
       }
     });
@@ -499,17 +480,16 @@ export default defineComponent({
     const formData = ref({
       id: "", // Store ID if it exists
       Waiting_time: "",
-      branch_id: "",
     });
     const timeData = ref(null);
     const formError = ref({});
-    const formDataBreak = reactive({
+    const formDataBreak = reactive ({
       id: "", // Store ID if it exists
       break_from: "", // Stores start time
-      break_to: "", // Stores end time
+      break_to: "",   // Stores end time
     });
-    const showFromPicker = ref(false);
-    const showToPicker = ref(false);
+    const showFromPicker = ref(false)
+    const showToPicker= ref(false)
 
     // Fetch saved time
     const formatTime = (seconds) => {
@@ -522,22 +502,22 @@ export default defineComponent({
 
     const fetchWaitingtime = async () => {
       try {
-        const { data } = await $axios.post("/admin/waiting_Time-fetch", {
-          branch_id: adminInformation.value.branch_id,
-        });
+        const { data } = await $axios.post("/admin/waiting_Time-fetch");
+        console.log("Fetched Data:", data);
 
-        if (data?.dataValue?.Waiting_time) {
-          const waitingTimeInSeconds = data.dataValue.Waiting_time;
-          timeData.value = formatTime(waitingTimeInSeconds);
+        if (data && data.dataValue && data.dataValue.length > 0) {
+          const waitingTimeInSeconds = data.dataValue[0].Waiting_time; // Fetch as seconds
+          timeData.value = formatTime(waitingTimeInSeconds); // Convert to MM:SS
           console.log("Updated timeData (MM:SS):", timeData.value);
         } else {
-          console.warn("No waiting time found for this branch");
+          console.warn("No waiting time found");
         }
       } catch (error) {
         console.error("Error fetching waiting time:", error);
       }
     };
-
+    
+    
     const fetchBreakTime = async () => {
       try {
         const { data } = await $axios.post("/admin/fetch_break_time",{
@@ -545,14 +525,10 @@ export default defineComponent({
         });
         console.log("Fetched Data:", data);
         if (data?.dataValue) {
-          formDataBreak.break_to = data.dataValue.break_to.slice(0, 5);
-          formDataBreak.break_from = data.dataValue.break_from.slice(0, 5);
-          console.log(
-            "Updated break time:",
-            formDataBreak.break_from,
-            formDataBreak.break_to
-          );
-          console.log(typeof formDataBreak.break_from);
+          formDataBreak.break_to = data.dataValue.break_to.slice(0, 5)
+          formDataBreak.break_from = data.dataValue.break_from.slice(0, 5)
+          console.log("Updated break time:", formDataBreak.break_from, formDataBreak.break_to);
+          console.log(typeof formDataBreak.break_from)
           await nextTick();
         } else {
           console.warn("No break time found");
@@ -560,18 +536,11 @@ export default defineComponent({
       } catch (error) {
         console.error("Error fetching break time:", error);
       }
-    };
+    }
 
     const process = async () => {
       isLoading.value = true;
       try {
-        formData.value.branch_id = adminInformation.value.branch_id;
-
-        if (formData.value.Waiting_time == "00:00") {
-          formError.value.Waiting_time = "Invalid waiting time";
-          return;
-        }
-
         const endpoint = "/admin/waiting_Time"; // Always use the same endpoint
 
         const { data } = await $axios.post(endpoint, formData.value);
@@ -605,17 +574,13 @@ export default defineComponent({
 
         if (data) {
           $notify("positive", "done", data.message);
-          fetchBreakTime();
+          fetchBreakTime()
         }
       } catch (error) {
         if (error.response.status === 422) {
           formError.value = error.response.data; // Handle validation errors
         } else {
-          $notify(
-            "negative",
-            "error",
-            'The "From" time must be earlier than the "To" time.'
-          );
+          $notify("negative", "error", 'catch error');
           console.error("Error", error.response ? error.response.data : error); // ✅ Prevent undefined errors
         }
       } finally {
@@ -682,9 +647,7 @@ export default defineComponent({
             style: "border-radius: 12px; padding: 16px;",
           })
           .onOk(async () => {
-            const response = await $axios.post("/resetQueue", {
-              branch_id: adminInformation.value.branch_id,
-            });
+            const response = await $axios.post("/resetQueue");
             $notify("positive", "check", response.data.message);
             console.log(response.data.message);
           })
@@ -693,7 +656,7 @@ export default defineComponent({
           });
       } catch (error) {
         console.error(error);
-        $notify("negative", "error", error);
+        $notify("negative", "error",error);
       }
     };
 
@@ -757,7 +720,7 @@ export default defineComponent({
             },
           ],
         },
-/*       {
+/*           {
             title: "Customer Logs",
             icon: "description",
             link: "/admin/customer-logs",
@@ -795,38 +758,38 @@ export default defineComponent({
           },
         ];
       } else {
-        linksList.value = [
-          {
-            title: "Dashboard",
-            icon: "dashboard",
-            link: "/admin/dashboard",
-          },
-          {
-            title: "Teller",
-            icon: "person",
-            children: [
-              {
-                title: "Service Types",
-                icon: "category",
-                link: "/admin/teller/types",
-              },
-              {
-                title: "Personnel",
-                icon: "groups",
-                link: "/admin/teller/tellers",
-              },
-              {
-                title: "Window",
-                icon: "computer",
-                link: "/admin/teller/window",
-              },
-            ],
-          },
-          /*       {
+        linksList.value =  [
+        {
+          title: "Dashboard",
+          icon: "dashboard",
+          link: "/admin/dashboard",
+        },
+        {
+          title: "Teller",
+          icon: "person",
+          children: [
+            {
+              title: "Service Types",
+              icon: "category",
+              link: "/admin/teller/types",
+            },
+            {
+              title: "Personnel",
+              icon: "groups",
+              link: "/admin/teller/tellers",
+            },
+            {
+              title: "Window",
+              icon: "computer",
+              link: "/admin/teller/window",
+            },
+          ],
+        },
+  /*       {
           title: "Archive",
           icon: "archive",
           link: "/admin/archive",
-        },
+        }, */
         {
           title: "Admin Queue",
           icon: "admin_panel_settings",
@@ -868,51 +831,53 @@ export default defineComponent({
           icon: "description",
           link: "/admin/customer-logs",
         }, */
-          {
-            title: "Teller customer logs",
-            icon: "person",
-            link: "/admin/teller-customer-logs",
-          },
-          {
-            title: "Window Logs",
-            icon: "upload_file",
-            link: "/admin/window-logs",
-          },
-          {
-            title: "Serving Time Logs",
-            icon: "timer",
-            link: "/admin/serving-time-logs",
-          },
-          {
-            title: "Reports",
-            icon: "bar_chart",
-            link: "/admin/reports",
-          },
-          {
-            title: "Settings",
-            icon: "settings",
-            children: [
-              {
-                title: "Personal Info",
-                icon: "computer",
-                link: "/admin/settings",
-              },
-              {
-                title: "Reset Window",
-                icon: "reset_tv",
-                link: "/admin/reset-window",
-              },
-            ],
-          },
-        ];
+        {
+          title:"Teller customer logs",
+          icon: "person",
+          link: "/admin/teller-customer-logs",
+        },
+        {
+          title: "Window Logs",
+          icon: "upload_file",
+          link: "/admin/window-logs",
+        },
+        {
+          title: "Serving Time Logs",
+          icon: "timer",
+          link: "/admin/serving-time-logs",
+        },
+        {
+          title: "Reports",
+          icon: "bar_chart",
+          link: "/admin/reports",
+        },
+        {
+          title: "Settings",
+          icon: "settings",
+          children: [
+            {
+              title: "Personal Info",
+              icon: "computer",
+              link: "/admin/settings",
+            },
+            {
+              title: "Reset Window",
+              icon: "reset_tv",
+              link: "/admin/reset-window",
+            },
+          ],
+        },
+      ];
       }
     };
+
 
     onMounted(() => {
       fetchLinks();
       fetchWaitingtime();
-      fetchBreakTime();
+      fetchBreakTime()
     });
+
 
     return {
       leftDrawerOpen,
@@ -941,12 +906,14 @@ export default defineComponent({
       showFromPicker,
       showToPicker,
 
+
       // reset queue number functions
       currentServing,
       isQueuelistEmpty,
       fetchQueue,
       resetQueue,
       shouldShowSideNav,
+      
 
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
