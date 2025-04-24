@@ -727,6 +727,11 @@ export default defineComponent({
             ],
           },
           {
+            title: "Archive",
+            icon: "archive",
+            link: "/admin/archive",
+          },
+          {
             title: "Generated QrCode",
             icon: "qr_code_2",
             link: "/queue-qr",
@@ -795,34 +800,34 @@ export default defineComponent({
           },
         ];
       } else {
-        linksList.value = [
-          {
-            title: "Dashboard",
-            icon: "dashboard",
-            link: "/admin/dashboard",
-          },
-          {
-            title: "Teller",
-            icon: "person",
-            children: [
-              {
-                title: "Service Types",
-                icon: "category",
-                link: "/admin/teller/types",
-              },
-              {
-                title: "Personnel",
-                icon: "groups",
-                link: "/admin/teller/tellers",
-              },
-              {
-                title: "Window",
-                icon: "computer",
-                link: "/admin/teller/window",
-              },
-            ],
-          },
-          /*       {
+        linksList.value =  [
+        {
+          title: "Dashboard",
+          icon: "dashboard",
+          link: "/admin/dashboard",
+        },
+        {
+          title: "Teller",
+          icon: "person",
+          children: [
+            {
+              title: "Service Types",
+              icon: "category",
+              link: "/admin/teller/types",
+            },
+            {
+              title: "Personnel",
+              icon: "groups",
+              link: "/admin/teller/tellers",
+            },
+            {
+              title: "Window",
+              icon: "computer",
+              link: "/admin/teller/window",
+            },
+          ],
+        },
+        {
           title: "Archive",
           icon: "archive",
           link: "/admin/archive",
