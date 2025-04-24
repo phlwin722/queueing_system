@@ -348,46 +348,6 @@ export default {
       }
     };
 
-    // Apply slots for the entire week (Monday to Friday) for the selected branch
-    const applySlotsForWeek = async () => {
-      if (!form.value.startDate || !form.value.endDate) {
-        alert("Please select a date range");
-        return;
-      }
-
-      try {
-        // Ensure we're using the full day for start and end dates
-        const startDate = new Date(form.value.startDate);
-        startDate.setHours(0, 0, 0, 0);
-        const endDate = new Date(form.value.endDate);
-        endDate.setHours(23, 59, 59, 999);
-
-        // Format dates for backend with timezone adjustment
-        const formattedStartDate = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000))
-          .toISOString().split('T')[0];
-        const formattedEndDate = new Date(endDate.getTime() - (endDate.getTimezoneOffset() * 60000))
-          .toISOString().split('T')[0];
-
-        console.log("Applying slots for date range:", formattedStartDate, "to", formattedEndDate);
-
-        // Send request to backend to apply available slots to all days
-        const response = await axios.post("/apply_slots", {
-          branch_id: selectedBranch.value,
-          slots_per_day: newSlotCount.value,
-          start_date: formattedStartDate,
-          end_date: formattedEndDate,
-          time: form.value.time,
-        });
-
-        // Update calendar view to show only the selected date range
-        updateCalendarView(formattedStartDate, formattedEndDate);
-
-        // Refresh the weekly slots display with the same date range
-        await fetchWeeklySlots();
-      } catch (error) {
-        console.error("Error applying slots for the week:", error);
-      }
-    };
 
     // Update calendar view to display only the selected date range
     const updateCalendarView = (startDate, endDate) => {
