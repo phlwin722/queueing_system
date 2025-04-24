@@ -13,13 +13,14 @@
           @click="$q.fullscreen.toggle()"
           :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
         />
-
-        <q-space />
         <q-img
           src="~assets/vrtlogowhite1.png"
           alt="Logo"
           fit="full"
-          :style="{ maxWidth: $q.screen.lt.sm ? '100px' : '160px' }"
+          :style="{ 
+            maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+            marginLeft: '50px'
+          }"
           class="q-ml-sm"
         />
         <div>{{ formattedString }}</div>
