@@ -16,16 +16,21 @@ class Waiting_timeController extends Controller
             $totalSeconds = ($minutes * 60) + $seconds;
 
             // Check if a record already exists
-            $waitingTime = WaitingTime::first();
+            $waitingTime = WaitingTime::where('branch_id', $request->branch_id)->first();
             $message = '';
 
             if ($waitingTime) {
                 // Update the existing record
-                $waitingTime->update(["Waiting_time" => $totalSeconds]);
+                $waitingTime->update([
+                    "Waiting_time" => $totalSeconds,
+                ]);
                 $message = "Waiting time updated successfully!";
             } else {
                 // Create a new record
-                $waitingTime = WaitingTime::create(["Waiting_time" => $totalSeconds]);
+                $waitingTime = WaitingTime::create([
+                    "Waiting_time" => $totalSeconds,
+                    "branch_id" => $request->branch_id
+                ]);
                 $message = "Waiting time created successfully!";
             }
 
@@ -46,32 +51,45 @@ class Waiting_timeController extends Controller
     public function index(Request $request)
     {
         try {
+            $branchId = $request->input('branch_id'); // get branch_id from request
             $lastUpdated = $request->input('last_updated');
-    
-            // Get latest updated_at from the waiting_times table
-            $latestUpdate = DB::table('waiting_times')->max('updated_at');
-    
-            // If not updated since last request, skip
+
+            // If no branch ID, return error
+            if (!$branchId) {
+                return response()->json([
+                    'message' => 'branch_id is required'
+                ], 400);
+            }
+
+            // Get latest updated_at for this branch only
+            $latestUpdate = DB::table('waiting_times')
+                ->where('branch_id', $branchId)
+                ->max('updated_at');
+
+            // Skip fetch if not updated
             if ($lastUpdated && $latestUpdate && $latestUpdate <= $lastUpdated) {
                 return response()->json([
                     'updated' => false,
                 ]);
             }
-    
-            // Fetch updated data
-            $waitingTimes = DB::table('waiting_times')->get();
-    
+
+            // Fetch waiting time for this branch only
+            $waitingTime = DB::table('waiting_times')
+                ->where('branch_id', $branchId)
+                ->first();
+
             return response()->json([
                 'updated' => true,
                 'last_updated_at' => $latestUpdate,
-                'dataValue' => $waitingTimes
+                'dataValue' => $waitingTime,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
-            ]);
+                'message' => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong',
+            ], 500);
         }
     }
-    
+
+
 
 }
