@@ -365,9 +365,10 @@ export default defineComponent({
                 }
                 // If updating and a new password is provided, update the password in formData
                 if (mode === '/update') {
-                    if (formDataPassword.value.teller_newPassword !== ''){
+                    if (formDataPassword.value.teller_newPassword == '' && formDataPassword.value.teller_retypepassword == '') {
+                        formData.value.teller_password = "oldpass"
+                    }else{
                         formData.value.teller_password = formDataPassword.value.teller_newPassword;
-                    
                     }
 
                     // check if selectedImage has not null

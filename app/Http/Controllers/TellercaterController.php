@@ -93,12 +93,13 @@ class TellercaterController extends Controller
     {
         $request->validate([
             'type_id' => 'required',
-            'teller_id' => 'required'  // Ensure we receive teller_id
+            'teller_id' => 'required',  // Ensure we receive teller_id
         ]);
     
         $type_id = $request->type_id;
         $teller_id = $request->teller_id;
         $lastUpdated = $request->input('last_updated'); // from frontend
+        $branchId = $request->branch_id;
 
         $queue = DB::table('queues as qs')
                 ->select(
@@ -123,6 +124,7 @@ class TellercaterController extends Controller
                 ->leftJoin("currencies as cr", "cr.id", "qs.currency_selected")
                 ->where('type_id', $type_id)
                 ->where('teller_id', $teller_id) // Fetch queue specific to teller
+                ->where('qs.branch_id', $branchId) // or ->whereNull('qs.branch_id') // Fetch queue specific to branch
                 ->where('status', 'waiting')
                 ->orderBy('position', 'asc')
                 ->get();
@@ -141,6 +143,7 @@ class TellercaterController extends Controller
     
         $currentServing = Queue::where('type_id', $type_id)
                             ->where('teller_id', $teller_id)
+                            ->where('branch_id', $branchId) // Fetch queue specific to branch
                             ->where('status', 'serving')
                             ->first();
     
@@ -148,6 +151,7 @@ class TellercaterController extends Controller
                         ->select('name', 'queue_number', 'status')
                         ->where('type_id', $type_id)
                         ->where('teller_id', $teller_id)
+                        ->where('branch_id', $branchId) // Fetch queue specific to branch
                         ->where('status', 'serving')
                         ->first();
     

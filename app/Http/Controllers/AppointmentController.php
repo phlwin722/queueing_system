@@ -214,11 +214,25 @@ class AppointmentController extends Controller
                     'message' => 'Invalid data format.' // Send error if format is wrong
                 ], 422);
             }
-
+    }
+    
+    public function cancelAppointment(Request $request)
+    {
+        try {
+            // ✅ Step 1: Get the incoming appointment data from the request
+            $appointments = $request->dataHandleCancel;
+    
+            // ✅ Step 2: Validate that the data is present and is an array
+            if (!$appointments || !is_array($appointments)) {
+                return response()->json([
+                    'message' => 'Invalid data format.' // Send error if format is wrong
+                ], 422);
+            }
+    
             // ✅ Step 3: Extract the appointment IDs, branch IDs, and dates into separate arrays
             $ids = array_column($appointments, 'id');                      // [24, 25, ...]
             $branch_ids = array_column($appointments, 'branch_id');        // [1, 2, ...]
-            $appointment_dates = array_column($appointments, 'appointment_date'); // ['2025-04-21', ...]
+            $appointment_dates = array_column($appointments, 'appointment_date'); // ['2025-04-21', ..
 
             // (Optional) Debug log for inspecting date data
             // Log::info($appointment_dates);
@@ -262,10 +276,8 @@ class AppointmentController extends Controller
             ], 500);
         }
     }
-
-
-    public function updateAppointment(Request $request)
-    {
+  
+    public function updateAppointment(Request $request) {
         $validate = $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|string|regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
@@ -323,8 +335,7 @@ class AppointmentController extends Controller
         ]);
     }
 
-    public function index(Request $request)
-    {
+    public function index (Request $request) {
         try {
             $data = '';
             if ($request->branch_id > 0) {
@@ -345,33 +356,32 @@ class AppointmentController extends Controller
         }
     }
 
-    public function getData($branch_id = null)
-    {
+    public function getData ($branch_id = null) {
         try {
             $res = DB::table('appointments as appt')
-                ->select(
-                    'appt.id',
-                    'appt.name',
-                    'appt.referenceNumber',
-                    'appt.branch_id',
-                    'appt.email',
-                    'appt.type_id',
-                    'appt.appointment_date',
-                    'appt.status',
-                    'b.branch_name',
-                    'tp.name as type_name'
-                )
-
-                ->leftJoin('branchs as b', 'b.id', '=', 'appt.branch_id')
-                ->leftJoin('types as tp', 'tp.id', '=', 'appt.type_id')
-                ->orderBy('appt.updated_at', 'desc');
+                    ->select(
+                        'appt.id',
+                        'appt.name',
+                        'appt.referenceNumber',
+                        'appt.branch_id',
+                        'appt.email',
+                        'appt.type_id',
+                        'appt.appointment_date',
+                        'appt.status',
+                        'b.branch_name',
+                        'tp.name as type_name'
+                    )
+                    
+                    ->leftJoin('branchs as b' , 'b.id', '=', 'appt.branch_id')
+                    ->leftJoin('types as tp', 'tp.id', '=', 'appt.type_id')
+                    ->orderBy('appt.updated_at', 'desc');
 
             if ($branch_id != null) {
-                $res = $res->where('appt.branch_id', $branch_id)->get();
-            } else {
+                $res = $res->where('appt.branch_id',$branch_id)->get();
+            }else {     
                 $res = $res->get();
             }
-            return $res;
+             return $res;
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage()
@@ -398,3 +408,4 @@ class AppointmentController extends Controller
         }
     }
 }
+

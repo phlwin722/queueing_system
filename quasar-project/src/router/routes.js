@@ -8,10 +8,6 @@ const routes = [
     component: () => import("pages/LoginInterface/index.vue"), // Dynamically load the login component
   },
   {
-    path: '/queue-qr', 
-    component: () => import('pages/generated_Qr/index.vue') 
-  },
-  {
     path: "/customer/customer_QrCode", // The login page path
     component: () => import("pages/customer/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
   },
@@ -77,6 +73,10 @@ const routes = [
         component: () => import("pages/admin/admin_Archieve/index.vue"), // Load the QR code page
       },
       {
+        path: '/queue-qr', 
+        component: () => import('pages/generated_Qr/index.vue') 
+      },
+      {
         path: "/admin/admin_Queue", // Path for the QR Code management page
         component: () => import("pages/admin/admin_Queue/index.vue"), // Load the QR code page
       },
@@ -95,6 +95,10 @@ const routes = [
       {
         path: '/admin/appointment/create',
         component: () => import("pages/admin/admin_online_appointment/index.vue")
+      },
+      {
+        path: '/admin/appointment/list',
+        component: () => import('pages/admin/admin_online_appointment/List_appointment.vue')
       },
       {
         path: "/admin/customer-logs", // Path for the QR Code management page

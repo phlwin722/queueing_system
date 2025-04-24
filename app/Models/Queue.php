@@ -23,5 +23,6 @@ class Queue extends Model
         'waiting_customer',
         'currency_selected',
         'priority_service',
+        'branch_id',
     ];
 }

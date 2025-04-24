@@ -25,8 +25,8 @@ class TypeRequest extends FormRequest
     {
         $id = $this->id ?: 'NULL'; 
         return [
-            'name' => ['required','max:255','unique:types,name,' . $id . ',id'],
-            'indicator' =>['required','unique:types,indicator,' . $id . ',id'],
+            'name' => ['required','max:255'],
+            'indicator' =>['required'],
             'serving_time' =>['required','numeric','min:1'],
             'branch_id' => ['required'],
         ];

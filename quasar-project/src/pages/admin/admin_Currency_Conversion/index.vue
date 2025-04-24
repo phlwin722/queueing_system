@@ -71,7 +71,7 @@
             <q-select
               dense
               outlined 
-              style="width: 250px;" 
+              style="width: 250px; position: absolute;  right: 10px;"
               label="Branch name"
               hide-bottom-space
               v-model="branch_name"
