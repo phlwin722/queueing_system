@@ -10,7 +10,8 @@ class WaitingTime extends Model
     use HasFactory;
     protected $fillable = [
         'id',
-        'Waiting_time'
+        'Waiting_time',
+        'branch_id'
     ];
 
     public function getFormattedTime()

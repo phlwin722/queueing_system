@@ -200,10 +200,11 @@ export default {
           branch_id: branch_id.value,
         });
 
-        if(fromBreak.value !== "" && toBreak.value !== ""){
+        if (data?.dataValue) {
           // ✅ Correctly assign break start & end times
           fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
           toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
+          console.log("Updated ", fromBreak.value, toBreak.value);
           // ✅ Get current time in HH:mm format
           const currentTime = new Date();
           const currentHour = currentTime.getHours().toString().padStart(2, "0");
@@ -214,9 +215,11 @@ export default {
           const OrgtotalMinutes = parseTime(fromBreak.value)
           originalFromBreak.value = formatTime(OrgtotalMinutes);
           const totalFormatMinutes = parseTime(formattedCurrentTime.value)
-        newFormattedTime.value = formatTime(totalFormatMinutes);
+          newFormattedTime.value = formatTime(totalFormatMinutes);
+        }else{
+          console.warn("No break time found");
         }
-
+  
       } catch (error) {
         console.error("Error fetching break time:", error);
       }
@@ -264,7 +267,7 @@ export default {
       fetchBreakTime();
       intervalId = setInterval(() => {
         fetchBreakTime();
-      }, 30000); 
+      }, 10000); 
       const managerInformation = localStorage.getItem('managerInformation')
           if (managerInformation) {
             adminManagerInformation.value = JSON.parse(managerInformation);

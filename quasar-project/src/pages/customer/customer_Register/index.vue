@@ -235,16 +235,37 @@ export default {
       const { data } = await $axios.post("/types/filteredTypes", {
         branch_id: branch_id,
       });
-      // Filter rows where type_id is NOT null
-      const filteredRows = data.rows.filter(row => row.type_id !== null && row.status == "Online" && row.name !== "Online Appointment");
-      console.log(filteredRows)
+      const OnlineTellers = data.rows;
+      const WindowsInBranch = data.types;
+
+      // Filter OnlineTellers that exist in WindowsInBranch by matching IDs
+      const NewObject = OnlineTellers.filter(teller =>
+        WindowsInBranch.some(window => window.id === teller.id)
+      );
+
+      console.log(NewObject);
+
+      const seenNames = new Set();
+      const uniqueRows = NewObject.filter(row => {
+        if (seenNames.has(row.name)) {
+          return false;
+        } else {
+          seenNames.add(row.name);
+          return true;
+        }
+      });
+
+      console.log(uniqueRows);
+      const filteredRows = uniqueRows.filter(row => row.type_id !== null && row.name !== "Online Appointment");
+      
       if(filteredRows.length === 0){
         isServiceAvailable.value = false
       }else{
         isServiceAvailable.value = true
       }
       // Log filtered type_id values
-      filteredRows.forEach(row => console.log(row.type_id + " " + row.name));
+     
+      
 
       // Assign only valid rows to categoriesList.value
       categoriesList.value = filteredRows;

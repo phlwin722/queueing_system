@@ -13,9 +13,8 @@ return new class extends Migration {
         Schema::create('waiting_times', function (Blueprint $table) {
             $table->id();
             $table->integer('Waiting_time');
-            $table->timestamps();
-            $table->unsignedBigInteger('branch_id')
-                ->nullable();
+            $table->unsignedBigInteger('branch_id') ->nullable();
+            $table->timestamps(); 
         });
     }
 
