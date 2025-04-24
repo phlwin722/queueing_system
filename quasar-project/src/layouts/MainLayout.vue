@@ -102,7 +102,7 @@
                   </q-item>
 
                   <!-- Insert "Waiting Time" only after "Personal Info" -->
-                  <template v-if="child.title === 'Personal Info'">
+                  <template v-if="child.title === 'Personal Info' && manager" >
                     <q-item clickable v-ripple>
                       <q-item-section avatar class="q-pl-xl">
                         <q-icon
@@ -696,9 +696,10 @@ export default defineComponent({
         $notify("negative", "error", error);
       }
     };
-
+    const manager = ref(false)
     const fetchLinks = async () => {
       if (adminInformation.value.branch_id != null) {
+        manager.value = true
         linksList.value = [
           {
             title: "Dashboard",
@@ -953,6 +954,8 @@ export default defineComponent({
       fetchQueue,
       resetQueue,
       shouldShowSideNav,
+
+      manager,
 
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;

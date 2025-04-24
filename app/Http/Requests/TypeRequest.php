@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class TypeRequest extends FormRequest
 {
@@ -23,11 +24,18 @@ class TypeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->id ?: 'NULL'; 
+        $id = $this->id ?: null;
+    
         return [
-            'name' => ['required','max:255'],
-            'indicator' =>['required'],
-            'serving_time' =>['required','numeric','min:1'],
+            'name' => [
+                'required',
+                'max:255',
+                Rule::unique('types', 'name')
+                    ->where(fn ($query) => $query->where('branch_id', $this->branch_id))
+                    ->ignore($id),
+            ],
+            'indicator' => ['required'],
+            'serving_time' => ['required', 'numeric', 'min:1'],
             'branch_id' => ['required'],
         ];
     }

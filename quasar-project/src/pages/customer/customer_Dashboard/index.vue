@@ -186,7 +186,7 @@
         </div>
 
         <div
-          v-if="queuePosition && queuePosition > 0 && !isBeingServed && !isNotBeingCatered"
+          v-if="queuePosition && queuePosition > 0 && !isBeingServed && !isNotBeingCatered && convertExpectedCaterTime >= newTime == false && newFormattedTime < originalFromBreak == false"
           class="text-center text-warning q-mb-md q-mt-md"
         >
           Expected cater time: {{ timeCater }}
@@ -583,7 +583,6 @@ export default {
           polling = false;
           waitingPolling = false;
           waitingTimePolling = false;
-          breakTimePolling = false; 
           setTimeout(() => router.push("/customer-thankyou/"), 2000);
         }
 
@@ -599,7 +598,6 @@ export default {
           polling = false;
           waitingPolling = false;
           waitingTimePolling = false;
-          breakTimePolling = false; 
           setTimeout(() => router.push("/customer-thankyou/"), 2000);
         }
       }
@@ -703,25 +701,21 @@ export default {
 
 
     const fetchBreakTimeLastUpdatedAt = ref(null); // last update tracker
-    let breakTimePolling = true; // Flag to control recursive polling
 
 const fetchBreakTime = async () => {
-  if (!breakTimePolling) return; // Prevent re-fetch if polling is stopped
 
   try {
     const { data } = await $axios.post("/admin/fetch_break_time", {
       last_updated: fetchBreakTimeLastUpdatedAt.value,
       branch_id: userInformation.value.branch_id,
     });
-
-    if (!data.updated) return; // Skip if no update
-    if(fromBreak.value !== "" && toBreak.value !== ""){
+    if (data?.dataValue) {
       fromBreak.value = data.dataValue.break_from.slice(0, 5);
       tempFromBreak.value = formatTo12Hour(fromBreak.value);
 
       toBreak.value = data.dataValue.break_to.slice(0, 5);
       tempToBreak.value = formatTo12Hour(toBreak.value);
-
+      console.log("Updated ", fromBreak.value, toBreak.value);
       const currentTime = new Date();
       const currentHour = currentTime.getHours().toString().padStart(2, "0");
       const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
@@ -752,14 +746,11 @@ const fetchBreakTime = async () => {
       } else {
         isNotBeingCatered.value = false;
       }
+    }else{
+      console.warn("No break time found")
     }
-
-    // Save the latest update timestamp
-    fetchBreakTimeLastUpdatedAt.value = data.last_updated_at;
   } catch (error) {
     console.error("Error fetching break time:", error);
-  } finally {
-      if (breakTimePolling) setTimeout(fetchBreakTime, 10000); // Schedule next poll
   }
 };
 
@@ -897,18 +888,14 @@ const fetchWaitingtime = async () => {
   try {
     const { data } = await $axios.post("/admin/waiting_Time-fetch", {
       last_updated: fetchWaitingTimeLastUpdatedAt.value,
+      branch_id: userInformation.value.branch_id,
     });
 
     // Only update if data was changed
     if (data.updated) {
-      if (data && data.dataValue && data.dataValue.length > 0) {
-        let fetchedTime = data.dataValue[0].Waiting_time;
-        let fetchedPrepared = data.dataValue[0].Prepared;
-
-        waitTime.value =
-          fetchedPrepared === "Minutes" ? fetchedTime * 60 : fetchedTime;
-        prepared.value = fetchedPrepared;
-
+      if (data?.dataValue?.Waiting_time) {
+        waitTime.value = data.dataValue.Waiting_time;
+        console.log(waitTime.value)
         fetchWaitingTimeLastUpdatedAt.value = data.last_updated_at;
       } else {
         console.log("No data available");
@@ -921,6 +908,31 @@ const fetchWaitingtime = async () => {
     if (waitingTimePolling) setTimeout(fetchWaitingtime, 10000); // Schedule next poll
   }
 };
+
+      // // Fetch waiting time with error handling
+      // const fetchWaitingtimelastUpdatedAt = ref(null); // default to null
+      // let fetchWaitingtimepolling = true;
+      // const fetchWaitingtimes = async () => {
+      //   if (!fetchWaitingtimepolling) return;
+      //   try {
+      //     const { data } = await $axios.post("/admin/waiting_Time-fetch",{
+      //       last_updated: fetchWaitingtimelastUpdatedAt.value,
+      //       branch_id: tellerInformation.value.branch_id,
+      //     });
+      //     if (data.updated) {
+      //       if (data?.dataValue?.Waiting_time) {
+      //         waitTime.value = data.dataValue.Waiting_time;
+      //       }
+            
+      //       fetchWaitingtimelastUpdatedAt.value = data.last_updated_at;
+      //     }
+          
+      //   } catch (error) {
+      //     console.error("Error fetching waiting time:", error);
+      //   }finally {
+      //     if (fetchWaitingtimepolling) setTimeout(fetchWaitingtime, 10000);
+      //   }
+      // };
     
 
 
@@ -1009,7 +1021,6 @@ const fetchWaitingtime = async () => {
         polling = false;
         waitingPolling = false;
         waitingTimePolling = false;
-        breakTimePolling = false;
         setTimeout(() => router.push("/customer-thankyou/"), 1000);
       } catch (error) {
         console.error(error);
@@ -1326,6 +1337,9 @@ const fetchWaitingtime = async () => {
       fetchWaitingStatus()
       fetchWaitingtime()
       fetchBreakTime()
+      setInterval(() => {
+        fetchBreakTime();
+      }, 10000); 
       setInterval(fetchCurrency(),30000);
       fetchType();
       // updateBranchId()

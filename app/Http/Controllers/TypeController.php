@@ -62,7 +62,15 @@ class TypeController extends Controller
     public function filteredTypes(Request $request) 
     {
         try {
-            $res = DB::table('types as tp')
+
+            $types = DB::table('types')
+                ->select(
+                    "id",
+                    "name",
+                )
+                ->where("branch_id", $request->branch_id)
+                ->get();
+            $res = DB::table('tellers as ts')
                 ->select(
                     "tp.id",
                     "tp.name",
@@ -72,12 +80,13 @@ class TypeController extends Controller
                     "ts.status",
 
                 )
-                ->where("tp.branch_id", $request->branch_id)
-                ->leftJoin("tellers as ts", "ts.type_id", "tp.id")
-                ->distinct(); // This ensures unique rows;
+                ->where("ts.branch_id", $request->branch_id)
+                ->where("ts.status", "Online")
+                ->leftJoin("types as tp", "tp.id", "ts.type_id");
     
             return response()->json([
-                'rows' => $res->get()
+                'rows' => $res->get(),
+                'types' => $types
             ]);
         } catch (\Exception $e) {
             $message = $e->getMessage();

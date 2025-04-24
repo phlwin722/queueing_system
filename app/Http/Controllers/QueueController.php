@@ -70,18 +70,45 @@ class QueueController extends Controller
         
         $assignedTellerId = $nextTellerId;
     
-        // Retrieve the last queue number for the specific 'type_id' and 'assignedTellerId', ordered by the most recent.
-        $lastQueue = DB::table('queue_numbers')
-            ->where('type_id', $type_id)                  // Filters by 'type_id' for the current service.
-            ->where('teller_id', $assignedTellerId)       // Filters by the selected teller.
-            ->where('branch_id', $branch_id) // Filters by the branch ID.
-            ->where('status', '!=', 'finished')           // Excludes finished queues.
-            ->orderBy('queue_number', 'desc')             // Orders by queue number in descending order (most recent).
-            ->first();
-                                            // Retrieves the first (latest) record.
-                                            
-        // If a previous queue exists, increment the queue number by 1, else start at 1.
-        $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+        $counter = DB::table('queue_counters')
+        ->where('branch_id', $branch_id)
+        ->where('type_id', $type_id)
+        ->where('teller_id', $assignedTellerId)
+        ->where('status', '!=', 'finished')
+        ->first();
+    
+    if (!$counter) {
+        DB::table('queue_counters')->insert([
+            'branch_id' => $branch_id,
+            'type_id' => $type_id,
+            'teller_id' => $assignedTellerId,
+            'next_queue_number' => 2,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+        $nextQueueNumber = 1;
+    } else {
+        $nextQueueNumber = $counter->next_queue_number;
+    
+        DB::table('queue_counters')
+            ->where('branch_id', $branch_id)
+            ->where('type_id', $type_id)
+            ->where('teller_id', $assignedTellerId)
+            ->update([
+                'next_queue_number' => $nextQueueNumber + 1,
+                'updated_at' => now()
+            ]);
+    }
+
+        // $lastQueue = DB::table('queue_numbers')
+        // ->where('type_id', $type_id)
+        // ->where('teller_id', $assignedTellerId)
+        // ->where('branch_id', $branch_id)
+        // ->where('status', '!=', 'finished')
+        // ->orderBy('queue_number', 'desc')
+        // ->first();
+
+        // $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
     
         // Create a new queue entry in the database with the given customer and teller information.
         $queue = Queue::create([
@@ -101,14 +128,14 @@ class QueueController extends Controller
     
 
         // Insert a new entry in the 'queue_numbers' table to associate the queue with the teller and the customer.
-        DB::table('queue_numbers')->insert([
-            'status' => 'waiting',                            // Set the status as 'waiting' for the new queue number.
-            'queue_number' => $nextQueueNumber,               // The next queue number for the customer.
-            'type_id' => $type_id,                           // The 'type_id' for the service.
-            'branch_id' => $branch_id,                     // The branch ID of the teller.
-            'teller_id' => $assignedTellerId,                // The assigned teller's ID.
-            'customer_id' => $queue->id                      // The customer ID associated with this queue.
-        ]);
+        // DB::table('queue_numbers')->insert([
+        //     'status' => 'waiting',                            // Set the status as 'waiting' for the new queue number.
+        //     'queue_number' => $nextQueueNumber,               // The next queue number for the customer.
+        //     'type_id' => $type_id,                           // The 'type_id' for the service.
+        //     'branch_id' => $branch_id,                     // The branch ID of the teller.
+        //     'teller_id' => $assignedTellerId,                // The assigned teller's ID.
+        //     'customer_id' => $queue->id                      // The customer ID associated with this queue.
+        // ]);
     
         // Retrieve the window name associated with the assigned teller.
         $windowName = DB::table('windows')
@@ -597,15 +624,22 @@ class QueueController extends Controller
     }
 
 
-    public function resetTodayQueueNumbers()
+    public function resetTodayQueueNumbers(Request $request)
     {
-        DB::table('queue_numbers')->update(['status' => 'finished']);
+        $branchId = $request->branch_id;
 
-        // Reset queue numbering for the next customer (MySQL ONLY)
-        DB::statement('ALTER TABLE queues AUTO_INCREMENT = 1');
-
+        // Mark all queue_numbers as finished for the branch
+        DB::table('queue_counters')
+            ->where('branch_id', $branchId)
+            ->update(['status' => 'finished']);
+    
+        // Reset the counter for that branch
+        DB::table('queue_counters')
+        ->where('branch_id', $branchId)
+        ->update(['next_queue_number' => 1, 'updated_at' => now()]);
+    
         return response()->json([
-            'message' => 'Queue has been reset. The next customer will start at queue number 1.'
+            'message' => 'Queue has been reset for this branch. The next customer will start at queue number 1.'
         ]);
     }
 

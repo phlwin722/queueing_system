@@ -78,6 +78,7 @@ class Waiting_timeController extends Controller
                 ->where('branch_id', $branchId)
                 ->first();
 
+
             return response()->json([
                 'updated' => true,
                 'last_updated_at' => $latestUpdate,

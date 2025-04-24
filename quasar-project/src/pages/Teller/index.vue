@@ -808,12 +808,13 @@ export default {
       try {
         const { data } = await $axios.post("/admin/waiting_Time-fetch",{
           last_updated: fetchWaitingtimelastUpdatedAt.value,
+          branch_id: tellerInformation.value.branch_id,
         });
         if (data.updated) {
-          if (data?.dataValue?.length > 0) {
-            waitTime.value = data.dataValue[0].Waiting_time;
-            prepared.value = data.dataValue[0].Prepared;
+          if (data?.dataValue?.Waiting_time) {
+            waitTime.value = data.dataValue.Waiting_time;
           }
+          
           fetchWaitingtimelastUpdatedAt.value = data.last_updated_at;
         }
         
@@ -823,6 +824,8 @@ export default {
         if (fetchWaitingtimepolling) setTimeout(fetchWaitingtime, 10000);
       }
     };
+
+
 
     // Format time as MM:SS
     const formatTime = (seconds) => {
@@ -985,13 +988,14 @@ export default {
           branch_id: tellerInformation.value.branch_id,
         });
         // ✅ Correctly assign break start & end times
-        if(fromBreak.value !== "" && toBreak.value !== ""){
+        if (data?.dataValue) {
           fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
           toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
           // ✅ Get current time in HH:mm format
           const currentTime = new Date();
           const currentHour = currentTime.getHours().toString().padStart(2, "0");
           const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+          console.log("Updated ", fromBreak.value, toBreak.value);
           formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
           const totalMinutes = parseTime(fromBreak.value)-5
           newTime.value = formatTime2(totalMinutes);
@@ -1039,8 +1043,10 @@ export default {
           }else{
             onBreak.value = false
           }
+        }else{
+          console.warn("No break time found");
         }
-
+          
       } catch (error) {
         console.error("Error fetching break time:", error);
       }
