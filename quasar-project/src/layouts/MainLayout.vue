@@ -783,6 +783,11 @@ export default defineComponent({
             link: "/admin/reports",
           },
           {
+             title: "Archive",
+             icon: "archive",
+             link: "/admin/archive",
+           },
+          {
             title: "Settings",
             icon: "settings",
             children: [
@@ -822,11 +827,7 @@ export default defineComponent({
               },
             ],
           },
-          /*       {
-          title: "Archive",
-          icon: "archive",
-          link: "/admin/archive",
-        },
+          /*   
         {
           title: "Admin Queue",
           icon: "admin_panel_settings",
@@ -888,6 +889,11 @@ export default defineComponent({
             icon: "bar_chart",
             link: "/admin/reports",
           },
+          {
+             title: "Archive",
+             icon: "archive",
+             link: "/admin/archive",
+           },
           {
             title: "Settings",
             icon: "settings",

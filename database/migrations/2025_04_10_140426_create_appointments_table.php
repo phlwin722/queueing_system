@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
-            $table->string('referenceNumber');      
-            $table->unsignedBigInteger('branch_id');
-            $table->string('name');
-            $table->string('email');
-            $table->unsignedBigInteger('type_id');
-            $table->date('appointment_date');
-            $table->enum('status', ['Booked', 'Arrived', 'Completed'])->default('Booked');
+            $table->string('referenceNumber')->nullable();      
+            $table->unsignedBigInteger('branch_id')->nullable();
+            $table->string('name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('email_status')->nullable();
+            $table->unsignedBigInteger('type_id')->nullable();
+            $table->date('appointment_date')->nullable();
+            $table->enum('status', ['Booked', 'Arrived', 'Completed'])->default('Booked')->nullable();
             $table->timestamps();
         });
     }

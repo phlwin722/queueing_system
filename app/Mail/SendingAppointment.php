@@ -5,41 +5,38 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class SendingDashBoard extends Mailable
+class SendingAppointment extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $data; // Public property to hold email data
+    public $data; // public property hold email data
 
     /**
-     * Constructor to initialize email data.
+     * Create a new message instance.
      */
     public function __construct($data)
     {
-        $this->data = $data; // Assigning the passed data to the class property
+        $this->data = $data;
     }
 
-    /**
+     /**
      * Builds the email message.
      */
-    public function build()
-    {
-        return $this->from(env('MAIL_FROM_ADDRESS')) // Fetch sender email from .env
-                    ->subject($this->data['subject']) // Set the email subject dynamically
-                    ->html($this->generateEmailContent()); // Generate HTML email content dynamically
-    }
 
-    /**
-     * Dynamically generates the email content using inline HTML & CSS.
-     */
-    private function generateEmailContent()
-    {
+     public function build() {
+        return $this->from(env('MAIL_FROM_ADDRESS'))
+                    ->subject($this->data['subject'])
+                    ->html($this->generatedEmailContent());
+     }
+
+     private function generatedEmailContent() {
         return "
-        <html>
+            <html>
             <head>
-                <title>{$this->data['subject']}</title>
                 <style>
                     /* General styles for the email */
                     body {
@@ -125,26 +122,19 @@ class SendingDashBoard extends Mailable
                     <!-- Email Content -->
                     <div class='content'>
 		            	<div class='queue-center'>
-                            <h4>Queing Number</h4>
-                            <h2>{$this->data['queue_number']}</h2>
+                            <h4>Reference Number</h4>
+                            <h2>{$this->data['referenceNumber']}</h2>
 			            </div>
                         <h4>Hello, {$this->data['name']}</h4>
-                        <p>{$this->data['message']}</p>
+                        <p>
+                          We have successfully scheduled your appointment for the {$this->data['service_name']} service. 
+                          The appointment is confirmed for {$this->data['appointment_date']}. 
+                          It will take place at the {$this->data['branch_name']} branch. 
+                          Please ensure you arrive on time for your scheduled appointment. 
+                          Should you need to reschedule or cancel, feel free to contact us at any time.
+                        </p>           
                         <p>We appreciate your time!</p>
-                        
-                        <table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0'>
-                            <tr>
-                                <td align='center'>
-                                    <a href='http://192.168.0.164:8080/customer-dashboard/{$this->data['token']}' 
-                                        class='button' 
-                                        style='display: inline-block; background: #007bff; color: #ffffff; 
-                                                padding: 10px 20px; text-decoration: none; font-size: 16px; 
-                                                border-radius: 5px; margin-top: 10px;'>
-                                        Open dashboard
-                                    </a>
-                                </td>
-                            </tr>
-                        </table>
+  
                     
                 </div>
                     <!-- Email Footer -->
@@ -155,5 +145,5 @@ class SendingDashBoard extends Mailable
             </body>
         </html>
         ";
-    }
+     }
 }

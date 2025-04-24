@@ -219,8 +219,11 @@ export default defineComponent({
         }
         selected.value.splice(0, selected.value.length);
       } catch (error) {
-        console.error("Error deleting managers:", error);
-        $notify("negative", "error", error.response.data.message);
+        if (error.response.status === 422) {
+           $notify("negative", "error", error.response.data.error);
+         }else if (error.response.status === 400) {
+           $notify('negative', 'error', error.response.data.error)
+         }
       }
     };
 

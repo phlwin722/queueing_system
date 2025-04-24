@@ -20,6 +20,7 @@ use App\Http\Controllers\SurveyResponseController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ResetWindowSettingController;
+use App\Http\Controllers\ArchiveController;
 use App\Models\Appointment;
 
 /*
@@ -151,6 +152,7 @@ Route::post('/scan-qr', [QrCodeController::class, 'scanQrCode']);
 Route::post('/send-email', [MailController::class, 'sendEmail']);
 Route::post('/sent-email-finish', [MailController::class, 'sendEmailFinish']);
 Route::post('/sent-email-dashboard', [MailController::class, 'sentEmailDashboard']);
+Route::post('/sent-email-appointment', [MailController::class, 'sentEmailAppointment']);
 
 //Waiting-Time 
 Route::post('/waiting_Time', [Waiting_timeController::class, 'store']);
@@ -196,3 +198,6 @@ Route::post('/api/provinces', [BranchController::class, 'getProvinces']);
 Route::post('/api/cities', [BranchController::class, 'getCities']);
 Route::post('/api/barangays', [BranchController::class, 'getBarangays']);
 
+// archieve
+Route::post('/admin/archive', [ArchiveController::class, 'index']);
+Route::post('/archieve/restore',[ArchiveController::class, 'restore']);

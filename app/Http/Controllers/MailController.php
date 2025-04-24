@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendingAppointment;
 use App\Mail\ThankyouMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -103,6 +104,37 @@ class MailController extends Controller
             // Returning a JSON response to confirm the email was sent successfully
             return response()->json([
                 'message' => 'Email sent successfully',
+            ]);
+        }
+    }
+
+    public function sentEmailAppointment (Request $request) {
+        try {
+            $data = [
+              'id' => $request->id,
+              'name' =>  $request->name,
+              'email' =>  $request->email,
+              'service_name' =>  $request->service_name,
+              'appointment_date' =>  $request->appointment_date,
+              'branch_name' => $request-> branch_name,
+              'referenceNumber' => $request->referenceNum,
+              'subject' => 'Online Appointment'
+            ];  
+
+            $update = DB::table('appointments')
+                        ->where('id', $request->id)
+                        ->update(['email_status' => 'sended']);
+
+            if ($update) {
+                // Returning a JSON response to confirm the email was sent successfully
+                Mail::to($data['email'])->send(new SendingAppointment($data));
+                return response()->json([
+                    'message' => 'Email sent successfully',
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
             ]);
         }
     }

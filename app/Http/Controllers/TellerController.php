@@ -8,9 +8,10 @@ use App\Http\Requests\TellerRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use App\Http\Requests\AdminRequest;
-use Carbon\Carbon;
+use App\Http\Requests\AdminRequest; 
+use Illuminate\Support\Carbon as SupportCarbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 
 
 class TellerController extends Controller
@@ -185,10 +186,10 @@ class TellerController extends Controller
     // fetching image each of teller admin teller 
     public function fetchImage(Request $request)
     {
-        $id = $request->id;
+        $image = $request->image;
 
         $tellerImage = DB::table('tellers')
-            ->where('id', $id)
+            ->where('Image', $image)
             ->first();
 
         return response()->json([
@@ -345,7 +346,7 @@ class TellerController extends Controller
     public function delete(Request $request)
     {
         try {
-            // Check if any windows are using this teller
+            /* // Check if any windows are using this teller
             $windowCount = \App\Models\Window::whereIn('teller_id', $request->ids)->count();
 
             if ($windowCount > 0) {
@@ -353,7 +354,43 @@ class TellerController extends Controller
                     "message" => "Cannot delete teller. It is still referenced in windows."
                 ], 400);
             }
+            */
+            $data = DB::table('tellers')
+                    ->whereIn('id', $request->ids)
+                    ->get();
 
+            // loop each teller check if ther are online
+            foreach($data as $val) {
+                // check if the manager is online
+                if ($val->status == 'Online') {
+                    return response()->json([
+                        'error' => "Sorry, we cannot delete this manager because they are still online."
+                    ],400);
+                }
+
+                // update windows
+                DB::table('windows')
+                    ->where('teller_id', $val->id)
+                    ->update([
+                        'teller_id' => null
+                    ]);
+
+                // get date now 
+                $dateNow = Carbon::now()->toDateString();
+                // Archive the manager's data
+                DB::table('archives')
+                    ->insert([
+                        'First_name' => $val->teller_firstname,
+                        'Lastname' => $val->teller_lastname,
+                        'Username' => $val->teller_username,
+                        'Password' => $val->teller_password,
+                        'Branch_id' => $val->branch_id,
+                        'Image' => $val->Image,
+                        'types' => '1',
+                        'created_at' => $dateNow
+                    ]);
+            }
+            
             // Proceed with deletion
             Teller::destroy($request->ids);
 
