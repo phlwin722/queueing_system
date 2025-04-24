@@ -58,7 +58,22 @@
   </q-card>
 
     <!-- Appointment Form -->
-    <q-card v-if="createCard && !choosing" class="q-pa-lg">
+    <q-card v-if="createCard && !choosing" class="q-pa-xs">
+
+      <q-card-section class="text-left">
+        <q-btn 
+          flat 
+          icon="arrow_back" 
+          color="grey-7" 
+          @click="() => { choosing = true; createCard = false; }" 
+          style="width: 24px; height: 24px;"
+        >
+        <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+          <strong>Back</strong>
+        </q-tooltip>
+        </q-btn>
+      </q-card-section>
+
       <q-card-section>
         <div class="text-h5 text-center">Book an Appointment</div>
       </q-card-section>
@@ -150,6 +165,21 @@
 
     <!-- Edit card -->
     <q-card v-if="editCard && !choosing" class="q-pa-lg">
+
+      <q-card-section class="text-left">
+        <q-btn 
+          flat 
+          icon="arrow_back" 
+          color="grey-7" 
+          @click="() => { choosing = true; createCard = false; }" 
+          style="width: 24px; height: 24px;"
+        >
+        <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+          <strong>Back</strong>
+        </q-tooltip>
+        </q-btn>
+      </q-card-section>
+
       <q-card-section>
         <div class="text-h5 text-center">Edit an Appointment</div>
       </q-card-section>
@@ -258,6 +288,20 @@
 
     <!-- delete card-->
     <q-card v-if="deleteCard && !choosing" class="q-pa-lg">
+      <q-card-section class="text-left">
+        <q-btn 
+          flat 
+          icon="arrow_back" 
+          color="grey-7" 
+          @click="() => { choosing = true; createCard = false; }" 
+          style="width: 24px; height: 24px;"
+        >
+        <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+          <strong>Back</strong>
+        </q-tooltip>
+        </q-btn>
+      </q-card-section>
+      
       <q-card-section>
         <div class="text-h5 text-center">Cancel an Appointment</div>
       </q-card-section>
@@ -329,10 +373,6 @@ export default {
       dateClick: handleDateClick,
       events: events,
       eventClick: handleEventClick,
-
-/*       height: 'auto',
-      contentHeight: 'auto',
-      expandRows: true, // optional: helps fill available vertical space */
     });
 
     function handleDateClick(data) {
