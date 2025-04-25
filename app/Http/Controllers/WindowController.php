@@ -31,7 +31,7 @@ class WindowController extends Controller
                         ->first();
             if ($tller_id) {
                 return response()->json([
-                    'message' => 'The teller is already assigned'
+                    'message' => 'The personel is already assigned'
                 ],400);
             }
 
@@ -266,6 +266,7 @@ class WindowController extends Controller
                 "wd.window_name",
                 "wd.branch_id",
                 "wd.type_id",
+                "wd.teller_id",
                 "tp.name as type_name",
                 DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_name"),
                 "b.branch_name",

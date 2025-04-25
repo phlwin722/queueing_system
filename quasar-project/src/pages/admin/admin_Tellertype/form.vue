@@ -20,7 +20,7 @@
                         <q-input 
                
                             v-model="formData.name" 
-                            :readonly="formData.name === 'Foreign Exchange' || formData.name === 'Online Appointment'"
+                            :readonly="formData.name === 'Foreign Exchange' || formData.name === 'Online Appointment' || formData.name === 'Manual Queueing'"
                             outlined 
                             label="Type Name:" 
                             dense
@@ -138,6 +138,8 @@ export default defineComponent({
                 .split(' ')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
+
+                formData.value.indicator = formData.value.indicator.toUpperCase();
 
                 // Check if adminInformation is available before accessing branch_id
                 if (adminInformation.value && adminInformation.value.branch_id != null) {

@@ -377,6 +377,8 @@ export default defineComponent({
                         formData.value.Image = selectedImage.value;
                         console.log("Image value",  formData.value.Image)
                     }
+
+                    
                 }
 
                 // Convert selected types array to a JSON string before sending it to the backend

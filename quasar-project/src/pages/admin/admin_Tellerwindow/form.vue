@@ -68,8 +68,8 @@
                     :error-message="formError.teller_id"
                     emit-value
                     map-options
-                    option-label="name"
-                    option-value="id"
+                    option-label="teller_name"
+                    option-value="teller_id"
                     />
                 </div>
             </div>
@@ -155,6 +155,7 @@
 
             if (mode === 'edit') {
                 formData.value = Object.assign({},row)
+                console.log(Object.assign({},row)) 
                 editTypeID.value = row.type_id
 
                 await fetchWindowTypes()
@@ -258,7 +259,10 @@
                     branch_id: formData.value.branch_id,
                 });
                     // Ensure response.data.rows is always an array
-                    personnelList.value = response.data.rows;
+                    personnelList.value = response.data.rows.map(row => ({
+                        teller_name: row.name,
+                        teller_id: row.id
+                    }));
                     formData.value.fetchPersonnel = personnelList.value.length > 0 ? true : false;
                     if (personnelList.value.length == 0) {
                         formData.value.teller_id = '';

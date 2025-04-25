@@ -186,7 +186,7 @@
         </div>
 
         <div
-          v-if="queuePosition && queuePosition > 0 && !isBeingServed && !isNotBeingCatered && convertExpectedCaterTime >= newTime == false && newFormattedTime < originalFromBreak == false"
+          v-if="queuePosition && queuePosition > 0 && !isBeingServed && !isNotBeingCatered"
           class="text-center text-warning q-mb-md q-mt-md"
         >
           Expected cater time: {{ timeCater }}
@@ -208,6 +208,7 @@
             </q-tooltip>
           </q-icon>
         </div>
+
         <div
           v-if="convertExpectedCaterTime >= newTime && newFormattedTime < originalFromBreak && !isBeingServed "
           class="text-center text-warning q-mb-md q-mt-md"
@@ -648,6 +649,7 @@ export default {
         userInformation.value.window_name = data.window.window_name;
         userInformation.value.branch_id = data.userInfo.branch_id;
 
+        setInterval(fetchCurrency(userInformation.value.branch_id),30000);
         fetchImage(tellerId.value);
         sendingDashboard(); // trigger sendingDashboard
         // updateBranchId()
@@ -673,17 +675,17 @@ export default {
 
     const approximateWaitTime = computed(() => {
       if (queuePosition.value === null || !serving_time.value) return "N/A";
-        if(isNotBeingCatered.value == true){
-          const estimatedTimeInMinutes = parseTime(toBreak.value)+(queuePosition.value * serving_time.value)
-          approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
-          
-          return estimatedTimeInMinutes;
-        }else{
-          const estimatedTimeInMinutes = queuePosition.value * serving_time.value;
-          approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
+      if(isNotBeingCatered.value == true && caughtBreakTime.value == true){
+        const estimatedTimeInMinutes = parseTime(toBreak.value)+(queuePosition.value * serving_time.value)
+        approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
+        
+        return estimatedTimeInMinutes;
+      }else{
+        const estimatedTimeInMinutes = queuePosition.value * serving_time.value;
+        approximateCaterTime.value = Date.now() + estimatedTimeInMinutes * 60 * 1000; // Convert minutes to milliseconds
 
-          return estimatedTimeInMinutes;
-        }
+        return estimatedTimeInMinutes;
+      }
 
 
     });
@@ -777,13 +779,13 @@ const fetchBreakTime = async () => {
         return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
       };
 
-
+      const caughtBreakTime = ref(false)
       const isNotBeingCatered = ref(false)
-      
     watch(approximateCaterTime, (newTimes) => {
       if (newTimes) {
         timeCater.value = date.formatDate(newTimes, "hh:mm A");
         const timePart = date.formatDate(newTimes)
+        console.log(timePart)
         convertExpectedCaterTime.value = timePart.split("T")[1].split(":").slice(0, 2).join(":");
         convertExpectedCaterTime.value= parseTime(convertExpectedCaterTime.value) // Convert to readable time
         convertExpectedCaterTime.value= formatTime2(convertExpectedCaterTime.value)
@@ -792,9 +794,10 @@ const fetchBreakTime = async () => {
 
         }else{
           isNotBeingCatered.value = false
-          console.log(approximateWaitTime.value+ parseTime(toBreak.value))
         }
-        fetchBreakTime()
+        if(newFormattedTime.value >= originalFromBreak.value && newFormattedTime.value < convertedToBreak.value && !isBeingServed.value){
+          caughtBreakTime.value = true
+        }
       }
     });
 
@@ -1142,9 +1145,11 @@ const fetchWaitingtime = async () => {
       },
     ];
 
-    const fetchCurrency = async () => {
+    const fetchCurrency = async (branch_id) => {
       try {
-        const { data } = await $axios.post("/currency/showData");
+        const { data } = await $axios.post("/currency/showData", {
+          branch_id :  branch_id,
+        });
 
         // map the api response to match the expected table structure
         moneyRates.value = data.rows.map((row) => ({
@@ -1340,7 +1345,6 @@ const fetchWaitingtime = async () => {
       setInterval(() => {
         fetchBreakTime();
       }, 10000); 
-      setInterval(fetchCurrency(),30000);
       fetchType();
       // updateBranchId()
     });

@@ -67,6 +67,7 @@ class TypeController extends Controller
                 ->select(
                     "id",
                     "name",
+                    "indicator",
                 )
                 ->where("branch_id", $request->branch_id)
                 ->get();
