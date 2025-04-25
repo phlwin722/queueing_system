@@ -3,18 +3,19 @@
     <!-- Header Section with Tabs -->
     <q-header>
       <q-toolbar>
-      <q-img
-        src="~assets/vrtlogowhite1.png"
-        alt="Logo"
-        fit="full"
-        :style="{
-          maxWidth: $q.screen.lt.sm ? '100px' : '160px',
-          cursor: 'pointer', // Fix cursor property
-          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-        }"
-        @click="goonDashboard"
-        class="q-ml-sm"
-      />
+        <q-img
+  src="~assets/vrtlogowhite1.png"
+  alt="Logo"
+  fit="full"
+  :style="{
+    maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+    cursor: 'pointer',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  }"
+  @click="goToIndex"
+  class="q-ml-sm"
+/>
+
 
       <q-space />
       
@@ -78,40 +79,44 @@
   </q-container>
 </q-footer>
 
-
-
   </q-layout>
 </template>
 
 <script>
-
-import { defineComponent, ref } from 'vue';
-
+import { defineComponent, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   setup() {
-    const tabModel = ref(null); // Used to control the active tab
-    const hoverTab = ref(''); // Track which tab is being hovered
+    const router = useRouter()
 
+    const goToIndex = () => {
+      router.push('/vrtsystem/onlineAppointment') // or router.push({ name: 'index' }) if using named routes
+    }
+
+    const tabModel = ref(null)
+    const hoverTab = ref('')
     const hoverStyle = ref({
-      position: 'absolute', // Position the hover content absolutely
-      top: '0', // Start at the top of the screen
-      left: '0', // Align to the left
-      width: '100%', // Full width
-      zIndex: 10, // Ensure it is above other content
-      background: 'white', // Optional: Add background color to hover content
-      padding: '20px', // Optional: Padding for spacing
-      transition: 'transform 0.3s ease', // Smooth transition effect
-    });
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: '100%',
+      zIndex: 10,
+      background: 'white',
+      padding: '20px',
+      transition: 'transform 0.3s ease',
+    })
 
     return {
-      tabModel, // Bind this to q-tabs' v-model to manage the active tab
-      hoverTab, // Track hovered tab for hover content
-      hoverStyle, // Style for hover-based content
-    };
-  },
-});
+      tabModel,
+      hoverTab,
+      hoverStyle,
+      goToIndex, // expose the method
+    }
+  }
+})
 </script>
+
 
 <style scoped>
 /* Styling the tab arrows */
