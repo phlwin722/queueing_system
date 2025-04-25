@@ -10,6 +10,7 @@
         />
       </q-breadcrumbs>
     </div>
+    <!-- queue -->
 
     <q-card class="q-pa-md">
       <!-- Service Type Selector -->
