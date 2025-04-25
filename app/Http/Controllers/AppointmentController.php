@@ -31,7 +31,7 @@ class AppointmentController extends Controller
                     ->insertGetId([
                         'referenceNumber' => $referenceNumber,
                         'branch_id' => $request->branch_id,
-                        'name' => $request->name,
+                        'name' => ucwords($request->name),
                         'email' => $request->email,
                         'type_id' => $request->service,
                         'appointment_date' => $request->appointment_date,
@@ -338,7 +338,7 @@ class AppointmentController extends Controller
             ->where('id', $request->id)
             ->update([
                 'branch_id' => $request->branch_id,
-                'name' => $request->name,
+                'name' => ucwords($request->name),
                 'email' => $request->email,
                 'type_id' => $request->type_id,
                 'appointment_date' => $request->appointment_date

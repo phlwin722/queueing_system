@@ -34,8 +34,8 @@ class ManagerController extends Controller
 
     public function create (ManagerRequest $request) {
         $managerID = DB::table('managers')->insertGetId([
-            'manager_firstname' => $request->manager_firstname,
-            'manager_lastname' => $request->manager_lastname,
+            'manager_firstname' => ucwords($request->manager_firstname),
+            'manager_lastname' => ucwords($request->manager_lastname),
             'manager_username' => $request->manager_username,
             'manager_password' => Hash::make($request-> manager_password),
             'manager_status' => 'Offline',
@@ -130,8 +130,8 @@ class ManagerController extends Controller
             }
     
             // Update fields manually
-            $manager->manager_firstname = $request->manager_firstname;
-            $manager->manager_lastname = $request->manager_lastname;
+            $manager->manager_firstname = ucwords($request->manager_firstname);
+            $manager->manager_lastname = ucwords($request->manager_lastname);
             $manager->manager_username = $request->manager_username;
     
             // Update password only if provided

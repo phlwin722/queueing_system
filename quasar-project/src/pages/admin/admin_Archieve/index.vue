@@ -134,7 +134,10 @@ export default defineComponent({
             branch_id: branch_value.value,
             personel: choosingFetch.value
           });
-          rows.value = data.rows;
+          rows.value = data.rows.map(row => ({
+            ...row,
+            archived_at: row.archived_at.split(' ')[0] // get only the date
+          }));
         } catch (error) {
           console.log('Error fetching window logs:', error);
         }
