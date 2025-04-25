@@ -102,8 +102,8 @@ class TellerController extends Controller
         try {
             // Insert a new teller and get the ID
             $tellerID = DB::table('tellers')->insertGetId([
-                'teller_firstname' => $request->teller_firstname,
-                'teller_lastname' => $request->teller_lastname,
+                'teller_firstname' => ucwords($request->teller_firstname),
+                'teller_lastname' => ucwords($request->teller_lastname),
                 'teller_username' => $request->teller_username,
                 'teller_password' => Hash::make($request->teller_password),
                 'type_ids_selected' => json_encode($request->type_ids_selected), // Store selected types as JSON
@@ -270,8 +270,8 @@ class TellerController extends Controller
             }
 
             // Update fields manually
-            $teller->teller_firstname = $request->teller_firstname;
-            $teller->teller_lastname = $request->teller_lastname;
+            $teller->teller_firstname = ucwords($request->teller_firstname);
+            $teller->teller_lastname = ucwords($request->teller_lastname);
             $teller->teller_username = $request->teller_username;
             $teller->type_ids_selected = $request->type_ids_selected;
             $teller->branch_id = $request->branch_id;

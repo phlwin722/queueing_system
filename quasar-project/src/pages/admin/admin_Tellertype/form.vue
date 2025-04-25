@@ -139,6 +139,8 @@ export default defineComponent({
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
 
+                formData.value.indicator = formData.value.indicator.toUpperCase();
+
                 // Check if adminInformation is available before accessing branch_id
                 if (adminInformation.value && adminInformation.value.branch_id != null) {
                     formData.value.branch_id = adminInformation.value.branch_id;
