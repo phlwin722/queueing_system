@@ -19,76 +19,83 @@
       dense
     >
 
-      <!-- Custom Table Header -->
-      <template v-slot:top>
-        <q-toolbar class="q-gutter-md">
-          <q-space />
+    <!-- Custom Table Header -->
+    <template v-slot:top>
+      <q-toolbar class="q-gutter-md">
 
-          <div class="row q-col-gutter-sm items-center">
-            <div v-if="!adminManagerInformation"class="col-2">
-              <q-select
-                outlined
-                v-model="branch_value"
-                :options="branch_list"
-                label="Branch name"
-                hide-bottom-space
-                dense
-                emit-value
-                map-options
-                option-label="branch_name"
-                option-value="id"
-              />
-        </div>
-            <!-- Filter by Type -->
-            <div class="col-auto">
-              <span class="text-bold">Filter by Type:</span>
-            </div>
+        <!-- Use q-space to push everything to the right -->
+        <q-space />
 
-            <div class="col-2">
-              <q-select
-                filled
-                outlined
-                v-model="type_id"
-                :options="serviceTypeList"
-                label="Window type"
-                class="bg-accent text-black"
-                dense
-                emit-value
-                map-options
-              />
-            </div>
+        <!-- Wrapping the filters in a row -->
+        <div class="row items-center q-gutter-sm no-wrap">
 
-            <!-- Filter by Date -->
-            <div class="col-auto">
-              <span class="text-bold">Filter by Date:</span>
-            </div>
-            <div class="col-2">
-              <q-input 
-                filled
-                dense
-                outlined
-                class="bg-accent text-black"
-                v-model="fromDate" 
-                type="date"
-                label="From"
-                @update:model-value="getTableData"
-              />
-            </div>
-            <div class="col-2">
-              <q-input 
-                filled
-                dense
-                outlined
-                class="bg-accent text-black"
-                v-model="toDate" 
-                type="date"
-                label="To"
-                @update:model-value="getTableData"
-              />
-            </div>
+          <!-- Branch Selector -->
+          <div v-if="!adminManagerInformation" style="min-width: 180px;">
+            <q-select
+              outlined
+              dense
+              v-model="branch_value"
+              :options="branch_list"
+              label="Branch name"
+              hide-bottom-space
+              emit-value
+              map-options
+              option-label="branch_name"
+              option-value="id"
+            />
           </div>
-        </q-toolbar>
-      </template>
+
+          <!-- Type Filter -->
+          <div>
+            <span class="text-bold">Filter by Type:</span>
+          </div>
+          <div style="min-width: 180px;">
+            <q-select
+              outlined
+              dense
+              filled
+              v-model="type_id"
+              :options="serviceTypeList"
+              label="Window type"
+              class="bg-accent text-black"
+              emit-value
+              map-options
+            />
+          </div>
+
+          <!-- Date Filter -->
+          <div>
+            <span class="text-bold">Filter by Date:</span>
+          </div>
+          <div style="min-width: 150px;">
+            <q-input 
+              filled
+              dense
+              outlined
+              class="bg-accent text-black"
+              v-model="fromDate" 
+              type="date"
+              label="From"
+              @update:model-value="getTableData"
+            />
+          </div>
+          <div style="min-width: 150px;">
+            <q-input 
+              filled
+              dense
+              outlined
+              class="bg-accent text-black"
+              v-model="toDate" 
+              type="date"
+              label="To"
+              @update:model-value="getTableData"
+            />
+          </div>
+
+        </div>
+      </q-toolbar>
+    </template>
+
 
       <!-- Table Actions -->
       <template v-slot:body-cell-actions="props">
@@ -152,17 +159,12 @@ import {
     watch
 } from 'vue'
 
-
 import {
     $axios,
     $notify,
     Dialog
 } from 'boot/app'
-
-
 import { debounce } from 'lodash';
-
-
 
 export default defineComponent({
     name: 'IndexPage',
@@ -274,8 +276,6 @@ export default defineComponent({
       }
     }
 
-
-
     const fetchWindowTypes = async () => {
       try {
         const response = await $axios.post("/types/dropdown");
@@ -302,7 +302,6 @@ export default defineComponent({
     watch([type_id, fromDate, toDate, branch_value], () => {
         debouncedGetTableData(); // Only call getTableData once when either value changes
     });
-  
 
     onMounted(() => {
         getTableData()
@@ -320,8 +319,6 @@ export default defineComponent({
           }
     })
 
-
-
     return{
         rows,
         columns,
@@ -336,7 +333,6 @@ export default defineComponent({
         branch_list
     }
     }
-
 
 });
 </script>

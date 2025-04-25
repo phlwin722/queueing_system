@@ -80,7 +80,7 @@
             >
               <template v-slot:body-cell-status="props">
                 <q-td :props="props">
-                  <q-badge :color="props.row.status === 'Available' ? 'green' : 'red'">
+                  <q-badge :color="props.row.status === 'Available' ? 'green' : 'primary'">
                     {{ props.row.status }}
                   </q-badge>
                 </q-td>
@@ -89,9 +89,6 @@
           </q-card>
         </div>
       </div>
-
-      
-
       </div>
 
       <!-- Survey Chart -->
@@ -122,7 +119,6 @@
 
   </q-page>
 </template>
-
 
 <script>
 
