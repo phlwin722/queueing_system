@@ -20,7 +20,7 @@
                         <q-input 
                
                             v-model="formData.name" 
-                            :readonly="formData.name === 'Foreign Exchange' || formData.name === 'Online Appointment'"
+                            :readonly="formData.name === 'Foreign Exchange' || formData.name === 'Online Appointment' || formData.name === 'Manual Queueing'"
                             outlined 
                             label="Type Name:" 
                             dense

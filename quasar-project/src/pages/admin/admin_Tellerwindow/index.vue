@@ -343,13 +343,10 @@ export default defineComponent({
           );
         }
       }
-      
-
-
-      
     };
 
     const handleShowForm = (mode, row) => {
+      console.log('haha', row)
       dialogForm.value.showDialog(mode, row);
     };
 
