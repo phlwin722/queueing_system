@@ -601,7 +601,7 @@ class TellerController extends Controller
                  if (!$teller || !Hash::check($request->Password, $teller->teller_password)) {
                     // If the username doesn't exist or the password is incorrect, return an error response
                     return response()->json([
-                        'error' => 'Invalid Credentials'
+                        'error' => 'Invalid username or password'
                     ],401);
                  }
 

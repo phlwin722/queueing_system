@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md" style="min-height: 340px; max-width: 800px; margin: auto;">
+  <q-page class="q-pa-md" style="min-height: 450px; max-width: 800px; margin: auto;">
 
     <!-- Create/Edit/Delete Options -->
     <q-card v-if="choosing" class="q-mt-md q-pa-lg q-rounded-xl shadow-2 bg-white">

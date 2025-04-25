@@ -240,7 +240,7 @@ export default defineComponent({
         .onOk(async () => {
           for (const id of ids) {
             console.log(id.name)
-            if (id.name == 'Foreign Exchange' && id.name == 'Online Appointment') {
+            if (id.name == 'Foreign Exchange' && id.name == 'Online Appointment' && id.name == 'Manual Queueing') {
               $notify("negative", "error", "Cannot delete Foreign exchange and Online Application");
               return; // Stops further execution for this iteration, no handleDelete will be called
             } else if (id.name === 'Foreign Exchange'){
@@ -248,6 +248,9 @@ export default defineComponent({
               return; // Stops further execution for this iteration, no handleDelete will be called
             } else if (id.name === 'Online Appointment'){
               $notify("negative", "error", "Cannot delete Online Appointment");
+              return; // Stops further execution for this iteration, no handleDelete will be called
+            } else if (id.name === 'Manual Queueing'){
+              $notify("negative", "error", "Cannot delete Manual Queueing");
               return; // Stops further execution for this iteration, no handleDelete will be called
             }
           }

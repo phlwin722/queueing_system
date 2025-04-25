@@ -148,16 +148,16 @@ export default {
     const isLoading = ref(false);
     const formError = ref({});
     const customModel = ref('no')
-    const branch_id = ref();
     const route = useRoute(); // Use useRoute() correctly
     const token = ref(route.params.token); // Get token from URL
     const isUsedToken = ref(false);
     const selectId = ref(null);
+    const temp = token.value
+    const temp1 = temp.substring(12);         // Extract everything after the 12th character
+    const branch_id = parseInt(temp1, 10);
+
     const processQrCode = async () => {
       try {
-        const temp = token.value
-      const temp1 = temp.substring(12);         // Extract everything after the 12th character
-      const branch_id = parseInt(temp1, 10);
         const response = await $axios.post("/scan-qr", { token: token.value, branch_id: branch_id });
         if (response.data.success) {
           $notify("positive", "check", "Please register to join the queue.");
@@ -170,6 +170,7 @@ export default {
         $notify("negative", "error", "Invalid or already used QR code.");
       }
     };
+    
     const joinQueue = async () => {
       isLoading.value = true;
       formError.value = [];
@@ -208,7 +209,7 @@ export default {
             currency: currencySelected.value,
             priority_service: prioritySelected.value
           });
-          window.location.href = "/customer-dashboard/" + token.value;
+        //  window.location.href = "/customer-dashboard/" + token.value;
         }
       } catch (error) {
         if (error.response.status === 422) {
@@ -228,10 +229,6 @@ export default {
     const isServiceAvailable = ref(false)
     const fetchCategories = async () => {
     try {
-      const temp = token.value
-      const temp1 = temp.substring(12);         // Extract everything after the 12th character
-      const branch_id = parseInt(temp1, 10);    // Convert to integer (base 10)
-      console.log(branch_id)
       const { data } = await $axios.post("/types/filteredTypes", {
         branch_id: branch_id,
       });
@@ -256,7 +253,7 @@ export default {
       });
 
       console.log(uniqueRows);
-      const filteredRows = uniqueRows.filter(row => row.type_id !== null && row.name !== "Online Appointment");
+      const filteredRows = uniqueRows.filter(row => row.type_id !== null && row.name !== "Online Appointment" && row.name !== "Manual Queueing");
       
       if(filteredRows.length === 0){
         isServiceAvailable.value = false
@@ -264,9 +261,6 @@ export default {
         isServiceAvailable.value = true
       }
       // Log filtered type_id values
-     
-      
-
       // Assign only valid rows to categoriesList.value
       categoriesList.value = filteredRows;
       
@@ -279,7 +273,9 @@ export default {
     const fecthCurrencty = async (selectedValue) => {
     try {
       if (selectedValue.name === "Foreign Exchange") {
-        const { data } = await $axios.post('/currency/showData');
+        const { data } = await $axios.post('/currency/showData', {
+          branch_id: branch_id,
+        });
 
         currentCiesList.value = data.rows
           .map(row => ({

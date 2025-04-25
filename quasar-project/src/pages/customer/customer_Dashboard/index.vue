@@ -648,6 +648,7 @@ export default {
         userInformation.value.window_name = data.window.window_name;
         userInformation.value.branch_id = data.userInfo.branch_id;
 
+        setInterval(fetchCurrency(userInformation.value.branch_id),30000);
         fetchImage(tellerId.value);
         sendingDashboard(); // trigger sendingDashboard
         // updateBranchId()
@@ -1142,9 +1143,11 @@ const fetchWaitingtime = async () => {
       },
     ];
 
-    const fetchCurrency = async () => {
+    const fetchCurrency = async (branch_id) => {
       try {
-        const { data } = await $axios.post("/currency/showData");
+        const { data } = await $axios.post("/currency/showData", {
+          branch_id :  branch_id,
+        });
 
         // map the api response to match the expected table structure
         moneyRates.value = data.rows.map((row) => ({
@@ -1340,7 +1343,6 @@ const fetchWaitingtime = async () => {
       setInterval(() => {
         fetchBreakTime();
       }, 10000); 
-      setInterval(fetchCurrency(),30000);
       fetchType();
       // updateBranchId()
     });

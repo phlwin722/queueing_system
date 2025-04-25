@@ -99,7 +99,7 @@
           </div>
 
             <div v-else class="col-12 col-md-6">
-              <q-card class="q-pa-md" v-if="tellerInformation?.type_name != 'Online Appointment'">
+              <q-card class="q-pa-md" v-if="tellerInformation?.type_name != 'Online Appointment' && tellerInformation?.type_name != 'Manual Queueing' ">
                 <q-card-section>
                   <q-item>
                     <q-item-section>
@@ -229,7 +229,7 @@
               <div class="" style="margin-top: 15px">
                 <q-table
                   :style="{
-                    height: tellerInformation?.type_name == 'Online Appointment' ? '600px' : '200px'
+                    height: tellerInformation?.type_name == 'Online Appointment' ||  tellerInformation?.type_name == 'Manual Queueing' ? '600px' : '200px'
                   }"
                   flat
                   bordered
@@ -258,13 +258,13 @@
               <q-card
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
               >
-              <q-card-section class="row items-center" v-if="tellerInformation?.type_name !== 'Online Appointment'">
+              <q-card-section class="row items-center" v-if="tellerInformation?.type_name != 'Online Appointment' && tellerInformation?.type_name != 'Manual Queueing' ">
                 <q-toggle v-model="autoServing"  color="green" />
                 <q-chip v-if="autoServing" color="green" text-color="white" class="q-ml-md">
-                  Auto Serving ON
+                  Automatic Serving ON
                 </q-chip>
                 <q-chip v-else color="red" text-color="white" class="q-ml-md">
-                  Auto Serving OFF
+                  Automatic Serving OFF
                 </q-chip>
               </q-card-section>
                 <q-card-section class="flex flex-center">
@@ -277,7 +277,7 @@
                   </q-item>
                 </q-card-section>
               </q-card>
-              <q-card class="q-pa-md" v-if="tellerInformation?.type_name != 'Online Appointment'">
+              <q-card class="q-pa-md" v-if="tellerInformation?.type_name != 'Online Appointment' && tellerInformation?.type_name != 'Manual Queueing' ">
                 <q-card-section>
                   <!-- If the cater line is not empty -->
                   <q-item v-if="currentServing">
@@ -389,7 +389,7 @@
                 </q-card-section>
               </q-card>
 
-              <q-card class="q-px-md" v-else
+              <q-card class="q-px-md" v-if="tellerInformation?.type_name == 'Online Appointment'"
                 style="height: 480px;"
                 >
                 <q-card-section>
@@ -417,49 +417,48 @@
                 </q-card-section>
 
                 <q-item v-if="customerInfoOnline != null">
-  <q-item-section>
-    <q-card class="q-px-sm shadow-2 rounded-borders bg-grey-1">
+                  <q-item-section>
+                    <q-card class="q-px-sm shadow-2 rounded-borders bg-grey-1">
 
-        <div class="text-subtitle2 text-primary q-my-sm">Customer Details</div>
-        <q-separator class="q-mb-md" />
+                        <div class="text-subtitle2 text-primary q-my-sm">Customer Details</div>
+                        <q-separator class="q-mb-md" />
 
-        <q-list dense class="q-gutter-y-xs text-caption">
-          <div
-            v-for="(value, label) in {
-              'ID': customerInfoOnline.id,
-              'Full Name': customerInfoOnline.fullname,
-              'Branch': customerInfoOnline.branch_name,
-              'Status': customerInfoOnline.status,
-              'Service Type': customerInfoOnline.name,
-              'Appointment Date': customerInfoOnline.appointment_date,
-              'Email': customerInfoOnline.email
-            }"
-            :key="label"
-            class="row q-mb-xs items-center"
-          >
-            <div class="col-4 text-grey-7 text-weight-medium">
-              {{ label }}:
-            </div>
-            <div class="col-8 text-dark ellipsis">
-              {{ value }}
-            </div>
-          </div>
-        </q-list>
+                        <q-list dense class="q-gutter-y-xs text-caption">
+                          <div
+                            v-for="(value, label) in {
+                              'ID': customerInfoOnline.id,
+                              'Full Name': customerInfoOnline.fullname,
+                              'Branch': customerInfoOnline.branch_name,
+                              'Status': customerInfoOnline.status,
+                              'Service Type': customerInfoOnline.name,
+                              'Appointment Date': customerInfoOnline.appointment_date,
+                              'Email': customerInfoOnline.email
+                            }"
+                            :key="label"
+                            class="row q-mb-xs items-center"
+                          >
+                            <div class="col-4 text-grey-7 text-weight-medium">
+                              {{ label }}:
+                            </div>
+                            <div class="col-8 text-dark ellipsis">
+                              {{ value }}
+                            </div>
+                          </div>
+                        </q-list>
 
-    </q-card>
+                    </q-card>
 
-    <div class="q-mt-md text-right">
-      <q-btn
-        color="primary"
-        label="Assigned Teller"
-        @click="handleAssignedTeller(customerInfoOnline.id)"
-        class="full-width"
-        style="max-width: 200px"
-      />
-    </div>
-  </q-item-section>
-</q-item>
-
+                    <div class="q-mt-md text-right">
+                      <q-btn
+                        color="primary"
+                        label="Assigned Teller"
+                        @click="handleAssignedTeller(customerInfoOnline.id)"
+                        class="full-width"
+                        style="max-width: 200px"
+                      />
+                    </div>
+                  </q-item-section>
+                </q-item>
 
                 <q-item v-else>
                     <q-item-section>
@@ -487,6 +486,121 @@
                     </q-item-section>
                 </q-item>
               </q-card>
+
+              <q-card class="q-px-md" 
+                style="height: 480px;"
+                v-if="tellerInformation?.type_name == 'Manual Queueing'"
+                >
+                <q-card-section>
+                  <div class="row">
+                    <div class="col-12">
+                      <q-input
+                        v-model="name"
+                        label="Full Name"
+                        :error="formError.hasOwnProperty('name')"
+                        :error-message="formError.name"
+                        outlined
+                        dense
+                      />
+                    </div>
+                    <div class="col-12">
+                      <q-input
+                        v-model="email"
+                        label="Email address"
+                        :error="formError.hasOwnProperty('email')"
+                        :error-message="formError.email"
+                        outlined
+                        dense
+                      />
+                    </div>
+                    <div class="col-12">
+                      <q-select
+                        v-model="selectId"
+                        :label="isServiceAvailable ? 'Service Available' : 'No Service Available'"
+                        transition-show="flip-up"
+                        transition-hide="flip-down"
+                        outlined
+                        @update:modelValue="fecthCurrencty"  
+                        :error="formError.hasOwnProperty('type_id')"
+                        :error-message="formError.type_id"
+                        dense
+                        :options="categoriesList"
+                        option-label="name"
+                        option-value="id"
+                      />
+                    </div>
+                    <div class="col-12"  v-if="currentCiesList && currentCiesList.length > 0">
+                      <q-select
+                          v-model="currencySelected"
+                          label="Currency Available"
+                          transition-show="flip-up"
+                          transition-hide="flip-down"
+                          outlined
+                          emit-value
+                          map-options
+                          dense
+                          :options="currentCiesList"
+                          option-label="name"
+                          :error="formError.hasOwnProperty('currency')"
+                          :error-message="formError.currency"
+                          option-value="id"
+                        >
+                          <template v-slot:option="scope">
+                            <q-item v-bind="scope.itemProps">
+                              <q-item-section avatar>
+                                <span :class="['fi', scope.opt.flag]"></span>
+                              </q-item-section>
+                              <q-item-section>
+                                <q-item-label>{{ scope.opt.symbol }} - {{ scope.opt.name }}</q-item-label>
+                                <q-item-label caption>Buy: {{ scope.opt.buy_value }} | Sell: {{ scope.opt.sell_value }}</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                          </template>
+                          
+                          <template v-slot:selected-item="scope">
+                            <div class="flex items-center">
+                              <span :class="['fi', scope.opt.flag]" style="margin-right: 8px;"></span>
+                              {{ scope.opt.symbol }} - {{ scope.opt.name }}
+                            </div>
+                          </template>
+                        </q-select>
+                    </div>
+                    <div class="col-12">
+                      <q-checkbox
+                        v-model="customModel"
+                        color="green"
+                        label="Priority services"
+                        true-value="yes"
+                        false-value="no"
+                      />
+                    </div>
+                    <div class="col-12">                    
+                      <q-select
+                        v-if="customModel === 'yes'"
+                        v-model="prioritySelected"
+                        label="Priority Service"
+                        transition-show="flip-up"
+                        transition-hide="flip-down"
+                        outlined
+                        emit-value
+                        map-options
+                        dense
+                        :options="categoriesPriority"
+                        :error="formError.hasOwnProperty('priority')"
+                        :error-message="formError.priority"
+                        option-label="name"
+                        option-value="id"
+                      />
+                    </div>
+                    <div class="col-12">
+                       <q-card-actions align="center">
+                                <q-btn label="Print" color="primary" @click="joinQueue" />
+                       </q-card-actions>
+                    </div>
+                  </div>
+                </q-card-section>
+
+              </q-card>
             </div>
           </div>
         </div>
@@ -501,12 +615,15 @@ import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import { debounce } from 'quasar'
+
+import QrCode from 'qrcode'; // import the qrcode package
 import { BarController } from "chart.js";
 import { Bar } from "vue-chartjs";
 
 export default {
   setup() {
     const cusId = ref();
+    const isServiceAvailable = ref(false)
     const queueList = ref([]);
     const router = useRouter();
     const currentServing = ref(null);
@@ -525,6 +642,21 @@ export default {
     let refreshInterval = null;
     const formError = ref({});
     const $dialog = useQuasar();
+    
+    const selectId = ref(null);
+    const name = ref("");
+    const email = ref("");
+    const email_status = ref("sending_customer");
+    const type_id = ref(null);
+    const currencySelected = ref ();
+    const categoryForeignExchange = ref();
+    const categoriesList = ref([]);
+    const currentCiesList = ref ([]);
+    const indicator = ref('')
+    const generatedQrValue = ref ('');
+    const ServiceAvail = ref('');
+    const customModel = ref('no')
+    const prioritySelected = ref();
 
     // Pagination
     const currentPage = ref(1);
@@ -896,7 +1028,7 @@ export default {
         } else {
           if (newValue) {
             // Auto Serving is enabled
-            $notify("positive", "check", "Auto Serving Enabled");
+            $notify("positive", "check", "Automatic Serving Enabled");
 
             // Start the interval when autoServing is turned on
             autoServingInterval = setInterval(() => {
@@ -923,7 +1055,7 @@ export default {
             }, 2000); // Check every 2 seconds
           } else {
             // Auto Serving is disabled
-            $notify("positive", "check", "Auto Serving Disabled");
+            $notify("positive", "check", "Automatic Serving Disabled");
 
             // Clear the interval when autoServing is turned off
             if (autoServingInterval) {
@@ -1261,6 +1393,7 @@ export default {
           fetchTodayServingStats()
           // Start currency data fetching
           fetchCurrency();
+          fetchCategories();
           currencyInterval = setInterval(fetchCurrency, 30000);
           fetchBreakTime();
           intervalId = setInterval(() => {
@@ -1371,6 +1504,289 @@ export default {
       }
     }
 
+    // customer manual //
+        const token = ref(); // Get token from URL
+    
+        const generateRandomString = async (length = 10) => {
+          const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          let result = '';
+          const charactersLength = characters.length;
+          // Loop to create a random string
+          for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+          }
+            // Assign the generated string to the token ref
+            token.value = result;
+        }
+    
+        const joinQueue = async () => {
+          isLoading.value = true;
+          formError.value = [];
+          await generateRandomString();  // Generate random token before the submission
+    
+          try {
+              // Check if the category is 'Foreign Exchange' and validate the currency selection
+              if (categoryForeignExchange.value === 1) {
+                if (currencySelected.value == null) {
+                  formError.value.currency = "Currency field is required";
+                  return;
+                }
+              }
+              if (customModel.value == 'yes'){
+                if (prioritySelected.value == null) {
+                  formError.value.priority = "Priority service field is required"
+                  return
+                }
+              }
+    
+                // Capitalize the name properly
+                name.value = name.value
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+          
+                const { data } = await $axios.post("/customer-join", {
+                  token: '',
+                  name: name.value,
+                  email: email.value,
+                  email_status: email_status.value,
+                  type_id: selectId.value.id,
+                  branch_idd: tellerInformation.value.branch_id,
+                  currency: currencySelected.value,
+                  priority_service: prioritySelected.value
+                });
+                
+                // find selected Categoriess
+                const selectedCategory = categoriesList.value.find(category => category.id === selectId.value.id)
+                indicator.value = selectedCategory.indicator
+
+                // sending email
+                const response = await $axios.post('sent-email-dashboard',{
+                  id : data.id,
+                  token: token.value,
+                  queue_number: `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`,
+                  email:  email.value,
+                  name: name.value,
+                  subject: "Queue Alert", // Email subject
+                  message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
+                            we’ve implemented a queue system that helps manage customer flow. 
+                            Our system is designed to prioritize your needs and minimize waiting times. 
+                            You are free to go about your activities, and once your turn is approaching, 
+                            you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
+                });  
+    
+                  $notify('positive','check','Successfull Joining Queue')
+                     // set the qr code value
+                    generatedQrValue.value = `http://192.168.0.164:8080/customer-dashboard/${token.value}`
+    
+                    // generate the qr code image
+                    const qrCodeDataUrl = await QrCode.toDataURL(generatedQrValue.value, {errorCorrectionLevel: 'H', type: 'image/png'});
+    
+                    // Notify the user that the email was successfully sent
+                    //$notify('positive', 'check', response.data.message);
+                    
+                    const queuenumber = `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`
+                  
+                    // Trigger the print function with the queue details and QR code
+                    printQueueDetails(queuenumber, name.value,  selectId.value.name, data.window_name, qrCodeDataUrl);
+    
+                    // Reset form values after successful submission
+                    name.value = "";
+                    email.value = "";
+                    selectId.value = "";
+                    currencySelected.value = "";
+                    token.value = ""; 
+
+          } catch (error) { 
+            if (error.response) {
+               // If the error response exists, check for the status
+              if (error.response.status === 422) {
+                formError.value = error.response.data;
+              }else if (error.response.status === 400) {
+                $notify('negative','error','No tellers assigned to this service type')
+              }else if (error.response.status === 500) {
+                $notify('negative','error','No tellers assigned to this service type')
+              }
+              else if (error.response.status === 500) {
+                $notify('negative','error','No tellers assigned to this service type')
+              }
+            }else {
+              console.log(error)
+            }
+          }
+          finally{
+            isLoading.value = false;
+          }
+        };
+    
+        const printQueueDetails = async (queueNumber, customerName, serviceType, window_name, qrCodeDataUrl) => {
+          try {
+            const printWindow = window.open('', '', 'height=400,width=450');
+    
+            // Write the content of the print window
+            printWindow.document.write('<html>');
+            printWindow.document.write('<head>');
+            printWindow.document.write('<meta charset="UTF-8">');
+            printWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+            printWindow.document.write('<title>Customer Queue Details</title>');
+            printWindow.document.write('<style>');
+            
+            // General Body styles
+            printWindow.document.write('body {');
+            printWindow.document.write('font-family: Arial, sans-serif;');
+            printWindow.document.write('margin: 0;');
+            printWindow.document.write('padding: 0;');
+            printWindow.document.write('display: flex;');
+            printWindow.document.write('flex-direction: column;');
+            printWindow.document.write('justify-content: center;');
+            printWindow.document.write('align-items: center;');
+            printWindow.document.write('text-align: center;');
+            printWindow.document.write('margin-top: 20px;');
+            printWindow.document.write('}');
+    
+            // Outer container styles
+            printWindow.document.write('.container1 {');
+            printWindow.document.write('width: 100%;');
+            printWindow.document.write('max-width: 400px; /* Set to 400px to fit in the 450px window width */');
+            printWindow.document.write('padding: 5px;');
+            printWindow.document.write('box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);');
+            printWindow.document.write('text-align: center;');
+            printWindow.document.write('}');
+    
+            // Grid container for content
+            printWindow.document.write('.container {');
+            printWindow.document.write('margin-left: 15px;');
+            printWindow.document.write('display: grid;');
+            printWindow.document.write('grid-template-columns: auto auto;');
+            printWindow.document.write('width: 100%;');
+            printWindow.document.write('}');
+    
+            printWindow.document.write('.container > div {');
+            printWindow.document.write('background-color: #ffffff;');
+            printWindow.document.write('font-size: 12px;');
+            printWindow.document.write('text-align: left;');
+            printWindow.document.write('}');
+    
+            // Optional: Styling for the QR Code image
+            printWindow.document.write('img {');
+            printWindow.document.write('display: block;');
+            printWindow.document.write('margin-left: auto;');
+            printWindow.document.write('margin-right: auto;');
+            printWindow.document.write('}');
+    
+            // Styling for headers (h1, h2, h3)
+            printWindow.document.write('h1, h2, h3 {');
+            printWindow.document.write('margin: 10px 0;');
+            printWindow.document.write('}');
+    
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head>');
+            
+            // Body content
+            printWindow.document.write('<body>');
+            printWindow.document.write('<div class="container1">');
+            printWindow.document.write('<strong><h5">VRTSYSTEMS TECHNOLOGIES</h5></strong> <br>');
+            printWindow.document.write('<strong> <h4">Customer Queue Details</h4> </strong>');
+            printWindow.document.write('<h2 style="margin-top:25px;">' + queueNumber + '</h2>');
+            printWindow.document.write('<hr> <!-- Divider between sections -->');
+            printWindow.document.write('<div class="container">');
+            printWindow.document.write('<div><p><strong>Name:</strong></p></div>');
+            printWindow.document.write('<div><p>' + customerName + '</p></div>');
+            printWindow.document.write('<div><p><strong>Service Type:</strong></p></div>');
+            printWindow.document.write('<div><p>' + serviceType + '</p></div>');
+            printWindow.document.write('<div><p><strong>Window name:</strong></p></div>');
+            printWindow.document.write('<div><p>' + window_name + '</p></div>');
+            printWindow.document.write('</div>');
+            printWindow.document.write('<hr> <!-- Divider between sections -->');
+            printWindow.document.write('<h3>QR Code for Customer Dashboard</h3>');
+            printWindow.document.write('<img src="' + qrCodeDataUrl + '" width="150" height="150" alt="QR Code">');
+            printWindow.document.write('</div>');
+            printWindow.document.write('</body>');
+            printWindow.document.write('</html>');
+            
+            // Close the document to render the content
+            printWindow.document.close();
+            
+            // Open the print dialog
+            printWindow.print();
+            $notify('positive', 'check', 'Successfully registered');
+          } catch (error) {
+            console.error('Error during print process:', error);
+          }
+        };
+    
+        const fetchCategories = async () => {
+            try {
+              const { data } = await $axios.post("/types/filteredTypes", {
+                branch_id: tellerInformation.value.branch_id,
+              });
+              const OnlineTellers = data.rows;
+              const WindowsInBranch = data.types;
+
+              // Filter OnlineTellers that exist in WindowsInBranch by matching IDs
+              const NewObject = OnlineTellers.filter(teller =>
+                WindowsInBranch.some(window => window.id === teller.id)
+              );
+
+              console.log(NewObject);
+
+              const seenNames = new Set();
+              const uniqueRows = NewObject.filter(row => {
+                if (seenNames.has(row.name)) {
+                  return false;
+                } else {
+                  seenNames.add(row.name);
+                  return true;
+                }
+              });
+
+              console.log(uniqueRows);
+              const filteredRows = uniqueRows.filter(row => row.type_id !== null && row.name !== "Online Appointment" && row.name !== "Manual Queueing");
+              
+              if(filteredRows.length === 0){
+                isServiceAvailable.value = false
+              }else{
+                isServiceAvailable.value = true
+              }
+              // Log filtered type_id values
+              // Assign only valid rows to categoriesList.value
+              categoriesList.value = filteredRows;
+              console.log(  "values",         categoriesList.value)
+              
+            } catch (error) {
+              console.error("Error fetching categories:", error);
+            }
+          };
+    
+
+          const fecthCurrencty = async (selectedValue) => {
+          try {
+            if (selectedValue.name === "Foreign Exchange") {
+              const { data } = await $axios.post('/currency/showData', {
+                branch_id: tellerInformation.value.branch_id,
+              });
+
+              currentCiesList.value = data.rows
+                .map(row => ({
+                  id: row.id,
+                  name: row.currency_name,
+                  symbol: row.currency_symbol,
+                  flag: row.flag,
+                  buy_value: row.buy_value,
+                  sell_value: row.sell_value
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
+            } else {
+              currentCiesList.value = [];
+              currencySelected.value = '';
+            }
+          } catch (error) {
+            if (error.response.status === 422) {
+              console.log(error.message);
+            }
+          }
+        };
+    
     onUnmounted(() => {
       // Cleanup all timers and intervals
       clearInterval(currencyInterval);
@@ -1431,7 +1847,36 @@ export default {
       formatTo12Hour,
       validateReference,
       customerInfoOnline,
-      handleAssignedTeller
+      handleAssignedTeller,
+
+      prioritySelected,
+      customModel,
+      ServiceAvail,
+      generatedQrValue,
+      name,
+      email,
+      indicator,
+      email_status,
+      joinQueue,
+      generateRandomString,
+      formError,
+      isLoading,
+      token,
+      currencySelected,
+      type_id,
+      categoriesList,
+      fecthCurrencty,
+      currentCiesList,
+      selectId,
+      isServiceAvailable,
+      categoriesPriority: [
+        'Elderly Customers', 
+        'Pregnant Women', 
+        'People with Disabilities', 
+        'Premium Customers', 
+        'Parents with Young Children', 
+        'Queue-Free Services'
+      ]
     };
   },
 };

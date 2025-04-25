@@ -25,9 +25,9 @@ class QueueController extends Controller
         // return response()->json(['branch_id' => $branch_id]);
         // Fetch all tellers who are assigned to the specific window type and are currently "Online" (signed in).
         $tellers = DB::table('windows')
+                       ->where('branch_id', $branch_id) // Filters by the branch ID.
                        ->where('type_id', $type_id)        // Filters by 'type_id' for the current window type.
                        ->where('status', 'Online')       // Filters to only include tellers who are online.
-                       ->where('branch_id', $branch_id) // Filters by the branch ID.
                        ->pluck('teller_id')              // Retrieves an array of teller IDs.
                        ->values(); // ensure it's indexed by 0, 1, 2...
     
@@ -590,6 +590,7 @@ class QueueController extends Controller
                 "t.teller_firstname",
                 "t.teller_lastname",
                 "t.type_id",
+                "t.branch_id",
                 "t.Image",
                 "tp.name",
                 "tp.indicator",
