@@ -773,30 +773,61 @@ class TellerController extends Controller
             // Get all service types
             $types = DB::table('types as tp')
                 ->select('tp.id as type_id', 'tp.name as type_name', 'tp.indicator as type_indicator')
-                ->where('branch_id',$request->branch_id)
+                ->where('branch_id', $request->branch_id)
                 ->get();
 
             $typeList = [];
 
             foreach ($types as $type) {
-                // Get tellers (including those without assigned windows)
+                // Get tellers based on window assignments
                 $tellers = DB::table('tellers as t')
-                    ->leftJoin('windows as w', 'w.teller_id', '=', 't.id') // Join with windows table
-                    ->select('t.id', 't.teller_firstname', 't.teller_lastname', 'w.window_name')
-                    ->where('t.type_id', $type->type_id)
+                    ->join('windows as w', 'w.teller_id', '=', 't.id') // Inner join to get only assigned windows
+                    ->select(
+                        't.id',
+                        't.teller_firstname',
+                        't.teller_lastname',
+                        DB::raw('GROUP_CONCAT(w.window_name) as window_names'),
+                        'w.type_id as window_type_id'
+                    )
+                    ->where('w.type_id', $type->type_id)
                     ->where('t.branch_id', $request->branch_id)
-                    ->get(); // No filtering for null, so we get all tellers
-
-                $currency = DB::table('currencies')->get();
+                    ->groupBy(
+                        't.id',
+                        't.teller_firstname',
+                        't.teller_lastname',
+                        'w.type_id'
+                    )
+                    ->get();
 
                 // Add the waiting queue length, customer details, and currently served customer for each teller
                 foreach ($tellers as $teller) {
+                    // Convert window_names string to array
+                    $teller->window_name = explode(',', $teller->window_names);
+                    unset($teller->window_names);
+
+                    // Get all windows for this teller of this type
+                    $windows = DB::table('windows')
+                        ->where('teller_id', $teller->id)
+                        ->where('type_id', $type->type_id)
+                        ->pluck('window_name')
+                        ->toArray();
+                    
+                    $teller->windows = $windows;
+
                     // Get the customers waiting for this teller
                     $waitingCustomers = DB::table('queues as q')
                         ->leftJoin('currencies as c', 'c.id', '=', 'q.currency_selected')
                         ->where('q.teller_id', $teller->id)
                         ->where('q.status', 'waiting')
-                        ->select('q.name', 'q.queue_number', 'q.currency_selected', 'q.priority_service', 'c.currency_name', 'c.currency_symbol', 'c.flag')
+                        ->select(
+                            'q.name',
+                            'q.queue_number',
+                            'q.currency_selected',
+                            'q.priority_service',
+                            'c.currency_name',
+                            'c.currency_symbol',
+                            'c.flag'
+                        )
                         ->get();
 
                     $teller->waiting_customers = $waitingCustomers;
@@ -809,21 +840,20 @@ class TellerController extends Controller
                         ->first();
 
                     $teller->currently_served = $currentlyServed;
-
-                    // Add a flag to indicate if the teller is unassigned (no window)
-                    $teller->is_unassigned = $teller->window_name === null;
                 }
 
-                $typeList[] = [
-                    'type_id' => $type->type_id,
-                    'type_name' => $type->type_name,
-                    'type_indicator' => $type->type_indicator,
-                    'tellers' => $tellers, // Will contain both assigned and unassigned tellers
-                ];
+                if (count($tellers) > 0) {  // Only add types that have tellers with windows
+                    $typeList[] = [
+                        'type_id' => $type->type_id,
+                        'type_name' => $type->type_name,
+                        'type_indicator' => $type->type_indicator,
+                        'tellers' => $tellers
+                    ];
+                }
             }
 
             return response()->json([
-                'services' => $typeList // Return the list of services with tellers, including unassigned ones
+                'services' => $typeList
             ]);
         } catch (\Exception $e) {
             return response()->json([
