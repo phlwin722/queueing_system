@@ -41,9 +41,9 @@
         <div class="text-subtitle1">Send us a message</div>
   
         <q-form @submit.prevent="submitForm" class="q-gutter-md q-mt-sm">
-          <q-input filled v-model="name" label="Your Name" required />
-          <q-input filled v-model="email" type="email" label="Email" required />
-          <q-input filled v-model="message" type="textarea" label="Message" required />
+          <q-input filled dense v-model="name" label="Your Name" required />
+          <q-input filled dense v-model="email" type="email" label="Email" required />
+          <q-input filled dense v-model="message" type="textarea" label="Message" required />
           <div class="row justify-end">
             <q-btn label="Send Message" type="submit" color="primary" />
           </div>

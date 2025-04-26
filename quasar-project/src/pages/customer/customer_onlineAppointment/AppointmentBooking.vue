@@ -92,9 +92,8 @@
           @update:model-value="fetchSlots"
         />
 
-        <div v-if="selectedBranch" class="q-mt-md">
+        <div v-if="selectedBranch" style="margin-top: 35px;">
           <q-input
-            class="q-mt-md"
             v-model="form.name"
             label="Full Name"
             outlined

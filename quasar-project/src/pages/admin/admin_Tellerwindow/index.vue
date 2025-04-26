@@ -351,7 +351,15 @@ export default defineComponent({
     };
 
     const beforeDelete = (isMany, row) => {
-      const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
+      const ids = isMany 
+            ? selected.value.map((x) => ({
+              id: x.id, 
+              type_id: x.type_id
+            })) 
+            : [{
+              id: row.id, 
+              type_id: row.type_id
+            }];
       const itemNames = isMany ? "Windows" : row.window_name;
 
       $dialog
@@ -379,10 +387,10 @@ export default defineComponent({
         });
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (deleteWindow) => {
       try {
-        const { data } = await $axios.post(URL + "/delete", { id });
-        rows.value = rows.value.filter((row) => !id.includes(row.id));
+        const { data } = await $axios.post(URL + "/delete", { deleteWindow });
+        getTableData()
         $notify("positive", "check", data.message);
         selected.value = [];
       } catch (error) {

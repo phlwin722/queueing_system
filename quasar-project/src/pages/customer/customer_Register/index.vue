@@ -266,11 +266,6 @@ export default {
           }
         });
 
-        console.log(uniqueRows);
-        const filteredRows = uniqueRows.filter(
-          (row) => row.type_id !== null && row.name !== "Online Appointment"
-        );
-
         if (filteredRows.length === 0) {
           isServiceAvailable.value = false;
         } else {
@@ -279,7 +274,11 @@ export default {
         // Log filtered type_id values
 
       console.log(uniqueRows);
-      const filteredRows = uniqueRows.filter(row => row.type_id !== null && row.name !== "Online Appointment" && row.name !== "Manual Queueing");
+      const filteredRows = uniqueRows.filter(row => 
+        row.type_id !== null && 
+        row.name !== "Online Appointment" 
+        && row.name !== "Manual Queueing"
+        );
       
       if(filteredRows.length === 0){
         isServiceAvailable.value = false
