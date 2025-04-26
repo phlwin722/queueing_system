@@ -8,6 +8,10 @@ const routes = [
     component: () => import("pages/LoginInterface/index.vue"), // Dynamically load the login component
   },
   {
+    path: "/prac", // The login page path
+    component: () => import("pages/Prac/index.vue"), // Dynamically load the login component
+  },
+  {
     path: "/customer/customer_QrCode", // The login page path
     component: () => import("pages/customer/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
   },

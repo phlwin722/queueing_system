@@ -4,28 +4,24 @@
     <q-header>
       <q-toolbar>
         <q-img
-  src="~assets/vrtlogowhite1.png"
-  alt="Logo"
-  fit="full"
-  :style="{
-    maxWidth: $q.screen.lt.sm ? '100px' : '160px',
-    cursor: 'pointer',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  }"
-  @click="goToIndex"
-  class="q-ml-sm"
-/>
-
-
+        src="~assets/vrtlogowhite1.png"
+        alt="Logo"
+        fit="full"
+        :style="{
+          maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+          cursor: 'pointer',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        }"
+        @click="goToIndex"
+        class="q-ml-sm"
+      />
       <q-space />
       
       </q-toolbar>
-      
-      
-    </q-header>
-
+        
+    </q-header
     <!-- Page Content Area -->
-    <q-page-container>
+    <q-page-container style="padding-left: 7%; padding-right: 7%  ;">
     <router-view />
   </q-page-container>
 
