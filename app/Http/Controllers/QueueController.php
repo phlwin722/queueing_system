@@ -747,15 +747,15 @@ class QueueController extends Controller
         if ($data) {
             if ($data->status == 'Booked') {
                 $dateNow = Carbon::now()->toDateString();
-              /*   if ($data->appointment_date == $dateNow) { */
+                if ($data->appointment_date == $dateNow) {
                     return response()->json([
                         'value' => $data
                     ]);
-                /* } else {
+                } else {
                     return response()->json([
                         'errors' => "The reference number appointment for Online Application is no longer valid."
                     ],400);
-                } */
+                }
             } else {
                 return response()->json([
                     'errors' => 'The customer has already been finished.'
