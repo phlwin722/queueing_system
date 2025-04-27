@@ -173,6 +173,7 @@ class WindowController extends Controller
                     "tp.name as type_name",
                     "tp.id as type_id",
                     "wd.branch_id", 
+                    "wd.status",
                     DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) teller_name"),
                     "ts.id as teller_id",
                     'b.branch_name'
@@ -194,6 +195,7 @@ class WindowController extends Controller
                     "tp.name as type_name",
                     "tp.id as type_id",
                     "wd.branch_id", 
+                    "wd.status",
                     DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) teller_name"),
                     "ts.id as teller_id",
                     'b.branch_name'

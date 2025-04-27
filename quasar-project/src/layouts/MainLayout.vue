@@ -860,8 +860,8 @@ export default defineComponent({
             },
             {
               title: "List Appointment",
-              icon: "event_note",
-              link: "/admin/teller/tellers",
+              icon: "groups",
+              link: "/admin/appointment/list",
             },
           ],
         },

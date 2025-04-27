@@ -408,7 +408,8 @@ class TellerController extends Controller
         try {
             // Get the 'teller_id' from the incoming request
             $teller_id = $request->teller_id;
-            $date = $request->date;
+            $fromDate = $request->fromDate;
+            $toDate = $request->toDate;
 
             // Begin querying the 'queues' table with alias 'qs'
             $res = DB::table('queues as qs')
@@ -433,15 +434,21 @@ class TellerController extends Controller
                 // Order the results by 'updated_at' in descending order (latest first)
                 ->orderBy('qs.updated_at', 'desc');
 
-
+                // Filter by teller_id if provided
                 if (!empty($teller_id)) {
                     $res->where('qs.teller_id', $teller_id);
                 }
-    
-                if ($request->has('date') && $request->input('date')) {
-                    $date = $request->input('date');
-                    $res->whereDate('qs.updated_at', $date); // Use the alias 'qs'
+
+                // Filter by fromDate if provided (ensure it's not empty)
+                if (!empty($fromDate)) {
+                    $res->whereDate('qs.updated_at', '>=', $fromDate); // Compare with 'updated_at'
                 }
+
+                // Filter by toDate if provided (ensure it's not empty)
+                if (!empty($toDate)) {
+                    $res->whereDate('qs.updated_at', '<=', $toDate); // Compare with 'updated_at'
+                }
+
     
             // Return the query results as a JSON response
             return response()->json([

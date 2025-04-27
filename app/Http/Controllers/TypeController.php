@@ -99,7 +99,10 @@ class TypeController extends Controller
     
     public function viewTypesDropdown(Request $request){
         try {
-            $rows = DB::table('types')->select('id', 'name')->get(); // Only fetch necessary fields
+            $rows = DB::table('types')
+                ->select('id', 'name')
+                ->where('branch_id', $request->branch_id)
+                ->get(); // Only fetch necessary fields
             return response()->json([
                 'rows' => $rows
             ]);

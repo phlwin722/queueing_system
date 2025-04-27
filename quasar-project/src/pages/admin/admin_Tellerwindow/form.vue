@@ -122,7 +122,6 @@
         const icon = ref(false)
         const isLoading= ref(false)
         const branch_list = ref ([]);
-        const editTypeID = ref ();
         const adminInformation = ref(null);
     
         const initFormData = () => (
@@ -135,7 +134,7 @@
                 fetchPersonnel: "",
                 type_id: '',
             }
-         )
+        )
 
         const formData = ref(initFormData())
         const formError = ref({})
@@ -145,7 +144,6 @@
             icon.value=false
             formData.value = initFormData()
             formError.value = {}
-            editTypeID.value = null
         }
 
         
@@ -156,25 +154,23 @@
             if (mode === 'edit') {
                 formData.value = Object.assign({},row)
                 console.log(Object.assign({},row)) 
-                editTypeID.value = row.type_id
+                formData.value.type_id = row.type_id
 
                 await fetchWindowTypes()
                 await fetchPersonnel()
 
-                 // Map each selected type ID to its corresponding category from categoriesList
-                 const selectedCategory = windowTypeList.value.find(type => type.value === row.type_id);
-                 if (!adminInformation.value) {
-                    formData.value.type_id = selectedCategory.value
-                 }
-   
+                // Map each selected type ID to its corresponding category from categoriesList
+                const selectedCategory = windowTypeList.value.find(type => type.value === row.type_id);
+                if (!adminInformation.value) {
+                formData.value.type_id = selectedCategory.value
+                }
             }
 
             icon.value = true;
         };
 
         const handleSubmitForm = async () =>{
-            const mode = formMode.value === 'New' ? '/create' : '/update'
-           
+            const mode = formMode.value === 'New' ? '/create' : '/update' 
             isLoading.value = true
             try{
                 formError.value = {}
@@ -255,7 +251,7 @@
                 console.log('tp',formData.value.type_id)
                 formData.value.branch_id = adminInformation.value ? adminInformation.value.branch_id : formData.value.branch_id 
                 const response = await $axios.post('/window/tellers/dropdown', {
-                    type_ids_selected: editTypeID.value != null ? editTypeID.value : formData.value.type_id,
+                    type_ids_selected: formData.value.type_id,
                     branch_id: formData.value.branch_id,
                 });
                     // Ensure response.data.rows is always an array
@@ -290,7 +286,7 @@
                     await fetchPersonnel(); // Fetch new personnel based on selected type
                 }
             } else {
-                editTypeID.value = newVal
+                formData.value.type_id = newVal
                 await fetchPersonnel()
             }
         });
@@ -307,14 +303,14 @@
             }
         }
 
-            onMounted(() => {
-                const storeManagerInfo = localStorage.getItem('managerInformation');
-                if (storeManagerInfo) {
-                    adminInformation.value = JSON.parse(storeManagerInfo);
-                    fetchWindowTypes()
-                }
-                fetchBranch();
-            })
+        onMounted(() => {
+            const storeManagerInfo = localStorage.getItem('managerInformation');
+            if (storeManagerInfo) {
+                adminInformation.value = JSON.parse(storeManagerInfo);
+                fetchWindowTypes()
+            }
+            fetchBranch();
+        })
 
         return{
             props,
@@ -330,7 +326,6 @@
             windowTypeList,
             branch_list,
             adminInformation,
-            editTypeID,
         }
     }
     })

@@ -403,7 +403,7 @@ export default {
           branch_id: selectedBranch.value || form.value.branch_id,
         });
 
-        services.value = data.servce.filter(serve => serve.name !== 'Online Appointment');
+        services.value = data.servce.filter(serve => serve.name !== 'Online Appointment' && serve.name !== 'Manual Queueing');
       } catch (error) {
         if (error.response?.status === 422) {
           console.log(error);

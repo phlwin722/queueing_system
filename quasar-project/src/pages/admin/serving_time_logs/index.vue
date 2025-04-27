@@ -33,6 +33,7 @@
           <div v-if="!adminManagerInformation" style="min-width: 180px;">
             <q-select
               outlined
+              style="width: 250px;"
               dense
               v-model="branch_value"
               :options="branch_list"
@@ -215,60 +216,62 @@ export default defineComponent({
     ]);
     let refreshInterval = null
     const filteredRows = computed(() => {
-    return rows.value.filter((row) =>
-    Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(text.value.toLowerCase())
-    )
-    );
-});
+      return rows.value.filter((row) =>
+        Object.values(row).some((value) =>
+            String(value).toLowerCase().includes(text.value.toLowerCase())
+        )
+      );
+    });
+    
     const fromDate = ref(""); // Holds the "From" date
     const toDate = ref(""); // Holds the "To" date
     const type_id = ref();
     const serviceTypeList = ref([]);
     const stats = ref({
-        min: null,
-        max: null,
-        avg: null
+      min: null,
+      max: null,
+      avg: null
     });
+
     const getTableData = async () => {
-    try {
-        const payload = {
-            from_date: fromDate.value,
-            to_date: toDate.value,
-            type_id: type_id.value,
-            branch_id: branch_value.value
-        };
+      try {
+          const payload = {
+              from_date: fromDate.value,
+              to_date: toDate.value,
+              type_id: type_id.value,
+              branch_id: branch_value.value
+          };
 
-        const { data } = await $axios.post('/teller/fetch-serving-time', payload);
+          const { data } = await $axios.post('/teller/fetch-serving-time', payload);
 
-        // Update rows
-        rows.value.splice(0, rows.value.length, ...data.rows);
-        console.log(data.rows.minutes); // Test display
-        // Extract the minutes directly from the response
-        const minutes = data.minutes;
+          // Update rows
+          rows.value.splice(0, rows.value.length, ...data.rows);
+          console.log(data.rows.minutes); // Test display
+          // Extract the minutes directly from the response
+          const minutes = data.minutes;
 
-        // Compute min, max, and avg based on the minutes
-        const min = Math.min(...minutes);
-        const max = Math.max(...minutes);
-        const avg = minutes.reduce((sum, value) => sum + value, 0) / minutes.length;
+          // Compute min, max, and avg based on the minutes
+          const min = Math.min(...minutes);
+          const max = Math.max(...minutes);
+          const avg = minutes.reduce((sum, value) => sum + value, 0) / minutes.length;
 
-        stats.value = {
-            min: min,
-            max: max,
-            avg: Math.round(avg) // Round to 2 decimal places
-        };
+          stats.value = {
+              min: min,
+              max: max,
+              avg: Math.round(avg) // Round to 2 decimal places
+          };
 
-        console.log(stats.value); // Test display
+          console.log(stats.value); // Test display
 
-    } catch (error) {
-        console.log(error);
-    }
-};
+      } catch (error) {
+          console.log(error);
+      }
+    };
 
     const fetchBranch = async () => {
       try {
         const { data } = await $axios.post('/type/Branch');
-        branch_list.value = [{id:0, branch_name: 'All Branch'},...data.branch]
+        branch_list.value = data.branch
       } catch (error) {
         if (error.response.status === 422) {
           console.log(error)
@@ -278,7 +281,9 @@ export default defineComponent({
 
     const fetchWindowTypes = async () => {
       try {
-        const response = await $axios.post("/types/dropdown");
+        const response = await $axios.post("/types/dropdown", {
+          branch_id: branch_value.value,
+        });
         if (Array.isArray(response.data.rows)) {
           
           serviceTypeList.value = response.data.rows.map((sec) => ({
@@ -299,27 +304,32 @@ export default defineComponent({
           getTableData();
         }, 300);
 
-    watch([type_id, fromDate, toDate, branch_value], () => {
-        debouncedGetTableData(); // Only call getTableData once when either value changes
+    watch([type_id, fromDate, toDate, branch_value], ([newTypeId, newFromDate, newToDate, newBranch],[oldTypeId, oldFromDate, oldToDate, oldBranch]) => {
+      if (newBranch !== oldBranch) {
+      type_id.value = null
+      fromDate.value = null
+      toDate.value = null
+      fetchWindowTypes();
+      }
     });
 
     onMounted(() => {
-        getTableData()
-        fetchBranch()
-        fetchWindowTypes()
-        const managerInformation = localStorage.getItem('managerInformation')
-          if (managerInformation) {
-            adminManagerInformation.value = JSON.parse(managerInformation);
-          }
+      const managerInformation = localStorage.getItem('managerInformation')
+        if (managerInformation) {
+          adminManagerInformation.value = JSON.parse(managerInformation);
+        }
 
-          if (adminManagerInformation.value == null) {
-            branch_value.value = 0
-          }else  {
-            branch_value.value = adminManagerInformation.value.branch_id
-          }
+        if (adminManagerInformation.value == null) {
+          branch_value.value = 1
+        }else  {
+          branch_value.value = adminManagerInformation.value.branch_id
+        }
+        fetchWindowTypes()
+        getTableData()
+      fetchBranch()
     })
 
-    return{
+      return{
         rows,
         columns,
         filteredRows,
@@ -331,7 +341,7 @@ export default defineComponent({
         adminManagerInformation,
         branch_value,
         branch_list
-    }
+      }
     }
 
 });
