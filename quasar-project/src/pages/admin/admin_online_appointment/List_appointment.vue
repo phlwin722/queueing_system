@@ -48,7 +48,7 @@
 
             <div v-if="!adminInformation" class="class-auto">
               <q-select
-                style="width: 250px;"
+                style="width: 250px; position: absolute;  right: 10px;"
                 outlined
                 label="Branch name"
                 hide-bottom-space

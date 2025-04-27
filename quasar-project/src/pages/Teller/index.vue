@@ -17,7 +17,7 @@
           src="~assets/vrtlogowhite1.png"
           alt="Logo"
           fit="full"
-          :style="{ 
+          :style="{
             maxWidth: $q.screen.lt.sm ? '100px' : '160px',
             marginLeft: '50px'
           }"
@@ -145,14 +145,12 @@
                           :class="{ 'drag-over': dragOverIndex === index }"
                           draggable="true"
                           @dragstart="onDragStart($event, index)"
-                          @dragover.prevent="onDragOver(index)"
-                          @dragleave="onDragLeave"
                           @drop="onDrop(index)"
                         >
-                        
-                        <div 
+
+                        <div
                           class="text-white text-bold glossy"
-                          :style="customer.priority_service ? 
+                          :style="customer.priority_service ?
                             {
                               'background-color': '#fad72a',
                               'padding': '5px',
@@ -226,31 +224,44 @@
                 <q-separator />
               </q-card>
 
-              <div class="" style="margin-top: 15px">
-                <q-table
+              <!-- Drag area of Currency -->
+              <div class=""
                   :style="{
-                    height: tellerInformation?.type_name == 'Online Appointment' ||  tellerInformation?.type_name == 'Manual Queueing' ? '600px' : '200px'
-                  }"
-                  flat
-                  bordered
-                  :rows="rowsCurrency"
-                  :columns="columns"
-                  hide-bottom
-                  :rows-per-page-options="[0]"
-                  virtual-scroll
-                  row-key="id"
-                  class="modern-table my-sticky-header-table"
+                    height: tellerInformation?.type_name == 'Online Appointment' ||  tellerInformation?.type_name == 'Manual Queueing' ? '600px' : '200px',
+                    marginTop: '15px'
+                  }">
+
+                  <div div class="row bg-white q-pa-md">
+                    <div class="col-6"><strong>Currency</strong></div>
+                    <div class="col-3"><strong>Buy</strong></div>
+                    <div class="col-3"><strong>Sell</strong></div>
+                  </div>
+
+                  <q-item
+                  v-for="(row, index) in rowsCurrency"
+                  :key="row.id"
+                  draggable="true"
+                  @dragstart="onDragStartCurrency($event, row)"
+                  class="bg-white q-pl-md no-margin hover-animate"
                 >
-                  <!-- Custom slot for rendering the content of the Currency column -->
-                  <template v-slot:body-cell-currency="props">
-                    <q-td :props="props">
-                      <!-- Display the flag icon -->
-                      <span :class="['fi', props.row.currency.flag]" style="font-size: 1.5em; margin-right: 8px;"></span>
-                      <!-- Display the currency symbol and name -->
-                      <span>{{ props.row.currency.symbol }} - {{ props.row.currency.name }}</span>
-                    </q-td>
-                  </template>
-                </q-table>
+                  <q-item-section>
+                    <div class="row">
+                      <div class="col-6">
+                        <!-- Flag icon -->
+                        <span :class="['fi', row.currency.flag]" style="font-size: 1.5em; margin-right: 8px;"></span>
+                        <span>{{ row.currency.symbol }} - {{ row.currency.name }}</span>
+                      </div>
+                      <div class="col-3">
+                        <!-- Buy value -->
+                        <span> {{ row.buy }}</span>
+                      </div>
+                      <div class="col-3">
+                        <!-- Sell value -->
+                        <span>{{ row.sell }}</span>
+                      </div>
+                    </div>
+                  </q-item-section>
+                </q-item>
               </div>
             </div>
 
@@ -390,7 +401,7 @@
               </q-card>
 
               <q-card class="q-px-md" v-if="tellerInformation?.type_name == 'Online Appointment'"
-                style="height: 480px;"
+                style="min-height: 500px; padding-bottom: 20px;"
                 >
                 <q-card-section>
                   <div class="row">
@@ -405,17 +416,23 @@
                       />
                     </div>
                     <div class="col-2">
-                      <q-btn 
-                          color="warning" 
-                          label="Validate" 
-                          @click="validateReference" 
-                          class="q-ml-md full-width" 
+                      <q-btn
+                          color="warning"
+                          label="Validate"
+                          @click="validateReference"
+                          class="q-ml-md full-width"
                       />
 
                     </div>
                   </div>
                 </q-card-section>
 
+                <!-- Drop Zone for Currency and customerInfoOnline -->
+
+                <div
+                  @dragover.prevent
+                  @drop="onDropToCustomerInfo"
+                >
                 <q-item v-if="customerInfoOnline != null">
                   <q-item-section>
                     <q-card class="q-px-sm shadow-2 rounded-borders bg-grey-1">
@@ -426,7 +443,6 @@
                         <q-list dense class="q-gutter-y-xs text-caption">
                           <div
                             v-for="(value, label) in {
-                              'ID': customerInfoOnline.id,
                               'Full Name': customerInfoOnline.fullname,
                               'Branch': customerInfoOnline.branch_name,
                               'Status': customerInfoOnline.status,
@@ -444,15 +460,36 @@
                               {{ value }}
                             </div>
                           </div>
+                          <!-- Display Currency Details if Available -->
+                          <template v-if="customerInfoOnline.currencyDetails">
+                            <div class="row q-mb-xs items-center">
+                              <div class="col-4 text-grey-7 text-weight-medium">Currency:</div>
+                              <div class="col-8 text-dark ellipsis">
+                                <span :class="['fi', customerInfoOnline.currencyDetails.currency.flag]" style="margin-right: 8px;"></span>
+                                {{ customerInfoOnline.currencyDetails.currency.symbol }} - {{ customerInfoOnline.currencyDetails.currency.name }}
+                              </div>
+                            </div>
+                            <div class="row q-mb-xs items-center">
+                              <div class="col-4 text-grey-7 text-weight-medium">Buy:</div>
+                              <div class="col-8 text-dark ellipsis">
+                                {{ customerInfoOnline.currencyDetails.buy}}
+                              </div>
+                            </div>
+                            <div class="row q-mb-xs items-center">
+                              <div class="col-4 text-grey-7 text-weight-medium">Sell:</div>
+                              <div class="col-8 text-dark ellipsis">
+                                {{ customerInfoOnline.currencyDetails.sell}}
+                              </div>
+                            </div>  
+                          </template>                    
                         </q-list>
-
                     </q-card>
 
                     <div class="q-mt-md text-right">
                       <q-btn
                         color="primary"
                         label="Assigned Teller"
-                        @click="handleAssignedTeller(customerInfoOnline.id)"
+                        @click="handleAssignedTellerClick"
                         class="full-width"
                         style="max-width: 200px"
                       />
@@ -485,9 +522,10 @@
                       </q-list>
                     </q-item-section>
                 </q-item>
+                </div>
               </q-card>
 
-              <q-card class="q-px-md" 
+              <q-card class="q-px-md"
                 style="height: 480px;"
                 v-if="tellerInformation?.type_name == 'Manual Queueing'"
                 >
@@ -520,7 +558,7 @@
                         transition-show="flip-up"
                         transition-hide="flip-down"
                         outlined
-                        @update:modelValue="fecthCurrencty"  
+                        @update:modelValue="fecthCurrencty"
                         :error="formError.hasOwnProperty('type_id')"
                         :error-message="formError.type_id"
                         dense
@@ -556,7 +594,7 @@
                               </q-item-section>
                             </q-item>
                           </template>
-                          
+
                           <template v-slot:selected-item="scope">
                             <div class="flex items-center">
                               <span :class="['fi', scope.opt.flag]" style="margin-right: 8px;"></span>
@@ -574,7 +612,7 @@
                         false-value="no"
                       />
                     </div>
-                    <div class="col-12">                    
+                    <div class="col-12">
                       <q-select
                         v-if="customModel === 'yes'"
                         v-model="prioritySelected"
@@ -642,7 +680,7 @@ export default {
     let refreshInterval = null;
     const formError = ref({});
     const $dialog = useQuasar();
-    
+
     const selectId = ref(null);
     const name = ref("");
     const email = ref("");
@@ -670,6 +708,7 @@ export default {
     };
 
     const customerInfoOnline = ref(null);
+    const draggedCurrency = ref(null);
 
     // Teller Information
     const tellerInformation = ref({
@@ -689,7 +728,7 @@ export default {
       if (!polling) return;
       try {
         isLoading.value = true;
-        
+
         // Load locally stored queue order if available
         const storedQueue = JSON.parse(localStorage.getItem("queueList")) || [];
         const response = await $axios.post("/teller/queue-list", {
@@ -698,7 +737,7 @@ export default {
           last_updated: QueueListlastUpdatedAt.value,
           branch_id: tellerInformation.value.branch_id,
         });
-        
+
         if (response.data.updated) {
           const fetchedQueue = response.data.queue.filter(
             (q) => !["finished", "cancelled"].includes(q.status)
@@ -732,7 +771,7 @@ export default {
         }
       } catch (error) {
         console.error("Error fetching queue:", error);
-        $notify("negative", "error", "Failed to fetch queue data");
+     //   $notify("negative", "error", "Failed to fetch queue data");
       } finally {
         isLoading.value = false;
         if(noOfQueue.value >5){
@@ -756,7 +795,7 @@ export default {
     // const fetchId = async () => {
     //   if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
     //   try {
-        
+
     //     const response = await $axios.post("/teller/queue-list", {
     //       type_id: tellerInformation.value.type_id,
     //       teller_id: tellerInformation.value.id,
@@ -946,18 +985,16 @@ export default {
           if (data?.dataValue?.Waiting_time) {
             waitTime.value = data.dataValue.Waiting_time;
           }
-          
+
           fetchWaitingtimelastUpdatedAt.value = data.last_updated_at;
         }
-        
+
       } catch (error) {
         console.error("Error fetching waiting time:", error);
       }finally {
         if (fetchWaitingtimepolling) setTimeout(fetchWaitingtime, 10000);
       }
     };
-
-
 
     // Format time as MM:SS
     const formatTime = (seconds) => {
@@ -984,7 +1021,7 @@ export default {
     // Computed property for paginated queue list
     const paginatedQueueList = computed(() => queueList.value);
 
-    
+
       const debouncedUpdateQueuePositions = debounce(async () => {
         const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
           id: customer.id,
@@ -1008,7 +1045,7 @@ export default {
         },
         { deep: false } // We're creating a new reference so deep isn't needed
       );
-      
+
       let autoServingInterval = null; // Store the interval ID
       let serveStartTime = null;
 
@@ -1019,7 +1056,7 @@ export default {
         if (onBreak.value) {
           // Notify user that they're on break
           $notify("primary", "info", "I'm taking a break");
-          
+
           // Clear the interval if it was running
           if (autoServingInterval) {
             clearInterval(autoServingInterval);
@@ -1045,7 +1082,7 @@ export default {
                     startWait(nextCustomer.id, nextCustomer.queue_number);
                     serveStartTime = new Date();
                     const startingTime = serveStartTime.toLocaleTimeString();
-                    
+
                     // Store serving time in localStorage
                     localStorage.setItem('serveStartTime' + tellerInformation.value.id.toString(), serveStartTime);
                     localStorage.setItem('startingTime' + tellerInformation.value.id.toString(), startingTime);
@@ -1101,8 +1138,6 @@ export default {
         } catch (err) {
           console.error("Failed to save serving time", err);
         }
-
-
       }
     };
 
@@ -1135,7 +1170,7 @@ export default {
           originalFromBreak.value = formatTime2(OrgtotalMinutes);
           const totalFormatMinutes = parseTime(formattedCurrentTime.value)
           newFormattedTime.value = formatTime2(totalFormatMinutes);
-          
+
           if(newFormattedTime.value >= newTime.value && newFormattedTime.value < originalFromBreak.value && hasNotified.value == false){
             hasNotified.value = true
             $notify(
@@ -1178,7 +1213,7 @@ export default {
         }else{
           console.warn("No break time found");
         }
-          
+
       } catch (error) {
         console.error("Error fetching break time:", error);
       }
@@ -1186,10 +1221,10 @@ export default {
 
     function parseTime(timeString) {
         // Make sure we're working with a string (access .value if it's a Vue ref)
-        const timeStr = typeof timeString === 'object' && 'value' in timeString 
-            ? timeString.value 
+        const timeStr = typeof timeString === 'object' && 'value' in timeString
+            ? timeString.value
             : timeString;
-        
+
         const [hours, minutes] = timeStr.split(':').map(Number);
         return hours * 60 + minutes;
     }
@@ -1277,7 +1312,7 @@ export default {
     dragOverIndex.value = null;
     isDragging.value = false;
     cleanupDrag();
-    
+
     // Immediately update positions without waiting for debounce
     await debouncedUpdateQueuePositions();
     debouncedUpdateQueuePositions.flush(); // Force immediate execution
@@ -1310,7 +1345,7 @@ export default {
             window.location.reload();
           }, 100);
         }
-       
+
       } catch (error) {
         if (error.response.status === 400) {
           $notify('negative','error',error.response.data.message)
@@ -1374,7 +1409,7 @@ export default {
 
     let currencyInterval;
     let intervalId = null;
- 
+
     onMounted(() => {
       try {
         $dialog.loading.show({
@@ -1455,9 +1490,21 @@ export default {
       } finally {
         $dialog.loading.hide(); // ✅ Use the correct method
       }
-    };
+    };  
 
-    const handleAssignedTeller = async (customerId) => {
+    const handleAssignedTellerClick = async () => {
+      if (customerInfoOnline.value?.name === 'Foreign Exchange') {
+        if (customerInfoOnline.value.currencyDetails) {
+          handleAssignedTeller(customerInfoOnline.value.currencyDetails.id);
+        } else {
+          $notify("negative", "error", "Need to ask the customer what currency they prefer.");
+        }
+      }else {
+        handleAssignedTeller(null)
+      }
+    }
+
+    const handleAssignedTeller = async (currencyID) => {
       try {
         $dialog.loading.show({
           message: "Process is in progress. Hang on...",
@@ -1469,7 +1516,7 @@ export default {
             email: customerInfoOnline.value.email,
             email_status: '',
             type_id: customerInfoOnline.value.type_id,
-            currency: '',
+            currency: currencyID,
             referenceNumber: customerInfoOnline.value.referenceNumber,
             priority_service: 'Online Appointment',
             branch_idd: customerInfoOnline.value.branch_id
@@ -1491,7 +1538,7 @@ export default {
                 style: "border-radius: 12px; padding: 16px;",
               })
               .onOk(() => {
-                customerInfoOnline.value = null    
+                customerInfoOnline.value = null
                 tellerInformation.value.referenceNumber = null
               });
           }
@@ -1506,7 +1553,7 @@ export default {
 
     // customer manual //
         const token = ref(); // Get token from URL
-    
+
         const generateRandomString = async (length = 10) => {
           const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
           let result = '';
@@ -1518,12 +1565,12 @@ export default {
             // Assign the generated string to the token ref
             token.value = result;
         }
-    
+
         const joinQueue = async () => {
           isLoading.value = true;
           formError.value = [];
           await generateRandomString();  // Generate random token before the submission
-    
+
           try {
               // Check if the category is 'Foreign Exchange' and validate the currency selection
               if (categoryForeignExchange.value === 1) {
@@ -1538,13 +1585,13 @@ export default {
                   return
                 }
               }
-    
+
                 // Capitalize the name properly
                 name.value = name.value
                 .split(' ')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
-          
+
                 const { data } = await $axios.post("/customer-join", {
                   token: '',
                   name: name.value,
@@ -1555,7 +1602,7 @@ export default {
                   currency: currencySelected.value,
                   priority_service: prioritySelected.value
                 });
-                
+
                 // find selected Categoriess
                 const selectedCategory = categoriesList.value.find(category => category.id === selectId.value.id)
                 indicator.value = selectedCategory.indicator
@@ -1568,36 +1615,36 @@ export default {
                   email:  email.value,
                   name: name.value,
                   subject: "Queue Alert", // Email subject
-                  message: `Welcome to our bank! To provide you with a seamless and efficient service experience, 
-                            we’ve implemented a queue system that helps manage customer flow. 
-                            Our system is designed to prioritize your needs and minimize waiting times. 
-                            You are free to go about your activities, and once your turn is approaching, 
+                  message: `Welcome to our bank! To provide you with a seamless and efficient service experience,
+                            we’ve implemented a queue system that helps manage customer flow.
+                            Our system is designed to prioritize your needs and minimize waiting times.
+                            You are free to go about your activities, and once your turn is approaching,
                             you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
-                });  
-    
+                });
+
                   $notify('positive','check','Successfull Joining Queue')
                      // set the qr code value
                     generatedQrValue.value = `http://192.168.0.164:8080/customer-dashboard/${token.value}`
-    
+
                     // generate the qr code image
                     const qrCodeDataUrl = await QrCode.toDataURL(generatedQrValue.value, {errorCorrectionLevel: 'H', type: 'image/png'});
-    
+
                     // Notify the user that the email was successfully sent
                     //$notify('positive', 'check', response.data.message);
-                    
+
                     const queuenumber = `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`
-                  
+
                     // Trigger the print function with the queue details and QR code
                     printQueueDetails(queuenumber, name.value,  selectId.value.name, data.window_name, qrCodeDataUrl);
-    
+
                     // Reset form values after successful submission
                     name.value = "";
                     email.value = "";
                     selectId.value = "";
                     currencySelected.value = "";
-                    token.value = ""; 
+                    token.value = "";
 
-          } catch (error) { 
+          } catch (error) {
             if (error.response) {
                // If the error response exists, check for the status
               if (error.response.status === 422) {
@@ -1618,11 +1665,11 @@ export default {
             isLoading.value = false;
           }
         };
-    
+
         const printQueueDetails = async (queueNumber, customerName, serviceType, window_name, qrCodeDataUrl) => {
           try {
             const printWindow = window.open('', '', 'height=400,width=450');
-    
+
             // Write the content of the print window
             printWindow.document.write('<html>');
             printWindow.document.write('<head>');
@@ -1630,7 +1677,7 @@ export default {
             printWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
             printWindow.document.write('<title>Customer Queue Details</title>');
             printWindow.document.write('<style>');
-            
+
             // General Body styles
             printWindow.document.write('body {');
             printWindow.document.write('font-family: Arial, sans-serif;');
@@ -1643,7 +1690,7 @@ export default {
             printWindow.document.write('text-align: center;');
             printWindow.document.write('margin-top: 20px;');
             printWindow.document.write('}');
-    
+
             // Outer container styles
             printWindow.document.write('.container1 {');
             printWindow.document.write('width: 100%;');
@@ -1652,7 +1699,7 @@ export default {
             printWindow.document.write('box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);');
             printWindow.document.write('text-align: center;');
             printWindow.document.write('}');
-    
+
             // Grid container for content
             printWindow.document.write('.container {');
             printWindow.document.write('margin-left: 15px;');
@@ -1660,28 +1707,28 @@ export default {
             printWindow.document.write('grid-template-columns: auto auto;');
             printWindow.document.write('width: 100%;');
             printWindow.document.write('}');
-    
+
             printWindow.document.write('.container > div {');
             printWindow.document.write('background-color: #ffffff;');
             printWindow.document.write('font-size: 12px;');
             printWindow.document.write('text-align: left;');
             printWindow.document.write('}');
-    
+
             // Optional: Styling for the QR Code image
             printWindow.document.write('img {');
             printWindow.document.write('display: block;');
             printWindow.document.write('margin-left: auto;');
             printWindow.document.write('margin-right: auto;');
             printWindow.document.write('}');
-    
+
             // Styling for headers (h1, h2, h3)
             printWindow.document.write('h1, h2, h3 {');
             printWindow.document.write('margin: 10px 0;');
             printWindow.document.write('}');
-    
+
             printWindow.document.write('</style>');
             printWindow.document.write('</head>');
-            
+
             // Body content
             printWindow.document.write('<body>');
             printWindow.document.write('<div class="container1">');
@@ -1703,10 +1750,10 @@ export default {
             printWindow.document.write('</div>');
             printWindow.document.write('</body>');
             printWindow.document.write('</html>');
-            
+
             // Close the document to render the content
             printWindow.document.close();
-            
+
             // Open the print dialog
             printWindow.print();
             $notify('positive', 'check', 'Successfully registered');
@@ -1714,79 +1761,101 @@ export default {
             console.error('Error during print process:', error);
           }
         };
-    
+
         const fetchCategories = async () => {
-            try {
-              const { data } = await $axios.post("/types/filteredTypes", {
-                branch_id: tellerInformation.value.branch_id,
-              });
-              const OnlineTellers = data.rows;
-              const WindowsInBranch = data.types;
-
-              // Filter OnlineTellers that exist in WindowsInBranch by matching IDs
-              const NewObject = OnlineTellers.filter(teller =>
-                WindowsInBranch.some(window => window.id === teller.id)
-              );
-
-              console.log(NewObject);
-
-              const seenNames = new Set();
-              const uniqueRows = NewObject.filter(row => {
-                if (seenNames.has(row.name)) {
-                  return false;
-                } else {
-                  seenNames.add(row.name);
-                  return true;
-                }
-              });
-
-              console.log(uniqueRows);
-              const filteredRows = uniqueRows.filter(row => row.type_id !== null && row.name !== "Online Appointment" && row.name !== "Manual Queueing");
-              
-              if(filteredRows.length === 0){
-                isServiceAvailable.value = false
-              }else{
-                isServiceAvailable.value = true
-              }
-              // Log filtered type_id values
-              // Assign only valid rows to categoriesList.value
-              categoriesList.value = filteredRows;
-              console.log(  "values",         categoriesList.value)
-              
-            } catch (error) {
-              console.error("Error fetching categories:", error);
-            }
-          };
-    
-
-          const fecthCurrencty = async (selectedValue) => {
           try {
-            if (selectedValue.name === "Foreign Exchange") {
-              const { data } = await $axios.post('/currency/showData', {
-                branch_id: tellerInformation.value.branch_id,
-              });
+            const { data } = await $axios.post("/types/filteredTypes", {
+              branch_id: tellerInformation.value.branch_id,
+            });
+            const OnlineTellers = data.rows;
+            const WindowsInBranch = data.types;
 
-              currentCiesList.value = data.rows
-                .map(row => ({
-                  id: row.id,
-                  name: row.currency_name,
-                  symbol: row.currency_symbol,
-                  flag: row.flag,
-                  buy_value: row.buy_value,
-                  sell_value: row.sell_value
-                }))
-                .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
-            } else {
-              currentCiesList.value = [];
-              currencySelected.value = '';
+            // Filter OnlineTellers that exist in WindowsInBranch by matching IDs
+            const NewObject = OnlineTellers.filter(teller =>
+              WindowsInBranch.some(window => window.id === teller.id)
+            );
+
+            console.log(NewObject);
+
+            const seenNames = new Set();
+            const uniqueRows = NewObject.filter(row => {
+              if (seenNames.has(row.name)) {
+                return false;
+              } else {
+                seenNames.add(row.name);
+                return true;
+              }
+            });
+
+            console.log(uniqueRows);
+            const filteredRows = uniqueRows.filter(row => row.type_id !== null && row.name !== "Online Appointment" && row.name !== "Manual Queueing");
+
+            if(filteredRows.length === 0){
+              isServiceAvailable.value = false
+            }else{
+              isServiceAvailable.value = true
             }
+            // Log filtered type_id values
+            // Assign only valid rows to categoriesList.value
+            categoriesList.value = filteredRows;
+            console.log(  "values",         categoriesList.value)
+
           } catch (error) {
-            if (error.response.status === 422) {
-              console.log(error.message);
-            }
+            console.error("Error fetching categories:", error);
           }
         };
-    
+
+        const fecthCurrencty = async (selectedValue) => {
+        try {
+          if (selectedValue.name === "Foreign Exchange") {
+            const { data } = await $axios.post('/currency/showData', {
+              branch_id: tellerInformation.value.branch_id,
+            });
+
+            currentCiesList.value = data.rows
+              .map(row => ({
+                id: row.id,
+                name: row.currency_name,
+                symbol: row.currency_symbol,
+                flag: row.flag,
+                buy_value: row.buy_value,
+                sell_value: row.sell_value
+              }))
+              .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
+          } else {
+            currentCiesList.value = [];
+            currencySelected.value = '';
+          }
+        } catch (error) {
+          if (error.response.status === 422) {
+            console.log(error.message);
+          }
+        }
+      };
+
+      const onDragStartCurrency = (event, currency) => {
+        if (customerInfoOnline.value?.name === "Foreign Exchange") {
+          draggedCurrency.value = currency; // Store the dragged currency
+        } /* else {
+          event.preventDefault(); // Prevent drag if not "Foreign Exchange"
+          $notify("negative", "error", "Dragging is only allowed for Foreign Exchange.");
+        } */
+      };
+
+      // Handle drop to customerInfoOnline
+      const onDropToCustomerInfo = () => {
+        if (draggedCurrency.value && customerInfoOnline.value?.name === "Foreign Exchange") {
+          // Replace the entire object to trigger reactivity
+          customerInfoOnline.value = {
+            ...customerInfoOnline.value,
+            currencyDetails: draggedCurrency.value,
+          };
+          draggedCurrency.value = null; // Clear the dragged currency
+        } else {
+          $notify("negative", "error", "Invalid drop. Only Foreign Exchange is allowed.");
+        }
+      };
+
     onUnmounted(() => {
       // Cleanup all timers and intervals
       clearInterval(currencyInterval);
@@ -1807,6 +1876,7 @@ export default {
       fetchCurrency,
       queueList,
       currentServing,
+      handleAssignedTellerClick,
       caterCustomer,
       cancelCustomer,
       finishCustomer,
@@ -1847,6 +1917,8 @@ export default {
       formatTo12Hour,
       validateReference,
       customerInfoOnline,
+      onDragStartCurrency,
+      onDropToCustomerInfo,
       handleAssignedTeller,
 
       prioritySelected,
@@ -1870,11 +1942,11 @@ export default {
       selectId,
       isServiceAvailable,
       categoriesPriority: [
-        'Elderly Customers', 
-        'Pregnant Women', 
-        'People with Disabilities', 
-        'Premium Customers', 
-        'Parents with Young Children', 
+        'Elderly Customers',
+        'Pregnant Women',
+        'People with Disabilities',
+        'Premium Customers',
+        'Parents with Young Children',
         'Queue-Free Services'
       ]
     };
@@ -2067,5 +2139,15 @@ export default {
   }
   .q-list {
     padding-left: 0; /* Remove any padding from the list to align the items better */
+  }
+
+  .hover-animate {
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* smooth transition */
+  }
+
+  .hover-animate:hover {
+    transform: translate(5px) /* slightly lift the item */;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* add shadow on hover */
+    background-color: #f5f5f5; /* Optional: Change background color */
   }
 </style>

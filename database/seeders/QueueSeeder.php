@@ -194,8 +194,8 @@ class QueueSeeder extends Seeder
                 'teller_lastname' => 'Rica', 
                 'teller_username' => 'rica', 
                 'teller_password' => bcrypt('rica'), 
-                'type_id' => '6', 
-                'type_ids_selected' => '["1","2","3" ]', 
+                'type_id' => '2', 
+                'type_ids_selected' => '["1","2","8" ]', 
                 'Image' => 'assets/teller/3/image.png',
                 'created_at' => now(), 
                 'updated_at' => now()
@@ -237,7 +237,7 @@ class QueueSeeder extends Seeder
             ],
             [
                 'window_name' => 'Window 2',
-                'type_id' => '3',
+                'type_id' => '2',
                 'teller_id' => '2',
                 'status' => 'Offline',
                 'created_at' => now(),
@@ -464,7 +464,35 @@ class QueueSeeder extends Seeder
                 'ease_of_use' => 'Yes',
                 'waiting_time_satisfaction' => '1',
                 'branch_id' => '2'
-            ]
+            ],
+            [
+                'id' => '7',
+                'rating' => '2',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '2',
+                'branch_id' => '2'
+            ],
+            [
+                'id' => '8',
+                'rating' => '3',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '3',
+                'branch_id' => '2'
+            ],
+            [
+                'id' => '9',
+                'rating' => '4',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '4',
+                'branch_id' => '1'
+            ],
+            [
+                'id' => '10',
+                'rating' => '5',
+                'ease_of_use' => 'Yes',
+                'waiting_time_satisfaction' => '5',
+                'branch_id' => '1'
+            ],
         ]);
 
         // Create 10 orders with random Customer logs 

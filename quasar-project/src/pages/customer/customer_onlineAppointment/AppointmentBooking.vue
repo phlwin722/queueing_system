@@ -92,9 +92,8 @@
           @update:model-value="fetchSlots"
         />
 
-        <div v-if="selectedBranch" class="q-mt-md">
+        <div v-if="selectedBranch" style="margin-top: 35px;">
           <q-input
-            class="q-mt-md"
             v-model="form.name"
             label="Full Name"
             outlined
@@ -404,7 +403,7 @@ export default {
           branch_id: selectedBranch.value || form.value.branch_id,
         });
 
-        services.value = data.servce.filter(serve => serve.name !== 'Online Appointment');
+        services.value = data.servce.filter(serve => serve.name !== 'Online Appointment' && serve.name !== 'Manual Queueing');
       } catch (error) {
         if (error.response?.status === 422) {
           console.log(error);
