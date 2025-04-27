@@ -1497,7 +1497,7 @@ export default {
         if (customerInfoOnline.value.currencyDetails) {
           handleAssignedTeller(customerInfoOnline.value.currencyDetails.id);
         } else {
-          $notify("negative", "check", "Need to ask the customer what currency they prefer  ");
+          $notify("negative", "error", "Need to ask the customer what currency they prefer.");
         }
       }else {
         handleAssignedTeller(null)
