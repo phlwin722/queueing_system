@@ -49,6 +49,16 @@ class CurrencyController extends Controller
     public function create(CurrencyRequest $request) 
     {
         try {
+            $checking = DB::table('currencies')
+                ->where('currency_symbol', $request->currency_symbol)
+                ->where('branch_id', $request->branch_id)
+                ->first();
+
+            if ($checking) {
+                return response()->json([
+                    "message" => "Currency Symbol already exists in this branch!"
+                ],400);
+            }
             $row = Currency::create($request->all());
 
             $fetch = $this->getData($row->id);
