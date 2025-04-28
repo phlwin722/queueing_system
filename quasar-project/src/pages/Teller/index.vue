@@ -1632,6 +1632,8 @@ export default {
                     selectId.value = "";
                     currencySelected.value = "";
                     token.value = "";
+                    customModel.value = 'no';
+                    prioritySelected.value = null 
 
           } catch (error) {
             if (error.response) {
