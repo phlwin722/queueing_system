@@ -30,7 +30,9 @@
               filled
               required
               :error="formError.hasOwnProperty('branch_id')"
-              :error-message="formError.branch_id ? 'The branch name is required.' : ''"
+              :error-message="
+                formError.branch_id ? 'The branch name is required.' : ''
+              "
               dense
             />
 
@@ -55,7 +57,9 @@
                     dense
                     outlined
                     :error="formError.hasOwnProperty('start_date')"
-                    :error-message="formError.start_date ? 'The start date is required.' : ''"
+                    :error-message="
+                      formError.start_date ? 'The start date is required.' : ''
+                    "
                     label="Start Date"
                   />
                   <q-icon name="arrow_forward" class="q-mx-sm" />
@@ -66,7 +70,9 @@
                     outlined
                     label="End Date"
                     :error="formError.hasOwnProperty('end_date')"
-                    :error-message="formError.end_date ? 'The end date is required.' : ''"
+                    :error-message="
+                      formError.end_date ? 'The end date is required.' : ''
+                    "
                   />
                 </div>
               </template>
@@ -80,7 +86,9 @@
               dense
               type="time"
               :error="formError.hasOwnProperty('time')"
-              :error-message="formError.time ? 'The time field is required.' : ''"
+              :error-message="
+                formError.time ? 'The time field is required.' : ''
+              "
               mask="time"
               class="q-my-sm"
             >
@@ -348,7 +356,7 @@ export default {
     // Apply slots for the entire week (Monday to Friday) for the selected branch
     const applySlotsForWeek = async () => {
       formError.value = {};
-    /*   if (!form.value.startDate || !form.value.endDate) {
+      /*   if (!form.value.startDate || !form.value.endDate) {
         alert("Please select a date range");
         return;
       } */
@@ -364,8 +372,7 @@ export default {
         });
         console.log("API response:", response);
 
-        if (response.data.message != null ) {
-
+        if (response.data.message != null) {
           $notify("positive", "check", response.data.message);
 
           // Refresh the weekly slots display with the same date range
@@ -378,11 +385,15 @@ export default {
 
           const formattedStartDate = new Date(
             startDate.getTime() - startDate.getTimezoneOffset() * 60000
-          ).toISOString().split("T")[0];
+          )
+            .toISOString()
+            .split("T")[0];
 
           const formattedEndDate = new Date(
             endDate.getTime() - endDate.getTimezoneOffset() * 60000
-          ).toISOString().split("T")[0];
+          )
+            .toISOString()
+            .split("T")[0];
 
           // Update calendar view to show only the selected date range
           updateCalendarView(formattedStartDate, formattedEndDate);
@@ -396,6 +407,7 @@ export default {
       }
     };
 
+    // fixed
     // Update calendar view to display only the selected date range
     const updateCalendarView = (startDate, endDate) => {
       nextTick(() => {
