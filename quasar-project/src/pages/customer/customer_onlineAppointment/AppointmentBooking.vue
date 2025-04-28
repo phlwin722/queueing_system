@@ -326,6 +326,7 @@
     </q-card>
 
   </q-page>
+
 </template>
 
 <script>
@@ -753,7 +754,7 @@ export default {
 
 <style>
 .clickable-div {
-  border: 1px solid black;
+  border: 1px solid #A9A9A9;
   width: 345px;
   padding: 12px;
   text-align: center;
@@ -767,9 +768,9 @@ export default {
   background-color: #f0f0f0;
   transform: scale(1.02);
 }
+</style>
 
-.custom-swal {
-  margin-bottom: 50px; /* or whatever value you want */
-}
+<style scoped>
+
 
 </style>

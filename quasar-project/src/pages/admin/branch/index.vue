@@ -302,6 +302,7 @@ export default defineComponent({
       columns,
       dialogForm,
       selected,
+      pagination: ref({ page: 1, rowsPerPage: 10 }),
       handleShowForm,
       URL,
       beforeDelete,
@@ -326,6 +327,13 @@ export default defineComponent({
   margin-left: 5px;
   border-radius: 5px;
 }
+
+span.q-table__bottom-item{
+    width: 200px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+  }
 </style>
 
 <style>

@@ -84,29 +84,31 @@
           </div>
 
           <!-- Carousel -->
-          <q-carousel
+          <!-- <q-carousel
             animated
             v-model="slide"
             arrows
             infinite
-            navigation
-            :height="$q.screen.lt.sm ? '200px' : '350px'"
             control-color="secondary"
           >
-            <q-carousel-slide :name="1" img-src="~assets/step1.png">
+            <q-carousel-slide :name="1" class="column no-wrap flex-center">
+              <q-icon name="style" class="text-primary" size="75px" />
               <div class="text-center text-caption text-secondary q-mt-sm">Choose Action</div>
             </q-carousel-slide>
-            <q-carousel-slide :name="2" img-src="~assets/Step2.png">
+            <q-carousel-slide :name="2" class="column no-wrap flex-center">
+              <q-icon name="live_tv" class="text-primary" size="75px" />
               <div class="text-center text-caption text-secondary q-mt-sm">Select Branch</div>
             </q-carousel-slide>
-            <q-carousel-slide :name="3" img-src="~assets/Step3.png">
+            <q-carousel-slide :name="3" class="column no-wrap flex-center">
+              <q-icon name="layers" class="text-primary" size="75px" />
               <div class="text-center text-caption text-secondary q-mt-sm">Pick Schedule</div>
             </q-carousel-slide>
-            <q-carousel-slide :name="4" img-src="~assets/Step4.png">
+            <q-carousel-slide :name="4" class="column no-wrap flex-center">
+              <q-icon name="terrain" class="text-primary" size="75px" />
               <div class="text-center text-caption text-secondary q-mt-sm">Confirm & Submit</div>
             </q-carousel-slide>
-          </q-carousel>
-
+          </q-carousel> -->
+          
           <!-- Stepper -->
           <q-stepper
             v-model="slide"
@@ -172,6 +174,7 @@
 
     </q-container>
   </q-page>
+  
 </template>
 
 <script>
@@ -269,6 +272,10 @@ export default defineComponent({
 
   .q-carousel {
     height: 300px !important;
+  }
+
+  .q-carousel navigation {
+    width: 24px; height: 24px;
   }
 
   .text-subtitle1 {

@@ -10,7 +10,7 @@
             </q-breadcrumbs>
             </div>
 
-            <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id" dense>
+            <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id" dense class="q-pt-xs">
   <!-- Custom Table Header -->
   <template v-slot:top>
     <q-toolbar class="q-gutter-md">

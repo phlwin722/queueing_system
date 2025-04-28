@@ -73,6 +73,7 @@
               flat
               bordered
               dense
+              v-model:pagination="pagination"
               virtual-scroll
               :rows="rowsWorkStation"
               :columns="columnsWorkStation"
@@ -490,7 +491,8 @@ export default {
       waitingTimeChart,
       branchList, 
       adminMangerInformation,
-      branch_name
+      branch_name,
+      pagination: ref({ page: 1, rowsPerPage: 10 }),
     };
   },
 };
@@ -498,6 +500,11 @@ export default {
 </script>
 
 <style scoped>
-
+span.q-table__bottom-item{
+    width: 100px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+  }
 
 </style>

@@ -12,7 +12,15 @@
     </div>
 
     <div class="q-px-md q-mt-md">
-      <q-table title="Customer Logs" :rows="filteredRows" :columns="columns" row-key="index">
+      <q-table 
+        title="Customer Logs" 
+        :rows="filteredRows" 
+        :columns="columns" 
+        row-key="index"
+        v-model:pagination="pagination"
+        dense
+        class="q-pt-xs"
+        >
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-md">
@@ -545,7 +553,8 @@
           total,
           branch_value,
           branch_list,
-          adminManagerInformation
+          adminManagerInformation,
+          pagination: ref({ page: 1, rowsPerPage: 10 }),
         }
       }
     
@@ -564,6 +573,10 @@
 </style>
 <style >
   span.q-table__bottom-item{
-    width: 200px;
+    width: 400px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
   }
+
 </style>

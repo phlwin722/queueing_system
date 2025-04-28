@@ -382,7 +382,8 @@ export default defineComponent({
       text,
       adminManagerInformation,
       branch_list,
-      branch_name
+      branch_name,
+      pagination: ref({ page: 1, rowsPerPage: 10 }),
     };
   },
 });
@@ -410,5 +411,8 @@ export default defineComponent({
 <style >
   span.q-table__bottom-item{
     width: 200px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
   }
 </style>
