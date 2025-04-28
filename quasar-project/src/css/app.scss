@@ -42,6 +42,9 @@ body {
   margin: 0 auto; // Center the button
 }
 
+.custom-swal {
+  margin-bottom: 50px; /* or whatever value you want */
+}
   
   // Ensure proper spacing on mobile
   @media (max-width: 500px) {

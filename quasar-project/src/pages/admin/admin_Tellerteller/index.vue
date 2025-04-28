@@ -26,6 +26,7 @@
       :rows-per-page-options="[0]"
       class="q-ma-md q-mt-sm q-pt-xs"
     >
+      
       <template v-slot:top>
         <div class="row q-col-gutter-sm q-pb-xs">
           <div class="col-auto">
@@ -85,7 +86,7 @@
           </div>
         </div>
       </template>
- 
+
        <!-- types cell template for the table -->
        <template v-slot:body-cell-type_names="props">
          <q-td :props="props">
@@ -421,7 +422,7 @@ export default defineComponent({
       rows,
       columns,
       selected,
-      pagination: ref({ rowsPerPage: 0 }),
+      pagination: ref({ page: 1, rowsPerPage: 10 }),
       dialogForm,
       handleShowForm,
       URL,
@@ -448,9 +449,15 @@ export default defineComponent({
   margin-left: 5px;
   border-radius: 5px;
 }
+
+
+
 </style>
 <style >
   span.q-table__bottom-item{
     width: 200px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
   }
 </style>

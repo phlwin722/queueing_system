@@ -46,12 +46,15 @@ const routes = [
       },
       {
         path: '/book-appointment',
-        component: () => import('pages/customer/customer_onlineAppointment/AppointmentBooking.vue')
+        name: 'AppointmentBooking',
+        component: () => import('pages/customer/customer_onlineAppointment/AppointmentBooking.vue'),
+        meta: { noPadding: true }, 
       },
 
       {
         path: '/contact',
-        component: () => import('pages/customer/customer_onlineAppointment/ContactPage.vue')
+        component: () => import('pages/customer/customer_onlineAppointment/ContactPage.vue'),
+        meta: { noPadding: true },
       },      
       
       {

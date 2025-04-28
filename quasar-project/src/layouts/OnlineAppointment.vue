@@ -21,9 +21,9 @@
         
     </q-header
     <!-- Page Content Area -->
-    <q-page-container style="padding-left: 7%; padding-right: 7%  ;">
-    <router-view />
-  </q-page-container>
+    <q-page-container :style="!$route.meta.noPadding ? 'padding-left: 7%; padding-right: 7%;' : ''">
+  <router-view />
+</q-page-container>
 
   <q-footer class="bg-secondary text-grey-4 q-pt-md" :class="$q.screen.lt.sm ? 'footer-float-mobile' : ''">
   <q-container>

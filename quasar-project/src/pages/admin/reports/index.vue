@@ -16,6 +16,7 @@
               :rows="filteredRows"
               :columns="columns"
               row-key="index"
+              v-model:pagination="pagination"
               dense
             >
   <!-- Custom Table Header -->
@@ -70,7 +71,8 @@
 
   <!-- Table Actions -->
   <template v-slot:body-cell-actions="props">
-    <q-td :props="props"></q-td>
+    <q-td :props="props"
+    ></q-td>
   </template>
 </q-table>
 
@@ -358,7 +360,8 @@ export default defineComponent({
         total,
         branch_value,
         branchList,
-        adminManagerInformation
+        adminManagerInformation,
+        pagination: ref({ page: 1, rowsPerPage: 10 }),
     }
     }
 
@@ -367,6 +370,9 @@ export default defineComponent({
 </script>
 <style >
   span.q-table__bottom-item{
-    width: 200px;
+    width: 400px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
   }
 </style>

@@ -16,15 +16,17 @@
       >
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
-          <q-toolbar class="q-gutter-xs">
-            <!-- 📌 Add Title Manually -->
+          <q-toolbar class="q-gutter-sm">
+            <!-- Title -->
             <q-toolbar-title class="text-primary">Customer Logs</q-toolbar-title>
 
-            <q-space /> <!-- Pushes items to the right -->
+            <!-- Push items to the right -->
+            <q-space />
 
-            <div class="row q-col-gutter-sm items-center">
+            <!-- Search and Date Picker -->
+            <div class="row items-center q-col-gutter-sm">
               <!-- Search Input -->
-              <div class="col-xs-12 col-sm-8 col-md-7">
+              <div class="col-auto">
                 <q-input 
                   filled 
                   dense 
@@ -39,7 +41,7 @@
               </div>
 
               <!-- Date Picker -->
-              <div class="col-xs-12 col-sm-4 col-md-5">
+              <div class="col-auto">
                 <q-input 
                   filled 
                   dense  
@@ -251,3 +253,4 @@
     
     });
     </script>
+

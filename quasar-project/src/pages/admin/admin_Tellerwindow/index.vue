@@ -517,6 +517,7 @@ export default defineComponent({
       columns,
       dialogForm,
       selected,
+      pagination: ref({ page: 1, rowsPerPage: 10 }),
       handleShowForm,
       URL,
       beforeReset,
@@ -550,5 +551,8 @@ export default defineComponent({
 <style >
   span.q-table__bottom-item{
     width: 200px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
   }
 </style>
