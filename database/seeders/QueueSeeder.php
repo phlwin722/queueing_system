@@ -159,7 +159,7 @@ class QueueSeeder extends Seeder
                 'id' => '9',
                 'name' => 'Manual Queueing', 
                 'indicator' => 'MQ',  
-                'serving_time' => '0',
+                'serving_time' => '10',
                 'created_at' => now(),
                 'updated_at' => now()
              ],
