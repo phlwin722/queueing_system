@@ -295,7 +295,8 @@ export default defineComponent({
             } catch (error) {
                 if (error.response?.status === 422) {
                     formError.value = error.response.data;
-                } else {
+                } else if (error.response?.status === 400) {    
+                    $notify('negative', 'error', error.response.data.message);
                     console.error('Error:', error);
                 }
             } finally {

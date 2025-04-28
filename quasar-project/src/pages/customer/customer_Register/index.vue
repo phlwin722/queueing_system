@@ -217,7 +217,7 @@ export default {
             currency: currencySelected.value,
             priority_service: prioritySelected.value,
           });
-        //  window.location.href = "/customer-dashboard/" + token.value;
+         window.location.href = "/customer-dashboard/" + token.value;
         }
       } catch (error) {
         if (error.response.status === 422) {
