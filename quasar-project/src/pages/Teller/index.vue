@@ -739,9 +739,13 @@ export default {
         });
 
         if (response.data.updated) {
-          const fetchedQueue = response.data.queue.filter(
-            (q) => !["finished", "cancelled"].includes(q.status)
-          );
+          let fetchedQueue = response.data.queue
+
+          // fetchedQueue = fetchedQueue.sort((a, b) => {
+          //   if (a.priority_service && !b.priority_service) return -1;
+          //   if (!a.priority_service && b.priority_service) return 1;
+          // });
+          // console.log(fetchedQueue)
 
           // Update and store current serving
           currentServing.value = response.data.current_serving;
@@ -751,12 +755,12 @@ export default {
           );
 
           // Remove current serving from the queue list
-          const updatedQueue = fetchedQueue.filter(
-            (q) => q.id !== currentServing.value?.id
-          );
+          // const updatedQueue = fetchedQueue.filter(
+          //   (q) => q.id !== currentServing.value?.id
+          // );
 
           // Preserve the local order while updating new queue items
-          queueList.value = reorderQueue(storedQueue, updatedQueue);
+          queueList.value =fetchedQueue
           if(currentServing.value !== null){
             cusId.value = currentServing.value.id
           }
@@ -783,13 +787,13 @@ export default {
     };
 
     // Helper function to maintain the local order
-    const reorderQueue = (storedQueue, updatedQueue) => {
-      const orderMap = new Map(storedQueue.map((q, index) => [q.id, index]));
-      return updatedQueue.sort(
-        (a, b) =>
-          (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
-      );
-    };
+    // const reorderQueue = (storedQueue, updatedQueue) => {
+    //   const orderMap = new Map(storedQueue.map((q, index) => [q.id, index]));
+    //   return updatedQueue.sort(
+    //     (a, b) =>
+    //       (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
+    //   );
+    // };
     // const fetchIdLastUpdatedAt = ref(null); // last update tracker
     // let fetchIdPolling = true; // Flag to control recursive polling
     // const fetchId = async () => {
@@ -1038,14 +1042,6 @@ export default {
       }, 300); // Reduced debounce time
 
       // Watch both length and array reference
-      watch(
-        () => [...queueList.value], // Creates a new array reference to trigger on reordering
-        () => {
-          debouncedUpdateQueuePositions();
-        },
-        { deep: false } // We're creating a new reference so deep isn't needed
-      );
-
       let autoServingInterval = null; // Store the interval ID
       let serveStartTime = null;
 
@@ -1103,14 +1099,7 @@ export default {
         }
       });
 
-      // Watch for changes in queueList (this seems like a separate watch you’re using)
-      watch(
-        () => [...queueList.value], // Creates a new array reference to trigger on reordering
-        () => {
-          debouncedUpdateQueuePositions();
-        },
-        { deep: false } // Since we're creating a new reference, deep isn't necessary
-      );
+
 
 
       const serveEnd = async () => {
