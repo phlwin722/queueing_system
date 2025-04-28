@@ -72,8 +72,8 @@
           <!-- Main Row Container -->
           <div class="row q-col-gutter-md justify-center full-height">
             <!-- First Item -->
-            <div v-if="newFormattedTime >= fromBreak && formattedCurrentTime < toBreak" class="col-12 col-md-8">
-            <q-card class="q-pa-xl q-mx-auto" style="max-width: 550px; border-left: 8px solid #1c5d99;">
+            <div class="col-12 col-md-6" v-if="newFormattedTime >= fromBreak && formattedCurrentTime < toBreak">
+            <q-card class="q-pa-xl q-mx-auto" style="max-width: 650px; min-height: 500px; border-left: 8px solid #1c5d99;">
               <q-card-section class="text-center">
                 <q-icon name="access_time" size="60px" style="color: #1c5d99;" class="q-mb-md" />
                 <div class="text-h4 text-weight-bold" style="color: #1c5d99;">Break Time</div>
@@ -98,6 +98,7 @@
             </q-card>
           </div>
 
+            <!-- Second Item -->
             <div v-else class="col-12 col-md-6">
               <q-card class="q-pa-md" v-if="tellerInformation?.type_name != 'Online Appointment' && tellerInformation?.type_name != 'Manual Queueing' ">
                 <q-card-section>
@@ -265,7 +266,8 @@
               </div>
             </div>
 
-            <div class="col-12 col-md-6">
+
+            <div class="col-12 col-md-6" v-if="(newFormattedTime >= fromBreak && formattedCurrentTime < toBreak) == false || isCurrentlyServing === true" >
               <q-card
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
               >
@@ -680,6 +682,7 @@ export default {
     let refreshInterval = null;
     const formError = ref({});
     const $dialog = useQuasar();
+    const isCurrentlyServing = ref(false);
 
     const selectId = ref(null);
     const name = ref("");
@@ -749,6 +752,10 @@ export default {
 
           // Update and store current serving
           currentServing.value = response.data.current_serving;
+          console.log(currentServing.value)
+          if(currentServing.value !== null){
+            isCurrentlyServing.value = true;
+          }
           localStorage.setItem(
             "currentServing",
             JSON.stringify(currentServing.value)
@@ -1022,8 +1029,33 @@ export default {
       localStorage.removeItem("wait_duration");
     };
 
+  
+
+    watch(
+      () => queueList.value.length,
+      (newLength, oldLength) => {
+        if (newLength < oldLength) {
+          // Only run when someone leaves
+          debouncedUpdateQueuePositions();
+        }
+      }
+    );
+
     // Computed property for paginated queue list
     const paginatedQueueList = computed(() => queueList.value);
+
+    watch(
+        () => currentServing.value,
+        (newValue) => {
+          if (newValue !== null) {
+            // If a customer is currently being served, stop the auto-serving interval
+            isCurrentlyServing.value = true;
+          }else{
+            // If no customer is being served, start the auto-serving interval
+            isCurrentlyServing.value = false;
+          }
+        }
+      );
 
 
       const debouncedUpdateQueuePositions = debounce(async () => {
@@ -1911,6 +1943,7 @@ export default {
       onDragStartCurrency,
       onDropToCustomerInfo,
       handleAssignedTeller,
+      isCurrentlyServing,
 
       prioritySelected,
       customModel,
