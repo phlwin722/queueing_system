@@ -25,7 +25,7 @@ class AdminController extends Controller
                     if (!$admin || !Hash::check($request->Password, $admin->Password)) {
                         // If the username doesn't exist or the password is incorrect, return an error response
                         return response()->json([
-                            'error' => 'Invalid credentials'
+                            'error' => 'Invalid username or password'
                         ], 401);
                     }
 

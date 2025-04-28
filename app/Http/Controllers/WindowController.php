@@ -8,6 +8,7 @@ use App\Models\Type;
 use App\Models\Teller;
 use App\Models\ResetSetting;
 use App\Models\WindowArchive;
+use Hamcrest\Arrays\IsArray;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -31,7 +32,7 @@ class WindowController extends Controller
                         ->first();
             if ($tller_id) {
                 return response()->json([
-                    'message' => 'The teller is already assigned'
+                    'message' => 'The personel is already assigned'
                 ],400);
             }
 
@@ -117,26 +118,22 @@ class WindowController extends Controller
 
     public function delete(Request $request){
         try{
-            $ids = $request->id;
-    
-            if (!is_array($ids)) {
-                $ids = [$ids]; // wrap single ID into an array
-            }
-    
-            $windows = Window::whereIn('id', $ids)->get();
-    
-            if ($windows->isEmpty()) {
-                return response()->json([
-                    "message" => "Window not found!"
-                ], 404);
-            }
-    
+            // Get the incoming appointment data from the request array format
+            $window = $request->deleteWindow;
+
+            // extract the deleteWindow ids and type id
+            $ids = array_column($window, 'id');
+            $type_ids = array_column($window,'type_id');
+
+            // update all type id into null
             DB::table('tellers')
-                ->whereIn('id', $ids)
+                ->whereIn('type_id', $type_ids)
                 ->update(['type_id' => null]);
-    
-            Window::destroy($ids);
-    
+
+            DB::table('windows')
+                ->whereIn('id', $ids)
+                ->delete();
+
             return response()->json([
                 "message" => "Windows successfully deleted!"
             ]);
@@ -176,6 +173,7 @@ class WindowController extends Controller
                     "tp.name as type_name",
                     "tp.id as type_id",
                     "wd.branch_id", 
+                    "wd.status",
                     DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) teller_name"),
                     "ts.id as teller_id",
                     'b.branch_name'
@@ -197,6 +195,7 @@ class WindowController extends Controller
                     "tp.name as type_name",
                     "tp.id as type_id",
                     "wd.branch_id", 
+                    "wd.status",
                     DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) teller_name"),
                     "ts.id as teller_id",
                     'b.branch_name'
@@ -266,6 +265,7 @@ class WindowController extends Controller
                 "wd.window_name",
                 "wd.branch_id",
                 "wd.type_id",
+                "wd.teller_id",
                 "tp.name as type_name",
                 DB::raw("CONCAT(ts.teller_firstname, ' ', ts.teller_lastname) as teller_name"),
                 "b.branch_name",

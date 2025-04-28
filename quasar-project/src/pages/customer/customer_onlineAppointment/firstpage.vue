@@ -14,7 +14,7 @@
       </q-badge>
 
       <!-- Main Hero Section -->
-      <div class="row q-col-gutter-md q-mb-lg animate-fade-in">
+      <div class="row q-col-gutter-md q-mb-lg animate-fade-in" >
         <!-- Image -->
         <div class="col-12 col-sm-6">
           <q-img
@@ -22,7 +22,7 @@
             alt="Person booking an appointment online"
             fit="cover"
             class="full-width rounded-borders shadow-2 q-hoverable"
-            style="max-height: 400px; transition: transform 0.3s ease-in-out;"
+            style="max-height: 450px; transition: transform 0.3s ease-in-out;"
             @mouseover="event.target.style.transform='scale(1.02)'"
             @mouseleave="event.target.style.transform='scale(1)'"
           />

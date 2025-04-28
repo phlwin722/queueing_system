@@ -8,6 +8,10 @@ const routes = [
     component: () => import("pages/LoginInterface/index.vue"), // Dynamically load the login component
   },
   {
+    path: "/prac", // The login page path
+    component: () => import("pages/Prac/index.vue"), // Dynamically load the login component
+  },
+  {
     path: "/customer/customer_QrCode", // The login page path
     component: () => import("pages/customer/custumer_ScanQrCode/index.vue"), // Dynamically load the login component
   },
@@ -43,8 +47,17 @@ const routes = [
       {
         path: '/book-appointment',
         component: () => import('pages/customer/customer_onlineAppointment/AppointmentBooking.vue')
-      }
+      },
+
+      {
+        path: '/contact',
+        component: () => import('pages/customer/customer_onlineAppointment/ContactPage.vue')
+      },      
       
+      {
+        path: '/privacy',
+        component: () => import('pages/customer/customer_onlineAppointment/PrivacyPolicy.vue')
+      }
     ]
   },
   {

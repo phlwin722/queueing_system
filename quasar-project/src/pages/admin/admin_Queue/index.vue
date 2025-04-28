@@ -10,6 +10,7 @@
         />
       </q-breadcrumbs>
     </div>
+    <!-- queue -->
 
     <q-card class="q-pa-md">
       <!-- Service Type Selector -->
@@ -84,6 +85,26 @@
                       {{ teller.teller_firstname }}
                       {{ teller.teller_lastname }}
                     </span>
+                    <div class="text-caption text-grey q-mt-xs">
+                      <template v-if="teller.windows && teller.windows.length > 0">
+                        <div class="window-list q-mt-sm">
+                          <div 
+                            v-for="(window, idx) in teller.windows" 
+                            :key="idx" 
+                            class="window-item q-mb-xs"
+                          >
+                            <q-chip
+                              dense
+                              size="sm"
+                              class="bg-primary text-white"
+                            >
+                              {{ window }}
+                            </q-chip>
+                          </div>
+                        </div>
+                      </template>
+                      <div v-else class="text-italic">No window assigned</div>
+                    </div>
                   </q-item>
                 </q-card-section>
 
@@ -849,5 +870,16 @@ export default {
   100% {
     background-position: 200% 0;
   }
+}
+
+.window-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.window-item {
+  display: inline-flex;
 }
 </style>

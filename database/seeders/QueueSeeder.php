@@ -154,7 +154,23 @@ class QueueSeeder extends Seeder
                 'serving_time' => '10',
                 'created_at' => now(),
                 'updated_at' => now()
-                ],
+             ],
+             [
+                'id' => '9',
+                'name' => 'Manual Queueing', 
+                'indicator' => 'MQ',  
+                'serving_time' => '0',
+                'created_at' => now(),
+                'updated_at' => now()
+             ],
+             [
+                'id' => '10',
+                'name' => 'Manual Queueing', 
+                'indicator' => 'MQ',  
+                'serving_time' => '0',
+                'created_at' => now(),
+                'updated_at' => now()
+             ],
         ]);
 
         // insert teller records that match your factory data (1-5)
@@ -178,8 +194,8 @@ class QueueSeeder extends Seeder
                 'teller_lastname' => 'Rica', 
                 'teller_username' => 'rica', 
                 'teller_password' => bcrypt('rica'), 
-                'type_id' => '6', 
-                'type_ids_selected' => '["1","2","3" ]', 
+                'type_id' => '2', 
+                'type_ids_selected' => '["1","2","8" ]', 
                 'Image' => 'assets/teller/3/image.png',
                 'created_at' => now(), 
                 'updated_at' => now()
@@ -190,8 +206,8 @@ class QueueSeeder extends Seeder
                 'teller_lastname' => 'Guiterez', 
                 'teller_username' => 'Kenneth', 
                 'teller_password' => bcrypt('Kenneth'), 
-                'type_id' => '4',
-                'type_ids_selected' => '["4","5","6"]', 
+                'type_id' => '9',
+                'type_ids_selected' => '["4","5","6","9"]', 
                 'Image' => 'assets/teller/4/image.jpg',
                 'created_at' => now(), 
                 'updated_at' => now()
@@ -202,7 +218,7 @@ class QueueSeeder extends Seeder
                 'teller_lastname' => 'Degula', 
                 'teller_username' => 'Gian', 
                 'teller_password' => bcrypt('Gian'), 
-                'type_id' => '5', 
+                'type_id' => '4', 
                 'type_ids_selected' => '["4","5"]',
                 'Image' => 'assets/teller/5/image.png',
                 'created_at' => now(), 
@@ -221,7 +237,7 @@ class QueueSeeder extends Seeder
             ],
             [
                 'window_name' => 'Window 2',
-                'type_id' => '3',
+                'type_id' => '2',
                 'teller_id' => '2',
                 'status' => 'Offline',
                 'created_at' => now(),
@@ -237,7 +253,7 @@ class QueueSeeder extends Seeder
             ],
             [
                 'window_name' => 'Window 4',
-                'type_id' => '5',
+                'type_id' => '9',
                 'teller_id' => '3',
                 'status' => 'Offline',
                 'created_at' => now(),
@@ -321,7 +337,7 @@ class QueueSeeder extends Seeder
         // update teller
         DB::table ('tellers')
             ->where('id','3')
-            ->update(['branch_id' => '2']);
+            ->update(['branch_id' => '1']);
 
         // update teller
         DB::table ('tellers')
@@ -374,6 +390,16 @@ class QueueSeeder extends Seeder
         ->where('id','8')
         ->update(['branch_id' => '2']);
 
+        // update types
+        DB::table ('types')
+        ->where('id','9')
+        ->update(['branch_id' => '1']);
+
+        // update types
+        DB::table ('types')
+        ->where('id','10')
+        ->update(['branch_id' => '2']);
+        
          // update types
          DB::table ('windows')
          ->where('id','1')
@@ -438,7 +464,35 @@ class QueueSeeder extends Seeder
                 'ease_of_use' => 'Yes',
                 'waiting_time_satisfaction' => '1',
                 'branch_id' => '2'
-            ]
+            ],
+            [
+                'id' => '7',
+                'rating' => '2',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '2',
+                'branch_id' => '2'
+            ],
+            [
+                'id' => '8',
+                'rating' => '3',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '3',
+                'branch_id' => '2'
+            ],
+            [
+                'id' => '9',
+                'rating' => '4',
+                'ease_of_use' => 'No',
+                'waiting_time_satisfaction' => '4',
+                'branch_id' => '1'
+            ],
+            [
+                'id' => '10',
+                'rating' => '5',
+                'ease_of_use' => 'Yes',
+                'waiting_time_satisfaction' => '5',
+                'branch_id' => '1'
+            ],
         ]);
 
         // Create 10 orders with random Customer logs 

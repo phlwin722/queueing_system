@@ -29,6 +29,8 @@
               option-value="id"
               filled
               required
+              :error="formError.hasOwnProperty('branch_id')"
+              :error-message="formError.branch_id ? 'The branch name is required.' : ''"
               dense
             />
 
@@ -52,6 +54,8 @@
                     v-on="inputEvents.start"
                     dense
                     outlined
+                    :error="formError.hasOwnProperty('start_date')"
+                    :error-message="formError.start_date ? 'The start date is required.' : ''"
                     label="Start Date"
                   />
                   <q-icon name="arrow_forward" class="q-mx-sm" />
@@ -61,6 +65,8 @@
                     dense
                     outlined
                     label="End Date"
+                    :error="formError.hasOwnProperty('end_date')"
+                    :error-message="formError.end_date ? 'The end date is required.' : ''"
                   />
                 </div>
               </template>
@@ -73,6 +79,8 @@
               outlined
               dense
               type="time"
+              :error="formError.hasOwnProperty('time')"
+              :error-message="formError.time ? 'The time field is required.' : ''"
               mask="time"
               class="q-my-sm"
             >
@@ -98,6 +106,8 @@
               type="number"
               filled
               dense
+              :error="formError.hasOwnProperty('slots_per_day')"
+              :error-message="formError.slots_per_day"
               required
               class="q-my-sm"
             />
@@ -139,6 +149,7 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useScreens } from "vue-screen-utils";
+
 export default {
   name: "AdminDashboard",
   components: {
@@ -157,13 +168,12 @@ export default {
     const newSlotCount = ref(20); // New slot count to be applied
     const events = ref([]);
     const adminManagerInformation = ref();
-    const formError = ref({});
-
     const form = ref({
       startDate: "",
       endDate: "",
       time: "",
     });
+    const formError = ref({});
 
     const { mapCurrent } = useScreens({
       xs: "0px",
@@ -279,32 +289,6 @@ export default {
       }
     };
 
-    // Apply slots for the entire week (Monday to Friday) for the selected branch
-    const applySlotsForWeek = async () => {
-      try {
-        formError.value = {};
-        // Send request to backend to apply available slots to all days
-        const response = await $axios.post("/apply_slots", {
-          branch_id: selectedBranch.value,
-          slots_per_day: newSlotCount.value,
-          start_date: form.value.startDate,
-          end_date: form.value.endDate,
-          time: form.value.time,
-        });
-
-        if (response.data.message) {
-          $notify("positive", "check", response.data.message);
-          // Refresh the weekly slots display
-          fetchWeeklySlots();
-        }
-      } catch (error) {
-        if (error.response.status === 422) {
-          formError.value = error.response.data.errors;
-          console.log(error.response.data.errors);
-        }
-      }
-    };
-
     // Fetch the available slots for each weekday
     const fetchWeeklySlots = async () => {
       if (!selectedBranch.value) return;
@@ -358,6 +342,57 @@ export default {
         }));
       } catch (error) {
         console.error("Error fetching weekly slots:", error);
+      }
+    };
+
+    // Apply slots for the entire week (Monday to Friday) for the selected branch
+    const applySlotsForWeek = async () => {
+      formError.value = {};
+    /*   if (!form.value.startDate || !form.value.endDate) {
+        alert("Please select a date range");
+        return;
+      } */
+
+      try {
+        // Send request to backend to apply available slots to all days
+        const response = await $axios.post("/apply_slots", {
+          branch_id: selectedBranch.value,
+          slots_per_day: newSlotCount.value,
+          start_date: form.value.startDate,
+          end_date: form.value.endDate,
+          time: form.value.time,
+        });
+        console.log("API response:", response);
+
+        if (response.data.message != null ) {
+
+          $notify("positive", "check", response.data.message);
+
+          // Refresh the weekly slots display with the same date range
+          await fetchWeeklySlots();
+
+          const startDate = new Date(form.value.startDate);
+          startDate.setHours(0, 0, 0, 0);
+          const endDate = new Date(form.value.endDate);
+          endDate.setHours(23, 59, 59, 999);
+
+          const formattedStartDate = new Date(
+            startDate.getTime() - startDate.getTimezoneOffset() * 60000
+          ).toISOString().split("T")[0];
+
+          const formattedEndDate = new Date(
+            endDate.getTime() - endDate.getTimezoneOffset() * 60000
+          ).toISOString().split("T")[0];
+
+          // Update calendar view to show only the selected date range
+          updateCalendarView(formattedStartDate, formattedEndDate);
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 422) {
+          formError.value = error.response.data.errors;
+        } else {
+          console.error("Error applying slots:", error);
+        }
       }
     };
 
@@ -416,7 +451,6 @@ export default {
           today.getMonth() + 1,
           0
         ); // Last day of current month
-        // hellow orld
 
         fetchWeeklySlots();
       }

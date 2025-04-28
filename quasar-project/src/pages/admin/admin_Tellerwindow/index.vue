@@ -343,18 +343,27 @@ export default defineComponent({
           );
         }
       }
-      
-
-
-      
     };
 
     const handleShowForm = (mode, row) => {
+      console.log('haha', row)
       dialogForm.value.showDialog(mode, row);
     };
 
     const beforeDelete = (isMany, row) => {
-      const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
+      const ids = isMany 
+            ? selected.value.map((x) => ({
+              id: x.id, 
+              type_id: x.type_id,
+              status: x.status,
+              teller_name: x.teller_name,
+            })) 
+            : [{
+              id: row.id, 
+              type_id: row.type_id,
+              status: row.status,
+              teller_name: row.teller_name,
+            }];
       const itemNames = isMany ? "Windows" : row.window_name;
 
       $dialog
@@ -382,10 +391,19 @@ export default defineComponent({
         });
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (deleteWindow) => {
       try {
-        const { data } = await $axios.post(URL + "/delete", { id });
-        rows.value = rows.value.filter((row) => !id.includes(row.id));
+        // check if status of teller is online
+        const onlineTellers = deleteWindow.filter(win => win.status === 'Online');
+
+        if (onlineTellers.length > 0) {
+          const tellerNames = onlineTellers.map(win => win.teller_name).join(', ');
+          $notify('negative','error',`Sorry, we cannot delete the window(s) while the following teller(s) are still online: ${tellerNames}`);
+          return;
+        }
+
+        const { data } = await $axios.post(URL + "/delete", { deleteWindow });
+        getTableData()
         $notify("positive", "check", data.message);
         selected.value = [];
       } catch (error) {

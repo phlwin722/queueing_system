@@ -69,9 +69,20 @@
               dense 
               outlined 
               class="bg-accent text-black"
-              v-model="selectedDate" 
+              v-model="fromDate" 
               type="date" 
-              label="Select Date"
+              label="From"
+              @update:model-value="getTableData"
+            />
+            <q-input 
+              :disable="!type_id"
+              filled 
+              dense 
+              outlined 
+              class="bg-accent text-black"
+              v-model="toDate" 
+              type="date" 
+              label="To"
               @update:model-value="getTableData"
             />
 
@@ -127,7 +138,6 @@
     </div>
   </q-page>
 </template>
- 
     
     <script>
     import { 
@@ -229,15 +239,22 @@
         const cancelledCount = ref (0)
         const finishedCount = ref(0)
         const total = ref(0)
-        const selectedDate = ref(""); // Holds the selected date
+        const fromDate = ref(""); // Holds the selected date
+        const toDate = ref("")
         const tellerList = ref ([]);
         const type_id = ref(null);  // Store the selected teller's ID
 
         const getTableData = async () => {
           try{
-        
+            if (toDate.value && fromDate.value && toDate.value < fromDate.value) {
+              $notify('negative', 'error', 'To date cannot be earlier than From date.');
+              toDate.value = '';
+              return
+            }
+
             const { data } = await $axios.post('/teller/queue-logs',{
-                date: selectedDate.value ? selectedDate.value : "",  // Ensure date is passed as an empty string if not set
+                fromDate: fromDate.value,  // Ensure date is passed as an empty string if not set
+                toDate: toDate.value,
                 teller_id: type_id.value    // Send type_id, assuming it's reactive
             })
             
@@ -263,8 +280,6 @@
           finishedPercent.value = ((finishedCount.value / total.value) * 100).toFixed(2);
 
         };
-
-       
 
         const fetchTeller = async () => {
           try {
@@ -295,11 +310,12 @@
             // create a new jspdf instance
             const doc = new jsPDF();
 
-            // path the logo of image
-            const logoPath = require('assets/vrtlogoblack.png')
-
             // get the page width of the generated pdf document
             const pageWidth = doc.internal.pageSize.width;
+
+           const addHeader = () => {
+            // path the logo of image
+            const logoPath = require('assets/vrtlogoblack.png')
 
             // set dimensions for the logo image 
             const imgWidth = 100;
@@ -309,10 +325,21 @@
             const centerImage = (pageWidth - imgWidth) / 2;
 
             // set the verital position for the logo
-            const y = 10;
+            const y = 5;
 
             // add the logo image to the pdf
             doc.addImage(logoPath, 'PNG', centerImage, y, imgWidth, imgHeight);
+
+            // set the lenght of the underline
+            const linelength = 180; 
+
+            // calculate the starting point of the line to be centered
+            const xStart = (pageWidth - linelength) / 2;
+            const yStart = 20; // vertical position of the line
+
+            // draw the horizontal line
+            doc.line(xStart, yStart, xStart + linelength, yStart);
+          }
 
             // set the title text 
             const title = "Teller Customer Logs";
@@ -329,7 +356,7 @@
             const titleCenter = (pageWidth - textWidth) / 2;
 
             // set the vertical position
-            const top_PositionTitle = 50;
+            const top_PositionTitle = 40;
 
             // add the title to the pdf
             doc.text(title, titleCenter, top_PositionTitle)
@@ -370,46 +397,52 @@
             // bar graph
             const chartElement = document.querySelector('#chartCodeContainer'); // the div containing the chart
 
-            const canvas = await html2canvas(chartElement);
-            const chartImageData = canvas.toDataURL("image/png");
-            doc.addImage(chartImageData, 'PNG', marginHorizontal + 60, 55, 100, 55) // Add the chart image to the PDF x position y position width and height
+            setTimeout(async () => {
+              const canvas = await html2canvas(chartElement, {
+                logging: true,
+                allowTaint: true,
+                useCORS: true,
+                scale: 2, // This can improve the resolution
+              });
 
-            // Extract the labels from the columns array
-            const columnLabels = columns.value.map(column => column.label);
+              const chartImageData = canvas.toDataURL('image/png');
+              doc.addImage(chartImageData, 'PNG', marginHorizontal + 60, 55, 100, 55); // Add the chart image to the PDF
 
-            // Unwrap columns and rows to remove the Proxy object
-            const unwrappedRows = toRaw(filteredRows.value);  // Get the value of filteredRows ref and unwrap Proxy
-            // Create table in pdf
-            autoTable(doc, {
-              head: [columnLabels],  // Column headers for the table
-              body: unwrappedRows.map(row => {
-                // For each row, map the data to match the column labels in order
-                return columnLabels.map(label => {
-                  // Find the column in the columns array by matching the label
-                  const column = columns.value.find(c => c.label === label);
-                  if (column) {
-                    // Use the field from the column to get the correct data from the row
-                    return row[column.field] || ''; // return empty string if data is missing
-                  }
-                  return '';
-                });
-              }),  
-              theme: 'grid', // Grid style for the table (adds borders around cells)
-                  headStyles: {
-                  fillColor: [33, 150, 243], // Set background color of table headers to blue
-                  textColor: [255, 255, 255], // Set text color of table headers to white
-                  fontStyle: 'bold', // Set the font style of table headers to bold
+              // Extract the labels from the columns array
+              const columnLabels = columns.value.map((column) => column.label);
+
+              // Unwrap columns and rows to remove the Proxy object
+              const unwrappedRows = toRaw(filteredRows.value);
+
+              // Create table in the PDF
+              autoTable(doc, {
+                head: [columnLabels],
+                body: unwrappedRows.map((row) => {
+                  return columnLabels.map((label) => {
+                    const column = columns.value.find((c) => c.label === label);
+                    if (column) {
+                      return row[column.field] || ''; // Return empty string if data is missing
+                    }
+                    return '';
+                  });
+                }),
+                theme: 'grid',
+                headStyles: {
+                  fillColor: [33, 150, 243],
+                  textColor: [255, 255, 255],
+                  fontStyle: 'bold',
                 },
-                margin: { top: 120, bottom: 20}, // Default top margin for the first page // starting y position for the table
+                margin: { top: 120, bottom: 20 },
                 didDrawPage: function (data) {
-                  // check if we're on the second or subsequent pages
+                  // Add header for each page
+                  addHeader()
                   if (data.pageNumber > 1) {
-                    // for subsequent pages, reduce the margintop
-                     autoTable(doc,{
+                    // For subsequent pages, reduce the margin-top
+                    autoTable(doc, {
                       head: [columnLabels],
-                      body: unwrappedRows.map(row => {
-                        return columnLabels.map(label => {
-                          const column =columns.value.find(c => c.label === label);
+                      body: unwrappedRows.map((row) => {
+                        return columnLabels.map((label) => {
+                          const column = columns.value.find((c) => c.label === label);
                           return column ? row[column.field] || '' : '';
                         });
                       }),
@@ -419,45 +452,53 @@
                         textColor: [255, 255, 255],
                         fontStyle: 'bold',
                       },
-                      margin: { top: 20, bottom: 20 }, // set op margin for subsequent pages to 30
+                      margin: { top: 20, bottom: 20 },
                     });
                   }
-                    // Add page number to the bottom-right corner
-                    doc.setFontSize(10)
-                    doc.text(`Page ${data.pageNumber}`, 
-                    pageWidth - 15, // Position the page number near the right side
-                    doc.internal.pageSize.height - 10, // Position the page number near the bottom
-                    { align: 'right' }); // Align the text to the right
-                }
+
+                  // Add page number to the bottom-right corner
+                  doc.setFontSize(10);
+                  doc.text(
+                    `Page ${data.pageNumber}`,
+                    pageWidth - 15,
+                    doc.internal.pageSize.height - 10,
+                    { align: 'right' }
+                  );
+                },
               });
 
-            // save the generted PDF
-            doc.save('Teller_customer_log.pdf')
+              // Save the generated PDF
+              doc.save('Teller_customer_log.pdf');
+            }, 1000); // Adjust timeout to allow enough time for rendering
+
           } catch(error) {
             console.log(error)
           }
-        }
+        } 
 
         // Define a debounced version of getTableData to optimize performance
         const debouncedGetTableData = debounce(() => {
           getTableData();
         }, 300); // Adjust debounce delay as needed
 
-        // Watch for changes in both 'type_id' and 'selectedDate'
-        watch([type_id, selectedDate, branch_value], async([newtype_id, newSelectedData, newBranch_value],[oldtype_id, oldSelecData, oldBranch_value]) => {
-          if (newBranch_value != oldBranch_value) {
-            type_id.value = ''
+        // Watch for changes in both 'type_id' and 'fromDate'
+        watch([type_id, fromDate, toDate, branch_value], ([newTypeId, newFromDate, newToDate, newBranch], [oldTypeId, oldFromDate, oldToDate, oldBranch]) => {
+          if (newBranch != oldBranch) {
+            // Branch changed — reset state and fetch tellers
+            type_id.value = '';
             rows.value = [];
-            cancelledPercent.value = 0
-            finishedPercent.value = 0
-            cancelledCount.value = 0
-            finishedCount.value = 0
-            total.value = 0
-            fetchTeller()
-          }else if (newtype_id) {
-            debouncedGetTableData()
+            cancelledPercent.value = 0;
+            finishedPercent.value = 0;
+            cancelledCount.value = 0;
+            finishedCount.value = 0;
+            total.value = 0;
+            fetchTeller();
+          } else if (newTypeId) {
+            // Teller was selected/changed — fetch data
+            debouncedGetTableData();
           }
         });
+
 
         const fetchBranch = async () => {
           try {
@@ -495,7 +536,8 @@
           columns,
           filteredRows,
           text,
-          selectedDate,
+          fromDate,
+          toDate,
           cancelledPercent,
           finishedPercent,
           finishedCount,

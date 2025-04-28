@@ -124,6 +124,12 @@ class BranchController extends Controller
                     'indicator' => 'OA',
                     'serving_time' => '10',
                     'branch_id' => $branchID
+                ],
+                [
+                    'name' => 'Manual Queueing',
+                    'indicator' => 'MQ',
+                    'serving_time' => '0',
+                    'branch_id' => $branchID,
                 ]
           ]);
 
