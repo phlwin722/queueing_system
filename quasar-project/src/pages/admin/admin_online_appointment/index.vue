@@ -11,8 +11,8 @@
         />
       </q-breadcrumbs>
     </div>
-    <q-card class="q-ma-md" flat bordered>
-      <q-card-section>
+    <q-card class="q-ma-md full-width" flat bordered>
+      <q-card-section class="full-width">
         <div class="text-h6 q-mb-md">Available Slots Configuration</div>
 
         <q-form @submit.prevent="applySlotsForWeek">
@@ -121,12 +121,9 @@
             />
 
             <!-- Apply Slots Button -->
-            <q-btn
-              label="Apply Slots"
-              color="primary"
-              type="submit"
-              class="q-mt-md"
-            />
+          </div>
+          <div class="flex" style="justify-items: end; justify-content: right">
+            <q-btn label="Apply Slots" color="primary" type="submit" />
           </div>
         </q-form>
       </q-card-section>
