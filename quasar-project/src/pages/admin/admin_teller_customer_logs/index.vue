@@ -343,73 +343,9 @@ export default defineComponent({
           // path the logo of image
           const logoPath = require("assets/vrtlogoblack.png");
 
-<<<<<<< HEAD
           // set dimensions for the logo image
           const imgWidth = 100;
           const imgHeight = 15;
-=======
-              const chartImageData = canvas.toDataURL('image/png');
-              doc.addImage(chartImageData, 'PNG', marginHorizontal + 60, 55, 100, 55); // Add the chart image to the PDF
-
-              // Extract the labels from the columns array
-              const columnLabels = columns.value.map((column) => column.label);
-
-              // Unwrap columns and rows to remove the Proxy object
-              const unwrappedRows = toRaw(filteredRows.value);
-
-              // Create table in the PDF
-              autoTable(doc, {
-                head: [columnLabels],
-                body: unwrappedRows.map((row) => {
-                  return columnLabels.map((label) => {
-                    const column = columns.value.find((c) => c.label === label);
-                    if (column) {
-                      return row[column.field] || ''; // Return empty string if data is missing
-                    }
-                    return '';
-                  });
-                }),
-                theme: 'grid',
-                headStyles: {
-                  fillColor: [33, 150, 243],
-                  textColor: [255, 255, 255],
-                  fontStyle: 'bold',
-                },
-                margin: { top: 120, bottom: 20 },
-                didDrawPage: function (data) {
-                  // Add header for each page
-                  addHeader()
-                  if (data.pageNumber > 1) {
-                    // For subsequent pages, reduce the margin-top
-                    autoTable(doc, {
-                      head: [columnLabels],
-                      body: unwrappedRows.map((row) => {
-                        return columnLabels.map((label) => {
-                          const column = columns.value.find((c) => c.label === label);
-                          return column ? row[column.field] || '' : '';
-                        });
-                      }),
-                      theme: 'grid',
-                      headStyles: {
-                        fillColor: [33, 150, 243],
-                        textColor: [255, 255, 255],
-                        fontStyle: 'bold',
-                      },
-                      margin: { top: 30, bottom: 20 },
-                    });
-                  }
-
-                  // Add page number to the bottom-right corner
-                  doc.setFontSize(10);
-                  doc.text(
-                    `Page ${data.pageNumber}`,
-                    pageWidth - 15,
-                    doc.internal.pageSize.height - 10,
-                    { align: 'right' }
-                  );
-                },
-              });
->>>>>>> a60e24461845c284efce96a284dad0e841757606
 
           // calculate the horizontal position to center the image
           const centerImage = (pageWidth - imgWidth) / 2;
