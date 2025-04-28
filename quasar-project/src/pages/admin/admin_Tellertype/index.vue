@@ -282,7 +282,7 @@ export default defineComponent({
             name:'serving_time',
             label:'Serving Time',
             align: 'left', 
-            field: row => row.serving_time || '10',
+            field: row => row.serving_time+' minute/s' || '10 minute/s',
             sortable: false
           },
           { 

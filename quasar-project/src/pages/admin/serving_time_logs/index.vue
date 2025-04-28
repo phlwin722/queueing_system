@@ -246,7 +246,7 @@ export default defineComponent({
 
           // Update rows
           rows.value.splice(0, rows.value.length, ...data.rows);
-          console.log(data.rows.minutes); // Test display
+          console.log(data.rows); // Test display
           // Extract the minutes directly from the response
           const minutes = data.minutes;
 
@@ -309,7 +309,10 @@ export default defineComponent({
       type_id.value = null
       fromDate.value = null
       toDate.value = null
-      fetchWindowTypes();
+      fetchWindowTypes()
+      
+      }else if(newTypeId){
+        debouncedGetTableData()
       }
     });
 

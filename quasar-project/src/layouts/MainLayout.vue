@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
-    <q-header v-if = "shouldShowSideNav">
+    <q-header v-if="shouldShowSideNav">
       <q-toolbar>
         <q-img
           src="~assets/vrtlogowhite1.png"
@@ -55,7 +55,8 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-if = "shouldShowSideNav"
+    <q-drawer
+      v-if="shouldShowSideNav"
       v-model="drawer"
       show-if-above
       :mini="miniState"
@@ -102,7 +103,7 @@
                   </q-item>
 
                   <!-- Insert "Waiting Time" only after "Personal Info" -->
-                  <template v-if="child.title === 'Personal Info' && manager" >
+                  <template v-if="child.title === 'Personal Info' && manager">
                     <q-item clickable v-ripple>
                       <q-item-section avatar class="q-pl-xl">
                         <q-icon
@@ -123,6 +124,45 @@
                         transition-show="jump-down"
                         transition-hide="jump-up"
                       >
+                        <!-- Break Time seamless dialog -->
+                        <div class="row justify-center">
+                          <q-btn
+                            flat
+                            round
+                            dense
+                            class="q-mr-sm"
+                            icon="help_outline"
+                            color="primary"
+                            @click="showHelpWaitingTime = true"
+                            style="min-width: 32px; width: 32px; height: 32px"
+                          />
+                        </div>
+
+                        <!-- Help Dialog -->
+                        <q-dialog v-model="showHelpWaitingTime">
+                          <q-card class="q-pa-md">
+                            <q-card-section>
+                              <div class="text-h6">Instructions</div>
+                            </q-card-section>
+
+                            <q-card-section>
+                              <!-- Your instruction content -->
+                              <p>Here is how you set your waiting time:</p>
+                              <ul>
+                                <li>Insert what time</li>
+                              </ul>
+                            </q-card-section>
+
+                            <q-card-actions align="right">
+                              <q-btn
+                                flat
+                                label="Close"
+                                color="primary"
+                                v-close-popup
+                              />
+                            </q-card-actions>
+                          </q-card>
+                        </q-dialog>
                         <q-card class="q-pa-md">
                           <q-form @submit.prevent="process">
                             <q-input
@@ -176,8 +216,6 @@
                       >
                         Break Time
                       </q-item-section>
-
-                      <!-- Break Time seamless dialog -->
                       <q-menu
                         fit
                         anchor="top right"
@@ -185,6 +223,47 @@
                         transition-show="jump-down"
                         transition-hide="jump-up"
                       >
+                        <!-- Break Time seamless dialog -->
+                        <div class="row justify-center">
+                          <q-btn
+                            flat
+                            round
+                            dense
+                            icon="help_outline"
+                            color="primary"
+                            style="min-width: 32px; width: 32px; height: 32px"
+                            @click="showHelpBreakTime = true"
+                          />
+                        </div>
+
+                        <!-- Help Dialog -->
+                        <q-dialog v-model="showHelpBreakTime">
+                          <q-card class="q-pa-md">
+                            <q-card-section>
+                              <div class="text-h6">Instructions</div>
+                            </q-card-section>
+
+                            <q-card-section>
+                              <!-- Your instruction content -->
+                              <p>Here is how you set your break time:</p>
+                              <ul>
+                                <li>Click "From" to select the start time.</li>
+                                <li>Click "To" to select the end time.</li>
+                                <li>Use AM/PM format properly.</li>
+                                <li>Click "Save" when done.</li>
+                              </ul>
+                            </q-card-section>
+
+                            <q-card-actions align="right">
+                              <q-btn
+                                flat
+                                label="Close"
+                                color="primary"
+                                v-close-popup
+                              />
+                            </q-card-actions>
+                          </q-card>
+                        </q-dialog>
                         <q-card class="q-pa-md">
                           <q-form @submit.prevent="saveBreakTime">
                             <q-item>
@@ -195,17 +274,18 @@
                                 <q-btn
                                   color="primary"
                                   icon="schedule"
-                                  :label="
-                                    formDataBreak.break_from || 'Select Time'
-                                  "
+                                  :label="formattedFromTime"
                                   :error="
                                     formError.hasOwnProperty('break_from')
                                   "
                                   :error-message="formError.break_from"
                                   @click="showFromPicker = true"
                                 />
-                                <q-time
+                                <q-input
                                   v-model="formDataBreak.break_from"
+                                  outlined
+                                  dense
+                                  type="time"
                                   format24h
                                   v-if="showFromPicker"
                                   @update:model-value="showFromPicker = false"
@@ -219,16 +299,17 @@
                                 <q-btn
                                   color="primary"
                                   icon="schedule"
-                                  :label="
-                                    formDataBreak.break_to || 'Select Time'
-                                  "
+                                  :label="formattedToTime"
                                   :error="formError.hasOwnProperty('break_to')"
                                   :error-message="formError.break_to"
                                   @click="showToPicker = true"
                                 />
-                                <q-time
-                                  v-model="formDataBreak.break_to"
+                                <q-input
+                                  outlined
+                                  dense
+                                  type="time"
                                   format24h
+                                  v-model="formDataBreak.break_to"
                                   v-if="showToPicker"
                                   @update:model-value="showToPicker = false"
                                 />
@@ -357,8 +438,8 @@ import { date } from "quasar";
 import { useRouter } from "vue-router";
 import { $axios, $notify } from "src/boot/app";
 import { useQuasar } from "quasar";
-import { computed } from 'vue';
-import { isFullscreen } from 'src/composables/fullscreenState';
+import { computed } from "vue";
+import { isFullscreen } from "src/composables/fullscreenState";
 export default defineComponent({
   name: "MainLayout",
 
@@ -375,7 +456,7 @@ export default defineComponent({
     const $dialog = useQuasar();
     const linksList = ref([]);
     const branch_id = ref(null);
-    const manager_id = ref(null)
+    const manager_id = ref(null);
     const shouldShowSideNav = computed(() => !isFullscreen.value);
     const adminInformationContent = ref({
       id: "",
@@ -384,6 +465,8 @@ export default defineComponent({
       Image: "",
     });
     const isMenuOpen = false;
+    const showHelpBreakTime = ref(false);
+    const showHelpWaitingTime = ref(false);
 
     // Function to update the time
     const updateFormattedTime = () => {
@@ -455,7 +538,7 @@ export default defineComponent({
         console.log(error);
       }
     };
-    
+
     // Set an interval to update the time every second
     onMounted(() => {
       const storedAdminInfo = localStorage.getItem("adminInformation");
@@ -468,8 +551,8 @@ export default defineComponent({
         setInterval(updateFormattedTime, 1000); // Update every second
       } else if (storeManagerInfo) {
         adminInformation.value = JSON.parse(storeManagerInfo);
-        branch_id.value = adminInformation.value.branch_id
-        manager_id.value = adminInformation.value.id
+        branch_id.value = adminInformation.value.branch_id;
+        manager_id.value = adminInformation.value.id;
         fetchAdminInformation();
         updateFormattedTime(); // Call it once on mount
         setInterval(fetchAdminInformation, 6000);
@@ -481,9 +564,9 @@ export default defineComponent({
 
     // Logout function
     const logout = async () => {
-      await $axios.post('/manager/logout',{
-          manager_id: manager_id.value,
-          });
+      await $axios.post("/manager/logout", {
+        manager_id: manager_id.value,
+      });
       localStorage.removeItem("authTokenAdmin"); // Remove auth token
       localStorage.removeItem("adminInformation");
       localStorage.removeItem("authTokenManager"); // Remove auth token
@@ -540,7 +623,7 @@ export default defineComponent({
 
     const fetchBreakTime = async () => {
       try {
-        const { data } = await $axios.post("/admin/fetch_break_time",{
+        const { data } = await $axios.post("/admin/fetch_break_time", {
           branch_id: branch_id.value,
         });
         console.log("Fetched Data:", data);
@@ -599,7 +682,7 @@ export default defineComponent({
           ...formDataBreak,
           branch_id: branch_id.value, // manually include refID
         };
-        console.log(branch_id.value) //outputs the actual branch id
+        console.log(branch_id.value); //outputs the actual branch id
         const { data } = await $axios.post("/admin/break_time", payload);
         formError.value = {}; // Reset form errors
 
@@ -696,10 +779,10 @@ export default defineComponent({
         $notify("negative", "error", error);
       }
     };
-    const manager = ref(false)
+    const manager = ref(false);
     const fetchLinks = async () => {
       if (adminInformation.value.branch_id != null) {
-        manager.value = true
+        manager.value = true;
         linksList.value = [
           {
             title: "Dashboard",
@@ -743,22 +826,22 @@ export default defineComponent({
             link: "/admin/currency_conversion",
           },
           {
-          title: "Branch Appointment",
-          icon: "person",
-          children: [
-            {
-              title: "Appointment",
-              icon: "category",
-              link: "/admin/appointment/create",
-            },
-            {
-              title: "List Appointment",
-              icon: "groups",
-              link: "/admin/appointment/list",
-            },
-          ],
-        },
-/*       {
+            title: "Branch Appointment",
+            icon: "person",
+            children: [
+              {
+                title: "Appointment",
+                icon: "category",
+                link: "/admin/appointment/create",
+              },
+              {
+                title: "List Appointment",
+                icon: "groups",
+                link: "/admin/appointment/list",
+              },
+            ],
+          },
+          /*       {
             title: "Customer Logs",
             icon: "description",
             link: "/admin/customer-logs",
@@ -784,10 +867,10 @@ export default defineComponent({
             link: "/admin/reports",
           },
           {
-             title: "Archive",
-             icon: "archive",
-             link: "/admin/archive",
-           },
+            title: "Archive",
+            icon: "archive",
+            link: "/admin/archive",
+          },
           {
             title: "Settings",
             icon: "settings",
@@ -828,44 +911,44 @@ export default defineComponent({
               },
             ],
           },
-          
-        {
-          title: "Admin Queue",
-          icon: "admin_panel_settings",
-          link: "/admin/admin_Queue",
-        },
-        {
-          title: 'Manager',
-          icon: 'supervisor_account',
-          link: '/admin/bank_manager'
-        },
-        {
-          title: 'Branch',
-          icon: 'account_balance',
-          link: '/admin/branch'
-        },
-        {
-          title: "Currency Conversion",
-          icon: "currency_exchange",
-          link: "/admin/currency_conversion",
-        },
-        {
-          title: "Branch Appointment",
-          icon: "date_range",
-          children: [
-            {
-              title: "Appointment",
-              icon: "event",
-              link: "/admin/appointment/create",
-            },
-            {
-              title: "List Appointment",
-              icon: "event_note",
-              link: "/admin/appointment/list",
-            },
-          ],
-        },
-/*         {
+
+          {
+            title: "Admin Queue",
+            icon: "admin_panel_settings",
+            link: "/admin/admin_Queue",
+          },
+          {
+            title: "Manager",
+            icon: "supervisor_account",
+            link: "/admin/bank_manager",
+          },
+          {
+            title: "Branch",
+            icon: "account_balance",
+            link: "/admin/branch",
+          },
+          {
+            title: "Currency Conversion",
+            icon: "currency_exchange",
+            link: "/admin/currency_conversion",
+          },
+          {
+            title: "Branch Appointment",
+            icon: "date_range",
+            children: [
+              {
+                title: "Appointment",
+                icon: "event",
+                link: "/admin/appointment/create",
+              },
+              {
+                title: "List Appointment",
+                icon: "event_note",
+                link: "/admin/appointment/list",
+              },
+            ],
+          },
+          /*         {
           title: "Customer Logs",
           icon: "description",
           link: "/admin/customer-logs",
@@ -891,10 +974,10 @@ export default defineComponent({
             link: "/admin/reports",
           },
           {
-             title: "Archive",
-             icon: "archive",
-             link: "/admin/archive",
-           },
+            title: "Archive",
+            icon: "archive",
+            link: "/admin/archive",
+          },
           {
             title: "Settings",
             icon: "settings",
@@ -914,6 +997,29 @@ export default defineComponent({
         ];
       }
     };
+
+    // Function to convert 24-hour time to 12-hour AM/PM format
+    const convertTo12HourFormat = (time) => {
+      const [hours, minutes] = time.split(":");
+      let hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? "PM" : "AM";
+      hour = hour % 12; // Convert hour to 12-hour format
+      hour = hour ? hour : 12; // The hour '0' should be '12'
+      return `${hour}:${minutes} ${ampm}`;
+    };
+
+    // Computed properties to display formatted time
+    const formattedFromTime = computed(() => {
+      return formDataBreak.break_from
+        ? convertTo12HourFormat(formDataBreak.break_from)
+        : "Select Time";
+    });
+
+    const formattedToTime = computed(() => {
+      return formDataBreak.break_to
+        ? convertTo12HourFormat(formDataBreak.break_to)
+        : "Select Time";
+    });
 
     onMounted(() => {
       fetchLinks();
@@ -957,6 +1063,11 @@ export default defineComponent({
 
       manager,
 
+      formattedToTime,
+      formattedFromTime,
+      showHelpBreakTime,
+      showHelpWaitingTime,
+
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },
@@ -964,3 +1075,8 @@ export default defineComponent({
   },
 });
 </script>
+<style scoped>
+.no-hover-bg:hover {
+  background-color: transparent !important;
+}
+</style>
