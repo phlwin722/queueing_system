@@ -577,7 +577,7 @@ class QueueController extends Controller
         // Get type_id and teller_id from the queues table
         $queue = DB::table('queues')
             ->where('token', $token)
-            ->select('type_id', 'teller_id', 'queue_number', 'email', 'name', 'email_status', 'token', 'id', 'branch_id' )
+            ->select('type_id', 'teller_id', 'queue_number', 'email', 'name', 'email_status', 'token', 'id', 'branch_id', 'status' )
             ->first();
 
         // If the queue doesn't exist

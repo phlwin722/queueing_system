@@ -456,6 +456,7 @@ export default {
       type_id: "",
       window_name: "",
       branch_id: "",
+      status: "",
     });
 
     const serviceTypeId = ref([]);
@@ -572,35 +573,35 @@ export default {
         queuePosition.value = customer.status === 'serving' ? 0 : customer.position;
         customerStatus.value = customer.status;
 
-        if (customer.status === "finished" && !hasNotified.value) {
-          await $axios.post("/sent-email-finish", {
-            id: userInformation.value.id,
-            email: userInformation.value.email,
-            subject: "Thank you for visit",
-          });
+        // if (customer.status === "finished" && !hasNotified.value) {
+        //   await $axios.post("/sent-email-finish", {
+        //     id: userInformation.value.id,
+        //     email: userInformation.value.email,
+        //     subject: "Thank you for visit",
+        //   });
+        //   console.log("finished")
+        //   hasNotified.value = true;
+        //   $notify("positive", "check", "Your turn is finished. Thank you!");
+        //   polling = false;
+        //   waitingPolling = false;
+        //   waitingTimePolling = false;
+        //   setTimeout(() => router.push("/customer-thankyou/"), 2000);
+        // }
 
-          hasNotified.value = true;
-          $notify("positive", "check", "Your turn is finished. Thank you!");
-          polling = false;
-          waitingPolling = false;
-          waitingTimePolling = false;
-          setTimeout(() => router.push("/customer-thankyou/"), 2000);
-        }
+        // if (customer.status === "cancelled" && !hasNotified.value) {
+        //   hasNotified.value = true;
+        //   $notify("negative", "error", "The Admin cancelled your queueing number.");
 
-        if (customer.status === "cancelled" && !hasNotified.value) {
-          hasNotified.value = true;
-          $notify("negative", "error", "The Admin cancelled your queueing number.");
-
-          await $axios.post("/sent-email-finish", {
-            id: customerId.value,
-            email: customer.email,
-            subject: "Thank you for visit",
-          });
-          polling = false;
-          waitingPolling = false;
-          waitingTimePolling = false;
-          setTimeout(() => router.push("/customer-thankyou/"), 2000);
-        }
+        //   await $axios.post("/sent-email-finish", {
+        //     id: customerId.value,
+        //     email: customer.email,
+        //     subject: "Thank you for visit",
+        //   });
+        //   polling = false;
+        //   waitingPolling = false;
+        //   waitingTimePolling = false;
+        //   setTimeout(() => router.push("/customer-thankyou/"), 2000);
+        // }
       }
 
       checkingQueueNumber(); // Always check queue number
@@ -648,6 +649,7 @@ export default {
         userInformation.value.type_id = data.userInfo.type_id;
         userInformation.value.window_name = data.window.window_name;
         userInformation.value.branch_id = data.userInfo.branch_id;
+        userInformation.value.status = data.userInfo.status;
 
         setInterval(fetchCurrency(userInformation.value.branch_id),30000);
         fetchImage(tellerId.value);
@@ -659,6 +661,43 @@ export default {
         console.log(error);
       }
     };
+
+    watch(
+      () => customerStatus.value,
+      async (newValue) => { // <-- add "async" here
+        console.log("Status changed:", newValue);
+        if (newValue == 'cancelled' && !hasNotified.value) {
+          console.log("Status Cancelled:", newValue);
+          hasNotified.value = true;
+          $notify("negative", "error", "The Admin cancelled your queueing number.");
+          polling = false;
+          waitingPolling = false;
+          waitingTimePolling = false;
+          setTimeout(() => router.push("/customer-thankyou/"), 2000);
+          await $axios.post("/sent-email-finish", {
+            id: customerId.value,
+            email: userInformation.value.email,
+            subject: "Thank you for visit",
+          });
+
+        }else if (newValue == 'finished' && !hasNotified.value) {
+          console.log("Status Finished:", userInformation.value.email);
+          hasNotified.value = true;
+          $notify("positive", "check", "Your turn is finished. Thank you!");
+          polling = false;
+          waitingPolling = false;
+          waitingTimePolling = false;
+          setTimeout(() => router.push("/customer-thankyou/"), 2000);
+          await $axios.post("/sent-email-finish", {
+            id: customerId.value,
+            email: userInformation.value.email,
+            subject: "Thank you for visit",
+          });
+
+        }
+      }
+    );
+
 
     // const updateBranchId = async () => {
     //   try {
