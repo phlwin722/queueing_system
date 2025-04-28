@@ -109,6 +109,50 @@ class QueueController extends Controller
         // ->first();
 
         // $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+        $position = null;
+
+        if ($request->priority_service !== null) {
+            // Get customers ordered by position who have priority_service
+            $lastPriorityCustomer = DB::table('queues')
+                ->select('position')
+                ->where('type_id', $type_id)
+                ->where('teller_id', $assignedTellerId)
+                ->where('branch_id', $branch_id)
+                ->where('status', 'waiting')
+                ->whereNotNull('priority_service') // Only customers with priority
+                ->orderBy('position', 'desc') // Get the last one
+                ->first();
+        
+            if ($lastPriorityCustomer) {
+                // If there is a customer with priority_service
+                $position = $lastPriorityCustomer->position + 1;
+            } else {
+                // If there are no customers with priority_service
+                $position = 1;
+            }
+        
+            // Now shift the position of others who are at or after this position
+            DB::table('queues')
+                ->where('type_id', $type_id)
+                ->where('teller_id', $assignedTellerId)
+                ->where('branch_id', $branch_id)
+                ->where('status', 'waiting')
+                ->where('position', '>=', $position)
+                ->increment('position');
+        } else {
+            // Normal customers (without priority service)
+            // Get max position and add 1 at the end
+            $lastCustomer = DB::table('queues')
+                ->select('position')
+                ->where('type_id', $type_id)
+                ->where('teller_id', $assignedTellerId)
+                ->where('branch_id', $branch_id)
+                ->where('status', 'waiting')
+                ->orderBy('position', 'desc')
+                ->first();
+        
+            $position = $lastCustomer ? ($lastCustomer->position + 1) : 1;
+        }
     
         // Create a new queue entry in the database with the given customer and teller information.
         $queue = Queue::create([
@@ -119,6 +163,7 @@ class QueueController extends Controller
             'teller_id' => $assignedTellerId,                // The selected teller's ID.
             'email_status' => $request->email_status,        // Email status (if applicable).
             'queue_number' => $nextQueueNumber,               // The next available queue number.
+            'position' => $position,                          // The position in the queue (if applicable).
             'status' => 'waiting',                            // Initial status for the new queue: 'waiting'.
             'waiting_customer' => null,                      // Placeholder for customer waiting status.
             'currency_selected' => $request->currency,       // The currency selected by the customer.
