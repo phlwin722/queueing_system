@@ -254,6 +254,11 @@ export default {
       const OnlineTellers = data.rows;
       const WindowsInBranch = data.types;
 
+        // Filter OnlineTellers that exist in WindowsInBranch by matching IDs
+      const NewObject = OnlineTellers.filter(teller =>
+        WindowsInBranch.some(window => window.id === teller.id)
+       );
+
         console.log(NewObject);
 
         const seenNames = new Set();
@@ -266,11 +271,7 @@ export default {
           }
         });
 
-        if (filteredRows.length === 0) {
-          isServiceAvailable.value = false;
-        } else {
-          isServiceAvailable.value = true;
-        }
+
         // Log filtered type_id values
 
       console.log(uniqueRows);
@@ -279,14 +280,15 @@ export default {
         row.name !== "Online Appointment" 
         && row.name !== "Manual Queueing"
         );
+
+        if (filteredRows.length === 0) {
+          isServiceAvailable.value = false;
+        } else {
+          isServiceAvailable.value = true;
+        }
       
-      if(filteredRows.length === 0){
-        isServiceAvailable.value = false
-      }else{
-        isServiceAvailable.value = true
-      }
-      // Log filtered type_id values
       // Assign only valid rows to categoriesList.value
+      console.log(filteredRows);
       categoriesList.value = filteredRows;
       
     } catch (error) {

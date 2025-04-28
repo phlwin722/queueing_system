@@ -25,22 +25,6 @@ class AppointmentController extends Controller
             ], 422);
         }
 
-        $referenceNumber = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 10)), 0, 10);
-
-        $id = DB::table('appointments')
-                    ->insertGetId([
-                        'referenceNumber' => $referenceNumber,
-                        'branch_id' => $request->branch_id,
-                        'name' => ucwords($request->name),
-                        'email' => $request->email,
-                        'type_id' => $request->service,
-                        'appointment_date' => $request->appointment_date,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-
-        // slots on available slots
-
         // Find the slot for the given branch and date
         $slot = DB::table('available_slots')
             ->where('branch_id', $request->branch_id)
@@ -48,6 +32,22 @@ class AppointmentController extends Controller
             ->first();
 
         if ($slot && $slot->is_available > 0) {
+            $referenceNumber = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 10)), 0, 10);
+             // slots on available slots
+
+            $id = DB::table('appointments')
+            ->insertGetId([
+                'referenceNumber' => $referenceNumber,
+                'branch_id' => $request->branch_id,
+                'name' => ucwords($request->name),
+                'email' => $request->email,
+                'type_id' => $request->service,
+                'appointment_date' => $request->appointment_date,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+
             // Decrement available slots
             DB::table('available_slots')
                 ->where('branch_id', $request->branch_id)

@@ -1561,77 +1561,79 @@ export default {
           await generateRandomString();  // Generate random token before the submission
 
           try {
-              // Check if the category is 'Foreign Exchange' and validate the currency selection
-              if (categoryForeignExchange.value === 1) {
-                if (currencySelected.value == null) {
-                  formError.value.currency = "Currency field is required";
-                  return;
-                }
+            // Check if the category is 'Foreign Exchange' and validate the currency selection
+            if (categoryForeignExchange.value === 1) {
+              if (currencySelected.value == null) {
+                formError.value.currency = "Currency field is required";
+                return;
               }
-              if (customModel.value == 'yes'){
-                if (prioritySelected.value == null) {
-                  formError.value.priority = "Priority service field is required"
-                  return
-                }
+            }
+            if (customModel.value == 'yes'){
+              if (prioritySelected.value == null) {
+                formError.value.priority = "Priority service field is required"
+                return
               }
+            }
 
-                // Capitalize the name properly
-                name.value = name.value
-                .split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
+            // Capitalize the name properly
+            name.value = name.value
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
 
-                const { data } = await $axios.post("/customer-join", {
-                  token: '',
-                  name: name.value,
-                  email: email.value,
-                  email_status: email_status.value,
-                  type_id: selectId.value.id,
-                  branch_idd: tellerInformation.value.branch_id,
-                  currency: currencySelected.value,
-                  priority_service: prioritySelected.value
-                });
+            const { data } = await $axios.post("/customer-join", {
+              token: '',
+              name: name.value,
+              email: email.value,
+              email_status: email_status.value,
+              type_id: selectId.value.id,
+              branch_idd: tellerInformation.value.branch_id,
+              currency: currencySelected.value,
+              priority_service: prioritySelected.value
+            });
 
-                // find selected Categoriess
-                const selectedCategory = categoriesList.value.find(category => category.id === selectId.value.id)
-                indicator.value = selectedCategory.indicator
+            // find selected Categoriess
+            const selectedCategory = categoriesList.value.find(category => category.id === selectId.value.id)
+            indicator.value = selectedCategory.indicator
 
-                // sending email
-                const response = await $axios.post('sent-email-dashboard',{
-                  id : data.id,
-                  token: token.value,
-                  queue_number: `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`,
-                  email:  email.value,
-                  name: name.value,
-                  subject: "Queue Alert", // Email subject
-                  message: `Welcome to our bank! To provide you with a seamless and efficient service experience,
-                            we’ve implemented a queue system that helps manage customer flow.
-                            Our system is designed to prioritize your needs and minimize waiting times.
-                            You are free to go about your activities, and once your turn is approaching,
-                            you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
-                });
+            // sending email
+            const response = await $axios.post('sent-email-dashboard',{
+              id : data.id,
+              token: token.value,
+              queue_number: `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`,
+              email:  email.value,
+              name: name.value,
+              subject: "Queue Alert", // Email subject
+              message: `Welcome to our bank! To provide you with a seamless and efficient service experience,
+                        we’ve implemented a queue system that helps manage customer flow.
+                        Our system is designed to prioritize your needs and minimize waiting times.
+                        You are free to go about your activities, and once your turn is approaching,
+                        you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
+            });
 
-                  $notify('positive','check','Successfull Joining Queue')
-                     // set the qr code value
-                    generatedQrValue.value = `http://192.168.0.164:8080/customer-dashboard/${token.value}`
+              $notify('positive','check','Successfull Joining Queue')
+                  // set the qr code value
+                generatedQrValue.value = `http://192.168.0.164:8080/customer-dashboard/${token.value}`
 
-                    // generate the qr code image
-                    const qrCodeDataUrl = await QrCode.toDataURL(generatedQrValue.value, {errorCorrectionLevel: 'H', type: 'image/png'});
+                // generate the qr code image
+                const qrCodeDataUrl = await QrCode.toDataURL(generatedQrValue.value, {errorCorrectionLevel: 'H', type: 'image/png'});
 
-                    // Notify the user that the email was successfully sent
-                    //$notify('positive', 'check', response.data.message);
+                // Notify the user that the email was successfully sent
+                //$notify('positive', 'check', response.data.message);
 
-                    const queuenumber = `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`
+                const queuenumber = `${indicator.value}#-${String(data.queue_number).padStart(3, '0')}`
 
-                    // Trigger the print function with the queue details and QR code
-                    printQueueDetails(queuenumber, name.value,  selectId.value.name, data.window_name, qrCodeDataUrl);
+                // Trigger the print function with the queue details and QR code
+                printQueueDetails(queuenumber, name.value,  selectId.value.name, data.window_name, qrCodeDataUrl);
 
-                    // Reset form values after successful submission
-                    name.value = "";
-                    email.value = "";
-                    selectId.value = "";
-                    currencySelected.value = "";
-                    token.value = "";
+                // Reset form values after successful submission
+                name.value = "";
+                email.value = "";
+                selectId.value = "";
+                currencySelected.value = "";
+                token.value = "";
+                customModel.value = 'no';
+                prioritySelected.value = null 
 
           } catch (error) {
             if (error.response) {
@@ -1822,14 +1824,14 @@ export default {
         }
       };
 
-      const onDragStartCurrency = (event, currency) => {
-        if (customerInfoOnline.value?.name === "Foreign Exchange") {
-          draggedCurrency.value = currency; // Store the dragged currency
-        } /* else {
-          event.preventDefault(); // Prevent drag if not "Foreign Exchange"
-          $notify("negative", "error", "Dragging is only allowed for Foreign Exchange.");
-        } */
-      };
+        const onDragStartCurrency = (event, currency) => {
+          if (customerInfoOnline.value?.name === "Foreign Exchange") {
+            draggedCurrency.value = currency; // Store the dragged currency
+          } /* else {
+            event.preventDefault(); // Prevent drag if not "Foreign Exchange"
+            $notify("negative", "error", "Dragging is only allowed for Foreign Exchange.");
+          } */
+        };
 
       // Handle drop to customerInfoOnline
       const onDropToCustomerInfo = () => {
