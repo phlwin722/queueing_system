@@ -10,62 +10,60 @@
             </q-breadcrumbs>
             </div>
 
-            <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id" dense class="q-pt-xs">
-  <!-- Custom Table Header -->
-  <template v-slot:top>
-    <q-toolbar class="q-gutter-md">
-      <!-- 📌 Table Title -->
-      <q-toolbar-title>Window Logs</q-toolbar-title>
+            <q-table title="Window Logs" :rows="filteredRows" :columns="columns" row-key="id" dense class="q-pt-sm">
+        <!-- Custom Table Header -->
+        <template v-slot:top>
+          <q-toolbar class="q-gutter-sm">
+            <!-- 📌 Table Title -->
+            <q-toolbar-title>Window Logs</q-toolbar-title>
 
-      <q-space /> <!-- Pushes inputs to the right -->
-     
-      <q-select
-          v-if="!adminManagerInformation"
-          outlined
-          style="width: 250px;"
-          v-model="branch_value"
-          label="Branch name"
-          hide-bottom-space
-          dense
-          emit-value
-          map-options
-          :options="branch_list"
-          option-label="branch_name"
-          option-value="id"
-      />
-      <!-- Search Input -->
-      <q-input
-        filled
-        dense
-        outlined
-        class="bg-accent text-black col-2"
-        v-model="text"
-        label="Search"
-      >
-        <template v-slot:append>
-          <q-icon name="search" />
+            <q-space /> <!-- Pushes inputs to the right -->
+          
+            <q-select
+                v-if="!adminManagerInformation"
+                outlined
+                style="width: 250px;"
+                v-model="branch_value"
+                label="Branch name"
+                hide-bottom-space
+                dense
+                emit-value
+                map-options
+                :options="branch_list"
+                option-label="branch_name"
+                option-value="id"
+            />
+            <!-- Search Input -->
+            <q-input
+              dense
+              outlined
+              class="text-black col-3"
+              v-model="text"
+              label="Search"
+            >
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+
+            <!-- Date Picker Input -->
+            <q-input
+              dense
+              outlined
+              class="text-black col-1.5"
+              v-model="selectedDate"
+              type="date"
+              label="Select Date"
+              @update:model-value="getTableData"
+            />
+          </q-toolbar>
         </template>
-      </q-input>
 
-      <!-- Date Picker Input -->
-      <q-input
-        filled
-        dense
-        outlined
-        class="bg-accent text-black col-1.5"
-        v-model="selectedDate"
-        type="date"
-        label="Select Date"
-        @update:model-value="getTableData"
-      />
-    </q-toolbar>
-  </template>
-
-  <!-- Table Actions -->
-  <template v-slot:body-cell-actions="props">
-    <q-td :props="props"></q-td>
-  </template>
-</q-table>
+        <!-- Table Actions -->
+        <template v-slot:body-cell-actions="props">
+          <q-td :props="props"></q-td>
+        </template>
+      </q-table>
     </q-page>
   </template>
   

@@ -22,7 +22,7 @@
         selection="multiple"
         v-model:selected="selected"
         :rows-per-page-options="[0]"
-        class="q-ma-md q-mt-sm q-pt-xs"
+        class="q-mx-md q-mt-sm q-pt-sm"
       >
         <template v-slot:top>
           <div class="row q-col-gutter-sm q-pb-xs">
@@ -46,7 +46,7 @@
             </q-btn>
           </div>
 
-            <div style=" position: absolute; max-width: 400px; right: 10px;" class="class-auto">
+          <div style="position: absolute; max-width: 400px; right: 10px; display: flex; align-items: center; gap: 10px;" class="class-auto">
               <q-select
                 v-if="!adminInformation"
                 style="width: 250px;"
@@ -62,10 +62,9 @@
                 option-value="id"
               />
               <q-input
-                  filled
                   dense
                   outlined
-                  class="bg-accent text-black"
+                  class="text-black"
                   v-model="fromDate"
                   type="date"
                   label="Appointment Date"
