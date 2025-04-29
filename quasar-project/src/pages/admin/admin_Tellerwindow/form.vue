@@ -58,7 +58,7 @@
                 <div class="col-12">
                     <q-select 
                     outlined 
-                    :disable="!formData.fetchPersonnel"
+                    :disable="teller_id"
                     v-model="formData.teller_id"
                     :options="personnelList"
                     label="Assign personnel" 
@@ -131,8 +131,6 @@
                 type_id: "",
                 teller_id: "",
                 branch_id: "",
-                fetchPersonnel: "",
-                type_id: '',
             }
         )
 
@@ -145,7 +143,7 @@
             formData.value = initFormData()
             formError.value = {}
         }
-
+        const oldTEllerId = ref()
         
         const showDialog = async (mode, row) => {
             formMode.value = mode === 'new' ? 'New' : 'Edit';
@@ -153,9 +151,9 @@
 
             if (mode === 'edit') {
                 formData.value = Object.assign({},row)
-                console.log(Object.assign({},row)) 
+                console.log(row.teller_id) 
                 formData.value.type_id = row.type_id
-
+                oldTEllerId.value = row.teller_id
                 await fetchWindowTypes()
                 await fetchPersonnel()
 
@@ -195,7 +193,8 @@
                     window_name: formData.value.window_name,
                     type_id: formData.value.type_id,
                     teller_id: formData.value.teller_id,
-                    branch_id: formData.value.branch_id ? formData.value.branch_id : adminInformation.value.branch_id
+                    branch_id: formData.value.branch_id ? formData.value.branch_id : adminInformation.value.branch_id,
+                    old_teller_id: oldTEllerId.value
                 })
                 const rows = toRefs(props).rows
                 const index = rows.value.findIndex(x => x.id === data.row.id)
@@ -259,10 +258,6 @@
                         teller_name: row.name,
                         teller_id: row.id
                     }));
-                    formData.value.fetchPersonnel = personnelList.value.length > 0 ? true : false;
-                    if (personnelList.value.length == 0) {
-                        formData.value.teller_id = '';
-                    }
             } catch (error) {
                 console.error('Error fetching sections:', error); 
             }

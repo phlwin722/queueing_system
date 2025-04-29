@@ -212,6 +212,7 @@
                             </q-card>
                           </div>
                         </div>
+
                       </q-menu>
                     </q-item>
 
@@ -696,6 +697,25 @@ export default defineComponent({
 
         if (formData.value.Waiting_time == "00:00") {
           formError.value.Waiting_time = "Invalid waiting time";
+          return;
+        }
+
+        const time = formData.value.Waiting_time
+
+        // Validate format MM:SS
+        const timeRegex = /^(\d{2}):(\d{2})$/;
+        const match = time.match(timeRegex);
+
+        if (!match) {
+          formError.value.Waiting_time = "Time must be in MM:SS format";
+          return;
+        }
+
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+
+        if (minutes > 59 || seconds > 59) {
+          formError.value.Waiting_time = "Waiting time max value 59:59";
           return;
         }
 

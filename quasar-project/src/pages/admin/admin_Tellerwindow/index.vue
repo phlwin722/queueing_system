@@ -128,8 +128,8 @@
                 Edit Window
               </q-tooltip>
             </q-btn>
-
             <q-btn
+            
               square
               color="negative"
               icon="delete"
@@ -357,12 +357,18 @@ export default defineComponent({
               type_id: x.type_id,
               status: x.status,
               teller_name: x.teller_name,
+              window_name: x.window_name,
+              teller_id: x.teller_id,
+              branch_id: x.branch_id,
             })) 
             : [{
               id: row.id, 
               type_id: row.type_id,
               status: row.status,
               teller_name: row.teller_name,
+              window_name: row.window_name,
+              teller_id: row.teller_id,
+              branch_id: row.branch_id,
             }];
       const itemNames = isMany ? "Windows" : row.window_name;
 
@@ -401,7 +407,7 @@ export default defineComponent({
           $notify('negative','error',`Sorry, we cannot delete the window(s) while the following teller(s) are still online: ${tellerNames}`);
           return;
         }
-
+        console.log(deleteWindow)
         const { data } = await $axios.post(URL + "/delete", { deleteWindow });
         getTableData()
         $notify("positive", "check", data.message);
@@ -437,7 +443,8 @@ export default defineComponent({
             sortable: true,
             sortable: true,
           },
-          /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
+          /* { name: 'teller_id', align: 'left', field: 'teller_id', sortable: true, classes: 'hidden' }, */
+          /* { name: 'branch_id', align: 'left', field: 'branch_id', sortable: true, classes: 'hidden' }, */
           { name: "actions", label: "Actions", align: "left" },
         ]
       } else {
@@ -470,7 +477,8 @@ export default defineComponent({
             field: "teller_name",
             sortable: true,
           },
-          /* { name: 'pId', align: 'left', field: 'pId', sortable: true, classes: 'hidden' }, */
+          /* { name: 'teller_id', align: 'left', field: 'teller_id', sortable: true, classes: 'hidden' }, */
+          /* { name: 'branch_id', align: 'left', field: 'branch_id', sortable: true, classes: 'hidden' }, */
           { name: "actions", label: "Actions", align: "left" },
         ]
       }
