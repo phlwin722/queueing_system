@@ -431,7 +431,7 @@
         rows,
         columns,
         selected,
-        pagination: ref({ rowsPerPage: 0 }), 
+        pagination: ref({ page: 1, rowsPerPage: 10 }),
         URL,
         beforeDelete,
         adminInformation,
@@ -461,6 +461,9 @@
   <style >
     span.q-table__bottom-item{
       width: 200px;
+      text-align: right;
+      display: flex;
+      justify-content: flex-end;
     }
   </style>
   
