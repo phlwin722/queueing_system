@@ -121,9 +121,9 @@
             />
 
             <!-- Apply Slots Button -->
-          </div>
-          <div class="flex" style="justify-items: end; justify-content: right">
-            <q-btn label="Apply Slots" color="primary" type="submit" />
+            <div class="text-right">
+              <q-btn label="Apply Slots" color="primary" type="submit" />
+            </div>
           </div>
         </q-form>
       </q-card-section>
