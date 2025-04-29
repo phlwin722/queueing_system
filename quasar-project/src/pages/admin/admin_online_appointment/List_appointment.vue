@@ -46,9 +46,10 @@
             </q-btn>
           </div>
 
-            <div v-if="!adminInformation" class="class-auto">
+            <div style=" position: absolute; max-width: 400px; right: 10px;" class="class-auto">
               <q-select
-                style="width: 250px; position: absolute;  right: 10px;"
+                v-if="!adminInformation"
+                style="width: 250px;"
                 outlined
                 label="Branch name"
                 hide-bottom-space
@@ -60,15 +61,25 @@
                 option-label="branch_name"
                 option-value="id"
               />
-            </div>
+              <q-input
+                  filled
+                  dense
+                  outlined
+                  class="bg-accent text-black"
+                  v-model="fromDate"
+                  type="date"
+                  label="Appointment Date"
+                />
+            </div> 
+            
           </div>
         </template>
-   
+        
         <!-- Status cell template for the table -->
         <template v-slot:body-cell-status="props">
           <q-td :props="props">
             <q-badge
-              :color="props.row.status === 'Booked' || props.row.status === 'Arrived'  ? 'red' : 'green'" 
+              :color=" props.row.status === 'Completed'  ? 'green' : 'red'" 
             >
               {{ props.row.status }}  <!-- Display the status text -->
             </q-badge>
@@ -139,6 +150,7 @@
       const branchList = ref([ { id: 0, branch_name:'All Branches'} ])
       const branch_name = ref(null);
       const columns = ref([]);
+      const fromDate = ref(null);
   
       const selected = ref([]);
       const adminInformation = ref (null);
@@ -147,13 +159,15 @@
         try {
           if (adminInformation.value && adminInformation.value.branch_id != null) {
             const { data } = await $axios.post(URL + "/index",{
-              branch_id: adminInformation.value.branch_id
+              branch_id: adminInformation.value.branch_id,
+              appointment_date: fromDate.value
             });
             rows.value.splice(0, rows.value.length, ...data.rows);
           } else {
             if (branch_name.value != null) {
               const { data } = await $axios.post(URL + "/index",{
-                branch_id: branch_name.value
+                branch_id: branch_name.value,
+                appointment_date: fromDate.value
               });
               rows.value.splice(0, rows.value.length, ...data.rows);
             }else {
@@ -403,10 +417,9 @@
             }
           }
   
-          watch(()=> branch_name.value, async (newVal) => {
+          watch ([() => branch_name.value, () => fromDate.value], ([newBranch, newFromDate]) => {
             getTableData()
-          })
-          
+          });
           onMounted(() => {
             const storeManagerInfo = localStorage.getItem('managerInformation');
             if (storeManagerInfo) {
@@ -437,7 +450,8 @@
         adminInformation,
         branchList,
         branch_name,
-        handleShowForm
+        handleShowForm,
+        fromDate
       };
     },
   });

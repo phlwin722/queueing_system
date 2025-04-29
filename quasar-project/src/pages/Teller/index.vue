@@ -1701,13 +1701,12 @@ export default {
         });
 
         const { data } = await $axios.post("/customer-join", {
-          token: "",
+          tokenn: customerInfoOnline.value.referenceNumber,
           name: customerInfoOnline.value.fullname,
           email: customerInfoOnline.value.email,
           email_status: "",
           type_id: customerInfoOnline.value.type_id,
           currency: currencyID,
-          referenceNumber: customerInfoOnline.value.referenceNumber,
           priority_service: "Online Appointment",
           branch_idd: customerInfoOnline.value.branch_id,
         });
@@ -1716,7 +1715,7 @@ export default {
           $dialog
             .dialog({
               title: "Window Assigned",
-              message: `You are assigned to ${data.window_name}?`,
+              message: `You are assigned to ${data.window_name}`,
               cancel: false,
               persistent: true,
               ok: {

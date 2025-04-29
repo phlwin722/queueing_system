@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\SurveyResponse;
+use Illuminate\Support\Facades\DB;
 
 class SurveyResponseController extends Controller{
     public function store(Request $request){
@@ -68,5 +69,49 @@ class SurveyResponseController extends Controller{
         ]);
     }
 }
+
+    public function index (Request $request) {
+        try {
+            $surveyResponses = "";
+            if ($request->branch_id != 0) {
+                $surveyResponses = $this->getData($request->branch_id);
+            } else {
+                $surveyResponses = $this->getData();
+            }
+
+            return response()->json([
+                'rows' => $surveyResponses,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function getData ($Branch_id = null) {
+        try {
+            $res = DB::table('survey_responses as sr')
+                ->select(
+                    'sr.id',
+                    'sr.name',
+                    'sr.suggestions',
+                    'b.branch_name'
+                )
+                ->where('sr.suggestions', '!=', null)
+                ->join('branchs as b', 'sr.branch_id', '=', 'b.id') 
+                ->orderBy('sr.created_at', 'desc');
+                
+            if ($Branch_id != null) {
+                $res = $res->where('sr.branch_id', $Branch_id);
+            }
+            $res = $res->get();
+            return $res;
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
 }

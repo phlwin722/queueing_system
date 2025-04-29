@@ -162,6 +162,7 @@ Route::post('/waiting_Time-update', [Waiting_timeController::class, 'update']);
 //thank you page (survey)
 Route::post('/survey', [SurveyResponseController::class, 'store']);
 Route::post('/admin/survey-stats', [SurveyResponseController::class, 'SurveyStats']);
+Route::post('/feedback/index', [SurveyResponseController::class, 'index']);
 
 //online appointment
 Route::post('/appointments', [AppointmentController::class, 'store']);
