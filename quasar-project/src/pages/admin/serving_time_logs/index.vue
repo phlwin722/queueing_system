@@ -27,7 +27,7 @@
         <q-space />
 
         <!-- Wrapping the filters in a row -->
-        <div class="row items-center q-gutter-sm no-wrap">
+        <div class="row items-center q-gutter-x-md no-wrap q-mt-lg">
 
           <!-- Branch Selector -->
           <div v-if="!adminManagerInformation" style="min-width: 180px;">
@@ -47,33 +47,31 @@
           </div>
 
           <!-- Type Filter -->
-          <div>
+          <!-- <div>
             <span class="text-bold">Filter by Type:</span>
-          </div>
+          </div> -->
           <div style="min-width: 180px;">
             <q-select
               outlined
               dense
-              filled
               v-model="type_id"
               :options="serviceTypeList"
               label="Window type"
-              class="bg-accent text-black"
+              class="text-black"
               emit-value
               map-options
             />
           </div>
 
           <!-- Date Filter -->
-          <div>
+          <!-- <div>
             <span class="text-bold">Filter by Date:</span>
-          </div>
+          </div> -->
           <div style="min-width: 150px;">
             <q-input 
-              filled
               dense
               outlined
-              class="bg-accent text-black"
+              class="text-black"
               v-model="fromDate" 
               type="date"
               label="From"
@@ -82,10 +80,9 @@
           </div>
           <div style="min-width: 150px;">
             <q-input 
-              filled
               dense
               outlined
-              class="bg-accent text-black"
+              class="text-black"
               v-model="toDate" 
               type="date"
               label="To"

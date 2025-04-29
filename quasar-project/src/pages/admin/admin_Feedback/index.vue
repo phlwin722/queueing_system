@@ -3,11 +3,7 @@
       <div class="q-ma-md bg-white q-pa-sm shadow-1">
         <q-breadcrumbs class="q-mx-sm">
           <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
-          <q-breadcrumbs-el
-            label="Feedback"
-            icon="reviews"
-            to="/admin/feedback"
-          />
+          <q-breadcrumbs-el label="Feedback" icon="reviews" to="/admin/feedback" />
         </q-breadcrumbs>
       </div>
       <q-table
@@ -21,43 +17,43 @@
         selection="multiple"
         v-model:selected="selected"
         :rows-per-page-options="[0]"
-        class="q-ma-md q-mt-sm q-pt-xs"
+        class="q-ma-md q-mt-sm q-pt-sm"
       >
+        <!-- Toolbar -->
         <template v-slot:top>
-          <div class="row q-col-gutter-sm q-pb-xs">
-            <div class="col-auto">
- 
-            </div>
-            <!-- v-if="!adminInformation" -->
+            <q-toolbar class="q-gutter-y-md">
+                <!-- Table Title -->
+                <q-toolbar-title>Feedback Management</q-toolbar-title>
 
-            <div v-if="!adminInformation" class="col-auto">
-            <q-select
-                style="width: 250px; position: absolute;  right: 10px;"
+                <!-- Spacer to push the search input to the right -->
+                <q-space />
+
+                <!-- Search Input -->
+                <q-input
                 outlined
-                v-model="branch_name"
-                label="Branch name"
-                hide-bottom-space
                 dense
-                emit-value
-                map-options
-                :options="branchList"
-                option-label="branch_name"
-                option-value="id"
-            />
-            </div>
-        </div>
-        </template>
-
+                v-model="text"
+                placeholder="Search..."
+                clearable
+                class="q-ml-sm"
+                >
+                <template v-slot:append>
+                    <q-icon name="search" />
+                </template>
+                </q-input>
+            </q-toolbar>
+            </template>
+  
         <template v-slot:body-cell-Name="props">
-            <q-td :props="props">
-                {{ props.row.name ? props.row.name : 'N/A' }}
-            </q-td>
+          <q-td :props="props">
+            {{ props.row.name ? props.row.name : 'N/A' }}
+          </q-td>
         </template>
-
+  
         <template v-slot:body-cell-actions="props">
-        <q-td :props="props">
+          <q-td :props="props">
             <div class="q-gutter-x-sm">
-            <q-btn
+              <q-btn
                 square
                 color="positive"
                 icon="visibility"
@@ -65,20 +61,20 @@
                 size="sm"
                 class="custom-btn2"
                 @click="handleShowForm('Show', props.row)"
-            >
-            <q-tooltip
-                anchor="center left"
-                self="center right"
-                :offset="[10, 10]"
-                class="bg-secondary"
-            >
-                View Feedback
-            </q-tooltip>
-            </q-btn>
+              >
+                <q-tooltip
+                  anchor="center left"
+                  self="center right"
+                  :offset="[10, 10]"
+                  class="bg-secondary"
+                >
+                  View Feedback
+                </q-tooltip>
+              </q-btn>
             </div>
-        </q-td>
+          </q-td>
         </template>
-    </q-table>
+      </q-table>
     </q-page>
     <my-form ref="dialogForm" :url="URL" :rows="rows" />
   </template>

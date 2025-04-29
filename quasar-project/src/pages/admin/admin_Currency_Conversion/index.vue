@@ -22,7 +22,7 @@
       selection="multiple"
       v-model:selected="selected"
       :rows-per-page-options="[0]"
-      class="q-ma-md q-mt-sm q-pt-xs"
+      class="q-ma-md q-mt-sm q-pt-sm"
     >
       <template v-slot:top>
         <div class="row q-col-gutter-sm q-pb-xs">
