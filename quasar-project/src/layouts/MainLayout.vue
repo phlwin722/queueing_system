@@ -872,6 +872,11 @@ export default defineComponent({
             link: "/admin/archive",
           },
           {
+            title: "Feedback",
+            icon: "reviews",
+            link: "/admin/feedback",
+          },
+          {
             title: "Settings",
             icon: "settings",
             children: [
@@ -977,6 +982,11 @@ export default defineComponent({
             title: "Archive",
             icon: "archive",
             link: "/admin/archive",
+          },
+          {
+            title: "Feedback",
+            icon: "reviews",
+            link: "/admin/feedback",
           },
           {
             title: "Settings",

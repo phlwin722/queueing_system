@@ -156,7 +156,7 @@ class QueueController extends Controller
     
         // Create a new queue entry in the database with the given customer and teller information.
         $queue = Queue::create([
-            'token' => $request->token,                      // The unique token for the customer.
+            'token' => $request->token ? $request->token :  $request->tokenn,                      // The unique token for the customer.
             'name' => $request->name,                        // The customer's name.
             'email' => $request->email,                      // The customer's email.
             'type_id' => $type_id,                           // The 'type_id' for the service.

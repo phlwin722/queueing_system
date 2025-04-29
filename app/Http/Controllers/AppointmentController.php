@@ -7,6 +7,8 @@ use App\Models\Appointment;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use function PHPUnit\Framework\isEmpty;
+
 class AppointmentController extends Controller
 {
     public function store(Request $request)
@@ -353,12 +355,12 @@ class AppointmentController extends Controller
         try {
             $data = '';
             if ($request->branch_id > 0) {
-                $data = $this->getData($request->branch_id);
+                $data = $this->getData($request->branch_id, $request->appointment_date);
                 return response()->json([
                     'rows' => $data
                 ]);
             } else {
-                $data = $this->getData();
+                $data = $this->getData(null, $request->appointment_date);
                 return response()->json([
                     'rows' => $data
                 ]);
@@ -370,8 +372,16 @@ class AppointmentController extends Controller
         }
     }
 
-    public function getData ($branch_id = null) {
+    public function getData ($branch_id = null, $appointment = null) {
         try {
+            $current_date = Carbon::now()->format('Y-m-d');
+            // Update all appointments that have a date before today (in the past)
+            DB::table('appointments')
+                ->where('appointment_date', '<', $current_date)
+                ->where('status', '!=', 'Completed')
+                ->where('status', '!=', 'Arrived')
+                ->update(['status' => 'Expired']);
+            
             $res = DB::table('appointments as appt')
                     ->select(
                         'appt.id',
@@ -389,13 +399,17 @@ class AppointmentController extends Controller
                     ->leftJoin('branchs as b' , 'b.id', '=', 'appt.branch_id')
                     ->leftJoin('types as tp', 'tp.id', '=', 'appt.type_id')
                     ->orderBy('appt.updated_at', 'desc');
-
+ 
+            if (!empty($appointment)) {
+                $res = $res->where('appt.appointment_date', $appointment);
+            }
+        
             if ($branch_id != null) {
                 $res = $res->where('appt.branch_id',$branch_id)->get();
-            }else {     
+            }else {    
                 $res = $res->get();
             }
-             return $res;
+            return $res;
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage()

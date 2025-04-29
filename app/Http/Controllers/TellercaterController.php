@@ -218,6 +218,19 @@ class TellercaterController extends Controller
                 'status' => 'finished',
                 'updated_at' => now()
             ]);
+
+            // get the reference number 
+            $referenceNumber = DB::table('queues')
+                            ->select('token')
+                            ->where('id', $request->id)
+                            ->first();
+
+            DB::table('appointments') 
+                ->where('referenceNumber', $referenceNumber->token)
+                ->update([
+                    'status' => 'Completed',
+                    'updated_at' => now()
+                ]);
         }
 
         return response()->json([
