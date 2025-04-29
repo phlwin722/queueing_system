@@ -124,73 +124,94 @@
                         transition-show="jump-down"
                         transition-hide="jump-up"
                       >
-                        <!-- Break Time seamless dialog -->
-                        <div class="row justify-center">
-                          <q-btn
-                            flat
-                            round
-                            dense
-                            class="q-mr-sm"
-                            icon="help_outline"
-                            color="primary"
-                            @click="showHelpWaitingTime = true"
-                            style="min-width: 32px; width: 32px; height: 32px"
-                          />
-                        </div>
-
-                        <!-- Help Dialog -->
-                        <q-dialog v-model="showHelpWaitingTime">
-                          <q-card class="q-pa-md">
-                            <q-card-section>
-                              <div class="text-h6">Instructions</div>
-                            </q-card-section>
-
-                            <q-card-section>
-                              <!-- Your instruction content -->
-                              <p>Here is how you set your waiting time:</p>
-                              <ul>
-                                <li>Insert what time</li>
-                              </ul>
-                            </q-card-section>
-
-                            <q-card-actions align="right">
-                              <q-btn
-                                flat
-                                label="Close"
-                                color="primary"
-                                v-close-popup
-                              />
-                            </q-card-actions>
-                          </q-card>
-                        </q-dialog>
-                        <q-card class="q-pa-md">
-                          <q-form @submit.prevent="process">
-                            <q-input
-                              v-model="formData.Waiting_time"
-                              mask="##:##"
-                              fill-mask="0"
-                              label="Enter Time (MM:SS)"
-                              :error="formError.hasOwnProperty('Waiting_time')"
-                              :error-message="formError.Waiting_time"
-                              :hint="
-                                timeData
-                                  ? `Last saved time: ${timeData}`
-                                  : 'Format: MM:SS'
-                              "
-                              :model-value="timeData"
-                              outlined
-                              class="q-mb-md text-h6"
-                            />
-                            <div class="row justify-center">
-                              <q-btn
-                                color="primary"
-                                label="Save"
-                                icon="save"
-                                @click="process"
-                              />
+                        <div class="q-pa-sm">
+                          <div class="q-gutter-sm">
+                            <!-- Help button container -->
+                            <div class="row no-wrap" style="width: 100%">
+                              <div class="col" />
+                              <div class="col-auto">
+                                <q-btn
+                                  flat
+                                  round
+                                  dense
+                                  icon="help_outline"
+                                  color="primary"
+                                  @click="showHelpWaitingTime = true"
+                                  style="
+                                    min-width: 32px;
+                                    width: 32px;
+                                    height: 32px;
+                                  "
+                                />
+                              </div>
                             </div>
-                          </q-form>
-                        </q-card>
+
+                            <!-- Help Dialog -->
+                            <q-dialog v-model="showHelpWaitingTime">
+                              <q-card
+                                class="q-pa-md"
+                                style="max-width: 400px; width: 90vw"
+                              >
+                                <q-card-section>
+                                  <div class="text-h6">Instructions</div>
+                                </q-card-section>
+
+                                <q-card-section>
+                                  <p>
+                                    The waiting time field allows you to define
+                                    the estimated time a customer is expected to
+                                    wait before being served. Enter the time in
+                                    the format <strong>MM:SS</strong> — for
+                                    example, "02:30" for 2 minutes and 30
+                                    seconds. This input helps the system provide
+                                    more accurate queue estimates and improves
+                                    overall service planning.
+                                  </p>
+                                </q-card-section>
+
+                                <q-card-actions align="right">
+                                  <q-btn
+                                    flat
+                                    label="Close"
+                                    color="primary"
+                                    v-close-popup
+                                  />
+                                </q-card-actions>
+                              </q-card>
+                            </q-dialog>
+
+                            <!-- Main Card Content -->
+                            <q-card class="q-pa-md no-border shadow-none" flat>
+                              <q-form @submit.prevent="process">
+                                <q-input
+                                  v-model="formData.Waiting_time"
+                                  mask="##:##"
+                                  fill-mask="0"
+                                  label="Enter Time (MM:SS)"
+                                  :error="
+                                    formError.hasOwnProperty('Waiting_time')
+                                  "
+                                  :error-message="formError.Waiting_time"
+                                  :hint="
+                                    timeData
+                                      ? `Last saved time: ${timeData}`
+                                      : 'Format: MM:SS'
+                                  "
+                                  outlined
+                                  class="q-mb-md text-h6"
+                                />
+                                <div class="row justify-center">
+                                  <q-btn
+                                    color="primary"
+                                    label="Save"
+                                    icon="save"
+                                    @click="process"
+                                  />
+                                </div>
+                              </q-form>
+                            </q-card>
+                          </div>
+                        </div>
                       </q-menu>
                     </q-item>
 
@@ -223,109 +244,132 @@
                         transition-show="jump-down"
                         transition-hide="jump-up"
                       >
-                        <!-- Break Time seamless dialog -->
-                        <div class="row justify-center">
-                          <q-btn
-                            flat
-                            round
-                            dense
-                            icon="help_outline"
-                            color="primary"
-                            style="min-width: 32px; width: 32px; height: 32px"
-                            @click="showHelpBreakTime = true"
-                          />
-                        </div>
-
-                        <!-- Help Dialog -->
-                        <q-dialog v-model="showHelpBreakTime">
-                          <q-card class="q-pa-md">
-                            <q-card-section>
-                              <div class="text-h6">Instructions</div>
-                            </q-card-section>
-
-                            <q-card-section>
-                              <!-- Your instruction content -->
-                              <p>Here is how you set your break time:</p>
-                              <ul>
-                                <li>Click "From" to select the start time.</li>
-                                <li>Click "To" to select the end time.</li>
-                                <li>Use AM/PM format properly.</li>
-                                <li>Click "Save" when done.</li>
-                              </ul>
-                            </q-card-section>
-
-                            <q-card-actions align="right">
+                        <div class="q-pa-sm">
+                          <!-- Help Button Row -->
+                          <div class="row no-wrap" style="width: 100%">
+                            <div class="col" />
+                            <div class="col-auto">
                               <q-btn
                                 flat
-                                label="Close"
+                                round
+                                dense
+                                icon="help_outline"
                                 color="primary"
-                                v-close-popup
-                              />
-                            </q-card-actions>
-                          </q-card>
-                        </q-dialog>
-                        <q-card class="q-pa-md">
-                          <q-form @submit.prevent="saveBreakTime">
-                            <q-item>
-                              <q-item-section>
-                                <q-item-label class="text-h6"
-                                  >From:</q-item-label
-                                >
-                                <q-btn
-                                  color="primary"
-                                  icon="schedule"
-                                  :label="formattedFromTime"
-                                  :error="
-                                    formError.hasOwnProperty('break_from')
-                                  "
-                                  :error-message="formError.break_from"
-                                  @click="showFromPicker = true"
-                                />
-                                <q-input
-                                  v-model="formDataBreak.break_from"
-                                  outlined
-                                  dense
-                                  type="time"
-                                  format24h
-                                  v-if="showFromPicker"
-                                  @update:model-value="showFromPicker = false"
-                                />
-                              </q-item-section>
-                            </q-item>
-
-                            <q-item>
-                              <q-item-section>
-                                <q-item-label class="text-h6">To:</q-item-label>
-                                <q-btn
-                                  color="primary"
-                                  icon="schedule"
-                                  :label="formattedToTime"
-                                  :error="formError.hasOwnProperty('break_to')"
-                                  :error-message="formError.break_to"
-                                  @click="showToPicker = true"
-                                />
-                                <q-input
-                                  outlined
-                                  dense
-                                  type="time"
-                                  format24h
-                                  v-model="formDataBreak.break_to"
-                                  v-if="showToPicker"
-                                  @update:model-value="showToPicker = false"
-                                />
-                              </q-item-section>
-                            </q-item>
-
-                            <div class="row justify-center q-mt-md">
-                              <q-btn
-                                color="primary"
-                                label="Save"
-                                icon="save"
-                                @click="saveBreakTime"
+                                style="
+                                  min-width: 32px;
+                                  width: 32px;
+                                  height: 32px;
+                                "
+                                @click="showHelpBreakTime = true"
                               />
                             </div>
-                          </q-form>
-                        </q-card>
+                          </div>
+
+                          <!-- Help Dialog -->
+                          <q-dialog v-model="showHelpBreakTime">
+                            <q-card
+                              class="q-pa-md"
+                              style="max-width: 400px; width: 90vw"
+                            >
+                              <q-card-section>
+                                <div class="text-h6">Instructions</div>
+                              </q-card-section>
+
+                              <q-card-section>
+                                <p>
+                                  The break time feature allows you to define a
+                                  time range when a teller is unavailable due to
+                                  a scheduled break. Select the starting time
+                                  using the "From" field and the ending time
+                                  using the "To" field. Make sure both fields
+                                  are correctly set in 24-hour format (e.g.,
+                                  13:00 for 1 PM). Once both times are selected,
+                                  click "Save" to apply the break schedule for
+                                  that teller.
+                                </p>
+                              </q-card-section>
+
+                              <q-card-actions align="right">
+                                <q-btn
+                                  flat
+                                  label="Close"
+                                  color="primary"
+                                  v-close-popup
+                                />
+                              </q-card-actions>
+                            </q-card>
+                          </q-dialog>
+
+                          <!-- Main Card -->
+                          <q-card class="q-pa-md no-border shadow-none" flat>
+                            <q-form @submit.prevent="saveBreakTime">
+                              <!-- From Section -->
+                              <q-item>
+                                <q-item-section>
+                                  <q-item-label class="text-h6"
+                                    >From:</q-item-label
+                                  >
+                                  <q-btn
+                                    color="primary"
+                                    icon="schedule"
+                                    :label="formattedFromTime"
+                                    :error="
+                                      formError.hasOwnProperty('break_from')
+                                    "
+                                    :error-message="formError.break_from"
+                                    @click="showFromPicker = true"
+                                  />
+                                  <q-input
+                                    v-model="formDataBreak.break_from"
+                                    outlined
+                                    dense
+                                    type="time"
+                                    format24h
+                                    v-if="showFromPicker"
+                                    @update:model-value="showFromPicker = false"
+                                  />
+                                </q-item-section>
+                              </q-item>
+
+                              <!-- To Section -->
+                              <q-item>
+                                <q-item-section>
+                                  <q-item-label class="text-h6"
+                                    >To:</q-item-label
+                                  >
+                                  <q-btn
+                                    color="primary"
+                                    icon="schedule"
+                                    :label="formattedToTime"
+                                    :error="
+                                      formError.hasOwnProperty('break_to')
+                                    "
+                                    :error-message="formError.break_to"
+                                    @click="showToPicker = true"
+                                  />
+                                  <q-input
+                                    outlined
+                                    dense
+                                    type="time"
+                                    format24h
+                                    v-model="formDataBreak.break_to"
+                                    v-if="showToPicker"
+                                    @update:model-value="showToPicker = false"
+                                  />
+                                </q-item-section>
+                              </q-item>
+
+                              <div class="row justify-center q-mt-md">
+                                <q-btn
+                                  color="primary"
+                                  label="Save"
+                                  icon="save"
+                                  @click="saveBreakTime"
+                                />
+                              </div>
+                            </q-form>
+                          </q-card>
+                        </div>
                       </q-menu>
                     </q-item>
                   </template>
@@ -848,7 +892,7 @@ export default defineComponent({
           }, */
           {
             title: "Teller customer logs",
-            icon: "person",
+            icon: "bar_chart",
             link: "/admin/teller-customer-logs",
           },
           {
@@ -861,11 +905,11 @@ export default defineComponent({
             icon: "timer",
             link: "/admin/serving-time-logs",
           },
-          {
+          /* {
             title: "Reports",
             icon: "bar_chart",
             link: "/admin/reports",
-          },
+          }, */
           {
             title: "Archive",
             icon: "archive",
@@ -960,7 +1004,7 @@ export default defineComponent({
         }, */
           {
             title: "Teller customer logs",
-            icon: "person",
+            icon: "bar_chart",
             link: "/admin/teller-customer-logs",
           },
           {
@@ -973,11 +1017,11 @@ export default defineComponent({
             icon: "timer",
             link: "/admin/serving-time-logs",
           },
-          {
+          /* {
             title: "Reports",
             icon: "bar_chart",
             link: "/admin/reports",
-          },
+          }, */
           {
             title: "Archive",
             icon: "archive",

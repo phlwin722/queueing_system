@@ -173,44 +173,7 @@ export default defineComponent({
     const branch_list = ref ([]);
     const text = ref("");
     const rows = ref([]);
-    const columns = ref([
-        
-        {
-          name: 'minutes',
-          label: 'Minute/s',
-          align: 'left',
-          field: 'minutes',
-          sortable: true
-        },
-        {
-          name: 'start_time',
-          label: 'Start Time',
-          align: 'left',
-          field: 'start_time',
-          sortable: true
-        },
-        {
-          name: 'end_time',
-          label: 'End Time',
-          align: 'left',
-          field: 'end_time',
-          sortable: true
-        },
-        {
-          name: 'window_type',
-          label: 'Window Type',
-          align: 'left',
-          field: 'window_type',
-          sortable: true
-        },
-        {
-          name: 'branch_name',
-          label: 'Branch Name',
-          align: 'left',
-          field: 'branch_name',
-          sortable: true
-        },
-    ]);
+    const columns = ref([]);
     let refreshInterval = null
     const filteredRows = computed(() => {
       return rows.value.filter((row) =>
@@ -297,6 +260,93 @@ export default defineComponent({
         console.error("Error fetching sections:", error);
       }
     };
+
+    const fetchColumn = async () => {
+      try {
+        if (adminManagerInformation.value != null) {
+          columns.value = [
+            {
+              name: 'window_type',
+              label: 'Window Type',
+              align: 'left',
+              field: 'window_type',
+              sortable: true
+            },
+            {
+              name: 'start_time',
+              label: 'Start Time',
+              align: 'left',
+              field: 'start_time',
+              sortable: true
+            },
+            {
+              name: 'end_time',
+              label: 'End Time',
+              align: 'left',
+              field: 'end_time',
+              sortable: true
+            },
+            {
+              name: 'minutes',
+              label: 'Minute/s',
+              align: 'left',
+              field: 'minutes',
+              sortable: true
+            },
+            {
+              name: 'actions',
+              label: 'Actions',
+              align: 'left',
+              field: 'actions',
+              sortable: false,
+              style: 'width: 100px;'
+            }
+          ]
+        }else {
+          columns.value = [
+            {
+              name: 'branch_name',
+              label: 'Branch Name',
+              align: 'left',
+              field: 'branch_name',
+              sortable: true
+            },
+            {
+              name: 'window_type',
+              label: 'Window Type',
+              align: 'left',
+              field: 'window_type',
+              sortable: true
+            },
+            {
+              name: 'start_time',
+              label: 'Start Time',
+              align: 'left',
+              field: 'start_time',
+              sortable: true
+            },
+            {
+              name: 'end_time',
+              label: 'End Time',
+              align: 'left',
+              field: 'end_time',
+              sortable: true
+            },
+            {
+              name: 'minutes',
+              label: 'Minute/s',
+              align: 'left',
+              field: 'minutes',
+              sortable: true
+            },
+          ]
+        }
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error)
+        }
+      }
+    }
     const debouncedGetTableData = debounce(() => {
           getTableData();
         }, 300);
@@ -306,7 +356,8 @@ export default defineComponent({
       type_id.value = null
       fromDate.value = null
       toDate.value = null
-      fetchWindowTypes()
+      fetchWindowTypes();
+      fetchColumn();
       
       }else if(newTypeId){
         debouncedGetTableData()

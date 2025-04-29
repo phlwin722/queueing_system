@@ -99,7 +99,7 @@ class ManagerController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Manager added successfully!',
+            'message' => 'Successfully Added!',
             'row' => $newManager
         ]);
     }
@@ -176,7 +176,7 @@ class ManagerController extends Controller
     
             return response()->json([
                 "row" => $row,
-                "message" => "Manager Successfully Updated!"
+                "message" => "Successfully Updated!"
             ]);
         } catch (\Exception $e) {
             return response()->json([

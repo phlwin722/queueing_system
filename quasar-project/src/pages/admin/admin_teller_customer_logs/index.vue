@@ -12,14 +12,15 @@
     </div>
 
     <div class="q-px-md q-mt-md">
-      <q-table 
-        title="Customer Logs" 
-        :rows="filteredRows" 
-        :columns="columns" 
+      <q-table
+        title="Customer Logs"
+        :rows="filteredRows"
+        :columns="columns"
         row-key="index"
         v-model:pagination="pagination"
         dense
         >
+        
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-sm q-mt-xs">
@@ -68,7 +69,7 @@
                 </q-input>
               </div>
 
-              <div class="col-2">
+              <div class="col">
                 <q-input
                   :disable="!type_id"
                   dense
@@ -81,7 +82,7 @@
                 />
               </div>
 
-              <div class="col-2">
+              <div class="col">
                 <q-input
                   :disable="!type_id"
                   dense
@@ -631,11 +632,11 @@ export default defineComponent({
   margin-top: 16px;
 }
 </style>
-<style >
-  span.q-table__bottom-item{
-    width: 400px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-  }
+<style>
+span.q-table__bottom-item {
+  width: 400px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>
