@@ -172,7 +172,7 @@ class TellerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Teller added successfully!',
+                'message' => 'Successfully Added!',
                 'row' => $newTeller
             ]);
         } catch (\Exception $e) {
@@ -318,7 +318,7 @@ class TellerController extends Controller
 
             return response()->json([
                 "row" => $row,
-                "message" => "Teller Successfully Updated!"
+                "message" => "Successfully Updated!"
             ]);
         } catch (\Exception $e) {
             return response()->json([

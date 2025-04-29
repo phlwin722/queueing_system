@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Log; // ✅ Import Log
 
 class BreakTimeController extends Controller
 {
-
-
     public function storeBreakTime(BreakTimeRequest $request)
     {
         try {
