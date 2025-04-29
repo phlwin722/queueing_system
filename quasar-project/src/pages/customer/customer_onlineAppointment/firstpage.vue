@@ -84,30 +84,22 @@
           </div>
 
           <!-- Carousel -->
-          <!-- <q-carousel
+          <div class="flex justify-center">
+          <q-responsive :ratio="16/9" class="col" style="width: 800px; max-width: 100%;">
+          <q-carousel
             animated
             v-model="slide"
             arrows
             infinite
             control-color="secondary"
           >
-            <q-carousel-slide :name="1" class="column no-wrap flex-center">
-              <q-icon name="style" class="text-primary" size="75px" />
-              <div class="text-center text-caption text-secondary q-mt-sm">Choose Action</div>
-            </q-carousel-slide>
-            <q-carousel-slide :name="2" class="column no-wrap flex-center">
-              <q-icon name="live_tv" class="text-primary" size="75px" />
-              <div class="text-center text-caption text-secondary q-mt-sm">Select Branch</div>
-            </q-carousel-slide>
-            <q-carousel-slide :name="3" class="column no-wrap flex-center">
-              <q-icon name="layers" class="text-primary" size="75px" />
-              <div class="text-center text-caption text-secondary q-mt-sm">Pick Schedule</div>
-            </q-carousel-slide>
-            <q-carousel-slide :name="4" class="column no-wrap flex-center">
-              <q-icon name="terrain" class="text-primary" size="75px" />
-              <div class="text-center text-caption text-secondary q-mt-sm">Confirm & Submit</div>
-            </q-carousel-slide>
-          </q-carousel> -->
+            <q-carousel-slide :name="1" img-src="~assets/stp1.png" />
+            <q-carousel-slide :name="2" img-src="~assets/stp2.png" />
+            <q-carousel-slide :name="3" img-src="~assets/stp3i.png" />
+            <q-carousel-slide :name="4" img-src="~assets/stp4i.png" />
+      </q-carousel>
+      </q-responsive>
+      </div>
           
           <!-- Stepper -->
           <q-stepper
