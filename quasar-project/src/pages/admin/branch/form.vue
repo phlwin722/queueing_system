@@ -393,7 +393,7 @@ export default defineComponent({
         }
         const branch_status =  [
             { label: 'Active', value: 'Active' },
-            { label: 'Deactive', value: 'Deactive' }
+            { label: 'Inactive', value: 'Deactive' }
         ]
 
         onMounted(() => {

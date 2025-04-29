@@ -105,7 +105,7 @@
     </q-table>
 
     <!-- Statistics Card -->
-    <template v-if="stats.min !== Infinity && stats.max !== -Infinity && stats.avg !== 'NaN'">
+    <template v-if ="rows.length > 0">
       <q-card flat bordered class="q-pa-md q-mt-md q-mb-md bg-grey-1 text-primary">
         <q-card-section>
           <div class="text-h6">📊 Serving Time Statistics</div>
@@ -243,7 +243,11 @@ export default defineComponent({
           };
 
           const { data } = await $axios.post('/teller/fetch-serving-time', payload);
-
+          // Format start_time and end_time without seconds
+          data.rows.forEach(row => {
+            row.start_time = row.start_time.replace(/:\d{2}(?=\s[APMapm]{2})/, ''); // removes :SS before AM/PM
+            row.end_time = row.end_time.replace(/:\d{2}(?=\s[APMapm]{2})/, '');
+          });
           // Update rows
           rows.value.splice(0, rows.value.length, ...data.rows);
           console.log(data.rows); // Test display
@@ -310,7 +314,7 @@ export default defineComponent({
       fromDate.value = null
       toDate.value = null
       fetchWindowTypes()
-      
+      debouncedGetTableData()
       }else if(newTypeId){
         debouncedGetTableData()
       }

@@ -80,6 +80,9 @@ class WindowController extends Controller
                 'message' => 'The teller is already assigned to another window.' // Error message for conflicting teller_id
             ], 400); // HTTP 400 status code for bad request
         }
+        DB::table('tellers')
+            ->where('id', $request->old_teller_id)
+            ->update(['type_id' => null]); // Reset the type_id of the old teller to null
         
             // Find the student
             $window = Window::find($request->id);
@@ -91,7 +94,6 @@ class WindowController extends Controller
                 ], 404);
             }
     
-            // Update the student
             $window->update($request->all());
     
             // Fetch updated data
@@ -116,27 +118,37 @@ class WindowController extends Controller
         }
     }
 
-    public function delete(Request $request){
-        try{
-            // Get the incoming appointment data from the request array format
-            $window = $request->deleteWindow;
+    public function delete(Request $request)
+    {
+        try {
+            $windows = $request->deleteWindow; // array of window data
 
-            // extract the deleteWindow ids and type id
-            $ids = array_column($window, 'id');
-            $type_ids = array_column($window,'type_id');
+            // Get the ids for deletion
+            $ids = array_column($windows, 'id');
 
-            // update all type id into null
-            DB::table('tellers')
-                ->whereIn('type_id', $type_ids)
-                ->update(['type_id' => null]);
+            // Delete windows first
+            
 
-            DB::table('windows')
-                ->whereIn('id', $ids)
-                ->delete();
+            // Archive each window
+            foreach ($windows as $win) {
+                WindowArchive::create([
+                    'window_id'   => $win['id'],
+                    'window_name' => $win['window_name'],
+                    'type_id'     => $win['type_id'],
+                    'teller_id'   => $win['teller_id'],
+                    'branch_id'   => $win['branch_id'],
+                    'archived_at' => now(),
+                ]);
 
+                DB::table('tellers')
+                    ->where('id', $win['teller_id'])
+                    ->update(['type_id' => null]);
+            }
+            DB::table('windows')->whereIn('id', $ids)->delete();
             return response()->json([
                 "message" => "Windows successfully deleted!"
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 "message" => "Error deleting window(s)",
@@ -144,6 +156,7 @@ class WindowController extends Controller
             ], 500);
         }
     }
+
 
     // public function getWindowFormData()
     // {
