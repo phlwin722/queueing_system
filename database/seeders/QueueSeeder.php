@@ -11,6 +11,7 @@ use App\Models\Currency;
 use Database\Factories\Customer_logFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class QueueSeeder extends Seeder
 {
@@ -533,6 +534,131 @@ class QueueSeeder extends Seeder
                 'updated_at' => now(),
             ],
         ]);
+
+        // Insert dummy appointment data
+        DB::table('appointments')->insert([
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 2,
+                'name' => 'John Doe',
+                'email' => 'johndoe@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 1,
+                'appointment_date' => '2025-04-28',
+                'status' => 'Expired',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 2,
+                'name' => 'Jane Smith',
+                'email' => 'janesmith@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 8,
+                'appointment_date' => '2025-04-29',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 2,
+                'name' => 'Sam Brown',
+                'email' => 'sambrown@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 8,
+                'appointment_date' => '2025-04-30',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Alex Green',
+                'email' => 'alexgreen@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 7,
+                'appointment_date' => '2025-05-01',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Patricia White',
+                'email' => 'patriciawhite@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 6,
+                'appointment_date' => '2025-05-02',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Michael Black',
+                'email' => 'michaelblack@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 3,
+                'appointment_date' => '2025-04-28',
+                'status' => 'Expired',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Lisa Blue',
+                'email' => 'lisablue@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 5,
+                'appointment_date' => '2025-04-29',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'David Red',
+                'email' => 'davidred@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 1,
+                'appointment_date' => '2025-04-30',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Emma Yellow',
+                'email' => 'emmayellow@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 1,
+                'appointment_date' => '2025-05-01',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Henry Orange',
+                'email' => 'henryorange@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 7,
+                'appointment_date' => '2025-05-02',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
 
         // Create 10 orders with random Customer logs
         Queue::factory(1000)->create();
