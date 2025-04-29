@@ -905,11 +905,11 @@ export default defineComponent({
             icon: "timer",
             link: "/admin/serving-time-logs",
           },
-          {
+          /* {
             title: "Reports",
             icon: "bar_chart",
             link: "/admin/reports",
-          },
+          }, */
           {
             title: "Archive",
             icon: "archive",
@@ -1004,7 +1004,7 @@ export default defineComponent({
         }, */
           {
             title: "Teller customer logs",
-            icon: "person",
+            icon: "bar_chart",
             link: "/admin/teller-customer-logs",
           },
           {
@@ -1017,11 +1017,11 @@ export default defineComponent({
             icon: "timer",
             link: "/admin/serving-time-logs",
           },
-          {
+          /* {
             title: "Reports",
             icon: "bar_chart",
             link: "/admin/reports",
-          },
+          }, */
           {
             title: "Archive",
             icon: "archive",
