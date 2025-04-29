@@ -892,7 +892,7 @@ export default defineComponent({
           }, */
           {
             title: "Teller customer logs",
-            icon: "person",
+            icon: "bar_chart",
             link: "/admin/teller-customer-logs",
           },
           {
