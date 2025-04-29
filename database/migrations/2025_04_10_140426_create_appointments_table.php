@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('email_status')->nullable();
             $table->unsignedBigInteger('type_id')->nullable();
             $table->date('appointment_date')->nullable();
-            $table->enum('status', ['Booked', 'Arrived', 'Completed'])->default('Booked')->nullable();
+            $table->enum('status', ['Booked', 'Arrived', 'Expired', 'Completed'])->default('Booked')->nullable();
             $table->timestamps();
         });
     }

@@ -11,7 +11,7 @@
             </div>
 
             <q-table
-              class="q-mt-md"
+              class="q-mt-md q-pt-sm"
               title="Data Reports"
               :rows="filteredRows"
               :columns="columns"
@@ -23,7 +23,7 @@
   <template v-slot:top>
     <q-toolbar class="q-gutter-md">
       <!-- 📌 Table Title -->
-      <q-toolbar-title>Data Reports</q-toolbar-title>
+      <q-toolbar-title class="q-mb-sm">Data Reports</q-toolbar-title>
 
       <q-space /> <!-- Pushes inputs to the right -->
 
@@ -41,14 +41,13 @@
           option-label="branch_name"
           option-value="id"
       />
-      <span class="text-bold">Filter by date:</span>
+      <!-- <span class="text-bold">Filter by date:</span> -->
 
       <!-- From Date -->
       <q-input 
-        filled
         dense
         outlined
-        class="bg-accent text-black col-1.5"
+        class="text-black col-1.5"
         v-model="fromDate" 
         type="date"
         label="From"
@@ -57,10 +56,9 @@
 
       <!-- To Date -->
       <q-input 
-        filled
         dense
         outlined
-        class="bg-accent text-black col-1.5"
+        class="text-black col-1.5"
         v-model="toDate" 
         type="date"
         label="To"
@@ -368,11 +366,12 @@ export default defineComponent({
 
 });
 </script>
-<style >
+<style scoped>
   span.q-table__bottom-item{
-    width: 400px;
+    width: 200px;
     text-align: right;
     display: flex;
     justify-content: flex-end;
   }
+
 </style>

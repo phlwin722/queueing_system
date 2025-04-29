@@ -452,9 +452,13 @@ export default {
                   title: 'Appointment Booked Successfully!',
                   message: 'Appointment booked! Please check your email for the reference number.',
                   icon: "success",
+                  position: 'center',
                   draggable: true,
                   confirmButtonText: 'Book  ',
                   confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+                  customClass: {
+                  popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+                  }
                 }).then((result) =>  {
                   if (result.isConfirmed) {
                     choosing.value = true;
@@ -600,6 +604,9 @@ export default {
                   draggable: true,
                   confirmButtonText: 'OK',
                   confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+                  customClass: {
+                  popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+                  }
                 });
             clearForm()
           }
@@ -642,6 +649,9 @@ export default {
                   draggable: true,
                   confirmButtonText: 'OK',
                   confirmButtonColor: '#3085d6',  // Set the confirm button color to Tomato redcs
+                  customClass: {
+                  popup: 'custom-swal' // 👈 Apply your custom class to the whole popup
+                  }
                 });
                 clearForm()
               }
@@ -767,6 +777,10 @@ export default {
 .clickable-div:hover {
   background-color: #f0f0f0;
   transform: scale(1.02);
+}
+
+.custom-swal {
+   margin-bottom: 100px;
 }
 </style>
 

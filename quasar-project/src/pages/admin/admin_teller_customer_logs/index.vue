@@ -12,20 +12,20 @@
     </div>
 
     <div class="q-px-md q-mt-md">
-      <q-table 
-        title="Customer Logs" 
-        :rows="filteredRows" 
-        :columns="columns" 
+      <q-table
+        title="Customer Logs"
+        :rows="filteredRows"
+        :columns="columns"
         row-key="index"
         v-model:pagination="pagination"
         dense
-        class="q-pt-xs"
         >
+        
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
-          <q-toolbar class="q-gutter-md q-mt-sm">
-            <div class="row q-col-gutter-md items-center full-width">
-              <div v-if="!adminManagerInformation" class="col-2">
+          <q-toolbar class="q-gutter-sm q-mt-xs">
+            <div class="row q-col-gutter-sm items-center full-width">
+              <div v-if="!adminManagerInformation" class="col-auto">
                 <q-select
                   outlined
                   v-model="branch_value"
@@ -40,7 +40,7 @@
                 />
               </div>
 
-              <div class="col-2">
+              <div class="col-3">
                 <q-select
                   outlined
                   v-model="type_id"
@@ -55,12 +55,11 @@
                 />
               </div>
 
-              <div class="col-3">
+              <div class="col-2">
                 <q-input
-                  filled
                   dense
                   outlined
-                  class="bg-accent text-black"
+                  class="text-black"
                   v-model="text"
                   label="Search"
                 >
@@ -70,13 +69,12 @@
                 </q-input>
               </div>
 
-              <div class="col-2">
+              <div class="col">
                 <q-input
                   :disable="!type_id"
-                  filled
                   dense
                   outlined
-                  class="bg-accent text-black"
+                  class="text-black"
                   v-model="fromDate"
                   type="date"
                   label="From"
@@ -84,13 +82,12 @@
                 />
               </div>
 
-              <div class="col-2">
+              <div class="col">
                 <q-input
                   :disable="!type_id"
-                  filled
                   dense
                   outlined
-                  class="bg-accent text-black"
+                  class="text-black"
                   v-model="toDate"
                   type="date"
                   label="To"
@@ -105,8 +102,16 @@
                   icon="download"
                   @click="generatePDF"
                   dense
-                  style="min-width: 30px; max-width: 40px; height: 38px"
-                />
+                  style="min-width: 35px; max-width: 40px; height: 38px; margin-left: 5px;"
+                >
+                <q-tooltip
+                anchor="top middle"
+                self="bottom middle"
+                :offset="[10, 10]"
+              >
+                generate pdf
+              </q-tooltip>
+                </q-btn>
               </div>
             </div>
           </q-toolbar>
@@ -627,11 +632,11 @@ export default defineComponent({
   margin-top: 16px;
 }
 </style>
-<style >
-  span.q-table__bottom-item{
-    width: 400px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-  }
+<style>
+span.q-table__bottom-item {
+  width: 400px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

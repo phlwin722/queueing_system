@@ -48,7 +48,7 @@ class WindowController extends Controller
 
             return response()->json([
                 "row"=> $row,
-                "message"=>"Window added successfully!"
+                "message"=>"Successfully Added!"
             ]);
             
         }catch(\Exception $e){
@@ -109,7 +109,7 @@ class WindowController extends Controller
     
             return response()->json([
                 "row" => $row,
-                "message" => "Window Successfully Updated!"
+                "message" => "Successfully Updated!"
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -146,7 +146,7 @@ class WindowController extends Controller
             }
             DB::table('windows')->whereIn('id', $ids)->delete();
             return response()->json([
-                "message" => "Windows successfully deleted!"
+                "message" => "Successfully Deleted!"
             ]);
 
         } catch (\Exception $e) {

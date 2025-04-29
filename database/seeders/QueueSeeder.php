@@ -11,6 +11,7 @@ use App\Models\Currency;
 use Database\Factories\Customer_logFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class QueueSeeder extends Seeder
 {
@@ -38,7 +39,7 @@ class QueueSeeder extends Seeder
                 'province' => 'Bulacan', 
                 'city' => 'Norzagaray',
                 'Barangay' => 'Friendship Village Resources',
-                'address' => 'blk 30 lot 5',
+                'address' => 'blk 1 lot 5',
                 'status' => 'Active',
                 'opening_date' => '2025-04-12',
                 'created_at' => now(), 
@@ -51,7 +52,7 @@ class QueueSeeder extends Seeder
                 'province' => 'Bulacan', 
                 'city' => 'Norzagaray',
                 'Barangay' => 'Friendship Village Resources',
-                'address' => 'blk 30 lot 5',
+                'address' => 'blk 1 lot 5',
                 'status' => 'Active',
                 'opening_date' => '2025-04-12',
                 'created_at' => now(), 
@@ -65,7 +66,7 @@ class QueueSeeder extends Seeder
             [
                 'id' => '1',
                 'manager_firstname' => 'Dexter', 
-                'manager_lastname' => 'Jamero', 
+                'manager_lastname' => 'Dex', 
                 'manager_username' => 'dex', 
                 'manager_password' => bcrypt('dex'), 
                 'Image' => 'assets/manager/1/profile.jpg',
@@ -419,83 +420,248 @@ class QueueSeeder extends Seeder
         DB::table ('windows')
         ->where('id','4')
         ->update(['branch_id' => '1']);
-         
-        // insert survey responses 
-        DB::table('survey_responses')
-        ->insert([  
+    
+        // Insert survey responses
+        DB::table('survey_responses')->insert([
             [
                 'id' => '1',
+                'name' => 'John Doe',
                 'rating' => '1',
                 'ease_of_use' => 'Yes',
                 'waiting_time_satisfaction' => '1',
-                'branch_id' => '1'
+                'suggestions' => "The bank is highly regarded for its efficient and customer-friendly queueing system, which ensures a smooth and organized experience for all visitors. By implementing a well-structured system, the bank minimizes wait times and provides a more streamlined service, making each visit quicker and more convenient. Customers appreciate how the queueing system helps manage high volumes of people, reducing confusion and frustration. Whether it's for routine transactions or more complex financial services, this thoughtful approach to queuing demonstrates the bank's commitment to providing excellent service and enhancing the overall customer experience.",
+                'branch_id' => '1',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '2',
+                'name' => null,
                 'rating' => '2',
                 'ease_of_use' => 'No',
                 'waiting_time_satisfaction' => '2',
-                'branch_id' => '1'
+                'suggestions' => 'The queue system is decent, but it could be faster. More staff during peak hours would help.',
+                'branch_id' => '1',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '3',
                 'rating' => '3',
+                'name' => 'Jane Smith',
                 'ease_of_use' => 'No',
                 'waiting_time_satisfaction' => '3',
-                'branch_id' => '1'
+                'suggestions' => 'It would be great if the queue system displayed estimated wait times on screens.',
+                'branch_id' => '1',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '4',
+                'name' => null,
                 'rating' => '4',
                 'ease_of_use' => 'No',
                 'waiting_time_satisfaction' => '4',
-                'branch_id' => '2'
+                'suggestions' => 'The queue could be better organized with clear signage to avoid confusion.',
+                'branch_id' => '2',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '5',
+                'name' => null,
                 'rating' => '5',
                 'ease_of_use' => 'Yes',
                 'waiting_time_satisfaction' => '5',
-                'branch_id' => '1'
+                'suggestions' => 'I had a great experience! Everything went smoothly, and the queue was well-managed.',
+                'branch_id' => '1',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '6',
+                'name' => null,
                 'rating' => '1',
                 'ease_of_use' => 'Yes',
                 'waiting_time_satisfaction' => '1',
-                'branch_id' => '2'
+                'suggestions' => 'The queue system was not clear. I had difficulty finding where to stand.',
+                'branch_id' => '2',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '7',
+                'name' => 'John',
                 'rating' => '2',
                 'ease_of_use' => 'No',
                 'waiting_time_satisfaction' => '2',
-                'branch_id' => '2'
+                'suggestions' => 'Wait times were too long. There should be more efficient handling of customers.',
+                'branch_id' => '2',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '8',
+                'name' => 'Jane',
                 'rating' => '3',
                 'ease_of_use' => 'No',
                 'waiting_time_satisfaction' => '3',
-                'branch_id' => '2'
+                'suggestions' => 'More staff is needed during busy hours to reduce waiting time.',
+                'branch_id' => '2',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '9',
+                'name' => null,
                 'rating' => '4',
                 'ease_of_use' => 'No',
                 'waiting_time_satisfaction' => '4',
-                'branch_id' => '1'
+                'suggestions' => 'It would be helpful if the system could integrate with the app for a smoother check-in process.',
+                'branch_id' => '1',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => '10',
+                'name' => 'James Dy',
                 'rating' => '5',
                 'ease_of_use' => 'Yes',
                 'waiting_time_satisfaction' => '5',
-                'branch_id' => '1'
+                'suggestions' => 'Excellent experience! The queue system was fast and efficient.',
+                'branch_id' => '1',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ]);
 
-        // Create 10 orders with random Customer logs 
+        // Insert dummy appointment data
+        DB::table('appointments')->insert([
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 2,
+                'name' => 'John Doe',
+                'email' => 'johndoe@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 1,
+                'appointment_date' => '2025-04-28',
+                'status' => 'Expired',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 2,
+                'name' => 'Jane Smith',
+                'email' => 'janesmith@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 8,
+                'appointment_date' => '2025-04-29',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 2,
+                'name' => 'Sam Brown',
+                'email' => 'sambrown@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 8,
+                'appointment_date' => '2025-04-30',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Alex Green',
+                'email' => 'alexgreen@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 7,
+                'appointment_date' => '2025-05-01',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Patricia White',
+                'email' => 'patriciawhite@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 6,
+                'appointment_date' => '2025-05-02',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Michael Black',
+                'email' => 'michaelblack@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 3,
+                'appointment_date' => '2025-04-28',
+                'status' => 'Expired',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Lisa Blue',
+                'email' => 'lisablue@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 5,
+                'appointment_date' => '2025-04-29',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'David Red',
+                'email' => 'davidred@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 1,
+                'appointment_date' => '2025-04-30',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Emma Yellow',
+                'email' => 'emmayellow@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 1,
+                'appointment_date' => '2025-05-01',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'referenceNumber' => Str::random(10),
+                'branch_id' => 1,
+                'name' => 'Henry Orange',
+                'email' => 'henryorange@example.com',
+                'email_status' => 'Not Sent',
+                'type_id' => 7,
+                'appointment_date' => '2025-05-02',
+                'status' => 'Booked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+
+        // Create 10 orders with random Customer logs
         Queue::factory(1000)->create();
+
     }
 }
