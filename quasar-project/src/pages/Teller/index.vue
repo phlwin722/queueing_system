@@ -146,14 +146,16 @@
                             v-for="(customer, index) in paginatedQueueList"
                             :key="customer.id"
                           >
-                            <q-item
-                              style="height: 80px; border-radius: 10px"
-                              class="bg-white draggable-item shadow-2 q-mb-sm"
-                              :class="{ 'drag-over': dragOverIndex === index }"
-                              draggable="true"
-                              @dragstart="onDragStart($event, index)"
-                              @drop="onDrop(index)"
-                            >
+                          <q-item
+                            style="height: 80px; border-radius: 10px;"
+                            class="bg-white draggable-item shadow-2 q-mb-sm"
+                            :class="{ 'drag-over': dragOverIndex === index }"
+                            draggable="true"
+                            @dragstart="onDragStart($event, index)"
+                            @dragover.prevent="onDragOver(index)"
+                            @dragleave="onDragLeave"
+                            @drop="onDrop(index)"
+                          >
                               <div
                                 class="text-white text-bold glossy"
                                 :style="
