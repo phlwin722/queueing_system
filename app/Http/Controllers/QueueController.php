@@ -211,32 +211,98 @@ class QueueController extends Controller
         $branch_id = $request->branch_id;
         try {
             // Get the next queue number
-            $lastQueue = DB::table('queue_numbers')
+            $counter = DB::table('queue_counters')
+            ->where('branch_id', $branch_id)
+            ->where('type_id', $type_id_teller)
+            ->where('teller_id', $assignedTellerId)
+            ->where('status', '!=', 'finished')
+            ->first();
+        
+        if (!$counter) {
+            DB::table('queue_counters')->insert([
+                'branch_id' => $branch_id,
+                'type_id' => $type_id_teller,
+                'teller_id' => $assignedTellerId,
+                'next_queue_number' => 2,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            $nextQueueNumber = 1;
+        } else {
+            $nextQueueNumber = $counter->next_queue_number;
+        
+            DB::table('queue_counters')
+                ->where('branch_id', $branch_id)
+                ->where('type_id', $type_id_teller)
+                ->where('teller_id', $assignedTellerId)
+                ->update([
+                    'next_queue_number' => $nextQueueNumber + 1,
+                    'updated_at' => now()
+                ]);
+        }
+
+        $position = null;
+
+        if ($request->priority_service !== null) {
+            // Get customers ordered by position who have priority_service
+            $lastPriorityCustomer = DB::table('queues')
+                ->select('position')
                 ->where('type_id', $type_id_teller)
                 ->where('teller_id', $assignedTellerId)
                 ->where('branch_id', $branch_id)
-                ->where('status', '!=', 'finished')
-                ->orderBy('queue_number', 'desc')
+                ->where('status', 'waiting')
+                ->whereNotNull('priority_service') // Only customers with priority
+                ->orderBy('position', 'desc') // Get the last one
                 ->first();
-
-            $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+        
+            if ($lastPriorityCustomer) {
+                // If there is a customer with priority_service
+                $position = $lastPriorityCustomer->position + 1;
+            } else {
+                // If there are no customers with priority_service
+                $position = 1;
+            }
+        
+            // Now shift the position of others who are at or after this position
+            DB::table('queues')
+                ->where('type_id', $type_id_teller)
+                ->where('teller_id', $assignedTellerId)
+                ->where('branch_id', $branch_id)
+                ->where('status', 'waiting')
+                ->where('position', '>=', $position)
+                ->increment('position');
+        } else {
+            // Normal customers (without priority service)
+            // Get max position and add 1 at the end
+            $lastCustomer = DB::table('queues')
+                ->select('position')
+                ->where('type_id', $type_id_teller)
+                ->where('teller_id', $assignedTellerId)
+                ->where('branch_id', $branch_id)
+                ->where('status', 'waiting')
+                ->orderBy('position', 'desc')
+                ->first();
+        
+            $position = $lastCustomer ? ($lastCustomer->position + 1) : 1;
+        }
 
             DB::table('queues')
                 ->where('id',$customerID)
                 ->update([
                     'queue_number' => $nextQueueNumber,
                     'email_status' => 'sending_customer',
-                    'teller_id' => $assignedTellerId
+                    'teller_id' => $assignedTellerId,
+                    'position' => $position,
                 ]);
 
-            DB::table('queue_numbers')
-                ->where('customer_id', $customerID)
-                ->update([
-                'status' => 'waiting',
-                'queue_number' => $nextQueueNumber,
-                'type_id' => $type_id_teller,
-                'teller_id' => $assignedTellerId
-            ]);
+            // DB::table('queue_numbers')
+            //     ->where('customer_id', $customerID)
+            //     ->update([
+            //     'status' => 'waiting',
+            //     'queue_number' => $nextQueueNumber,
+            //     'type_id' => $type_id_teller,
+            //     'teller_id' => $assignedTellerId
+            // ]);
             
             $windowName = DB::table('windows')
                 ->where('teller_id', $assignedTellerId)

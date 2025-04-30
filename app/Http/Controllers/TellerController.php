@@ -706,17 +706,81 @@ class TellerController extends Controller
                     ], 400);  // HTTP status 400 for bad request.
                 }
     
-                // Retrieve the last queue number assigned to the new teller (to avoid assigning the same number again).
-                $lastQueuenumber = DB::table('queue_numbers')
-                    ->where('type_id', $type_id)                    // Filter by the type_id of the service.
-                    ->where('teller_id', $assignedTellerId)         // Filter by the assigned teller.
-                    ->where('branch_id', $branch_id)                // Filter by branch ID.
-                    ->where('status', '!=', 'finished')             // Only consider active queues (exclude 'finished' status).
-                    ->orderBy('queue_number', 'desc')               // Sort by queue number in descending order to get the most recent one.
-                    ->first();                                      // Get the first (latest) entry.
+
+                $counter = DB::table('queue_counters')
+                ->where('branch_id', $branch_id)
+                ->where('type_id', $type_id)
+                ->where('teller_id', $assignedTellerId)
+                ->where('status', '!=', 'finished')
+                ->first();
+            
+            if (!$counter) {
+                DB::table('queue_counters')->insert([
+                    'branch_id' => $branch_id,
+                    'type_id' => $type_id,
+                    'teller_id' => $assignedTellerId,
+                    'next_queue_number' => 2,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                $nextQueueNumber = 1;
+            } else {
+                $nextQueueNumber = $counter->next_queue_number;
+            
+                DB::table('queue_counters')
+                    ->where('branch_id', $branch_id)
+                    ->where('type_id', $type_id)
+                    ->where('teller_id', $assignedTellerId)
+                    ->update([
+                        'next_queue_number' => $nextQueueNumber + 1,
+                        'updated_at' => now()
+                    ]);
+            }
     
-                // If a last queue number exists, increment it by 1. Otherwise, start with queue number 1.
-                $nextQueueNumber = $lastQueuenumber ? $lastQueuenumber->queue_number + 1 : 1;
+            $position = null;
+    
+            if ($request->priority_service !== null) {
+                // Get customers ordered by position who have priority_service
+                $lastPriorityCustomer = DB::table('queues')
+                    ->select('position')
+                    ->where('type_id', $type_id)
+                    ->where('teller_id', $assignedTellerId)
+                    ->where('branch_id', $branch_id)
+                    ->where('status', 'waiting')
+                    ->whereNotNull('priority_service') // Only customers with priority
+                    ->orderBy('position', 'desc') // Get the last one
+                    ->first();
+            
+                if ($lastPriorityCustomer) {
+                    // If there is a customer with priority_service
+                    $position = $lastPriorityCustomer->position + 1;
+                } else {
+                    // If there are no customers with priority_service
+                    $position = 1;
+                }
+            
+                // Now shift the position of others who are at or after this position
+                DB::table('queues')
+                    ->where('type_id', $type_id)
+                    ->where('teller_id', $assignedTellerId)
+                    ->where('branch_id', $branch_id)
+                    ->where('status', 'waiting')
+                    ->where('position', '>=', $position)
+                    ->increment('position');
+            } else {
+                // Normal customers (without priority service)
+                // Get max position and add 1 at the end
+                $lastCustomer = DB::table('queues')
+                    ->select('position')
+                    ->where('type_id', $type_id)
+                    ->where('teller_id', $assignedTellerId)
+                    ->where('branch_id', $branch_id)
+                    ->where('status', 'waiting')
+                    ->orderBy('position', 'desc')
+                    ->first();
+            
+                $position = $lastCustomer ? ($lastCustomer->position + 1) : 1;
+            }
     
                 // Update the queue with the new assigned teller and the next queue number.
                 DB::table('queues')
@@ -724,18 +788,11 @@ class TellerController extends Controller
                     ->update([
                         'queue_number' => $nextQueueNumber,        // Update the queue number.
                         'email_status' => 'sending_customer',     // Mark the email status to indicate it's sending the customer info.
-                        'teller_id' => $assignedTellerId          // Reassign the queue to the new teller.
+                        'teller_id' => $assignedTellerId,          // Reassign the queue to the new teller.
+                        'position' => $position,                // Update the position for the queue.
+
                     ]);
     
-                // Update the queue_numbers table for the customer with the new teller and queue number.
-                DB::table('queue_numbers')
-                    ->where('customer_id', $queue->id)           // Locate the queue number entry for this customer.
-                    ->update([
-                        'status' => 'waiting',                    // Set the status as 'waiting'.
-                        'queue_number' => $nextQueueNumber,       // Set the updated queue number.
-                        'type_id' => $type_id,                   // Set the type_id for the service.
-                        'teller_id' => $assignedTellerId         // Set the assigned teller ID.
-                    ]);
             }
     
             // If everything was processed successfully, return a success message.
