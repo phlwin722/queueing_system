@@ -739,7 +739,7 @@ class TellerController extends Controller
     
             $position = null;
     
-            if ($request->priority_service !== null) {
+            if ($queue->priority_service !== null) {
                 // Get customers ordered by position who have priority_service
                 $lastPriorityCustomer = DB::table('queues')
                     ->select('position')

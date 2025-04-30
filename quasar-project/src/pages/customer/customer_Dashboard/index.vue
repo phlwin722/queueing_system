@@ -457,6 +457,7 @@ export default {
       window_name: "",
       branch_id: "",
       status: "",
+      priority_service: "",
     });
 
     const serviceTypeId = ref([]);
@@ -613,7 +614,7 @@ export default {
     if(queueList.value.length > 5){
       if (polling) setTimeout(fetchQueueData, 10000);
     }else{
-      if (polling) setTimeout(fetchQueueData, 3000);
+      if (polling) setTimeout(fetchQueueData, 5000);
     }
 
   }
@@ -650,6 +651,7 @@ export default {
         userInformation.value.window_name = data.window.window_name;
         userInformation.value.branch_id = data.userInfo.branch_id;
         userInformation.value.status = data.userInfo.status;
+        userInformation.value.priority_service = data.userInfo.priority_service;
 
         setInterval(fetchCurrency(userInformation.value.branch_id),30000);
         fetchImage(tellerId.value);
@@ -1152,7 +1154,7 @@ const fetchWaitingtime = async () => {
       await fetchQueueData();
       await getTableData();
       await fetchType();
-      queueTimeout = setTimeout(optimizedFetchQueueData, 3000); // Recursive Timeout
+      queueTimeout = setTimeout(optimizedFetchQueueData, 5000); // Recursive Timeout
     };
 
     const isMoneyRatesDialogOpen = ref(false);
@@ -1361,6 +1363,7 @@ const fetchWaitingtime = async () => {
               type_id_teller: item.type_id_teller,
               userId: userInformation.value.id, // Recipient's id
               branch_id: userInformation.value.branch_id,
+              priority_service: userInformation.value.priority_service,
             });
             window.location.reload();
           } catch (error) {
