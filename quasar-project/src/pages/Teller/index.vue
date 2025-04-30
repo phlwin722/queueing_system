@@ -917,7 +917,7 @@ export default {
         if (noOfQueue.value > 5) {
           if (polling) setTimeout(fetchQueue, 10000);
         } else {
-          if (polling) setTimeout(fetchQueue, 3000);
+          if (polling) setTimeout(fetchQueue, 5000);
         }
       }
     };
@@ -1247,10 +1247,10 @@ export default {
                     "startingTime" + tellerInformation.value.id.toString(),
                     startingTime
                   );
-                }, 2000); // Delay for 2 seconds before serving the customer
+                }, 3000); // Delay for 3 seconds before serving the customer
               }
             }
-          }, 2000); // Check every 2 seconds
+          }, 5000); // Check every 2 seconds
         } else {
           // Auto Serving is disabled
           $notify("positive", "check", "Automatic Serving Disabled");
