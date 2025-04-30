@@ -1500,20 +1500,22 @@ export default {
           );
           return;
         } else {
-          await $axios.post("/teller/logout", {
+          const { data } = await $axios.post("/teller/logout", {
             teller_id: tellerInformation.value.id,
             type_id: tellerInformation.value.type_id,
             branch_id: tellerInformation.value.branch_id,
           });
-          localStorage.removeItem("authTokenTeller");
-          localStorage.removeItem("tellerInformation");
-          polling = false;
-          fetchWaitingtimepolling = false;
-          // fetchIdPolling = false;
-          router.push("/login");
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
+          if (data.message) {
+            localStorage.removeItem("authTokenTeller");
+            localStorage.removeItem("tellerInformation");
+            polling = false;
+            fetchWaitingtimepolling = false;
+            // fetchIdPolling = false;
+            router.push("/login");
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
+          }
         }
       } catch (error) {
         if (error.response.status === 400) {

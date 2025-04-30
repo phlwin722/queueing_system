@@ -604,7 +604,7 @@ export default {
         //   setTimeout(() => router.push("/customer-thankyou/"), 2000);
         // }
       }
-
+      getTableData();
       checkingQueueNumber(); // Always check queue number
       QueueListlastUpdatedAt.value = response.data.last_updated_at; // Update timestamp
     }

@@ -652,15 +652,6 @@ class TellerController extends Controller
             $type_id = $request->type_id;
             $branch_id = $request->branch_id;
     
-            // Update the status of the teller to 'Offline' when they log out.
-            DB::table('windows')
-                ->where('teller_id', $teller_id)  // Locate the teller by their ID.
-                ->update(['status' => 'Offline']); // Set their status to 'Offline'.
-            
-            DB::table('tellers')
-                ->where('id', $teller_id)  
-                ->update(['status' => 'Offline']); 
-                    
             // Check if there are any customers currently waiting for this teller to serve them.
             $list_waiting = DB::table('queues')
                             ->where('teller_id', $teller_id)  // Find queues assigned to this specific teller.
@@ -671,6 +662,7 @@ class TellerController extends Controller
             foreach ($list_waiting as $queue) {
                 // Fetch all tellers who are signed in and assigned to this type of service (type_id).
                 $tellers = DB::table('windows')
+                    ->where('teller_id', '!=' , $teller_id)
                     ->where('type_id', $type_id)       // Find tellers for this specific type of service.
                     ->where('branch_id', $branch_id)   // Filter by branch ID.
                     ->where('status', 'Online')      // Filter only tellers who are currently signed in.
@@ -794,7 +786,15 @@ class TellerController extends Controller
                     ]);
     
             }
-    
+                // Update the status of the teller to 'Offline' when they log out.
+                DB::table('windows')
+                    ->where('teller_id', $teller_id)  // Locate the teller by their ID.
+                    ->update(['status' => 'Offline']); // Set their status to 'Offline'.
+            
+                DB::table('tellers')
+                    ->where('id', $teller_id)  
+                    ->update(['status' => 'Offline']); 
+                    
             // If everything was processed successfully, return a success message.
             return response()->json([
                 'message' => 'Successfully logged out'  // Inform the user that the logout process is complete.
