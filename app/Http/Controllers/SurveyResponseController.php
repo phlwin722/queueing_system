@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class SurveyResponseController extends Controller{
     public function store(Request $request){
+        $branch_id = substr($request->token, 12);  // Removes the first 12 characters
+        $request->merge(['branch_id' => (int)$branch_id]); // Merge the branch_id into the request
         $request->validate([
             'name' => 'nullable|string|max:255',
             'rating' => 'required|integer|between:1,5',

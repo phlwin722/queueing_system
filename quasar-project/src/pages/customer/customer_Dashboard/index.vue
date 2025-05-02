@@ -674,8 +674,8 @@ export default {
           $notify("negative", "error", "The Admin cancelled your queueing number.");
           polling = false;
           waitingPolling = false;
-          waitingTimePolling = false;
-          setTimeout(() => router.push("/customer-thankyou/"), 2000);
+          waitingTimePolling = false; 
+          setTimeout(() => window.location.href = "/customer-thankyou/" + tokenurl.value, 2000);
           await $axios.post("/sent-email-finish", {
             id: customerId.value,
             email: userInformation.value.email,
@@ -689,7 +689,7 @@ export default {
           polling = false;
           waitingPolling = false;
           waitingTimePolling = false;
-          setTimeout(() => router.push("/customer-thankyou/"), 2000);
+          setTimeout(() => window.location.href = "/customer-thankyou/" + tokenurl.value, 2000);
           await $axios.post("/sent-email-finish", {
             id: customerId.value,
             email: userInformation.value.email,
@@ -1065,7 +1065,7 @@ const fetchWaitingtime = async () => {
         polling = false;
         waitingPolling = false;
         waitingTimePolling = false;
-        setTimeout(() => router.push("/customer-thankyou/"), 1000);
+        setTimeout(() => window.location.href = "/customer-thankyou/" + tokenUrl.value, 1000);
       } catch (error) {
         console.error(error);
         $notify("negative", "error", "Failed to leave queue.");

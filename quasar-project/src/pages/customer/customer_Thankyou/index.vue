@@ -71,22 +71,27 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { $axios, $notify } from "boot/app";
+import { useRoute } from "vue-router";
 
 
 export default {
 
   setup() {
+    
+    const loading = ref(false);
+    const route = useRoute();  // Get the current route
+    const token = ref(route.params.tokenUrl);  // Access the tokenUrl parameter from the route
+
     const survey = ref({
+      token: token.value, 
       name: "",
       rating: null,
       ease_of_use: "",
       waiting_time_satisfaction: "",
       suggestions: "",
     });
-
-    const loading = ref(false);
 
     const icons = [
       "sentiment_very_dissatisfied",
@@ -103,7 +108,7 @@ export default {
         $notify("positive", "check", "Survey submitted successfully!" );
         survey.value = { name: "", rating: null, ease_of_use: "", waiting_time_satisfaction: "", suggestions: "" };
       } catch (error) {
-        $notify("negative", "error", "Failed to submit survey. Try again!");
+        $notify("negative", "error", "Sorry, you have already submitted");
       }
       loading.value = false;
     };
@@ -112,12 +117,17 @@ export default {
       window.open("https://www.facebook.com/fil.labs.2025", "_blank");
     };
 
+    onMounted(() => {
+      console.log(route.params.tokenurl);  // Check if token is available after mount
+    });
+
     return {
       survey,
       loading,
       submitSurvey,
       goToPage,
       icons,
+      token,
     };
   },
 };

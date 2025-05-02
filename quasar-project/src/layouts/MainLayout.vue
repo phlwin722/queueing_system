@@ -1,132 +1,318 @@
 <template>
-  <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders">
-    <q-header v-if="shouldShowSideNav">
-      <q-toolbar>
-        <q-img
-          src="~assets/vrtlogowhite1.png"
-          alt="Logo"
-          fit="full"
-          :style="{
-            maxWidth: $q.screen.lt.sm ? '100px' : '160px',
-            cursor: 'pointer', // Fix cursor property
-            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-          }"
-          @click="goonDashboard"
-          class="q-ml-sm"
-        />
-        <q-space />
+      <!-- Show message for mobile screens -->
+      <q-layout v-if="$q.screen.lt.md">
+       <q-header v-if="shouldShowSideNav">
+        <q-toolbar>
+          <q-img
+            src="~assets/vrtlogowhite1.png"
+            alt="Logo"
+            fit="full"
+            :style="{
+              maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+              cursor: 'pointer', // Fix cursor property
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            }"
+            @click="goonDashboard"
+            class="q-ml-sm"
+          />
+          <q-space />
 
-        <!-- <div class="row items-center">
-          <q-spinner-clock color="white" size="1.5em" class="q-mr-xs" />
-          {{ formattedString }}
-        </div> -->
-        <!-- Admin Account Dropdown (Moved from Drawer to Here) -->
-        <q-btn-dropdown
-          flat
-          dense
-          no-caps
-          dropdown-icon="keyboard_arrow_down"
-          style="max-width: 200px"
-        >
-          <template v-slot:label>
-            <q-avatar size="25px" class="bg-white">
-              <img :src="previewAdminImage" />
-            </q-avatar>
-            <span class="q-ml-sm">
-              {{
-                adminInformationContent && adminInformationContent.Firstname
-                  ? adminInformationContent.Firstname +
-                    " " +
-                    adminInformationContent.Lastname
-                  : "Loading..."
-              }}
-            </span>
-          </template>
+          <!-- <div class="row items-center">
+            <q-spinner-clock color="white" size="1.5em" class="q-mr-xs" />
+            {{ formattedString }}
+          </div> -->
+          <!-- Admin Account Dropdown (Moved from Drawer to Here) -->
+          <q-btn-dropdown
+            flat
+            dense
+            no-caps
+            dropdown-icon="keyboard_arrow_down"
+            style="max-width: 200px"
+          >
+            <template v-slot:label>
+              <q-avatar size="25px" class="bg-white">
+                <img :src="previewAdminImage" />
+              </q-avatar>
+              <span class="q-ml-sm">
+                {{
+                  adminInformationContent && adminInformationContent.Firstname
+                    ? adminInformationContent.Firstname +
+                      " " +
+                      adminInformationContent.Lastname
+                    : "Loading..."
+                }}
+              </span>
+            </template>
 
-          <q-list>
-            <q-item clickable v-ripple @click="logout">
-              <q-item-section avatar>
-                <q-icon name="logout" color="red" />
-              </q-item-section>
-              <q-item-section class="text-red">Logout</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-      </q-toolbar>
-    </q-header>
+            <q-list>
+              <q-item clickable v-ripple @click="logout">
+                <q-item-section avatar>
+                  <q-icon name="logout" color="red" />
+                </q-item-section>
+                <q-item-section class="text-red">Logout</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </q-toolbar>
+      </q-header>
+      <!-- Mobile message for users -->
+      <div class="q-pa-md">
+        <q-card class="bg-negative text-white" style="margin-top: 80px;">
+          <q-card-section class="text-center text-h6">
+            We’re working hard to improve this feature, but it's not available on mobile devices just yet.
+            Please visit us from a desktop for the full experience. Thank you for your patience!
+          </q-card-section>
+        </q-card>
+      </div>
+    </q-layout>
+    <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders" v-else>
+      <q-header v-if="shouldShowSideNav">
+        <q-toolbar>
+          <q-img
+            src="~assets/vrtlogowhite1.png"
+            alt="Logo"
+            fit="full"
+            :style="{
+              maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+              cursor: 'pointer', // Fix cursor property
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            }"
+            @click="goonDashboard"
+            class="q-ml-sm"
+          />
+          <q-space />
 
-    <q-drawer
-      v-if="shouldShowSideNav"
-      v-model="drawer"
-      show-if-above
-      :mini="miniState"
-      @click.capture="drawerClick"
-      :width="250"
-      :breakpoint="500"
-      bordered
-      content-class="fit"
-      :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
-      class="q-px-sm shadow-1"
-    >
-      <q-scroll-area
-        class="fit"
-        :horizontal-thumb-style="{ opacity: 0 }"
-        style="height: 100%"
+          <!-- <div class="row items-center">
+            <q-spinner-clock color="white" size="1.5em" class="q-mr-xs" />
+            {{ formattedString }}
+          </div> -->
+          <!-- Admin Account Dropdown (Moved from Drawer to Here) -->
+          <q-btn-dropdown
+            flat
+            dense
+            no-caps
+            dropdown-icon="keyboard_arrow_down"
+            style="max-width: 200px"
+          >
+            <template v-slot:label>
+              <q-avatar size="25px" class="bg-white">
+                <img :src="previewAdminImage" />
+              </q-avatar>
+              <span class="q-ml-sm">
+                {{
+                  adminInformationContent && adminInformationContent.Firstname
+                    ? adminInformationContent.Firstname +
+                      " " +
+                      adminInformationContent.Lastname
+                    : "Loading..."
+                }}
+              </span>
+            </template>
+
+            <q-list>
+              <q-item clickable v-ripple @click="logout">
+                <q-item-section avatar>
+                  <q-icon name="logout" color="red" />
+                </q-item-section>
+                <q-item-section class="text-red">Logout</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </q-toolbar>
+      </q-header>
+
+      <q-drawer
+        v-if="shouldShowSideNav"
+        v-model="drawer"
+        show-if-above
+        :mini="miniState"
+        @click.capture="drawerClick"
+        :width="250"
+        :breakpoint="500"
+        bordered
+        content-class="fit"
+        :class="$q.dark.isActive ? 'bg-accent' : 'bg-accent'"
+        class="q-px-sm shadow-1"
       >
-        <q-list padding class="q-pb-xl q-mb-xl text-secondary">
-          <template v-for="(item, index) in linksList" :key="index">
-            <!-- Parent with children (Dropdown) -->
-            <q-expansion-item
-              v-if="item.children"
-              expand-separator
-              :icon="item.icon"
-              :label="item.title"
-            >
-              <q-list>
-                <template
-                  v-for="(child, childIndex) in item.children"
-                  :key="childIndex"
-                >
-                  <!-- Render each child -->
-                  <q-item clickable v-ripple :to="child.link">
-                    <q-item-section avatar class="q-pl-xl">
-                      <q-icon
-                        :name="child.icon"
-                        :color="
-                          child.link === $route.path ? 'primary' : 'secondary'
-                        "
-                      />
-                    </q-item-section>
-                    <q-item-section class="text-left">{{
-                      child.title
-                    }}</q-item-section>
-                  </q-item>
-
-                  <!-- Insert "Waiting Time" only after "Personal Info" -->
-                  <template v-if="child.title === 'Personal Info' && manager">
-                    <q-item clickable v-ripple>
+        <q-scroll-area
+          class="fit"
+          :horizontal-thumb-style="{ opacity: 0 }"
+          style="height: 100%"
+        >
+          <q-list padding class="q-pb-xl q-mb-xl text-secondary">
+            <template v-for="(item, index) in linksList" :key="index">
+              <!-- Parent with children (Dropdown) -->
+              <q-expansion-item
+                v-if="item.children"
+                expand-separator
+                :icon="item.icon"
+                :label="item.title"
+              >
+                <q-list>
+                  <template
+                    v-for="(child, childIndex) in item.children"
+                    :key="childIndex"
+                  >
+                    <!-- Render each child -->
+                    <q-item clickable v-ripple :to="child.link">
                       <q-item-section avatar class="q-pl-xl">
                         <q-icon
-                          name="hourglass_top"
-                          :color="isMenuOpen ? 'primary' : 'secondary'"
+                          :name="child.icon"
+                          :color="
+                            child.link === $route.path ? 'primary' : 'secondary'
+                          "
                         />
                       </q-item-section>
-                      <q-item-section
-                        class="text-left"
-                        :class="{ 'text-primary': isMenuOpen }"
-                        >Waiting Time</q-item-section
-                      >
-                      <!-- Waiting time seamless dialog -->
-                      <q-menu
-                        fit
-                        anchor="top right"
-                        self="top left"
-                        transition-show="jump-down"
-                        transition-hide="jump-up"
-                      >
-                        <div class="q-pa-sm">
-                          <div class="q-gutter-sm">
-                            <!-- Help button container -->
+                      <q-item-section class="text-left">{{
+                        child.title
+                      }}</q-item-section>
+                    </q-item>
+
+                    <!-- Insert "Waiting Time" only after "Personal Info" -->
+                    <template v-if="child.title === 'Personal Info' && manager">
+                      <q-item clickable v-ripple>
+                        <q-item-section avatar class="q-pl-xl">
+                          <q-icon
+                            name="hourglass_top"
+                            :color="isMenuOpen ? 'primary' : 'secondary'"
+                          />
+                        </q-item-section>
+                        <q-item-section
+                          class="text-left"
+                          :class="{ 'text-primary': isMenuOpen }"
+                          >Waiting Time</q-item-section
+                        >
+                        <!-- Waiting time seamless dialog -->
+                        <q-menu
+                          fit
+                          anchor="top right"
+                          self="top left"
+                          transition-show="jump-down"
+                          transition-hide="jump-up"
+                        >
+                          <div class="q-pa-sm">
+                            <div class="q-gutter-sm">
+                              <!-- Help button container -->
+                              <div class="row no-wrap" style="width: 100%">
+                                <div class="col" />
+                                <div class="col-auto">
+                                  <q-btn
+                                    flat
+                                    round
+                                    dense
+                                    icon="help_outline"
+                                    color="primary"
+                                    @click="showHelpWaitingTime = true"
+                                    style="
+                                      min-width: 32px;
+                                      width: 32px;
+                                      height: 32px;
+                                    "
+                                  />
+                                </div>
+                              </div>
+
+                              <!-- Help Dialog -->
+                              <q-dialog v-model="showHelpWaitingTime">
+                                <q-card
+                                  class="q-pa-md"
+                                  style="max-width: 400px; width: 90vw"
+                                >
+                                  <q-card-section>
+                                    <div class="text-h6">Instructions</div>
+                                  </q-card-section>
+
+                                  <q-card-section>
+                                    <p>
+                                      The waiting time field allows you to define
+                                      the estimated time a customer is expected to
+                                      wait before being served. Enter the time in
+                                      the format <strong>MM:SS</strong> — for
+                                      example, "02:30" for 2 minutes and 30
+                                      seconds. This input helps the system provide
+                                      more accurate queue estimates and improves
+                                      overall service planning.
+                                    </p>
+                                  </q-card-section>
+
+                                  <q-card-actions align="right">
+                                    <q-btn
+                                      flat
+                                      label="Close"
+                                      color="primary"
+                                      v-close-popup
+                                    />
+                                  </q-card-actions>
+                                </q-card>
+                              </q-dialog>
+
+                              <!-- Main Card Content -->
+                              <q-card class="q-pa-md no-border shadow-none" flat>
+                                <q-form @submit.prevent="process">
+                                  <q-input
+                                    v-model="formData.Waiting_time"
+                                    mask="##:##"
+                                    fill-mask="0"
+                                    label="Enter Time (MM:SS)"
+                                    :error="
+                                      formError.hasOwnProperty('Waiting_time')
+                                    "
+                                    :error-message="formError.Waiting_time"
+                                    :hint="
+                                      timeData
+                                        ? `Last saved time: ${timeData}`
+                                        : 'Format: MM:SS'
+                                    "
+                                    outlined
+                                    class="q-mb-md text-h6"
+                                  />
+                                  <div class="row justify-center">
+                                    <q-btn
+                                      color="primary"
+                                      label="Save"
+                                      icon="save"
+                                      @click="process"
+                                    />
+                                  </div>
+                                </q-form>
+                              </q-card>
+                            </div>
+                          </div>
+
+                        </q-menu>
+                      </q-item>
+
+                      <q-item clickable v-ripple @click="resetQueue()">
+                        <q-item-section avatar class="q-pl-xl">
+                          <q-icon name="restart_alt" />
+                        </q-item-section>
+                        <q-item-section class="text-left"
+                          >Reset Queue</q-item-section
+                        >
+                      </q-item>
+
+                      <q-item clickable v-ripple>
+                        <q-item-section avatar class="q-pl-xl">
+                          <q-icon
+                            name="schedule"
+                            :color="isMenuOpen ? 'primary' : 'secondary'"
+                          />
+                        </q-item-section>
+                        <q-item-section
+                          class="text-left"
+                          :class="{ 'text-primary': isMenuOpen }"
+                        >
+                          Break Time
+                        </q-item-section>
+                        <q-menu
+                          fit
+                          anchor="top right"
+                          self="top left"
+                          transition-show="jump-down"
+                          transition-hide="jump-up"
+                        >
+                          <div class="q-pa-sm">
+                            <!-- Help Button Row -->
                             <div class="row no-wrap" style="width: 100%">
                               <div class="col" />
                               <div class="col-auto">
@@ -136,18 +322,18 @@
                                   dense
                                   icon="help_outline"
                                   color="primary"
-                                  @click="showHelpWaitingTime = true"
                                   style="
                                     min-width: 32px;
                                     width: 32px;
                                     height: 32px;
                                   "
+                                  @click="showHelpBreakTime = true"
                                 />
                               </div>
                             </div>
 
                             <!-- Help Dialog -->
-                            <q-dialog v-model="showHelpWaitingTime">
+                            <q-dialog v-model="showHelpBreakTime">
                               <q-card
                                 class="q-pa-md"
                                 style="max-width: 400px; width: 90vw"
@@ -158,14 +344,15 @@
 
                                 <q-card-section>
                                   <p>
-                                    The waiting time field allows you to define
-                                    the estimated time a customer is expected to
-                                    wait before being served. Enter the time in
-                                    the format <strong>MM:SS</strong> — for
-                                    example, "02:30" for 2 minutes and 30
-                                    seconds. This input helps the system provide
-                                    more accurate queue estimates and improves
-                                    overall service planning.
+                                    The break time feature allows you to define a
+                                    time range when a teller is unavailable due to
+                                    a scheduled break. Select the starting time
+                                    using the "From" field and the ending time
+                                    using the "To" field. Make sure both fields
+                                    are correctly set in 24-hour format (e.g.,
+                                    13:00 for 1 PM). Once both times are selected,
+                                    click "Save" to apply the break schedule for
+                                    that teller.
                                   </p>
                                 </q-card-section>
 
@@ -180,301 +367,180 @@
                               </q-card>
                             </q-dialog>
 
-                            <!-- Main Card Content -->
+                            <!-- Main Card -->
                             <q-card class="q-pa-md no-border shadow-none" flat>
-                              <q-form @submit.prevent="process">
-                                <q-input
-                                  v-model="formData.Waiting_time"
-                                  mask="##:##"
-                                  fill-mask="0"
-                                  label="Enter Time (MM:SS)"
-                                  :error="
-                                    formError.hasOwnProperty('Waiting_time')
-                                  "
-                                  :error-message="formError.Waiting_time"
-                                  :hint="
-                                    timeData
-                                      ? `Last saved time: ${timeData}`
-                                      : 'Format: MM:SS'
-                                  "
-                                  outlined
-                                  class="q-mb-md text-h6"
-                                />
-                                <div class="row justify-center">
+                              <q-form @submit.prevent="saveBreakTime">
+                                <!-- From Section -->
+                                <q-item>
+                                  <q-item-section>
+                                    <q-item-label class="text-h6"
+                                      >From:</q-item-label
+                                    >
+                                    <q-btn
+                                      color="primary"
+                                      icon="schedule"
+                                      :label="formattedFromTime"
+                                      :error="
+                                        formError.hasOwnProperty('break_from')
+                                      "
+                                      :error-message="formError.break_from"
+                                      @click="showFromPicker = true"
+                                    />
+                                    <q-input
+                                      v-model="formDataBreak.break_from"
+                                      outlined
+                                      dense
+                                      type="time"
+                                      format24h
+                                      v-if="showFromPicker"
+                                      @update:model-value="showFromPicker = false"
+                                    />
+                                  </q-item-section>
+                                </q-item>
+
+                                <!-- To Section -->
+                                <q-item>
+                                  <q-item-section>
+                                    <q-item-label class="text-h6"
+                                      >To:</q-item-label
+                                    >
+                                    <q-btn
+                                      color="primary"
+                                      icon="schedule"
+                                      :label="formattedToTime"
+                                      :error="
+                                        formError.hasOwnProperty('break_to')
+                                      "
+                                      :error-message="formError.break_to"
+                                      @click="showToPicker = true"
+                                    />
+                                    <q-input
+                                      outlined
+                                      dense
+                                      type="time"
+                                      format24h
+                                      v-model="formDataBreak.break_to"
+                                      v-if="showToPicker"
+                                      @update:model-value="showToPicker = false"
+                                    />
+                                  </q-item-section>
+                                </q-item>
+
+                                <div class="row justify-center q-mt-md">
                                   <q-btn
                                     color="primary"
                                     label="Save"
                                     icon="save"
-                                    @click="process"
+                                    @click="saveBreakTime"
                                   />
                                 </div>
                               </q-form>
                             </q-card>
                           </div>
-                        </div>
-
-                      </q-menu>
-                    </q-item>
-
-                    <q-item clickable v-ripple @click="resetQueue()">
-                      <q-item-section avatar class="q-pl-xl">
-                        <q-icon name="restart_alt" />
-                      </q-item-section>
-                      <q-item-section class="text-left"
-                        >Reset Queue</q-item-section
-                      >
-                    </q-item>
-
-                    <q-item clickable v-ripple>
-                      <q-item-section avatar class="q-pl-xl">
-                        <q-icon
-                          name="schedule"
-                          :color="isMenuOpen ? 'primary' : 'secondary'"
-                        />
-                      </q-item-section>
-                      <q-item-section
-                        class="text-left"
-                        :class="{ 'text-primary': isMenuOpen }"
-                      >
-                        Break Time
-                      </q-item-section>
-                      <q-menu
-                        fit
-                        anchor="top right"
-                        self="top left"
-                        transition-show="jump-down"
-                        transition-hide="jump-up"
-                      >
-                        <div class="q-pa-sm">
-                          <!-- Help Button Row -->
-                          <div class="row no-wrap" style="width: 100%">
-                            <div class="col" />
-                            <div class="col-auto">
-                              <q-btn
-                                flat
-                                round
-                                dense
-                                icon="help_outline"
-                                color="primary"
-                                style="
-                                  min-width: 32px;
-                                  width: 32px;
-                                  height: 32px;
-                                "
-                                @click="showHelpBreakTime = true"
-                              />
-                            </div>
-                          </div>
-
-                          <!-- Help Dialog -->
-                          <q-dialog v-model="showHelpBreakTime">
-                            <q-card
-                              class="q-pa-md"
-                              style="max-width: 400px; width: 90vw"
-                            >
-                              <q-card-section>
-                                <div class="text-h6">Instructions</div>
-                              </q-card-section>
-
-                              <q-card-section>
-                                <p>
-                                  The break time feature allows you to define a
-                                  time range when a teller is unavailable due to
-                                  a scheduled break. Select the starting time
-                                  using the "From" field and the ending time
-                                  using the "To" field. Make sure both fields
-                                  are correctly set in 24-hour format (e.g.,
-                                  13:00 for 1 PM). Once both times are selected,
-                                  click "Save" to apply the break schedule for
-                                  that teller.
-                                </p>
-                              </q-card-section>
-
-                              <q-card-actions align="right">
-                                <q-btn
-                                  flat
-                                  label="Close"
-                                  color="primary"
-                                  v-close-popup
-                                />
-                              </q-card-actions>
-                            </q-card>
-                          </q-dialog>
-
-                          <!-- Main Card -->
-                          <q-card class="q-pa-md no-border shadow-none" flat>
-                            <q-form @submit.prevent="saveBreakTime">
-                              <!-- From Section -->
-                              <q-item>
-                                <q-item-section>
-                                  <q-item-label class="text-h6"
-                                    >From:</q-item-label
-                                  >
-                                  <q-btn
-                                    color="primary"
-                                    icon="schedule"
-                                    :label="formattedFromTime"
-                                    :error="
-                                      formError.hasOwnProperty('break_from')
-                                    "
-                                    :error-message="formError.break_from"
-                                    @click="showFromPicker = true"
-                                  />
-                                  <q-input
-                                    v-model="formDataBreak.break_from"
-                                    outlined
-                                    dense
-                                    type="time"
-                                    format24h
-                                    v-if="showFromPicker"
-                                    @update:model-value="showFromPicker = false"
-                                  />
-                                </q-item-section>
-                              </q-item>
-
-                              <!-- To Section -->
-                              <q-item>
-                                <q-item-section>
-                                  <q-item-label class="text-h6"
-                                    >To:</q-item-label
-                                  >
-                                  <q-btn
-                                    color="primary"
-                                    icon="schedule"
-                                    :label="formattedToTime"
-                                    :error="
-                                      formError.hasOwnProperty('break_to')
-                                    "
-                                    :error-message="formError.break_to"
-                                    @click="showToPicker = true"
-                                  />
-                                  <q-input
-                                    outlined
-                                    dense
-                                    type="time"
-                                    format24h
-                                    v-model="formDataBreak.break_to"
-                                    v-if="showToPicker"
-                                    @update:model-value="showToPicker = false"
-                                  />
-                                </q-item-section>
-                              </q-item>
-
-                              <div class="row justify-center q-mt-md">
-                                <q-btn
-                                  color="primary"
-                                  label="Save"
-                                  icon="save"
-                                  @click="saveBreakTime"
-                                />
-                              </div>
-                            </q-form>
-                          </q-card>
-                        </div>
-                      </q-menu>
-                    </q-item>
+                        </q-menu>
+                      </q-item>
+                    </template>
                   </template>
-                </template>
-              </q-list>
-            </q-expansion-item>
+                </q-list>
+              </q-expansion-item>
 
-            <!-- Normal Menu Item -->
-            <q-item v-else clickable v-ripple :to="item.link" exact>
-              <q-item-section avatar>
-                <q-icon
-                  :name="item.icon"
-                  :color="item.link === $route.path ? 'primary' : 'secondary'"
-                />
-              </q-item-section>
-              <q-item-section v-if="!miniState">{{
-                item.title
-              }}</q-item-section>
-            </q-item>
-          </template>
-        </q-list>
-      </q-scroll-area>
-
-      <!-- Mini Drawer Toggle Button -->
-      <div class="q-mini-drawer absolute" style="top: 10px; right: -17px">
-        <q-btn
-          dense
-          round
-          unelevated
-          color="primary"
-          :icon="miniState ? 'chevron_right' : 'chevron_left'"
-          @click="toggleMiniState"
-        />
-      </div>
-
-      <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
-      <!-- <div
-        class="q-pa-xs absolute-bottom full-width q-mt-md bg-accent"
-        style="border-top: 1px solid #ccc"
-      >
-        <q-btn-dropdown class="full-width" flat no-caps dropdown-icon="none">
-          <template v-slot:label>
-            <q-item class="none flex items-center">
-              <q-item-section avatar>
-                <q-img
-                  :src="previewAdminImage"
-                  style="
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 50%;
-                    border: 1px solid #1c5d99;
-                  "
-                  fit="cover"
-                />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>
-                  {{
-                    adminInformationContent && adminInformationContent.Firstname
-                      ? adminInformationContent.Firstname +
-                        " " +
-                        adminInformationContent.Lastname
-                      : "Loading..."
-                  }}
-                </q-item-label>
-              </q-item-section>
-            </q-item>
-          </template>
-
-          <q-list>
-            <q-item clickable v-ripple @click="logout">
-              <q-item-section avatar>
-                <q-icon name="logout" color="red" />
-              </q-item-section>
-              <q-item-section class="text-red">Logout</q-item-section>
-            </q-item>
+              <!-- Normal Menu Item -->
+              <q-item v-else clickable v-ripple :to="item.link" exact>
+                <q-item-section avatar>
+                  <q-icon
+                    :name="item.icon"
+                    :color="item.link === $route.path ? 'primary' : 'secondary'"
+                  />
+                </q-item-section>
+                <q-item-section v-if="!miniState">{{
+                  item.title
+                }}</q-item-section>
+              </q-item>
+            </template>
           </q-list>
-        </q-btn-dropdown>
-      </div> -->
-    </q-drawer>
-    <q-page-container style="padding-bottom: 20px">
-      <router-view />
-    </q-page-container>
+        </q-scroll-area>
 
-    <q-footer class="bg-secondary text-grey-4 q-pa-sm fixed-bottom">
-      <div class="row items-center justify-between full-width">
-        <!-- Left Side: Copyright Text -->
-        <span class="text-caption">
-          © 2025 VRTSystems Technologies Corporation.
-        </span>
-
-        <!-- Right Side: Formatted Time -->
-        <div class="row items-center">
-          <q-icon
-            name="calendar_today"
-            color="white"
-            size="1em"
-            class="q-mr-xs"
+        <!-- Mini Drawer Toggle Button -->
+        <div class="q-mini-drawer absolute" style="top: 10px; right: -17px">
+          <q-btn
+            dense
+            round
+            unelevated
+            color="primary"
+            :icon="miniState ? 'chevron_right' : 'chevron_left'"
+            @click="toggleMiniState"
           />
-          <span class="text-caption">{{ formattedString }}</span>
         </div>
-      </div>
-    </q-footer>
-  </q-layout>
+
+        <!-- 🔹 ADMIN ACCOUNT SECTION (USING <div>) -->
+        <!-- <div
+          class="q-pa-xs absolute-bottom full-width q-mt-md bg-accent"
+          style="border-top: 1px solid #ccc"
+        >
+          <q-btn-dropdown class="full-width" flat no-caps dropdown-icon="none">
+            <template v-slot:label>
+              <q-item class="none flex items-center">
+                <q-item-section avatar>
+                  <q-img
+                    :src="previewAdminImage"
+                    style="
+                      width: 30px;
+                      height: 30px;
+                      border-radius: 50%;
+                      border: 1px solid #1c5d99;
+                    "
+                    fit="cover"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>
+                    {{
+                      adminInformationContent && adminInformationContent.Firstname
+                        ? adminInformationContent.Firstname +
+                          " " +
+                          adminInformationContent.Lastname
+                        : "Loading..."
+                    }}
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+
+            <q-list>
+              <q-item clickable v-ripple @click="logout">
+                <q-item-section avatar>
+                  <q-icon name="logout" color="red" />
+                </q-item-section>
+                <q-item-section class="text-red">Logout</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div> -->
+      </q-drawer>
+      <q-page-container style="padding-bottom: 20px">
+        <router-view />
+      </q-page-container>
+
+      <q-footer class="bg-secondary text-grey-4 q-pa-sm fixed-bottom">
+        <div class="row items-center justify-between full-width">
+          <!-- Left Side: Copyright Text -->
+          <span class="text-caption">
+            © 2025 VRTSystems Technologies Corporation.
+          </span>
+
+          <!-- Right Side: Formatted Time -->
+          <div class="row items-center">
+            <q-icon
+              name="calendar_today"
+              color="white"
+              size="1em"
+              class="q-mr-xs"
+            />
+            <span class="text-caption">{{ formattedString }}</span>
+          </div>
+        </div>
+      </q-footer>
+    </q-layout>
 </template>
 
 <script>

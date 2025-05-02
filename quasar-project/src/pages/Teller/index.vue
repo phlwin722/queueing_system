@@ -1,5 +1,83 @@
 <template>
-  <q-layout view="hHh lpR fFf">
+        <!-- Show message for mobile screens -->
+        <q-layout v-if="$q.screen.lt.md">
+          <q-header class="q-px-md">
+      <q-toolbar>
+        <!-- Fullscreen Toggle Button -->
+        <q-btn
+          flat
+          round
+          dense
+          class="q-mr-sm"
+          color="white"
+          style="min-width: 32px; width: 32px; height: 32px; position: absolute"
+          @click="$q.fullscreen.toggle()"
+          :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
+        />
+        <q-img
+          src="~assets/vrtlogowhite1.png"
+          alt="Logo"
+          fit="full"
+          :style="{
+            maxWidth: $q.screen.lt.sm ? '100px' : '160px',
+            marginLeft: '50px',
+          }"
+          class="q-ml-sm"
+        />
+        <div>{{ formattedString }}</div>
+
+        <q-space />
+
+        <!-- Avatar with Dropdown Menu -->
+        <div class="row items-center justify-center q-gutter-md">
+          <p class="q-mb-none">
+            {{
+              `${tellerInformation?.tellerFirstname || ""} ${
+                tellerInformation?.tellerLastname || "Loading"
+              }`
+            }}
+          </p>
+          <q-avatar
+            size="40px"
+            class="cursor-pointer"
+            @click="menuOpen = !menuOpen"
+          >
+            <q-img
+              :src="imageUrl || require('assets/no-image.png')"
+              alt="User Avatar"
+            />
+          </q-avatar>
+        </div>
+
+        <q-menu
+          v-model="menuOpen"
+          no-parent-event
+          anchor="bottom right"
+          self="top right"
+        >
+          <q-list style="min-width: 150px">
+            <q-item clickable v-close-popup @click="logout">
+              <q-item-section avatar>
+                <q-icon name="logout" />
+              </q-item-section>
+              <q-item-section>Logout</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-toolbar>
+    </q-header>
+    
+      <!-- Mobile message for users -->
+      <div class="q-pa-md">
+        <q-card class="bg-negative text-white" style="margin-top: 80px;">
+          <q-card-section class="text-center text-h6">
+            We’re working hard to improve this feature, but it's not available on mobile devices just yet.
+            Please visit us from a desktop for the full experience. Thank you for your patience!
+          </q-card-section>
+        </q-card>
+      </div>
+       </q-layout>
+  <q-layout view="hHh lpR fFf" v-else>
     <q-header class="q-px-md">
       <q-toolbar>
         <!-- Fullscreen Toggle Button -->
