@@ -41,7 +41,7 @@
                 self="center left"
                 :offset="[10, 10]"
               >
-                <strong>Delete </strong> Appointment
+                <strong>Cancel </strong> Appointment
               </q-tooltip>
             </q-btn>
           </div>
@@ -123,7 +123,7 @@
                   :offset="[10, 10]"
                   class="bg-secondary"
                 >
-                  Delete appointment
+                Cancel appointment
                 </q-tooltip>
               </q-btn>
             </div>
