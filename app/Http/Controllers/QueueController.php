@@ -855,6 +855,7 @@ class QueueController extends Controller
             ->leftJoin('types as tp', 'tp.id', '=', 'ap.type_id')
             ->leftJoin('branchs as b', 'b.id', '=', 'ap.branch_id')
             ->first();
+
         if ($data) {
             if ($data->status == 'Booked') {
                 $dateNow = Carbon::now()->toDateString();
@@ -862,11 +863,19 @@ class QueueController extends Controller
                     return response()->json([
                         'value' => $data
                     ]);
+                } else if ($data->appointment_date > $dateNow && $data->branch_id == $request->branch_id) {
+                    return response()->json([
+                        'errors' => "The reference number appointment for Online Application is not yet valid your appointment date is {$data->appointment_date}."
+                    ],400);
                 } else {
                     return response()->json([
-                        'errors' => "The reference number appointment for Online Application is no longer valid."
+                        'errors' => "The reference number appointment for the Online Application is not valid for this branch. Your appointment branch {$data->branch_name}"
                     ],400);
                 }
+            } else if ($data->status == 'Expired') {
+                return response()->json([
+                    'errors' => "The reference number appointment for Online Application is no longer valid."
+                ],400);
             } else {
                 return response()->json([
                     'errors' => 'The customer has already been finished.'
