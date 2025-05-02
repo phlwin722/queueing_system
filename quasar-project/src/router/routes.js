@@ -28,7 +28,7 @@ const routes = [
     component: () => import('pages/customer/customer_Register_Manual/index.vue')
   },
   {
-    path: '/customer-thankyou' ,
+    path: '/customer-thankyou/:tokenUrl',  // Ensure the parameter name matches
     component: () => import('pages/customer/customer_Thankyou/index.vue')
   },
   {

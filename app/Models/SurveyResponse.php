@@ -9,5 +9,12 @@ class SurveyResponse extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'rating', 'ease_of_use', 'waiting_time_satisfaction', 'suggestions'];
+    protected $fillable = [
+        'name', 
+        'rating', 
+        'ease_of_use', 
+        'waiting_time_satisfaction', 
+        'suggestions',
+        'branch_id'
+    ];
 }
