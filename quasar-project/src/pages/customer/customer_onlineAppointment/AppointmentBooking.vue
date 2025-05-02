@@ -443,7 +443,10 @@ export default {
         formError.value = {};
         form.value.branch_id = selectedBranch.value;
 
-        await $axios.post("/appointments", form.value);
+        const { data  } = await $axios.post("/appointments", form.value);
+        form.value.referenceNum = data.referenceNumber
+        form.value.id = data.id
+        await $axios.post("/sent-email-appointment",form.value );
         fetchAvailableSlot();
 
         setTimeout(() => {
