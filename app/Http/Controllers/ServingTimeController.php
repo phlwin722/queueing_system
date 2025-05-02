@@ -93,7 +93,7 @@ class ServingTimeController extends Controller
 
         $stats = DB::table('serving_times')
             ->where('type_id', $request->type_id)
-            ->whereDate('updated_at', $yesterday)
+            ->whereDate('updated_at', '<=', $yesterday) // From oldest to yesterday
             ->selectRaw('MIN(minutes) as min_minutes, MAX(minutes) as max_minutes, AVG(minutes) as avg_minutes')
             ->first();
 
@@ -129,10 +129,10 @@ class ServingTimeController extends Controller
         // Get yesterday's date
         $yesterday = Carbon::yesterday();
 
-        // Get the average serving time for each type_id for yesterday
+        // Get the average serving time for each type_id up to yesterday
         $stats = DB::table('serving_times')
             ->whereIn('type_id', $type_ids) // Filter by the selected type_ids
-            ->whereDate('updated_at', $yesterday) // Filter by yesterday's date
+            ->whereDate('updated_at', '<=', $yesterday) // From oldest to yesterday
             ->where('branch_id', $branch_id) // Filter by branch_id
             ->selectRaw('type_id, AVG(minutes) as avg_minutes') // Select type_id and average minutes
             ->groupBy('type_id') // Group by type_id to get the average per type

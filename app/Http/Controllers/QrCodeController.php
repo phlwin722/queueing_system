@@ -32,10 +32,14 @@ class QrCodeController extends Controller
             // Use the existing unused QR code
             $token = $qrCode->token;
         }
+        $route = 'customer-register/'.$token;
 
-        $qrCodeUrl = url($token); // Example: http://your-app.com/scan-qr/abcd1234
+        $qrCodeUrl = url($route); // Example: http://your-app.com/scan-qr/abcd1234
 
-        return response()->json(['qr_code_url' => $qrCodeUrl]);
+        return response()->json([
+            'qr_code_url' => $qrCodeUrl,
+            'token' => $token,
+        ]);
     }
 
     public function scanQrCode(Request $request)
