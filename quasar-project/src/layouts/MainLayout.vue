@@ -55,15 +55,25 @@
           </q-btn-dropdown>
         </q-toolbar>
       </q-header>
+
       <!-- Mobile message for users -->
-      <div class="q-pa-md">
-        <q-card class="bg-negative text-white" style="margin-top: 80px;">
-          <q-card-section class="text-center text-h6">
-            We’re working hard to improve this feature, but it's not available on mobile devices just yet.
-            Please visit us from a desktop for the full experience. Thank you for your patience!
+      <div class="q-pa-md flex flex-center" style="min-height: 100vh;">
+        <q-card class="bg-warning text-secondary q-pa-lg" style="max-width: 400px; width: 90%; text-align: center;">
+          <q-card-section>
+            <q-icon name="mobile_off" size="48px" class="q-mb-md text-accent" />
+            <div class="text-h6 q-mb-sm text-accent">
+              Feature Unavailable on Mobile
+            </div>
+            <div class="bg-white rounded-borders q-pa-md">
+            <p class="text-body1 q-mb-md text-secondary">
+              We’re working hard to improve this feature, but it's not available on mobile devices just yet.
+              Please visit us from a desktop for the full experience. Thank you for your patience!
+            </p>
+            </div>
           </q-card-section>
         </q-card>
       </div>
+
     </q-layout>
     <q-layout view="hHh LpR fFf" class="shadow-2 rounded-borders" v-else>
       <q-header v-if="shouldShowSideNav">
