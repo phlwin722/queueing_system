@@ -1,17 +1,18 @@
 <template>
-  <q-page class="q-px-sm" style="height: auto; min-height: unset">
+  <q-page class="q-px-sm q-pb-md" style="height: auto; min-height: unset">
     <div class="q-ma-md bg-white q-pa-sm shadow-1">
       <q-breadcrumbs class="q-mx-sm">
         <q-breadcrumbs-el icon="home" to="/admin/dashboard" />
         <q-breadcrumbs-el label="Branch Appointment" icon="person" />
         <q-breadcrumbs-el
-          label="Appoitnemnt"
+          label="Appointment"
           icon="groups"
           to="/admin/appointment/create"
         />
       </q-breadcrumbs>
     </div>
-    <q-card class="q-ma-md full-width" flat bordered>
+
+    <q-card class="q-my-md q-mx-md" flat bordered>
       <q-card-section class="full-width">
         <div class="text-h6 q-mb-md">Available Slots Configuration</div>
 
@@ -27,7 +28,7 @@
               emit-value
               option-label="branch_name"
               option-value="id"
-              filled
+              outlined
               required
               :error="formError.hasOwnProperty('branch_id')"
               :error-message="
@@ -62,7 +63,7 @@
                     "
                     label="Start Date"
                   />
-                  <q-icon name="arrow_forward" class="q-mx-sm" />
+                  <q-icon name="arrow_forward" class="q-mx-sm q-mb-lg" />
                   <q-input
                     v-model="inputValue.end"
                     v-on="inputEvents.end"
@@ -112,7 +113,7 @@
               v-model="newSlotCount"
               label="Available Slots per Day"
               type="number"
-              filled
+              outlined
               dense
               :error="formError.hasOwnProperty('slots_per_day')"
               :error-message="formError.slots_per_day"

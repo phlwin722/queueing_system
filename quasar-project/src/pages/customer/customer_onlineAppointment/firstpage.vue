@@ -118,7 +118,7 @@
               Choose the branch where you want to book your appointment.
             </q-step>
             <q-step :name="3" title="Choose Schedule" icon="schedule">
-              Pick a date and time that suits your schedule.
+              Pick a date that suits your schedule.
             </q-step>
             <q-step :name="4" title="Confirm Submission" icon="check_circle">
               Review your details and submit your appointment.

@@ -346,22 +346,22 @@
               </q-card>
 
               <!-- Drag area of Currency -->
-              <q-scroll-area
-                class="my-scroll"
-                style="height: 250px; overflow-y: auto"
-              >
+              <q-scroll-area 
+                class="my-scroll" 
+                style="height: 400px; overflow-y: auto">
                 <div
                   class=""
                   :style="{
                     height:
                       tellerInformation?.type_name == 'Online Appointment' ||
                       tellerInformation?.type_name == 'Manual Queueing'
-                        ? '600px'
+                        ? '500px'
                         : '200px',
-                    marginTop: '15px',
+                   
                   }"
                 >
-                  <div div class="row bg-white q-pa-md">
+                
+                  <div class="row bg-info text-secondary q-pa-md rounded-borders">
                     <div class="col-6"><strong>Currency</strong></div>
                     <div class="col-3"><strong>Buy</strong></div>
                     <div class="col-3"><strong>Sell</strong></div>
@@ -374,7 +374,7 @@
                     @dragstart="onDragStartCurrency($event, row)"
                     class="bg-white q-pl-md no-margin hover-animate"
                   >
-                    <q-item-section>
+                    <q-item-section class="q-pt-sm">
                       <div class="row">
                         <div class="col-6">
                           <!-- Flag icon -->
@@ -398,8 +398,9 @@
                       </div>
                     </q-item-section>
                   </q-item>
+                  
                 </div>
-              </q-scroll-area>
+                </q-scroll-area>
             </div>
 
 
