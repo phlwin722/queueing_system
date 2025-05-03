@@ -1,6 +1,6 @@
 <template>
         <!-- Show message for mobile screens -->
-        <q-layout v-if="$q.screen.lt.md">
+        <q-layout v-if="$q.screen.lt.sm">
           <q-header class="q-px-md">
       <q-toolbar>
         <!-- Fullscreen Toggle Button -->
@@ -212,13 +212,12 @@
                   </q-item>
                   <q-separator />
                   <q-separator />
-                  <q-item>
-                    <q-item-section>
+                  <q-item >
+                    <q-item-section >
                       <q-scroll-area
-                        class="my-scroll"
                         style="height: 200px; overflow-y: auto"
                       >
-                        <q-list bordered separator>
+                        <q-list style="padding: 5px;">
                           <q-item
                             v-if="paginatedQueueList.length === 0"
                             class="text-center text-grey q-pa-md"
@@ -234,7 +233,7 @@
                             :key="customer.id"
                           >
                           <q-item
-                            style="height: 80px; border-radius: 10px;"
+                            style="height: 80px; border-radius: 10px; "
                             class="bg-white draggable-item shadow-2 q-mb-sm"
                             :class="{ 'drag-over': dragOverIndex === index }"
                             draggable="true"
@@ -258,7 +257,7 @@
                                 "
                               >
                                 <!-- Content goes here -->
-                                {{ customer.priority_service ? "VIP" : "" }}
+                                {{ customer.priority_service ? "PRIO" : "" }}
                                 <q-tooltip
                                   anchor="center right"
                                   self="center left"
@@ -364,7 +363,8 @@
                       tellerInformation?.type_name == 'Manual Queueing'
                         ? '500px'
                         : '200px',
-                   
+                    marginTop: '10px',
+                    marginBottom: '10px',
                   }"
                 >
                 <!-- <q-scroll-area 
@@ -745,6 +745,16 @@
                       />
                     </div>
                     <div class="col-12">
+                      <q-input
+                        v-model="Address"
+                        label="Address"
+                        :error="formError.hasOwnProperty('Address')"
+                        :error-message="formError.Address"
+                        outlined
+                        dense
+                      />
+                    </div>
+                    <div class="col-12">
                       <q-select
                         v-model="selectId"
                         :label="
@@ -756,8 +766,8 @@
                         transition-hide="flip-down"
                         outlined
                         @update:modelValue="fecthCurrencty"
-                        :error="formError.hasOwnProperty('type_id')"
-                        :error-message="formError.type_id"
+                        :error="formError.hasOwnProperty('selectId')"
+                        :error-message="formError.selectId"
                         dense
                         :options="categoriesList"
                         option-label="name"
@@ -916,6 +926,7 @@ export default {
     const ServiceAvail = ref("");
     const customModel = ref("no");
     const prioritySelected = ref();
+    const Address = ref ('');
 
     // Pagination
     const currentPage = ref(1);
@@ -1693,7 +1704,9 @@ export default {
           fetchTodayServingStats();
           // Start currency data fetching
           fetchCurrency();
-          fetchCategories();
+          setInterval(() => {
+            fetchCategories();
+          },1500)
           currencyInterval = setInterval(fetchCurrency, 30000);
           fetchBreakTime();
           intervalId = setInterval(() => {
@@ -1851,11 +1864,45 @@ export default {
     };
 
     const joinQueue = async () => {
+      
+      if (isServiceAvailable.value == "") {
+        if (name.value == "" && email.value == "" && Address.value == "") {
+        formError.value.name = "Name field is required";
+        formError.value.email = "Email field is required";
+        formError.value.Address = "Address field is required";
+        formError.value.selectId = "Service is not available at the moment";
+      }
+        return;
+      }
+
+      if (selectId.value == "" && name.value == "" && email.value == "" && Address.value == "" ) {
+        formError.value.name = "Name field is required";
+        formError.value.email = "Email field is required";
+        formError.value.Address = "Address field is required";
+        formError.value.selectId = "Service field is required";
+        return;
+      }
+      
+      if (name.value == "" ) {
+        formError.value.name = "Name field is required";
+        return;
+      } else if (email.value == "") {
+        formError.value.email = "Email field is required";
+        return;
+      } else if (Address.value == "") {
+        formError.value.Address = "Address field is required";
+        return;
+      } else if (selectId.value == "") {
+        formError.value.selectId = "Service field is required";
+        return;
+      }
+
       isLoading.value = true;
       formError.value = [];
       await generateRandomString(); // Generate random token before the submission
 
       try {
+        
         // Check if the category is 'Foreign Exchange' and validate the currency selection
         if (categoryForeignExchange.value === 1) {
           if (currencySelected.value == null) {
@@ -1870,6 +1917,15 @@ export default {
           }
         }
 
+        if (tellerInformation.value.type_name == "Manual Queueing") {
+          $dialog.loading.show({
+            message: "Process is in progress. Hang on...",
+          });
+          
+          setTimeout(() => {
+            $dialog.loading.hide();
+          },2000)
+        }
         // Capitalize the name properly
         name.value = name.value
           .split(" ")
@@ -1895,25 +1951,8 @@ export default {
         );
         indicator.value = selectedCategory.indicator;
 
-        // sending email
-        const response = await $axios.post("sent-email-dashboard", {
-          id: data.id,
-          token: token.value,
-          queue_number: `${indicator.value}#-${String(
-            data.queue_number
-          ).padStart(3, "0")}`,
-          email: email.value,
-          name: name.value,
-          subject: "Queue Alert", // Email subject
-          message: `Welcome to our bank! To provide you with a seamless and efficient service experience,
-                        we’ve implemented a queue system that helps manage customer flow.
-                        Our system is designed to prioritize your needs and minimize waiting times.
-                        You are free to go about your activities, and once your turn is approaching,
-                        you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
-        });
 
-        $notify("positive", "check", "Successfull Joining Queue");
-        // set the qr code value
+
         generatedQrValue.value = `http://192.168.0.164:8080/customer-dashboard/${token.value}`;
 
         // generate the qr code image
@@ -1934,14 +1973,36 @@ export default {
           queuenumber,
           name.value,
           selectId.value.name,
+          Address.value,
           data.window_name,
           qrCodeDataUrl
         );
+
+          // sending email
+          await $axios.post("sent-email-dashboard", {
+          id: data.id,
+          token: token.value,
+          queue_number: `${indicator.value}#-${String(
+            data.queue_number
+          ).padStart(3, "0")}`,
+          email: email.value,
+          name: name.value,
+          subject: "Queue Alert", // Email subject
+          message: `Welcome to our bank! To provide you with a seamless and efficient service experience,
+                        we’ve implemented a queue system that helps manage customer flow.
+                        Our system is designed to prioritize your needs and minimize waiting times.
+                        You are free to go about your activities, and once your turn is approaching,
+                        you’ll receive an email notification with further details. Thank you for choosing us!`, // Email message body
+        });
+
+        $notify("positive", "check", "Successfull Joining Queue");
+        // set the qr code value
 
         // Reset form values after successful submission
         name.value = "";
         email.value = "";
         selectId.value = "";
+        Address.value = "";
         currencySelected.value = "";
         token.value = "";
         customModel.value = "no";
@@ -1982,11 +2043,12 @@ export default {
       queueNumber,
       customerName,
       serviceType,
+      Address,
       window_name,
       qrCodeDataUrl
     ) => {
       try {
-        const printWindow = window.open("", "", "height=400,width=450");
+        const printWindow = window.open("", "", "height=430,width=450, resizable=yes");
 
         // Write the content of the print window
         printWindow.document.write("<html>");
@@ -2067,6 +2129,8 @@ export default {
         printWindow.document.write('<div class="container">');
         printWindow.document.write("<div><p><strong>Name:</strong></p></div>");
         printWindow.document.write("<div><p>" + customerName + "</p></div>");
+        printWindow.document.write("<div><p><strong>Address:</strong></p></div>");
+        printWindow.document.write("<div><p>" + Address + "</p></div>");
         printWindow.document.write(
           "<div><p><strong>Service Type:</strong></p></div>"
         );
@@ -2277,6 +2341,7 @@ export default {
       email,
       indicator,
       email_status,
+      Address,
       joinQueue,
       generateRandomString,
       formError,

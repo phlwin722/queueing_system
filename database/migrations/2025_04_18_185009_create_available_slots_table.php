@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('prepared_time')->nullable();
             $table->integer('is_available')->default(20); // Default to 20 available slots
             $table->unsignedBigInteger('branch_id');
-            $table->timestamps();
 
              // Foreign key
             $table->foreign('branch_id')
@@ -25,6 +24,8 @@ return new class extends Migration
                 ->on('branchs')
                 ->onUpdate('cascade')
                 ->onDelete('cascade'); // Adjust this to your branch table name
+            
+            $table->timestamps();
         });
     }
 

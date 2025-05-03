@@ -49,7 +49,11 @@ class BranchController extends Controller
     public function getCities(Request $request)
     {
         try {
-            $response = Http::get("{$this->baseUrl}/provinces/$request->provinceCode/cities-municipalities/");
+            if ($request->provinceCode == 'National Capital Region (NCR)') {
+                $response = Http::get("{$this->baseUrl}/regions/$request->provinceCode/cities-municipalities/");
+            }else {
+                $response = Http::get("{$this->baseUrl}/provinces/$request->provinceCode/cities-municipalities/");
+            }
             return response()->json([
                 'cities' => $response->json()
             ]);

@@ -19,13 +19,13 @@ return new class extends Migration
                 ->constrained('managers')
                 ->onUpdate('cascade')
                 ->onDelete('set null');  // Adjust as needed: cascade, restrict, set null, etc.
-            $table->string('region');
-            $table->string('province');
-            $table->string('city');
-            $table->string('Barangay');
-            $table->string('address');
-            $table->string('status');
-            $table->string('opening_date');
+            $table->string('region') ->nullable();
+            $table->string('province') ->nullable();
+            $table->string('city') ->nullable();
+            $table->string('Barangay') ->nullable();
+            $table->string('address') ->nullable();
+            $table->string('status') ->nullable();
+            $table->string('opening_date') ->nullable();
             $table->timestamps();
         });
     }

@@ -313,26 +313,20 @@ class AppointmentController extends Controller
             ->where('id', $request->id)
             ->first();
 
-        if ($prevValue && $prevValue->appointment_date != $request->appointment_date) {
-            //update if not equal previous appointment and new appointment
+        //update if not equal previous appointment and new appointment
+        if ($prevValue->appointment_date != $request->appointment_date) {
 
-            // decrease the previous date
-            $decreate = DB::table('available_slots')
-                ->where('date', $prevValue->appointment_date)
-                ->first();
-
+            // increase the previous date
             DB::table('available_slots')
+                ->where('branch_id', $request->branch_id)
                 ->where('date', $prevValue->appointment_date)
-                ->update(['is_available' => $decreate->is_available - 1]);
+                ->increment('is_available', 1);
 
-            // increase the latest date
-            $increase = DB::table('available_slots')
-                ->where('date', $request->appointment_date)
-                ->first();
-
+             // decrease the new date
             DB::table('available_slots')
+                ->where('branch_id', $request->branch_id)
                 ->where('date', $request->appointment_date)
-                ->update(['is_available' => $increase->is_available + 1]);
+                ->decrement('is_available', 1);
         }
 
         // update appointment
