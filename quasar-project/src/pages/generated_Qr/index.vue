@@ -184,7 +184,7 @@ export default {
 
         localStorage.setItem("token", token);
         registrationLink.value =
-          "192.168.0.164:8080/customer-register/" + token;
+          "192.168.0.153:8080/customer-register/" + token;
 
         console.log("Token:", token);
         // console.log("QR Code URL:", fullUrl.slice(7, fullUrl.length));

@@ -1,6 +1,6 @@
 <template>
       <!-- Show message for mobile screens -->
-      <q-layout v-if="$q.screen.lt.md">
+      <q-layout v-if="$q.screen.lt.sm">
        <q-header v-if="shouldShowSideNav">
         <q-toolbar>
           <q-img

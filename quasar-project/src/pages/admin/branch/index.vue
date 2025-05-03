@@ -67,6 +67,18 @@
           </div>
         </div>
       </template>
+...   
+      <template v-slot:body-cell-province="props">
+       <q-td :props="props">
+          {{ props.row.province || 'N\A' }}
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-Barangay="props">
+        <q-td :props="props">
+          {{ props.row.Barangay || 'N\A' }}
+        </q-td>
+      </template>
 
       <template v-slot:body-cell-manager="props">
         <q-td :props="props">

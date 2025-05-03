@@ -21,7 +21,7 @@
         
     </q-header
     <!-- Page Content Area -->
-    <q-page-container :style="!$route.meta.noPadding ? 'padding-left: 7%; padding-right: 7%;' : ''">
+    <q-page-container :style="!$route.meta.noPadding ? 'padding-left: 5%; padding-right: 5%;' : ''">
   <router-view />
 </q-page-container>
 

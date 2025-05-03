@@ -127,27 +127,6 @@
             option-value="id"
             outlined
           />
- 
-          <q-input
-            class="q-mt-md"
-            v-model="form.appointment_date"
-            label="Selected Date"
-            readonly
-            outlined
-            
-            :error="formError.hasOwnProperty('appointment_date')"
-            :error-message="formError.appointment_date ? formError.appointment_date[0] : ''"
-            dense
-          >
-          <template v-slot:append>
-          <q-icon name="help" @click="" class="cursor-pointer" />
-         </template>
-          <q-popup-proxy style="text-align: right;">
-            <q-banner>  
-              You need to click a specific prepared date to set the appointment date.
-            </q-banner>
-         </q-popup-proxy>    
-        </q-input>
 
           <div class="q-pa-md">
             <FullCalendar 
@@ -252,27 +231,6 @@
             option-value="id"
             outlined
           />
-
-          <q-input
-              class="q-mt-md"
-              v-model="form.appointment_date"
-              label="Selected Date"
-              readonly  
-              outlined
-            
-              :error="formError.hasOwnProperty('appointment_date')"
-              :error-message="formError.appointment_date ? formError.appointment_date[0] : ''"
-              dense
-            >
-            <template v-slot:append>
-            <q-icon name="help" @click="" class="cursor-pointer" />
-          </template>
-            <q-popup-proxy style="text-align: right;">
-              <q-banner>  
-                You need to click a specific prepared date to set the appointment date.
-              </q-banner>
-          </q-popup-proxy>    
-          </q-input>
 
           <div class="q-pa-md">
             <FullCalendar :options="calendarOptions" />
@@ -380,6 +338,14 @@ export default {
 
     function handleDateClick(data) {
       form.value.appointment_date = data.dateStr;
+
+      // remove selected date from the calendar
+      const previousSelectedDate = document.querySelector(".fc-daygrid-day.selected");
+      if (previousSelectedDate) {
+        previousSelectedDate.classList.remove("selected");
+      }
+      // add selected date to the calendar
+      data.dayEl.classList.add('selected');
     }
 
     function handleEventClick(info) {
@@ -472,8 +438,16 @@ export default {
       } catch (error) {
         $quasar.loading.hide();
         if (error.response?.status === 422) {
-          $notify('negative','error','Please fill in some fields.')
           formError.value = error.response.data.errors;
+
+        if (formError.value.appointment_date && formError.value.email) {
+          $notify('negative','error','Please fill in some fields.')
+        }
+        
+        if (formError.value.appointment_date) {
+          $notify('negative','error','You need to click a specific prepared date to set the appointment date.')
+        }
+
         } else if (error.response?.status === 400) {
           Swal.fire({
             icon: "error",
@@ -507,6 +481,19 @@ export default {
           await fetchTypes()
           await fetchAvailableSlot()
           await displayfunctionEditCard()
+
+          // remove selected date from the calendar
+          const previousSelectedDate = document.querySelector(".fc-daygrid-day.selected");
+          if (previousSelectedDate) {
+            previousSelectedDate.classList.remove("selected");
+          }
+
+          // add selected date to the calendar
+          const selectedCell = document.querySelector(`.fc-daygrid-day[data-date="${form.value.appointment_date}"]`);
+          if (selectedCell) {
+            selectedCell.classList.add("selected");
+          }
+
           $quasar.loading.hide()
         }
       } catch (error) {
@@ -785,9 +772,11 @@ export default {
 .custom-swal {
    margin-bottom: 100px;
 }
+
+.fc-daygrid-day.selected {
+  background-color: #d3e5ff !important;  /* Customize the color */
+  border-radius: 4px;
+}
 </style>
 
-<style scoped>
 
-
-</style>

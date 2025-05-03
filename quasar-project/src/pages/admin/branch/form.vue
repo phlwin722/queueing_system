@@ -62,7 +62,6 @@
                             :options="regionList"
                             emit-value
                             map-options
-                            @update:model-value="fetchProvinceList"
                             :disable="false"
                             :error="formError.hasOwnProperty('region')"
                             :error-message="formError.region"
@@ -84,7 +83,7 @@
                             emit-value
                             map-options
                             @update:model-value="fetchCityList"
-                            :disable="!formData.region"
+                            :disable="provinceList.length === 0"
                             :error="formError.hasOwnProperty('province')"
                             :error-message="formError.province"
                             autofocus
@@ -105,7 +104,7 @@
                             emit-value
                             map-options
                             @update:model-value="fetchBarangayList"
-                            :disable="!formData.province"
+                            :disable="cityList.length === 0"
                             :error="formError.hasOwnProperty('city')"
                             :error-message="formError.city"
                             autofocus
@@ -125,7 +124,7 @@
                             :options="barangayList"
                             emit-value
                             map-options
-                            :disable="!formData.city"
+                            :disable="barangayList.length === 0"    
                             :error="formError.hasOwnProperty('barangay')"
                             :error-message="formError.barangay"
                             autofocus
@@ -198,7 +197,7 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref, toRefs } from "vue";
+import { defineComponent, onMounted, ref, toRefs, watch } from "vue";
 import { $axios, $notify } from 'boot/app'; // Axios for API requests, Notify for UI feedback
 import { useQuasar } from "quasar";
 export default defineComponent({
@@ -322,9 +321,26 @@ export default defineComponent({
             }
         }
 
+        watch ([() => formData.value.region], ([newRegion]) => {
+            if (newRegion == 'National Capital Region (NCR)') {
+                fetchCityList(newRegion);
+                formData.value.province = '';
+                provinceList.value = [];
+            } else {
+                fetchProvinceList(newRegion);
+            }
+        });
+
         // fetch region 
         const fetchRegionList = async () => {
             try {
+                barangayList.value = [];
+                cityList.value = [];
+                provinceList.value = [];    
+
+                formData.value.province = '';
+                formData.value.city = '';
+                formData.value.Barangay = '';
                 const { data } = await $axios.post('/api/regions')
                 regionList.value = data.regions.map(item => ({
                     label : `${item.name}`,
@@ -340,6 +356,17 @@ export default defineComponent({
         // Fetch provinces based on selected region
         const fetchProvinceList = async (regionCode) => {
             try {
+                barangayList.value = [];
+                cityList.value = [];
+                provinceList.value = [];
+
+                formData.value.city = '';
+                formData.value.Barangay = '';
+                formData.value.province = '';
+
+                if (regionCode == 'National Capital Region (NCR)') {
+                    fetchCityList('1300000000')
+                } else{
                 const { data } = await $axios.post('/api/provinces',{
                     regionCode: regionCode
                 });
@@ -348,7 +375,7 @@ export default defineComponent({
                     label : item.name,
                     id : item.code,
                 }));
-
+            }
             } catch (error) {
                 if (error.response.status === 422) {
                     console.log(error)
@@ -359,6 +386,12 @@ export default defineComponent({
         // Fetch cities based on selected province
         const fetchCityList = async (provinceCode) => {
             try {
+                barangayList.value = [];
+                formData.value.Barangay = '';
+
+                cityList.value = [];
+                formData.value.city = '';
+
                 const { data } = await $axios.post('/api/cities',{
                     provinceCode: provinceCode
                 });
@@ -377,6 +410,10 @@ export default defineComponent({
         // Fetch barangays based on selected city
         const fetchBarangayList = async (cityCode) => {
             try {   
+
+                barangayList.value = [];
+                formData.value.Barangay = '';
+
                 const { data } = await $axios.post('/api/barangays', {
                     cityCode: cityCode
                 });

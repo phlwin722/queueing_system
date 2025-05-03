@@ -20,7 +20,7 @@
         <q-separator spaced />
   
         <!-- Policy Body -->
-        <div class="text-body1 q-mt-md">
+        <div class="text-body2 q-mt-md">
           <p><strong>1. Information We Collect</strong></p>
           <p>
             We may collect personal details such as your name, email address, and contact number when you interact with our site or services.
