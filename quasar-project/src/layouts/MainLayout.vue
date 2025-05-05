@@ -1,6 +1,6 @@
 <template>
       <!-- Show message for mobile screens -->
-      <q-layout v-if="$q.screen.lt.md">
+      <q-layout v-if="$q.screen.lt.sm">
        <q-header v-if="shouldShowSideNav">
         <q-toolbar>
           <q-img
@@ -1062,11 +1062,11 @@ export default defineComponent({
             icon: "admin_panel_settings",
             link: "/admin/admin_Queue",
           },
-          {
-            title: "Manager",
-            icon: "supervisor_account",
-            link: "/admin/bank_manager",
-          },
+          // {
+          //   title: "Manager",
+          //   icon: "supervisor_account",
+          //   link: "/admin/bank_manager",
+          // },
           {
             title: "Branch",
             icon: "account_balance",

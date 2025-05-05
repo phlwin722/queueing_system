@@ -12,28 +12,10 @@ class CurrencyController extends Controller
     public function showData(Request $request) 
     {
         try {
-           $rows = '';
-           if ($request->branch_id != 0) {
-              $rows = DB::table('currencies as money')
-                ->select(
-                    'money.id',
-                    'money.branch_id',
-                    'money.currency_name',
-                    'money.currency_symbol',
-                    'money.flag',
-                    'money.buy_value',
-                    'money.sell_value',
-                    'b.branch_name',
-                )
+        $rows = '';
 
-                ->leftJoin('branchs as b','b.id','=','money.branch_id')
-                ->where('money.branch_id',$request->branch_id)
-                ->orderBy('money.created_at','desc')
-                ->get();
 
-           }else {
-             $rows = $this->getData();
-           }
+        $rows = $this->getData();
             return response()->json([ 'rows' => $rows ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -50,13 +32,12 @@ class CurrencyController extends Controller
     {
         try {
             $checking = DB::table('currencies')
-                ->where('currency_symbol', $request->currency_symbol)
-                ->where('branch_id', $request->branch_id)
+                ->where('currency_name', $request->currency_name)
                 ->first();
 
             if ($checking) {
                 return response()->json([
-                    "message" => "Currency Symbol already exists in this branch!"
+                    "message" => "This Currency Name already exists!"
                 ],400);
             }
             $row = Currency::create($request->all());
@@ -138,10 +119,10 @@ class CurrencyController extends Controller
 
             if ($id) {
                 $res = $res->where('money.id', $id)
-                            ->orderBy('money.created_at','desc')
+                            ->orderBy('money.created_at','asc')
                             ->first();
             }else {
-                $res = $res->orderBy('money.created_at','desc')
+                $res = $res->orderBy('money.created_at','asc')
                           ->get();
             }
             return $res;

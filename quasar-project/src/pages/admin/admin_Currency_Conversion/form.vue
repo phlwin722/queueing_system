@@ -11,7 +11,7 @@ j<template>
                 <div class="row q-col-gutter-md">
                     <!-- Currency Symbol Dropdown -->
                      
-                    <div v-if="!adminManagerInformation" class="col-12">
+                    <!-- <div v-if="!adminManagerInformation" class="col-12">
                         <q-select
                          outlined
                             label="Branch name"
@@ -28,41 +28,46 @@ j<template>
                             :error-message="formError.branch_id"
                             autofocus
                         />
-                    </div>
+                    </div> -->
                     <div class="col-12">
                         <q-select
                         outlined
-                        v-model="formData.currency_symbol"
+                        v-model="formData.currency_name"
                         label="Currency Symbol"
                         dense
                         hide-bottom-space
-                        :options="allCurrencies"
+                        :options="filteredCurrencies"
                         option-label="symbol"
-                        option-value="symbol"
+                        option-value="name"
                         emit-value
                         map-options
-                        @update:model-value="updateCurrencyName"
+                        use-input
+                        input-debounce="300"
+                        @filter="filterCurrencyOptions"
+                        @update:model-value="updateCurrencyMeta"
                         :error="formError.hasOwnProperty('currency_symbol')"
                         :error-message="formError.currency_symbol"
                         autofocus
-                    >
+                        clearable
+                        @keydown.native="handleKeydown"
+                        >
                         <template v-slot:option="scope">
                             <q-item v-bind="scope.itemProps">
-                                <q-item-section avatar>
-                                    <span :class="['fi', scope.opt.flag]"></span>
-                                </q-item-section>
-                                <q-item-section>
-                                    <q-item-label>{{ scope.opt.symbol }}</q-item-label>
-                                    <q-item-label caption>{{ scope.opt.name }}</q-item-label>
-                                </q-item-section>
+                            <q-item-section avatar>
+                                <span :class="['fi', scope.opt.flag]"></span>
+                            </q-item-section>
+                            <q-item-section>
+                                <q-item-label>{{ scope.opt.symbol }}</q-item-label>
+                                <q-item-label caption>{{ scope.opt.name }}</q-item-label>
+                            </q-item-section>
                             </q-item>
                         </template>
-                        
+
                         <template v-slot:selected-item="scope">
                             <span :class="['fi', scope.opt.flag]" style="margin-right: 8px;"></span>
                             {{ scope.opt.symbol }}
                         </template>
-                    </q-select>
+                        </q-select>
                     </div>
 
                     <!-- Currency Name Input (Auto-filled) -->
@@ -131,7 +136,7 @@ j<template>
 
 
 <script>
-import { defineComponent, onMounted, ref, toRefs } from 'vue';
+import { defineComponent, onMounted, ref, toRefs, computed } from 'vue';
 import { $axios, $notify } from 'boot/app';
 import 'flag-icons/css/flag-icons.min.css';
 
@@ -147,6 +152,7 @@ export default defineComponent({
         const adminManagerInformation = ref (null);
         const isLoading = ref(false);
         const branchList =ref ([]);
+        
 
         const allCurrencies = ref([
             { name: 'Argentine Peso', symbol: '$', flag: 'fi-ar' },
@@ -204,6 +210,33 @@ export default defineComponent({
             { name: 'Vietnamese Dong', symbol: '₫', flag: 'fi-vn' }
         ]);
 
+        const searchCurrency = ref('');
+        const filteredCurrencies = computed(() => {
+        const needle = searchCurrency.value.toLowerCase();
+        if (!needle) {
+            return allCurrencies.value;
+        }
+        return allCurrencies.value.filter(c =>
+            c.name.toLowerCase().includes(needle)
+        );
+        });
+
+        const filterCurrencyOptions = (val, update) => {
+        update(() => {
+            searchCurrency.value = val;
+        });
+        };
+
+        const handleKeydown = (e) => {
+  // If backspace is pressed and the input is empty
+        if (e.key === 'Backspace' && !searchCurrency.value && formData.currency_name) {
+            formData.currency_name = null;
+            searchCurrency.value = '';
+            filteredCurrencies.value = [...allCurrencies.value]; // reset options
+        }
+        };
+
+
         const initFormData = () => ({
             id: null,
             currency_name: '',
@@ -222,6 +255,7 @@ export default defineComponent({
             icon.value = false;
             formData.value = initFormData();
             formError.value = {};
+            
         };
 
         const showDialog = (mode, row) => {
@@ -230,10 +264,10 @@ export default defineComponent({
             formData.value = Object.assign({}, row);
             console.log( Object.assign({}, row))
             // Find the branch from branchList where the branch_name matches
-            const selectedBranch = branchList.value.find(label => label.branch_name === row.branch_name);
-            // If a matching branch is found, assign its 'id' to formData.branch_id
-            formData.value.branch_id = selectedBranch.id
-            console.log('list',branchList.value)
+            // const selectedBranch = branchList.value.find(label => label.branch_name === row.branch_name);
+            // // If a matching branch is found, assign its 'id' to formData.branch_id
+            // formData.value.branch_id = selectedBranch.id
+            // console.log('list',branchList.value)
             // If the flag isn't already set, find it from the currency list
             if (!formData.value.flag) {
                 const currency = allCurrencies.value.find(
@@ -247,15 +281,15 @@ export default defineComponent({
         icon.value = true;
     };
 
-        const updateCurrencyName = (selectedSymbol) => {
-            const selectedCurrency = allCurrencies.value.find(
-                currency => currency.symbol === selectedSymbol
-            );
-            if (selectedCurrency) {
-                formData.value.currency_name = selectedCurrency.name;
-                formData.value.flag = selectedCurrency.flag;  // Store the flag class
-            }
-        };
+        const updateCurrencyMeta = (selectedName) => {
+        const selectedCurrency = allCurrencies.value.find(
+            currency => currency.name === selectedName
+        );
+        if (selectedCurrency) {
+            formData.value.currency_symbol = selectedCurrency.symbol; // For DB
+            formData.value.flag = selectedCurrency.flag;               // For display
+        }
+    };
 
         const handleSubmitForm = async () => {
             isLoading.value = true;
@@ -336,9 +370,12 @@ export default defineComponent({
             showDialog,
             handleSubmitForm,
             allCurrencies,
-            updateCurrencyName,
+            updateCurrencyMeta,
             adminManagerInformation,
             branchList,
+            filterCurrencyOptions,
+            filteredCurrencies,
+            handleKeydown,
         };
     }
 });

@@ -1188,9 +1188,7 @@ const fetchWaitingtime = async () => {
 
     const fetchCurrency = async (branch_id) => {
       try {
-        const { data } = await $axios.post("/currency/showData", {
-          branch_id :  branch_id,
-        });
+        const { data } = await $axios.post("/currency/showData");
 
         // map the api response to match the expected table structure
         moneyRates.value = data.rows.map((row) => ({

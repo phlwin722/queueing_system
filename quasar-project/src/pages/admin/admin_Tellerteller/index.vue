@@ -71,7 +71,7 @@
 
           <div v-if="!adminInformation" class="class-auto">
             <q-select
-              style="width: 250px; position: absolute;  right: 10px;"
+              style="width: 250px; position: absolute;  right: 270px;"
               outlined
               label="Branch name"
               hide-bottom-space
@@ -82,6 +82,20 @@
               :options="branchList"
               option-label="branch_name"
               option-value="id"
+            />
+          </div>
+
+          <div v-if="!adminInformation" class="class-auto">
+            <q-select
+              style="width: 250px; position: absolute;  right: 10px;"
+              outlined
+              label="Roles"
+              hide-bottom-space
+              dense
+              v-model="personnel_role"
+              emit-value
+              map-options
+              :options="['Teller', 'Manager']"
             />
           </div>
         </div>
@@ -173,33 +187,89 @@ export default defineComponent({
     const branchList = ref([ { id: 0, branch_name:'All Branches'} ])
     const branch_name = ref(null);
     const columns = ref([]);
-
+    const personnel_role = ref('');
     const selected = ref([]);
     const dialogForm = ref(null);
     const adminInformation = ref (null);
+    const isTeller = ref(false);
 
     const getTableData = async () => {
-      try {
+      if(isTeller.value == true){
+        console.log(personnel_role.value)
+        try {
         if (adminInformation.value && adminInformation.value.branch_id != null) {
           const { data } = await $axios.post(URL + "/index",{
             branch_id: adminInformation.value.branch_id
           });
           rows.value.splice(0, rows.value.length, ...data.rows);
+          data.rows.forEach((newRow, index) => {
+              if (rows.value[index]) {
+                // Update individual fields
+                rows.value[index].role = 'Teller';
+              }
+            });
         } else {
           if (branch_name.value != null) {
             const { data } = await $axios.post(URL + "/index",{
               branch_id: branch_name.value
             });
             rows.value.splice(0, rows.value.length, ...data.rows);
+            data.rows.forEach((newRow, index) => {
+              if (rows.value[index]) {
+                // Update individual fields
+                rows.value[index].role = 'Teller';
+              }
+            });
           }else {
             const { data } = await $axios.post(URL + "/index");
             rows.value.splice(0, rows.value.length, ...data.rows);
+            data.rows.forEach((newRow, index) => {
+              if (rows.value[index]) {
+                // Update individual fields
+                rows.value[index].role = 'Teller';
+              }
+            });
           }
+          fetchColumn()
         }
       } catch (error) {
         console.log(error);
       }
+      }else{
+        try {
+          if (branch_name.value != null) {
+            const { data } = await $axios.post('/manager' + "/index",{
+              branch_id: branch_name.value
+            });
+            rows.value.splice(0, rows.value.length, ...data.rows);
+            data.rows.forEach((newRow, index) => {
+              if (rows.value[index]) {
+                // Update individual fields
+                rows.value[index].role = 'Manager';
+              }
+            });
+          }else{
+            const { data } = await $axios.post('/manager' + "/index");
+            rows.value.splice(0, rows.value.length, ...data.rows);
+            console.log("try",rows.value);  // Add this line to check the rows
+            data.rows.forEach((newRow, index) => {
+              if (rows.value[index]) {
+                // Update individual fields
+                rows.value[index].role = 'Manager';
+              }
+            });
+          }
+          fetchColumn()
+        
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      
     };
+
+
+
 
 
     const handleShowForm = (mode, row) => {
@@ -208,8 +278,14 @@ export default defineComponent({
 
     const handleDelete = async (ids) => {
       try {
-        const { data } = await $axios.post(URL + "/delete", { ids });
-        $notify("positive", "check", data.message);
+        if(personnel_role.value == 'Teller'){
+          const { data } = await $axios.post(URL + "/delete", { ids });
+          $notify("positive", "check", data.message);
+        }else{
+          const { data } = await $axios.post('/manager' + "/delete", { ids });
+          $notify("positive", "check", data.message);
+        }
+
 
         for (const x of ids) {
           const index = rows.value.findIndex((o) => o.id === x);
@@ -333,15 +409,19 @@ export default defineComponent({
                   align: "left",
                   sortable: false,
                 },
+                /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
               ]
             }else {
-              columns.value = [
-              {
+              if(personnel_role.value == 'Teller'){
+           
+                columns.value = [
+                {
                   name: "branch_name",
                   label: "Branch name",
                   align: "left",
                   field: "branch_name",
                   sortable: "true",
+                  format: val => val ?? 'No branch assigned'
                 },
                 {
                   name: "teller_firstname",
@@ -383,7 +463,56 @@ export default defineComponent({
                   align: "left",
                   sortable: false,
                 },
+                /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
               ]
+              }else{  
+           
+                columns.value = [
+                {
+                  name: "branch_name",
+                  label: "Branch name",
+                  align: "left",
+                  field: "branch_name",
+                  sortable: "true",
+                  format: val => val ?? 'No branch assigned'
+                },
+                {
+                  name: "teller_firstname",
+                  label: "First Name",
+                  align: "left",
+                  field: "teller_firstname",
+                  sortable: true,
+                },
+                {
+                  name: "teller_lastname",
+                  label: "Last Name",
+                  align: "left",
+                  field: "teller_lastname",
+                  sortable: true,
+                },
+                {
+                  name: "teller_username",
+                  label: "Username",
+                  align: "left",
+                  field: "teller_username",
+                  sortable: true,
+                },
+                {
+                  name: "status",
+                  label: "Status",
+                  align: "left",
+                  field: "status",
+                },
+                {
+                  name: "actions",
+                  label: "Actions",
+                  align: "left",
+                  sortable: false,
+                },
+                /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
+              ]
+              }
+             
             }
           } catch (error) {
             if (error.response.status === 422) {
@@ -391,6 +520,28 @@ export default defineComponent({
             }
           }
         }
+
+        watch(
+        () => personnel_role.value,
+        (newVal) => {
+            if(newVal == 'Teller'){
+                isTeller.value = true
+                personnel_role.value = 'Teller'
+                
+            }
+            else if(newVal === ''){
+                isTeller.value = true
+                personnel_role.value = 'Teller'
+                fetchColumn()
+            }
+            else{
+                isTeller.value = false
+                personnel_role.value = 'Manager'
+                
+            }
+        },
+        { immediate: true }  // 👈 this makes it run right away on mount
+        )
 
         watch(()=> branch_name.value, async (newVal) => {
           getTableData()
@@ -429,7 +580,8 @@ export default defineComponent({
       beforeDelete,
       adminInformation,
       branchList,
-      branch_name
+      branch_name,
+      personnel_role
     };
   },
 });
