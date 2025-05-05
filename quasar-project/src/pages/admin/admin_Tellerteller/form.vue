@@ -41,6 +41,21 @@
                     <!-- Form Content (Right Side) -->
                     <div class="col">
                         <div class="row q-col-gutter-md">
+                            <!-- Role Dropdown (NEW) -->
+                            <div v-if="!adminInformation" class="col-12">
+                            <q-select
+                                outlined
+                                v-model="formData.role"
+                                label="Role"
+                                :options="['Manager', 'Teller']"
+                                dense
+                                emit-value
+                                map-options
+                                hide-bottom-space
+                                :error="formError.hasOwnProperty('role')"
+                                :error-message="formError.role"
+                            />
+                            </div>
                             <!-- First Name Input -->
                             <div class="col-12">
                                 <q-input
@@ -119,7 +134,7 @@
                                     :error-message="formError.teller_password"
                                 />
                             </div>
-                            <div v-if="!adminInformation" class="col-12">
+                            <div v-if="!adminInformation && !isManager" class="col-12">
                                 <q-select
                                     outlined
                                     v-model="formData.branch_id"
@@ -136,7 +151,7 @@
                                 />
                             </div>
                             <!-- Personnel Type Select -->
-                            <div class="col-12">
+                            <div v-if="!isManager" class="col-12">
                                 <q-select
                                     outlined
                                     :disable="!adminInformation && !formData.branch_id"
@@ -210,7 +225,7 @@ export default defineComponent({
     name: "TellerFormPage", // Component name
     props: {
         url: String, // API endpoint URL passed as a prop
-        rows: Array // Array of rows (data) passed as a prop
+        rows: Array, // Array of rows (data) passed as a prop
     },
     setup(props) {
         // Reactive variables
@@ -225,7 +240,6 @@ export default defineComponent({
         const showPreview = ref(false);
         const adminInformation = ref (null);
         const branch_list = ref ([]);
-
         const initFormData = () => ({
             id: null,
             teller_firstname: '',
@@ -235,6 +249,7 @@ export default defineComponent({
             type_ids_selected: [],
             Image: '',
             branch_id: '',
+            role: '',
         });
 
         const initDataPassword = () => ({
@@ -279,14 +294,14 @@ export default defineComponent({
         const showDialog = async (mode, row) => {
             // Set the form mode based on the action (new or edit)
             formMode.value = mode === 'new' ? 'New' : 'Edit';
-            
             // If in 'edit' mode, populate the form with the row data
             if (mode === 'edit') {
                 // Clone the row data to formData for editing, avoiding direct mutation
                 formData.value = Object.assign({}, row);
-
+            
                 try {
-                     // Attempt to fetch the teller's image from the backend based on the teller's ID
+                    if (formData.value.role === 'Teller'){
+                    // Attempt to fetch the teller's image from the backend based on the teller's ID
                      const { data } = await $axios.post('teller/image', {
                          id: formData.value.id, // Sending the teller's ID to the backend
                          image: formData.value.Image // Sending the teller's ID to the backend
@@ -294,6 +309,16 @@ export default defineComponent({
 
                     // Set the fetched image URL to imageUrl for displaying
                     imageUrl.value = data.Image;
+                    }else if(formData.value.role === 'Manager'){
+                    // Attempt to fetch the manager's image from the backend based on the manager's ID
+                    const { data } = await $axios.post('manager/image', {
+                        id: formData.value.id // Sending the manager's ID to the backend
+                    });
+
+                    // Set the fetched image URL to imageUrl for displaying
+                    imageUrl.value = data.Image;
+                    }
+
 
                     // Ensure 'type_ids_selected' is an array and contains integers
                     if (typeof formData.value.type_ids_selected === 'string') {
@@ -337,18 +362,19 @@ export default defineComponent({
         // Image preview logic
         const previewImage = (file) => {
             if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            imageUrl.value = e.target.result; // Convert file to base64 URL
-        };
-        reader.readAsDataURL(file);
-    } else {
-        imageUrl.value = null;
-    }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imageUrl.value = e.target.result; // Convert file to base64 URL
+                };
+            reader.readAsDataURL(file);
+            }else {
+                imageUrl.value = null;
+            }
         };
 
         const handleSubmitForm = async () => {
-            try {
+            if(formData.value.role === 'Teller'){
+                try {
                 const mode = formMode.value === 'New' ? '/create' : '/update';
                 isLoading.value = true;
                 formError.value = {}; // Reset form errors
@@ -407,21 +433,90 @@ export default defineComponent({
 
                 $notify('positive', 'check', data.message); // Show success notification
                 closeDialog(); // Close the dialog and reset form
-            } catch (error) {
-                if (error.response.status === 422) {
-                    formError.value = error.response.data;
+                } catch (error) {
+                    if (error.response.status === 422) {
+                        formError.value = error.response.data;
 
-                    // Reset the type_ids_selected field if there's an error
-                    if (formError.value.hasOwnProperty('type_ids_selected')) {
-                        formData.value.type_ids_selected = []; // Clear the field value if validation fails
+                        // Reset the type_ids_selected field if there's an error
+                        if (formError.value.hasOwnProperty('type_ids_selected')) {
+                            formData.value.type_ids_selected = []; // Clear the field value if validation fails
+                        }
+                    }else {
+                        console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
+                        $notify('negative', 'error', 'An error occurred while processing your request.');
                     }
-                }else {
-                    console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
-                    $notify('negative', 'error', 'An error occurred while processing your request.');
+                } finally {
+                    isLoading.value = false; // Hide the loading spinner
                 }
-            } finally {
-                isLoading.value = false; // Hide the loading spinner
+            }else if(formData.value.role === 'Manager'){
+                formData.value.type_ids_selected = [0]
+                formData.value.branch_id = 0
+                console.log("Create Manager")
+                const mode = formMode.value === 'New' ? '/create' : '/update';
+                isLoading.value = true;
+                formError.value = {}; // Reset form errors
+
+                // Check if passwords match
+                if (formDataPassword.value.teller_newPassword !== formDataPassword.value.teller_retypepassword) {
+                    $notify('negative', 'error', 'Passwords do not match. Please check your input data');
+                    isLoading.value = false;
+                    return;
+                }
+
+                try {
+                    // If updating and a new password is provided, update the password in formData
+                    if (mode === '/update') {
+                        if (formDataPassword.value.teller_newPassword == '' && formDataPassword.value.teller_retypepassword == '') {
+                            formData.value.teller_password = "oldpass" 
+                        }else{
+                            formData.value.teller_password = formDataPassword.value.teller_newPassword;
+                        }
+
+                        // check if selectedImage has not null
+                        if (selectedImage.value != null) {
+                            formData.value.Image = selectedImage.value;
+                            console.log("Image value",  formData.value.Image)
+                        }
+                    }
+
+                    // Convert selected types array to a JSON string before sending it to the backend
+                    if (mode === '/create') {
+                        formData.value.Image = selectedImage.value
+                    }
+
+                    // Send form data to the server
+                    const { data } = await $axios.post('/manager' + mode, formData.value,{
+                        headers: {'Content-Type': 'multipart/form-data' }
+                    });
+
+                    const rows = toRefs(props).rows; // Access rows passed in props
+
+                    // Handle response data and update the rows accordingly
+                    if (mode === '/create') {
+                        console.log(data.row)
+                        rows.value.unshift(data.row); // Add new row at the beginning
+                    } else {
+                        const index = rows.value.findIndex(x => x.id === data.row.id); // Find the index of the edited row
+                        if (index > -1) {
+                            console.log(data.row)
+                            rows.value[index] = Object.assign({}, data.row); // Update existing row
+                        }
+                    }
+
+                    $notify('positive', 'check', data.message); // Show success notification
+                    closeDialog(); // Close the dialog and reset form
+                } catch (error) {
+                    if (error.response.status === 422) {
+                        formError.value = error.response.data;
+                    }else {
+                        console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
+                        $notify('negative', 'error', 'An error occurred while processing your request.');
+                    }
+                } finally {
+                    isLoading.value = false; // Hide the loading spinner
+                }
             }
+
         };
 
         const fetchBranch = async () => {
@@ -446,12 +541,36 @@ export default defineComponent({
             }
         }) 
 
+        const isManager = ref(false)
+
+        watch(
+        () => formData.value.role,
+        (newVal) => {
+            if(newVal === 'Teller'){
+                isManager.value = false
+                formData.value.role = 'Teller'
+            }
+            else if(newVal === ''){
+                isManager.value = false
+                formData.value.role = 'Teller'
+            }
+            else{
+                isManager.value = true
+                formData.value.role = 'Manager'
+            }
+        },
+        { immediate: true }  // 👈 this makes it run right away on mount
+        )
+
         onMounted(async () => {
             const managerInformation = localStorage.getItem('managerInformation');
             if (managerInformation) {
                 adminInformation.value = JSON.parse(managerInformation)
                 formData.value.branch_id = adminInformation.value.branch_id;
+                formData.value.role = 'Teller'
                 await fetchCategories()
+            }else{
+                formData.value.role = 'Manager'
             }
             fetchBranch();
         })
@@ -475,6 +594,7 @@ export default defineComponent({
             previewImage,
             branch_list,
             adminInformation,
+            isManager,
         };
     }
 });

@@ -1639,9 +1639,7 @@ export default {
     // Fetch currency data with error handling
     const fetchCurrency = async () => {
       try {
-        const { data } = await $axios.post("/currency/showData", {
-          branch_id: tellerInformation.value.branch_id,
-        });
+        const { data } = await $axios.post("/currency/showData");
         rowsCurrency.value = data.rows.map((row) => ({
           id: row.id,
           currency: {

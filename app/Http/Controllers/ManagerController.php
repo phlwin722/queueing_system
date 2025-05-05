@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminRequest;
 use App\Http\Requests\ManagerRequest;
+use App\Http\Requests\TellerRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,11 +17,33 @@ class ManagerController extends Controller
     public function index(Request $request){
 
         try{
-            $rows =  $this->getData();
+            if ($request->branch_id != null) {
+                $rows = DB::table('managers as m')
+                    ->select(
+                        "m.id",
+                        "m.manager_firstname as teller_firstname",
+                        "m.manager_lastname as teller_lastname",
+                        "m.manager_username as teller_username",
+                        "m.manager_password as teller_password",
+                        "m.manager_status as status",
+                        "m.Image", // Assuming the status is in the window table
+                        "b.branch_name"
+                    )
+                    ->leftJoin("branchs as b","b.id", "=", "m.branch_id")
+                    ->where("m.branch_id", $request->branch_id)
+                    ->orderBy('m.created_at', 'desc') // Ordering by created_at in descending order
+                    ->get();
+                return response()->json([
+                    'rows' => $rows
+                ]);
+            }else{
+                $rows =  $this->getData();
             
-            return response()->json([
-                'rows' => $rows
-            ]);
+                return response()->json([
+                    'rows' => $rows
+                ]);
+            }
+
 
         }catch(\Exception $e){
             $message = $e->getMessage();
@@ -32,12 +55,12 @@ class ManagerController extends Controller
         }
     }
 
-    public function create (ManagerRequest $request) {
+    public function create (TellerRequest $request) {
         $managerID = DB::table('managers')->insertGetId([
-            'manager_firstname' => ucwords($request->manager_firstname),
-            'manager_lastname' => ucwords($request->manager_lastname),
-            'manager_username' => $request->manager_username,
-            'manager_password' => Hash::make($request-> manager_password),
+            'manager_firstname' => ucwords($request->teller_firstname),
+            'manager_lastname' => ucwords($request->teller_lastname),
+            'manager_username' => $request->teller_username,
+            'manager_password' => Hash::make($request-> teller_password),
             'manager_status' => 'Offline',
             'created_at' => now(),
             'updated_at' => now(),
@@ -117,7 +140,7 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function update(ManagerRequest $request)
+    public function update(TellerRequest $request)
     {
         try {
             $manager = Manager::find($request->id);
@@ -130,13 +153,13 @@ class ManagerController extends Controller
             }
     
             // Update fields manually
-            $manager->manager_firstname = ucwords($request->manager_firstname);
-            $manager->manager_lastname = ucwords($request->manager_lastname);
-            $manager->manager_username = $request->manager_username;
+            $manager->manager_firstname = ucwords($request->teller_firstname);
+            $manager->manager_lastname = ucwords($request->teller_lastname);
+            $manager->manager_username = $request->teller_username;
     
             // Update password only if provided
-            if ($request->manager_password != "oldpass") {
-                $manager->manager_password = Hash::make($request->manager_password);
+            if ($request->teller_password != "oldpass") {
+                $manager->manager_password = Hash::make($request->teller_password);
             }
     
             // Update the image if provided
@@ -239,11 +262,11 @@ class ManagerController extends Controller
         $res = DB::table('managers as m')
             ->select(
                 "m.id",
-                "m.manager_firstname",
-                "m.manager_lastname",
-                "m.manager_username",
-                "m.manager_password",
-                "m.manager_status",
+                "m.manager_firstname as teller_firstname",
+                "m.manager_lastname as teller_lastname",
+                "m.manager_username as teller_username",
+                "m.manager_password as teller_password",
+                "m.manager_status as status",
                 "m.Image", // Assuming the status is in the window table
                 "b.branch_name"
             )

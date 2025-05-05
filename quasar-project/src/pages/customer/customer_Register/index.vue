@@ -259,7 +259,7 @@ export default {
         WindowsInBranch.some(window => window.id === teller.id)
        );
 
-        console.log(NewObject);
+        console.log(data.types);
 
         const seenNames = new Set();
         const uniqueRows = NewObject.filter((row) => {

@@ -10,8 +10,8 @@
         />
       </q-breadcrumbs>
     </div>
-
-    <q-table
+    
+    <q-table v-if="!adminManagerInformation"
       title="Currency"
       :rows="filteredRows"
       :columns="columns"
@@ -24,7 +24,8 @@
       :rows-per-page-options="[0]"
       class="q-ma-md q-mt-sm q-pt-sm"
     >
-      <template v-slot:top>
+    
+      <template v-slot:top  v-if="!adminManagerInformation">
         <div class="row q-col-gutter-sm q-pb-xs">
           <div class="">
             <q-btn
@@ -65,7 +66,7 @@
               </q-tooltip>
             </q-btn>
           </div>
-          <div 
+          <!-- <div 
             v-if="!adminManagerInformation" 
             class="class-auto">
             <q-select
@@ -81,7 +82,7 @@
               option-label="branch_name"
               option-value="id"
             />
-          </div>
+          </div> -->
         </div>
       </template>
 
@@ -91,7 +92,133 @@
         </q-td>
       </template>
 
-      <template v-slot:body-cell-actions="props">
+      <template v-slot:body-cell-actions="props"  v-if="!adminManagerInformation">
+        <q-td :props="props">
+          <div class="q-gutter-x-sm">
+            <q-btn
+              square
+              color="positive"
+              icon="edit"
+              dense
+              glossy
+              size="sm"
+              class="custom-btn2"
+              @click="handleShowForm('edit', props.row)"
+            >
+              <q-tooltip
+                anchor="center left"
+                self="center right"
+                :offset="[10, 10]"
+                class="bg-secondary"
+              >
+                Edit Currency
+              </q-tooltip>
+            </q-btn>
+
+            <q-btn
+              square
+              color="negative"
+              icon="delete"
+              dense
+              glossy
+              size="sm"
+              class="custom-btn2"
+              @click="beforeDelete(false, props.row)"
+            >
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                :offset="[10, 10]"
+                class="bg-secondary"
+              >
+                Delete Currency
+              </q-tooltip>
+            </q-btn>
+          </div>
+        </q-td>
+      </template>
+    </q-table>
+
+    <q-table v-else
+      title="Currency"
+      :rows="filteredRows"
+      :columns="columns"
+      row-key="id"
+      virtual-scroll
+      dense
+      v-model:pagination="pagination"
+      :rows-per-page-options="[0]"
+      class="q-ma-md q-mt-sm q-pt-sm"
+    >
+    
+      <template v-slot:top  v-if="!adminManagerInformation">
+        <div class="row q-col-gutter-sm q-pb-xs">
+          <div class="">
+            <q-btn
+              color="primary"
+              icon="add"
+              dense
+              @click="handleShowForm('new')"
+              class="custom-btn"
+              glossy
+              size="sm"
+            >
+              <q-tooltip
+                anchor="center left"
+                self="center right"
+                :offset="[10, 10]"
+              >
+                <strong>Add </strong> Currency
+              </q-tooltip>
+            </q-btn>
+          </div>
+          <div class="col-auto">
+            <q-btn
+              color="red"
+              icon="delete"
+              dense
+              :disable="selected.length === 0"
+              @click="beforeDelete(true)"
+              class="custom-btn"
+              glossy
+              size="sm"
+            >
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                :offset="[10, 10]"
+              >
+                <strong>Delete </strong> Currency
+              </q-tooltip>
+            </q-btn>
+          </div>
+          <!-- <div 
+            v-if="!adminManagerInformation" 
+            class="class-auto">
+            <q-select
+              dense
+              outlined 
+              style="width: 250px; position: absolute;  right: 10px;"
+              label="Branch name"
+              hide-bottom-space
+              v-model="branch_name"
+              emit-value
+              map-options
+              :options="branch_list"
+              option-label="branch_name"
+              option-value="id"
+            />
+          </div> -->
+        </div>
+      </template>
+
+      <template v-slot:body-cell-flag="props">
+        <q-td :props="props">
+          <span :class="['fi', props.row.flag]" style="font-size: 1.5em"></span>
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-actions="props"  v-if="!adminManagerInformation">
         <q-td :props="props">
           <div class="q-gutter-x-sm">
             <q-btn
@@ -158,7 +285,7 @@ export default defineComponent({
     const $dialog = useQuasar();
     const adminManagerInformation = ref (null)
     const branch_name = ref (null);
-    const branch_list =ref ([]);
+    // const branch_list =ref ([]);
 
     const columns = ref([]);
 
@@ -175,22 +302,12 @@ export default defineComponent({
 
     const getTableData = async () => {
       try {
-        if (adminManagerInformation.value != null) {
+    
           const { data } = await $axios.post(URL + "/showData", {
-            branch_id: adminManagerInformation.value.branch_id
           });
           rows.value.splice(0, rows.value.length, ...data.rows);
-        }else {
-          if ( branch_name.value != null) {
-            const { data } = await $axios.post(URL + "/showData", {
-              branch_id: branch_name.value
-            });
-            rows.value.splice(0, rows.value.length, ...data.rows);
-          }else {
-            const { data } = await $axios.post(URL + "/showData");
-            rows.value.splice(0, rows.value.length, ...data.rows);
-          }
-        }
+      
+        
       } catch (error) {
         console.log(error);
       }
@@ -244,28 +361,21 @@ export default defineComponent({
       }
     };
 
-    const fetchBranch = async () => {
-      try {
-        const { data } = await $axios.post('/type/Branch');
-        branch_list.value = [{id: 0, branch_name: 'All Branches'}, ...data.branch]
-      } catch (error) {
-        if (error.response.status === 422) {
-          console.log(error)
-        }
-      }
-    }
+    // const fetchBranch = async () => {
+    //   try {
+    //     const { data } = await $axios.post('/type/Branch');
+    //     branch_list.value = [{id: 0, branch_name: 'All Branches'}, ...data.branch]
+    //   } catch (error) {
+    //     if (error.response.status === 422) {
+    //       console.log(error)
+    //     }
+    //   }
+    // }
 
     const columnCheck = async () => {
       try {
         if (adminManagerInformation.value === null) {
           columns.value = [
-           {
-              name: "branch_name",
-              label: "Branch name",
-              align: "left",
-              field: "branch_name",
-              sortable: "true",
-            },
             {
               name: "currency_name",
               label: "Currency Name",
@@ -342,7 +452,6 @@ export default defineComponent({
               field: "sell_value",
               sortable: true,
             },
-            { name: "actions", label: "Actions", align: "left", sortable: false },
           ]
         }
       } catch (error) {
@@ -355,7 +464,7 @@ export default defineComponent({
     watch (() => branch_name.value, (newVal) => {
       getTableData();
     })
-
+    let intervalId;
     onMounted( async () => {
       const managerInformation = localStorage.getItem('managerInformation')
       if (managerInformation) {
@@ -366,7 +475,10 @@ export default defineComponent({
         branch_name.value = 0;
       }
       await getTableData()
-      await fetchBranch()
+      intervalId = setInterval(() => {
+          getTableData();
+      }, 5000);
+      // await fetchBranch()
       await  columnCheck()
     });
 
@@ -381,7 +493,7 @@ export default defineComponent({
       filteredRows,
       text,
       adminManagerInformation,
-      branch_list,
+      // branch_list,
       branch_name,
       pagination: ref({ page: 1, rowsPerPage: 10 }),
     };

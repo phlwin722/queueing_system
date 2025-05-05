@@ -17,11 +17,11 @@ return new class extends Migration
             $table->string('Lastname');
             $table->string('Username');
             $table->string('Password');
-            $table->foreignId('Branch_id')
-                    ->references('id')
-                    ->on('branchs')
-                    ->onUpdate('cascade')
-                    ->onDelete('cascade'); 
+            $table->foreignId('branch_id')
+                ->nullable()
+                ->constrained('branchs')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');      
             $table->string('types');
             $table->string('Image');
             $table->timestamps();

@@ -120,7 +120,7 @@ export default defineComponent({
     const columns = ref([]);
     const choose = ref ([
         {id: 0, label:'Manager'}, 
-        {id: 1, label:'Personel'}
+        {id: 1, label:'Teller'}
       ])
 
       const choosingFetch = ref(null);
@@ -219,7 +219,7 @@ export default defineComponent({
                 ]
               }else {
                 columns.value = [
-                  { name: 'branch_name', label: 'Branch Name', align: 'left', field: 'branch_name', sortable: true },
+                  { name: 'branch_name', label: 'Branch Name', align: 'left', field: 'branch_name', format: val => val ?? 'No branch assigned', sortable: true },
                   { name: 'fullname', label: 'Full Name', align: 'left', field: 'fullname', sortable: true },
                   { name: 'username', label: 'Username', align: 'left', field: 'username', sortable: true },
                   { name: 'archived_at', label: 'Archived Date', align: 'left', field: 'archived_at', sortable: true },
