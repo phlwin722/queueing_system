@@ -8,16 +8,25 @@ use Illuminate\Support\Facades\DB;
 
 class SurveyResponseController extends Controller{
     public function store(Request $request){
+        // validate the request
+        $checking = DB::table('survey_responses')
+            ->where('token', $request->token)
+            ->exists();
+        if ($checking) {
+            return response()->json([
+                'message' => 'Survey Already Submitted'
+            ], 400);
+        }
         $branch_id = substr($request->token, 12);  // Removes the first 12 characters
         $request->merge(['branch_id' => (int)$branch_id]); // Merge the branch_id into the request
-        $request->validate([
+/*         $request->validate([
             'name' => 'nullable|string|max:255',
             'rating' => 'required|integer|between:1,5',
             'ease_of_use' => 'required|string|in:Yes,No',
-            /* 'waiting_time_satisfaction' => 'required|string', */
+            'waiting_time_satisfaction' => 'required|string',
             'waiting_time_satisfaction' => 'required|between:1,5',
             'suggestions' => 'nullable|string',
-        ]);
+        ]); */
 
         SurveyResponse::create($request->all());
 

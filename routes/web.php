@@ -45,6 +45,7 @@ Route::post('/customer-join-switch-teller', [QueueController::class, 'joinSwitch
 Route::post('/customer-list', [QueueController::class, 'getQueueList']);
 Route::post('/customer-leave', [QueueController::class, 'leaveQueue']);
 Route::post('/customer-fetch', [QueueController::class, 'customerData']);
+Route::post('/customer-check', [QueueController::class, 'checkingCustomer']);
 Route::post('/update-teller_id', [QueueController::class, 'updateTellerId']);
 Route::post('/update-branch_id', [QueueController::class, 'updateBranchId']);
 

@@ -11,6 +11,7 @@ class SurveyResponse extends Model
 
     protected $fillable = [
         'name', 
+        'token',
         'rating', 
         'ease_of_use', 
         'waiting_time_satisfaction', 
