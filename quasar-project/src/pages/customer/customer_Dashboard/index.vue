@@ -605,7 +605,7 @@ export default {
         // }
       }
       getTableData();
-      checkingQueueNumber(); // Always check queue number
+ 
       QueueListlastUpdatedAt.value = response.data.last_updated_at; // Update timestamp
     }
   } catch (error) {
@@ -676,12 +676,11 @@ export default {
           waitingPolling = false;
           waitingTimePolling = false; 
           setTimeout(() => window.location.href = "/customer-thankyou/" + tokenurl.value, 2000);
-          await $axios.post("/sent-email-finish", {
-            id: customerId.value,
-            email: userInformation.value.email,
-            subject: "Thank you for visit",
-          });
-
+            await $axios.post("/sent-email-finish", {
+              id: customerId.value,
+              email: userInformation.value.email,
+              subject: "Thank you for visit",
+            });
         }else if (newValue == 'finished' && !hasNotified.value) {
           console.log("Status Finished:", userInformation.value.email);
           hasNotified.value = true;
@@ -690,11 +689,14 @@ export default {
           waitingPolling = false;
           waitingTimePolling = false;
           setTimeout(() => window.location.href = "/customer-thankyou/" + tokenurl.value, 2000);
-          await $axios.post("/sent-email-finish", {
-            id: customerId.value,
-            email: userInformation.value.email,
-            subject: "Thank you for visit",
-          });
+
+          if (userInformation.value.email_status != 'thankyou_sending') {
+            await $axios.post("/sent-email-finish", {
+              id: customerId.value,
+              email: userInformation.value.email,
+              subject: "Thank you for visit",
+            });
+          }
 
         }
       }
@@ -845,7 +847,7 @@ const fetchBreakTime = async () => {
     watch(
       () => queuePosition.value,
       (newValue) => {
-        
+        checkingQueueNumber(newValue);
         if(isNotBeingCatered.value == false){
         if (newValue !== null && newValue !== 0) {
           
@@ -1065,7 +1067,14 @@ const fetchWaitingtime = async () => {
         polling = false;
         waitingPolling = false;
         waitingTimePolling = false;
-        setTimeout(() => window.location.href = "/customer-thankyou/" + tokenUrl.value, 1000);
+        setTimeout(() => window.location.href = "/customer-thankyou/" + tokenUrl.value, 1000)
+        if (userInformation.value.email_status != 'thankyou_sending') {
+            await $axios.post("/sent-email-finish", {
+              id: customerId.value,
+              email: userInformation.value.email,
+              subject: "Thank you for visit",
+            });
+          }
       } catch (error) {
         console.error(error);
         $notify("negative", "error", "Failed to leave queue.");
@@ -1108,16 +1117,9 @@ const fetchWaitingtime = async () => {
       }
     }
     // Function to check if the user's queue number is 5, then send an email notification
-    const checkingQueueNumber = async () => {
+    const checkingQueueNumber = async (Position) => {
       try {
-        const response = await $axios.post("/customer-list", {
-          token: tokenurl.value,
-        });
-        queueList.value = response.data.queue.filter(
-          (q) => !["finished", "cancelled", "serving"].includes(q.status)
-        );
-        if (approximateWaitTime.value <= 45) {
-          if (queueList.value.length > 0) {
+        if (Position === 5) {
             await $axios.post("/send-email", {
               id: userInformation.value.id, // Recipient's id
               token: userInformation.value.token, // Recipient's token
@@ -1128,7 +1130,6 @@ const fetchWaitingtime = async () => {
                         Please remain on standby, as your turn is approaching soon.`, // Email message body
             });
           }
-        }
       } catch (error) {
         // Log the error in the console if the request fails
         console.log(error);
@@ -1376,9 +1377,23 @@ const fetchWaitingtime = async () => {
   
     }
 
+    onBeforeUnmount(async() => {
+      clearTimeout(queueTimeout); // Clear the timeout when the component is destroyed
+      clearInterval(waitInterval); // Clear the interval when the component is destroyed
+      polling = false; // Stop polling
+      waitingPolling = false; // Stop waiting status polling
+      waitingTimePolling = false; // Stop waiting time polling
+    });
 
 
-    onMounted(() => {
+    onMounted(async() => {
+      const { data } = await $axios.post("/customer-check", {
+        token: tokenurl.value,
+      });
+
+      if (data.email_status === "thankyou_sending") {
+        window.location.href = "/customer-thankyou/" + tokenurl.value
+      }
       getTableData()
       fetchQueueData()
       fetchWaitingStatus()

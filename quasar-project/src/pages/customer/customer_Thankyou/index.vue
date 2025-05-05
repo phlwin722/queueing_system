@@ -108,7 +108,9 @@ export default {
         $notify("positive", "check", "Survey submitted successfully!" );
         survey.value = { name: "", rating: null, ease_of_use: "", waiting_time_satisfaction: "", suggestions: "" };
       } catch (error) {
-        $notify("negative", "error", "Sorry, you have already submitted");
+        if (error.response.status === 400) {
+          $notify("negative", "error", "You have already submitted a survey.");
+        }
       }
       loading.value = false;
     };

@@ -887,4 +887,21 @@ class QueueController extends Controller
             ],400);
         }
     }
+
+    public function checkingCustomer (Request $request) {
+        try {
+            $result = DB::table('queues')
+                ->select('email_status')
+                ->where('token', $request->token)
+                ->first();
+
+                return response()->json([
+                    'email_status' => $result->email_status
+                ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
+            ]);
+        }
+    }
 }
