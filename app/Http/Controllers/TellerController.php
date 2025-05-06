@@ -106,6 +106,7 @@ class TellerController extends Controller
                 'teller_lastname' => ucwords($request->teller_lastname),
                 'teller_username' => $request->teller_username,
                 'teller_password' => Hash::make($request->teller_password),
+                'role' => $request->role,
                 'type_ids_selected' => json_encode($request->type_ids_selected), // Store selected types as JSON
                 'branch_id' => $request->branch_id,
                 'created_at' => now(),
@@ -260,12 +261,109 @@ class TellerController extends Controller
     public function update(TellerRequest $request)
     {
         try {
-            $teller = Teller::find($request->id);
+            $oldRole = $request->oldRole;
+            $newRole = $request->role;
+            $message = "";
+            if($oldRole != $newRole) {
+                if($request->teller_password == "oldpass"){
+                    $message = "New password is required for this role change!";
+                    return response()->json([
+                        "message" => $message,
+                    ], 400);
+                }
+                if(!$request->hasFile('Image')) {
+                    $message = "Reuploading image is required for this role change!";
+                    return response()->json([
+                        "message" => $message,
+                    ], 401);
+                }
+                    DB::table('managers')
+                    ->where('id', $request->id)
+                    ->delete(); 
+                    $tellerID = DB::table('tellers')->insertGetId([
+                        'teller_firstname' => ucwords($request->teller_firstname),
+                        'teller_lastname' => ucwords($request->teller_lastname),
+                        'teller_username' => $request->teller_username,
+                        'teller_password' => Hash::make($request->teller_password),
+                        'role' => $request->role,
+                        'type_ids_selected' => json_encode($request->type_ids_selected), // Store selected types as JSON
+                        'branch_id' => $request->branch_id,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+        
+                    // insert image on database
+                    $teller = DB::table('tellers')
+                        ->where('id', $tellerID)
+                        ->first();
+                    // delete the old message if it exist
+                    if ($teller->Image) {
+                        $oldImagePath = public_path($teller->Image);
+                        if (file_exists($oldImagePath)) {
+                            unlink($oldImagePath); // Delete the file
+                        }
+                    }
+        
+                    // Process and save the uploaded file
+                    if ($request->hasFile('Image')) {
+                        $file = $request->file('Image');
+                        $filename = time() . '.' . $file->getClientOriginalExtension();
+        
+                        // define the folder path (inside public directory)
+                        $folderPath = public_path('assets/teller/' . $tellerID);
+        
+                        // Ensure the folder exists
+                        if (!file_exists($folderPath)) {
+                            mkdir($folderPath, 0755, true);  // Create folder with proper permissions
+                        }
+        
+                        // move file to the folder
+                        $file->move($folderPath, $filename);
+        
+                        // correct url public access
+                        $filePath = "assets/teller/{$tellerID}/{$filename}";
+        
+                        /// **FIXED:** Update database using Query Builder (no `save()` method)
+                        DB::table('tellers')
+                            ->where('id', $tellerID)
+                            ->update(['Image' => $filePath]);
+                    }
+        
+                    // Fetch the newly inserted teller and join with the types table
+                    $newTeller = DB::table('tellers as t')
+                        ->select(
+                            "t.id",
+                            "t.teller_firstname",
+                            "t.teller_lastname",
+                            "t.teller_username",
+                            "t.teller_password",
+                            "t.type_ids_selected",
+                            "t.Image",
+                            't.branch_id',
+                            'b.branch_name',
+                            DB::raw('GROUP_CONCAT(tp.name SEPARATOR ", ") as type_names')  // Concatenate type names
+                        )
+                        ->leftJoin("types as tp", DB::raw('JSON_CONTAINS(t.type_ids_selected, JSON_QUOTE(CAST(tp.id AS CHAR)))'), '>', DB::raw('0'))
+                        ->leftJoin("branchs as b","b.id","=","t.branch_id")
+                        ->where("t.id", $tellerID)
+                        ->groupBy("t.id")
+                        ->first();
+
+      
+                    $message = "Successfully Updated!";
+                    return response()->json([
+                        'success' => true,
+                        'message' => $message,
+                        'row' => $newTeller
+                    ]);
+            }else{
+                $teller = Teller::find($request->id);
 
             // Check if teller exists
             if (!$teller) {
+                $message = "Teller not found!";
                 return response()->json([
-                    "message" => "Teller not found!"
+                    "message" => $message
                 ], 404);
             }
 
@@ -275,7 +373,6 @@ class TellerController extends Controller
             $teller->teller_username = $request->teller_username;
             $teller->type_ids_selected = $request->type_ids_selected;
             $teller->branch_id = $request->branch_id;
-
             // Update password only if provided
             if ($request->teller_password != "oldpass") {
                 $teller->teller_password = Hash::make($request->teller_password);
@@ -315,11 +412,14 @@ class TellerController extends Controller
 
             // Fetch updated data
             $row = $this->getData($teller->id);
-
+            $message = "Successfully Updated!";
             return response()->json([
                 "row" => $row,
-                "message" => "Successfully Updated!"
+                "message" => $message
             ]);
+            }
+ 
+            
         } catch (\Exception $e) {
             return response()->json([
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "An error occurred"

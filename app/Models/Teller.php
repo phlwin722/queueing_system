@@ -12,6 +12,7 @@ class Teller extends Model
         'teller_lastname',
         'teller_username',
         'teller_password',
+        'role',
         'type_id',
         'branch_id',
     ];

@@ -527,16 +527,19 @@ export default defineComponent({
             if(newVal == 'Teller'){
                 isTeller.value = true
                 personnel_role.value = 'Teller'
+                getTableData()
                 
             }
             else if(newVal === ''){
                 isTeller.value = true
                 personnel_role.value = 'Teller'
                 fetchColumn()
+                getTableData()
             }
             else{
                 isTeller.value = false
                 personnel_role.value = 'Manager'
+                getTableData()
                 
             }
         },

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('teller_lastname');
             $table->string('teller_username')->unique();
             $table->string('teller_password');
+            $table->string('role')->default('Teller');
             $table->foreignId('type_id')
                     ->nullable()
                     ->constrained('types')
