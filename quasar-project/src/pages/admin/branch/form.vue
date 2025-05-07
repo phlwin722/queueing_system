@@ -81,8 +81,7 @@
                             option-value="label"
                             :options="provinceList"
                             emit-value
-                            map-options
-                            @update:model-value="fetchCityList"
+                            map-options 
                             :disable="provinceList.length === 0"
                             :error="formError.hasOwnProperty('province')"
                             :error-message="formError.province"
@@ -102,8 +101,7 @@
                             option-value="label"
                             :options="cityList"
                             emit-value
-                            map-options
-                            @update:model-value="fetchBarangayList"
+                            map-options 
                             :disable="cityList.length === 0"
                             :error="formError.hasOwnProperty('city')"
                             :error-message="formError.city"
@@ -124,7 +122,7 @@
                             :options="barangayList"
                             emit-value
                             map-options
-                            :disable="barangayList.length === 0"    
+                            :disable="barangayList.length === 0 "    
                             :error="formError.hasOwnProperty('barangay')"
                             :error-message="formError.barangay"
                             autofocus
@@ -147,7 +145,7 @@
                     <!-- Status of branch -->
                     <div class="col-6">
                         <q-select
-                             outlined
+                            outlined
                             v-model="formData.status"
                             label="Status"
                             dense
@@ -199,7 +197,7 @@
 <script>
 import { defineComponent, onMounted, ref, toRefs, watch } from "vue";
 import { $axios, $notify } from 'boot/app'; // Axios for API requests, Notify for UI feedback
-import { useQuasar } from "quasar";
+import { useQuasar } from "quasar"; 
 export default defineComponent({
     name: "TellerFormPage", // Component name
     props: {
@@ -218,6 +216,7 @@ export default defineComponent({
         const cityList = ref ([]);
         const barangayList = ref ([]);
         const loadingTime = useQuasar();
+        const clearSelections = ref(true); // Flag to clear selections
 
         const initFormData = () => ({
             id: null,
@@ -239,6 +238,7 @@ export default defineComponent({
         const closeDialog = () => {
             isShow.value = false;
             formData.value = initFormData(); // Reset form data
+            clearSelections.value = true; // Reset the clear selections flag
             formError.value = {}; // Reset form errors
         };
 
@@ -256,13 +256,19 @@ export default defineComponent({
 
             // If in 'edit' mode, populate the form with the row data
             if (mode === 'edit') {
+                clearSelections.value = false; // Set flag to false to indicate selections are not cleared
                 // Clone the row data to formData for editing, avoiding direct mutation
                 formData.value = Object.assign({}, row);
 
                 // Trigger dropdown fetches to populate values
                 await fetchProvinceList(formData.value.region);
-                await fetchCityList(formData.value.province);
-                await fetchBarangayList(formData.value.city);
+                if (formData.value.province) {
+                    await fetchCityList(formData.value.province);
+                }
+                if (formData.value.city) {
+                    await fetchBarangayList(formData.value.city);
+                }
+                
             }
 
             // Show the dialog by setting isShow to true
@@ -283,12 +289,10 @@ export default defineComponent({
 
                 // Handle response data and update the rows accordingly
                 if (mode === '/create') {
-                    console.log(data.row)
                     rows.value.unshift(data.row); // Add new row at the beginning
                 } else {
                     const index = rows.value.findIndex(x => x.id === data.row.id); // Find the index of the edited row
                     if (index > -1) {
-                        console.log(data.row)
                         rows.value[index] = Object.assign({}, data.row); // Update existing row
                     }
                 }
@@ -321,26 +325,80 @@ export default defineComponent({
             }
         }
 
-        watch ([() => formData.value.region], ([newRegion]) => {
-            if (newRegion == 'National Capital Region (NCR)') {
-                fetchCityList(newRegion);
-                formData.value.province = '';
+        watch ([() => formData.value.region, () => formData.value.province,
+                () => formData.value.city, () => formData.value.Barangay], 
+                ([newRegion, newProvince, newCity, newBarangay],
+                [oldRegion, oldProvince, oldCity, oldBarangay]) => {
+            if (newRegion == 'National Capital Region (NCR)' && newRegion != oldRegion) {
+                if (clearSelections.value && newRegion) {        
+                    formData.value.province = '';
+                    formData.value.city = '';
+                    formData.value.Barangay = ''; 
+                } else if (clearSelections.value == false &&  oldRegion != '') {
+                    formData.value.city = '';
+                    formData.value.province = '';
+                    formData.value.Barangay = '';
+                }  
+
                 provinceList.value = [];
-            } else {
+                cityList.value = [];
+                barangayList.value = [];
+
+                fetchCityList(newRegion);
+            } else if (newRegion != 'National Capital Region (NCR)' && newRegion != oldRegion) {
+                if (clearSelections.value && newRegion) {            
+                    formData.value.city = '';
+                    formData.value.province = '';
+                    formData.value.Barangay = '';
+                } else if (clearSelections.value == false &&  oldRegion != '') {
+                    formData.value.city = '';
+                    formData.value.province = '';
+                    formData.value.Barangay = '';
+                }     
+
+                cityList.value = [];
+                barangayList.value = [];
+                if (newRegion == '') {
+                    return
+                }
+                // Fetch provinces based on the selected region
                 fetchProvinceList(newRegion);
+            }
+
+            if (newProvince && newProvince != oldProvince) {
+                if (clearSelections.value && newProvince) {               
+                    formData.value.Barangay = '';
+                    formData.value.city = '';
+                } else if (clearSelections.value == false &&  oldProvince != '') {
+                    formData.value.city = '';
+                    formData.value.Barangay = '';
+                }
+
+                cityList.value = [];
+                barangayList.value = [];
+                // Fetch cities based on the selected province
+                fetchCityList(newProvince);
+            }
+
+            if (newCity && newCity != oldCity) {  
+                if (clearSelections.value && newCity) {               
+                    formData.value.Barangay = '';
+                } else if (clearSelections.value == false &&  oldCity != '') {
+                    formData.value.Barangay = '';
+                }
+
+                barangayList.value = [];
+                if (newCity == '') {
+                    return
+                }
+                // Fetch barangays based on the selected city
+                fetchBarangayList(newCity);
             }
         });
 
         // fetch region 
         const fetchRegionList = async () => {
             try {
-                barangayList.value = [];
-                cityList.value = [];
-                provinceList.value = [];    
-
-                formData.value.province = '';
-                formData.value.city = '';
-                formData.value.Barangay = '';
                 const { data } = await $axios.post('/api/regions')
                 regionList.value = data.regions.map(item => ({
                     label : `${item.name}`,
@@ -356,14 +414,6 @@ export default defineComponent({
         // Fetch provinces based on selected region
         const fetchProvinceList = async (regionCode) => {
             try {
-                barangayList.value = [];
-                cityList.value = [];
-                provinceList.value = [];
-
-                formData.value.city = '';
-                formData.value.Barangay = '';
-                formData.value.province = '';
-
                 if (regionCode == 'National Capital Region (NCR)') {
                     fetchCityList('1300000000')
                 } else{
@@ -386,12 +436,6 @@ export default defineComponent({
         // Fetch cities based on selected province
         const fetchCityList = async (provinceCode) => {
             try {
-                barangayList.value = [];
-                formData.value.Barangay = '';
-
-                cityList.value = [];
-                formData.value.city = '';
-
                 const { data } = await $axios.post('/api/cities',{
                     provinceCode: provinceCode
                 });
@@ -410,10 +454,6 @@ export default defineComponent({
         // Fetch barangays based on selected city
         const fetchBarangayList = async (cityCode) => {
             try {   
-
-                barangayList.value = [];
-                formData.value.Barangay = '';
-
                 const { data } = await $axios.post('/api/barangays', {
                     cityCode: cityCode
                 });
@@ -458,7 +498,8 @@ export default defineComponent({
             fetchProvinceList,
             fetchCityList,
             fetchBarangayList,
-            loadingTime
+            loadingTime,
+            clearSelections
         };
     }
 });

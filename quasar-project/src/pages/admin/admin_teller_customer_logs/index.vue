@@ -518,7 +518,7 @@ export default defineComponent({
                     textColor: [255, 255, 255],
                     fontStyle: "bold",
                   },
-                  margin: { top: 20, bottom: 20 },
+                  margin: { top:30, bottom: 20 },
                 });
               }
 

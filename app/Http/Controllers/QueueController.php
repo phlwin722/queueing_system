@@ -153,6 +153,13 @@ class QueueController extends Controller
         
             $position = $lastCustomer ? ($lastCustomer->position + 1) : 1;
         }
+
+        // on online appointment if joining will be update will be arrived
+        if ($request->tokenn) {
+            DB::table('appointments')
+                ->where('referenceNumber', $request->tokenn)
+                ->update(['status' => 'Arrived']);
+        }
     
         // Create a new queue entry in the database with the given customer and teller information.
         $queue = Queue::create([
@@ -859,7 +866,7 @@ class QueueController extends Controller
         if ($data) {
             if ($data->status == 'Booked') {
                 $dateNow = Carbon::now()->toDateString();
-                if ($data->appointment_date == $dateNow) {
+                if ($data->appointment_date == $dateNow  && $data->branch_id == $request->branch_id) {
                     return response()->json([
                         'value' => $data
                     ]);
