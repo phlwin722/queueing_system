@@ -234,14 +234,7 @@
 
                                   <q-card-section>
                                     <p>
-                                      The waiting time field allows you to define
-                                      the estimated time a customer is expected to
-                                      wait before being served. Enter the time in
-                                      the format <strong>MM:SS</strong> — for
-                                      example, "02:30" for 2 minutes and 30
-                                      seconds. This input helps the system provide
-                                      more accurate queue estimates and improves
-                                      overall service planning.
+                                      The waiting time field allows you to set the amount of time each teller will wait for their customer when it’s their turn to be served. Enter the time in the format <strong>MM:SS</strong> — for example, "02:30" for 2 minutes and 30 seconds.
                                     </p>
                                   </q-card-section>
 
@@ -354,15 +347,7 @@
 
                                 <q-card-section>
                                   <p>
-                                    The break time feature allows you to define a
-                                    time range when a teller is unavailable due to
-                                    a scheduled break. Select the starting time
-                                    using the "From" field and the ending time
-                                    using the "To" field. Make sure both fields
-                                    are correctly set in 24-hour format (e.g.,
-                                    13:00 for 1 PM). Once both times are selected,
-                                    click "Save" to apply the break schedule for
-                                    that teller.
+                                    The break time feature allows you to define a time range when the branch needs a break — for example, a maintenance break. Set the start time using the "From" field and the end time using the "To" field. Make sure both fields are correctly set. Once the times are selected, click "Save" to apply the branch's break schedule.
                                   </p>
                                 </q-card-section>
 
@@ -440,8 +425,14 @@
                                   <q-btn
                                     color="primary"
                                     label="Save"
-                                    icon="save"
                                     @click="saveBreakTime"
+                                  />
+                                </div>
+                                <div class="row justify-center q-mt-md">
+                                  <q-btn
+                                    color="primary"
+                                    label="Reset"
+                                    @click="resetBreakTime"
                                   />
                                 </div>
                               </q-form>
@@ -846,9 +837,23 @@ export default defineComponent({
       }
     };
 
-    // Resetting Queue Number
+    const resetBreakTime = async () => {
+      try {
+        formDataBreak.break_from = "";
+        formDataBreak.break_to = "";
+        const { data } = await $axios.post("/admin/reset_break_time", {
+          branch_id: branch_id.value,
+        });
+        $notify("positive", "done", data.message);
+        fetchBreakTime();
+      } catch (error) {
+        console.error("Error resetting break time:", error);
+      }
+    };
 
-    // Reset Queue Number
+
+
+
 
     const fetchQueue = async () => {
       try {
@@ -881,6 +886,7 @@ export default defineComponent({
       }
     };
 
+     // Resetting Queue Number
     const resetQueue = async () => {
       try {
         $dialog
@@ -1198,6 +1204,7 @@ export default defineComponent({
       timeData,
       process,
       saveBreakTime,
+      resetBreakTime,
       isLoading,
       formError,
       formDataBreak,

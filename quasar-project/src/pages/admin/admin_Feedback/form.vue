@@ -17,7 +17,7 @@
                     outlined 
                     readonly
                     v-model="formData.name" 
-                    label="Window name" 
+                    label="Respondent's name" 
                     dense 
                     hide-bottom-space
                     />
