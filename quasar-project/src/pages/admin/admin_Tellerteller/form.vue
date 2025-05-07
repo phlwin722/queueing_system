@@ -47,7 +47,7 @@
                                 outlined
                                 v-model="formData.role"
                                 label="Role"
-                                :options="['Manager', 'Teller']"
+                                :options="['Teller', 'Manager']"
                                 dense
                                 emit-value
                                 map-options
@@ -233,7 +233,7 @@ export default defineComponent({
         const isLoading = ref(false); // Controls the loading spinner
         const formMode = ref('New'); // Tracks the mode (New or Edit) of the form
         const categoriesList = ref([]); // List of categories for the select input
-
+        
         // Image preview variables
         const selectedImage = ref(null);
         const imageUrl = ref(null);
@@ -250,6 +250,7 @@ export default defineComponent({
             Image: '',
             branch_id: '',
             role: '',
+            oldRole: '',
         });
 
         const initDataPassword = () => ({
@@ -298,7 +299,7 @@ export default defineComponent({
             if (mode === 'edit') {
                 // Clone the row data to formData for editing, avoiding direct mutation
                 formData.value = Object.assign({}, row);
-            
+                formData.value.oldRole = row.role
                 try {
                     if (formData.value.role === 'Teller'){
                     // Attempt to fetch the teller's image from the backend based on the teller's ID
@@ -441,7 +442,12 @@ export default defineComponent({
                         if (formError.value.hasOwnProperty('type_ids_selected')) {
                             formData.value.type_ids_selected = []; // Clear the field value if validation fails
                         }
-                    }else {
+                    }else if(error.response.status === 400){
+                        $notify('negative', 'error', "New password is required for this role change!");
+                    }else if(error.response.status === 401){
+                        $notify('negative', 'error', "Reuploading image is required for this role change!");
+                    }
+                    else {
                         console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
                         $notify('negative', 'error', 'An error occurred while processing your request.');
                     }
@@ -508,7 +514,13 @@ export default defineComponent({
                 } catch (error) {
                     if (error.response.status === 422) {
                         formError.value = error.response.data;
-                    }else {
+                    }else if(error.response.status === 400){
+                        $notify('negative', 'error', "New password is required for this role change!");
+                    }
+                    else if(error.response.status === 401){
+                        $notify('negative', 'error', "Reuploading image is required for this role change!");
+                    }
+                    else {
                         console.error('Error:', error); // Handle errors (e.g., validation issues, API failures)
                         $notify('negative', 'error', 'An error occurred while processing your request.');
                     }

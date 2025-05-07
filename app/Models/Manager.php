@@ -16,6 +16,7 @@ class Manager extends Model
         'manager_username',
         'manager_password',
         'manager_status',
+        'role',
         'branch_id',
         'Image'
     ];

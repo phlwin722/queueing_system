@@ -34,7 +34,7 @@ class ArchiveController extends Controller
                         'arc.id',
                         DB::raw("CONCAT(arc.First_name,' ',arc.Lastname) as fullname"),
                         'arc.Username as username',
-                        'arc.Branch_id',
+                        'arc.branch_id',
                         'arc.created_at as archived_at',
                         'b.branch_name'
                     )
@@ -73,17 +73,18 @@ class ArchiveController extends Controller
             foreach($data as $val) {
                   // check if branch id is available
                   $check = DB::table('branchs')
-                    ->where('id', $val->Branch_id)
+                    ->where('id', $val->branch_id)
                     ->exists();
               
-                    // if not exist
+
+                
+                if ($val->types == '1') {
+                                        // if not exist
                 if (!$check) {
                     return response()->json([
                         'error' => "Sorry we inform to you the branch of {$val->Firstname} {$val->Lastname} is no longer available" 
                     ],400);
                 }
-                
-                if ($val->types == '1') {
                     // personel
                     DB::table('tellers')
                         ->insert([
@@ -91,24 +92,24 @@ class ArchiveController extends Controller
                             'teller_lastname' => $val->Lastname,
                             'teller_username' => $val->Username,
                             'teller_password' => $val->Password,
-                            'branch_id' => $val->Branch_id,
+                            'branch_id' => $val->branch_id,
                             'Image' => $val->Image,
                         ]);
                 } else if ($val->types == '0') {
                     // manager
-                   $id = DB::table('managers')
-                   ->insertGetId([
-                       'manager_firstname' => $val->First_name,
-                       'manager_lastname' => $val->Lastname,
-                       'manager_username' => $val->Username,
-                       'manager_status' => 'Offline',
-                       'manager_password' => $val->Password,
-                       'branch_id' => $val->Branch_id,
-                       'Image' => $val->Image,
-                   ]);
+                    $id = DB::table('managers')
+                    ->insertGetId([
+                        'manager_firstname' => $val->First_name,
+                        'manager_lastname' => $val->Lastname,
+                        'manager_username' => $val->Username,
+                        'manager_status' => 'Offline',
+                        'manager_password' => $val->Password,
+                        'branch_id' => $val->branch_id,
+                        'Image' => $val->Image,
+                    ]);
 
-                   DB::table('branchs')
-                    ->where('id',$val->Branch_id)
+                    DB::table('branchs')
+                    ->where('id',$val->branch_id)
                     ->update([
                         'manager_id' => $id
                     ]);

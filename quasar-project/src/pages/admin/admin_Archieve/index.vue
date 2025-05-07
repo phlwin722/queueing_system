@@ -138,6 +138,7 @@ export default defineComponent({
             ...row,
             archived_at: row.archived_at.split(' ')[0] // get only the date
           }));
+          console.log(data.rows)
         } catch (error) {
           console.log('Error fetching window logs:', error);
         }
