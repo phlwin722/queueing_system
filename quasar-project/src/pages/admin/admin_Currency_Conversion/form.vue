@@ -64,7 +64,7 @@ j<template>
                         </template>
 
                         <template v-slot:selected-item="scope">
-                            <span :class="['fi', scope.opt.flag]" style="margin-right: 8px;"></span>
+                            <span v-if="formData.currency_name" :class="['fi', scope.opt.flag]" style="margin-right: 8px;"></span>
                             {{ scope.opt.symbol }}
                         </template>
                         </q-select>

@@ -202,6 +202,11 @@ class TellercaterController extends Controller
 
     public function cancelCustomer(Request $request)
     {
+        $queue = Queue::find($request->id);
+        DB::table('appointments')
+                ->where('referenceNumber', $queue->token)
+                ->update(['status' => 'Completed']);
+
         Queue::where('id', $request->id)
                 ->update(['status' => 'cancelled']);
 

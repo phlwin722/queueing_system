@@ -215,9 +215,10 @@
                   <q-item >
                     <q-item-section >
                       <q-scroll-area
-                        style="height: 200px; overflow-y: auto"
+                        :horizontal-thumb-style="{ opacity: 0 }"
+                        style="height: 200px; overflow-x: hidden ; overflow-x: auto;"
                       >
-                        <q-list style="padding: 5px;">
+                        <q-list style="padding: 5px;  overflow-x: hidden ">
                           <q-item
                             v-if="paginatedQueueList.length === 0"
                             class="text-center text-grey q-pa-md"
@@ -355,18 +356,7 @@
 
               <!-- Drag area of Currency -->
               
-                <div
-                  class=""
-                  :style="{
-                    height:
-                      tellerInformation?.type_name == 'Online Appointment' ||
-                      tellerInformation?.type_name == 'Manual Queueing'
-                        ? '500px'
-                        : '200px',
-                    marginTop: '10px',
-                    marginBottom: '10px',
-                  }"
-                >
+                <div class='q-mt-md'>
                 <!-- <q-scroll-area 
                 class="my-scroll" 
                 style="height: 250px; overflow-y: auto"> -->
@@ -375,8 +365,18 @@
                     <div class="col-3"><strong>Buy</strong></div>
                     <div class="col-3"><strong>Sell</strong></div>
                   </div>
-
-                  <q-item
+                  <q-scroll-area
+                    :horizontal-thumb-style="{ opacity: 0 }"
+                    :style="{
+                      height:
+                        tellerInformation?.type_name == 'Online Appointment' ||
+                        tellerInformation?.type_name == 'Manual Queueing'
+                          ? '500px'
+                          : '200px',
+                      marginBottom: '10px',
+                    }"
+                  >
+                    <q-item
                     v-for="(row, index) in rowsCurrency"
                     :key="row.id"
                     draggable="true"
@@ -407,6 +407,8 @@
                       </div>
                     </q-item-section>
                   </q-item>
+                  </q-scroll-area>
+
                   <!-- </q-scroll-area> -->
                 </div>
                 
@@ -485,7 +487,7 @@
                   <!-- The queue number and name of the customer -->
                   <q-item>
                     <q-item-section>
-                      <q-list bordered separator style="max-height: 500px">
+                      <q-list separator style="min-height: 300px">
                         <!-- Items of queue list -->
                         <div v-if="currentServing">
                           <q-item class="bg-primary rounded-borders">
@@ -547,12 +549,12 @@
                         <div v-else>
                           <q-item class="bg-grey-9 rounded-borders">
                             <q-item-section>
-                              <h1
+                              <h2
                                 class="q-mb-sm q-mt-md text-center text-white loading-dots"
                               >
                                 Queueing<span>.</span><span>.</span
                                 ><span>.</span>
-                              </h1>
+                              </h2>
                               <h6 class="text-center text-white"></h6>
                             </q-item-section>
                           </q-item>
@@ -586,13 +588,37 @@
                         :error="formError.hasOwnProperty('referenceNumber')"
                       />
                     </div>
-                    <div class="col-2">
+                    <div class="col-1">
                       <q-btn
                         color="warning"
-                        label="Validate"
+                        icon="verified"
                         @click="validateReference"
                         class="q-ml-md full-width"
-                      />
+                      >           
+                      <q-tooltip
+                        anchor="center left"
+                        self="center right"
+                        :offset="[10, 10]"
+                      >
+                        <strong>Validate </strong>
+                      </q-tooltip>
+                    </q-btn>
+                    </div>
+                    <div class="col-1">
+                      <q-btn
+                        color="negative"
+                        icon="close"
+                        @click="clearReference"
+                        class="q-ml-md full-width"
+                      >
+                      <q-tooltip
+                        anchor="center left"
+                        self="center right"
+                        :offset="[10, 10]"
+                      >
+                        <strong>Clear </strong>
+                      </q-tooltip>
+                    </q-btn>
                     </div>
                   </div>
                 </q-card-section>
@@ -1745,21 +1771,8 @@ export default {
         });
 
         if (data.value) {
-          if (tellerInformation.value.branch_id != data.value.branch_id) {
-            customerInfoOnline.value = null;
-            $notify(
-              "negative",
-              "error",
-              `Sorry, you do not have an appointment here. Your appointment is at the ${data.value.branch_name} branch.`
-            );
-          } else if (data.value.status == "Booked") {
+          if (data.value.status == "Booked") {
             customerInfoOnline.value = data.value;
-          } else {
-            $notify(
-              "negative",
-              "error",
-              "We’re sorry, but our records show that you have already checked in."
-            );
           }
         }
       } catch (error) {
@@ -1795,6 +1808,11 @@ export default {
       } else {
         handleAssignedTeller(null);
       }
+    };
+
+    const clearReference = () => {
+      customerInfoOnline.value = null;
+      tellerInformation.value.referenceNumber = null;
     };
 
     const handleAssignedTeller = async (currencyID) => {
@@ -2265,6 +2283,16 @@ export default {
       }
     };
 
+    const checkAppointment = async () => {
+      try {
+        await $axios.post ('/appointment/index')
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error.message);
+        }
+      }
+    }
+
     onUnmounted(() => {
       // Cleanup all timers and intervals
       clearInterval(currencyInterval);
@@ -2278,6 +2306,7 @@ export default {
       if (intervalId) {
         clearInterval(intervalId);
       }
+      checkAppointment();
     });
 
     return {
@@ -2351,6 +2380,7 @@ export default {
       fecthCurrencty,
       currentCiesList,
       selectId,
+      clearReference,
       isServiceAvailable,
       categoriesPriority: [
         "Elderly Customers",
