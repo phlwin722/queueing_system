@@ -91,6 +91,29 @@ class BreakTimeController extends Controller
             ]);
         }
     }
+
+    public function resetBreakTime(Request $request)
+    {
+        try {
+            $branchId = $request->input('branch_id');
+            $breakTime = BreakTime::where('branch_id', $branchId)->first();
+
+            if ($breakTime) {
+                $breakTime->delete();
+                return response()->json([
+                    'message' => 'Break time reset successfully!'
+                ]);
+            } else {
+                return response()->json([
+                    'message' => 'No break time found for this branch.'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
+            ], 500);
+        }
+    }
     
     
 

@@ -544,12 +544,12 @@ export default defineComponent({
         
         watch(()=> formData.value.branch_id, async (newVal, oldnewVal) => {
             if (newVal) {
-      
+        
                 if (adminInformation.value == null && formMode.value === 'Edit' && oldnewVal !== '') {
                     formData.value.type_ids_selected = []                  
                 }
-               await fetchCategories()
-               
+                await fetchCategories()
+                
             }
         }) 
 
