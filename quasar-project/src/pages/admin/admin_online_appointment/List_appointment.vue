@@ -25,7 +25,7 @@
         class="q-mx-md q-mt-sm q-pt-sm"
       >
         <template v-slot:top>
-          <div class="row q-col-gutter-sm q-pb-xs">
+          <div class="row q-col-gutter-sm q-pb-xs" style= "margin-bottom: 20px;">
             <div class="col-auto">
             <q-btn
               color="red"
@@ -73,6 +73,7 @@
             
           </div>
         </template>
+        
         
         <!-- Status cell template for the table -->
         <template v-slot:body-cell-status="props">
