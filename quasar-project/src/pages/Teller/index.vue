@@ -1372,7 +1372,7 @@ export default {
                     "startingTime" + tellerInformation.value.id.toString(),
                     startingTime
                   );
-                }, 3000); // Delay for 3 seconds before serving the customer
+                }, 2000); // Delay for 3 seconds before serving the customer
               }
             }
           }, 5000); // Check every 2 seconds
@@ -1434,11 +1434,11 @@ export default {
         const { data } = await $axios.post("/admin/fetch_break_time", {
           branch_id: tellerInformation.value.branch_id,
         });
-        // ✅ Correctly assign break start & end times
+        // Correctly assign break start & end times
         if (data?.dataValue) {
           fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
           toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
-          // ✅ Get current time in HH:mm format
+          //  Get current time in HH:mm format
           const currentTime = new Date();
           const currentHour = currentTime
             .getHours()
