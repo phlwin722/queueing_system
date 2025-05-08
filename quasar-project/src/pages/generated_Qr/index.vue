@@ -47,30 +47,43 @@
         </q-card-section>
         </q-card>
       </div> -->
-      <div v-if="newFormattedTime >= newTime && formattedCurrentTime < toBreak" class="col q-mb-xl">
-        <q-card class="q-pa-xl q-mx-auto" style="max-width: 600px; border-left: 8px solid #1c5d99;">
-              <q-card-section class="text-center">
-                <q-icon name="access_time" size="60px" style="color: #1c5d99;" class="q-mb-md" />
-                <div class="text-h4 text-weight-bold" style="color: #1c5d99;">Break Time</div>
-                <div class="text-subtitle1 text-grey-7">We’ll be on break</div>
-              </q-card-section>
+      <div
+        v-if="newFormattedTime >= newTime && formattedCurrentTime < toBreak"
+        class="col q-mb-xl"
+      >
+        <q-card
+          class="q-pa-xl q-mx-auto"
+          style="max-width: 600px; border-left: 8px solid #1c5d99"
+        >
+          <q-card-section class="text-center">
+            <q-icon
+              name="access_time"
+              size="60px"
+              style="color: #1c5d99"
+              class="q-mb-md"
+            />
+            <div class="text-h4 text-weight-bold" style="color: #1c5d99">
+              Break Time
+            </div>
+            <div class="text-subtitle1 text-grey-7">We’ll be on break</div>
+          </q-card-section>
 
-              <q-separator spaced />
+          <q-separator spaced />
 
-              <q-card-section class="row justify-around items-center q-pt-lg">
-                <div class="column items-center">
-                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
-                  <div class="text-caption text-grey-7 q-mt-xs">From</div>
-                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(fromBreak) }}</div>
-                </div>
-                <q-icon name="arrow_forward" size="32px" color="grey-6" />
-                <div class="column items-center">
-                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
-                  <div class="text-caption text-grey-7 q-mt-xs">To</div>
-                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(toBreak) }}</div>
-                </div>
-              </q-card-section>
-            </q-card>
+          <q-card-section class="row justify-around items-center q-pt-lg">
+            <div class="column items-center">
+              <q-icon name="schedule" size="32px" style="color: #1c5d99" />
+              <div class="text-caption text-grey-7 q-mt-xs">From</div>
+              <div class="text-h5 q-mt-xs">{{ formatTo12Hour(fromBreak) }}</div>
+            </div>
+            <q-icon name="arrow_forward" size="32px" color="grey-6" />
+            <div class="column items-center">
+              <q-icon name="schedule" size="32px" style="color: #1c5d99" />
+              <div class="text-caption text-grey-7 q-mt-xs">To</div>
+              <div class="text-h5 q-mt-xs">{{ formatTo12Hour(toBreak) }}</div>
+            </div>
+          </q-card-section>
+        </q-card>
       </div>
       <div v-else class="col q-mb-xl">
         <q-card class="shadow-2" style="width: 350px; text-align: center">
@@ -134,7 +147,7 @@ import QrcodeVue from "qrcode.vue";
 import { $axios } from "boot/app";
 import { useQuasar } from "quasar";
 import { watch } from "vue";
-import { isFullscreen } from 'src/composables/fullscreenState';
+import { isFullscreen } from "src/composables/fullscreenState";
 export default {
   components: { QrcodeVue },
   setup() {
@@ -170,7 +183,7 @@ export default {
     const fromBreak = ref("");
     const toBreak = ref("");
     const formattedCurrentTime = ref("");
-    const branch_id = ref(null)
+    const branch_id = ref(null);
     const adminManagerInformation = ref(null);
     // Fetch a new QR code link from the backend
     const fetchQrCode = async () => {
@@ -180,7 +193,7 @@ export default {
         });
 
         const fullUrl = response.data.qr_code_url; // Example: "http://192.168.1.164:8000/scan-qr/abcd1234"
-        const token = response.data.token; 
+        const token = response.data.token;
 
         localStorage.setItem("token", token);
         registrationLink.value =
@@ -192,12 +205,12 @@ export default {
         console.error("Error fetching QR code:", error);
       }
     };
-    const newTime = ref("")
-    const newFormattedTime = ref("")
-    const originalFromBreak = ref("")
+    const newTime = ref("");
+    const newFormattedTime = ref("");
+    const originalFromBreak = ref("");
     const fetchBreakTime = async () => {
       try {
-        const { data } = await $axios.post("/admin/fetch_break_time",{
+        const { data } = await $axios.post("/admin/fetch_break_time", {
           branch_id: branch_id.value,
         });
 
@@ -208,46 +221,53 @@ export default {
           console.log("Updated ", fromBreak.value, toBreak.value);
           // ✅ Get current time in HH:mm format
           const currentTime = new Date();
-          const currentHour = currentTime.getHours().toString().padStart(2, "0");
-          const currentMinutes = currentTime.getMinutes().toString().padStart(2, "0");
+          const currentHour = currentTime
+            .getHours()
+            .toString()
+            .padStart(2, "0");
+          const currentMinutes = currentTime
+            .getMinutes()
+            .toString()
+            .padStart(2, "0");
           formattedCurrentTime.value = `${currentHour}:${currentMinutes}`;
-          const totalMinutes = parseTime(fromBreak.value)-5
+          const totalMinutes = parseTime(fromBreak.value) - 5;
           newTime.value = formatTime(totalMinutes);
-          const OrgtotalMinutes = parseTime(fromBreak.value)
+          const OrgtotalMinutes = parseTime(fromBreak.value);
           originalFromBreak.value = formatTime(OrgtotalMinutes);
-          const totalFormatMinutes = parseTime(formattedCurrentTime.value)
+          const totalFormatMinutes = parseTime(formattedCurrentTime.value);
           newFormattedTime.value = formatTime(totalFormatMinutes);
-        }else{
+        } else {
           console.warn("No break time found");
         }
-  
       } catch (error) {
         console.error("Error fetching break time:", error);
       }
-    }
-    
+    };
 
     const formatTo12Hour = (time) => {
-        const [hour, minute] = time.split(":").map(Number);
-        const ampm = hour >= 12 ? "PM" : "AM";
-        const formattedHour = hour % 12 || 12; // Convert 0 or 12 to 12, 13 to 1, etc.
-        return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
-      };
+      const [hour, minute] = time.split(":").map(Number);
+      const ampm = hour >= 12 ? "PM" : "AM";
+      const formattedHour = hour % 12 || 12; // Convert 0 or 12 to 12, 13 to 1, etc.
+      return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+    };
 
-      function parseTime(timeString) {
-        // Make sure we're working with a string (access .value if it's a Vue ref)
-        const timeStr = typeof timeString === 'object' && 'value' in timeString 
-            ? timeString.value 
-            : timeString;
-        
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        return hours * 60 + minutes;
+    function parseTime(timeString) {
+      // Make sure we're working with a string (access .value if it's a Vue ref)
+      const timeStr =
+        typeof timeString === "object" && "value" in timeString
+          ? timeString.value
+          : timeString;
+
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
     }
 
     function formatTime(totalMinutes) {
-        const hours = Math.floor(totalMinutes / 60) % 24;
-        const minutes = totalMinutes % 60;
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      const hours = Math.floor(totalMinutes / 60) % 24;
+      const minutes = totalMinutes % 60;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
     }
 
     watch(
@@ -259,8 +279,8 @@ export default {
     );
     let Qrtimeout;
     const optimizedFecthQr = async () => {
-        await fetchQrCode()
-        Qrtimeout = setTimeout(optimizedFecthQr, 3000); // Recursive Timeout
+      await fetchQrCode();
+      Qrtimeout = setTimeout(optimizedFecthQr, 3000); // Recursive Timeout
     };
 
     onMounted(() => {
@@ -268,33 +288,34 @@ export default {
       fetchBreakTime();
       intervalId = setInterval(() => {
         fetchBreakTime();
-      }, 10000); 
-      const managerInformation = localStorage.getItem('managerInformation')
-          if (managerInformation) {
-            adminManagerInformation.value = JSON.parse(managerInformation);
-          }
+      }, 10000);
+      const managerInformation = localStorage.getItem("managerInformation");
+      if (managerInformation) {
+        adminManagerInformation.value = JSON.parse(managerInformation);
+      }
 
-          if (adminManagerInformation.value == null) {
-            branch_id.value = 0
-          }else  {
-            branch_id.value = adminManagerInformation.value.branch_id
-          }
+      if (adminManagerInformation.value == null) {
+        branch_id.value = 0;
+      } else {
+        branch_id.value = adminManagerInformation.value.branch_id;
+      }
     });
 
     onUnmounted(() => {
       clearTimeout(Qrtimeout);
     });
 
-    return { registrationLink,
-       icons,
-        fromBreak,
-        toBreak,
-        formattedCurrentTime,
-        formatTo12Hour,
-        newTime,
-        newFormattedTime,
-        originalFromBreak,
-       };
+    return {
+      registrationLink,
+      icons,
+      fromBreak,
+      toBreak,
+      formattedCurrentTime,
+      formatTo12Hour,
+      newTime,
+      newFormattedTime,
+      originalFromBreak,
+    };
   },
 };
 </script>
