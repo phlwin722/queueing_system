@@ -1,7 +1,7 @@
 <template>
-        <!-- Show message for mobile screens -->
-        <q-layout v-if="$q.screen.lt.sm">
-          <q-header class="q-px-md">
+  <!-- Show message for mobile screens -->
+  <q-layout v-if="$q.screen.lt.sm">
+    <q-header class="q-px-md">
       <q-toolbar>
         <!-- Fullscreen Toggle Button -->
         <q-btn
@@ -66,26 +66,29 @@
         </q-menu>
       </q-toolbar>
     </q-header>
-    
-      <!-- Mobile message for users -->
-      <div class="q-pa-md flex flex-center" style="min-height: 100vh;">
-        <q-card class="bg-warning text-secondary q-pa-lg" style="max-width: 400px; width: 90%; text-align: center;">
-          <q-card-section>
-            <q-icon name="mobile_off" size="48px" class="q-mb-md text-accent" />
-            <div class="text-h6 q-mb-sm text-accent">
-              Feature Unavailable on Mobile
-            </div>
-            <div class="bg-white rounded-borders q-pa-md">
-            <p class="text-body1 q-mb-md text-secondary">
-              We’re working hard to improve this feature, but it's not available on mobile devices just yet.
-              Please visit us from a desktop for the full experience. Thank you for your patience!
-            </p>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
 
-       </q-layout>
+    <!-- Mobile message for users -->
+    <div class="q-pa-md flex flex-center" style="min-height: 100vh">
+      <q-card
+        class="bg-warning text-secondary q-pa-lg"
+        style="max-width: 400px; width: 90%; text-align: center"
+      >
+        <q-card-section>
+          <q-icon name="mobile_off" size="48px" class="q-mb-md text-accent" />
+          <div class="text-h6 q-mb-sm text-accent">
+            Feature Unavailable on Mobile
+          </div>
+          <div class="bg-white rounded-borders q-pa-md">
+            <p class="text-body1 q-mb-md text-secondary">
+              We’re working hard to improve this feature, but it's not available
+              on mobile devices just yet. Please visit us from a desktop for the
+              full experience. Thank you for your patience!
+            </p>
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
+  </q-layout>
   <q-layout view="hHh lpR fFf" v-else>
     <q-header class="q-px-md">
       <q-toolbar>
@@ -159,31 +162,64 @@
           <!-- Main Row Container -->
           <div class="row q-col-gutter-md justify-center full-height">
             <!-- First Item -->
-            <div class="col-12 col-md-6" v-if="newFormattedTime >= fromBreak && formattedCurrentTime < toBreak">
-            <q-card class="q-pa-xl q-mx-auto" style="max-width: 650px; min-height: 500px; border-left: 8px solid #1c5d99;">
-              <q-card-section class="text-center">
-                <q-icon name="access_time" size="60px" style="color: #1c5d99;" class="q-mb-md" />
-                <div class="text-h4 text-weight-bold" style="color: #1c5d99;">Break Time</div>
-                <div class="text-subtitle1 text-grey-7">You’re currently on break</div>
-              </q-card-section>
+            <div
+              class="col-12 col-md-6"
+              v-if="
+                newFormattedTime >= fromBreak && formattedCurrentTime < toBreak
+              "
+            >
+              <q-card
+                class="q-pa-xl q-mx-auto"
+                style="
+                  max-width: 650px;
+                  min-height: 500px;
+                  border-left: 8px solid #1c5d99;
+                "
+              >
+                <q-card-section class="text-center">
+                  <q-icon
+                    name="access_time"
+                    size="60px"
+                    style="color: #1c5d99"
+                    class="q-mb-md"
+                  />
+                  <div class="text-h4 text-weight-bold" style="color: #1c5d99">
+                    Break Time
+                  </div>
+                  <div class="text-subtitle1 text-grey-7">
+                    You’re currently on break
+                  </div>
+                </q-card-section>
 
-              <q-separator spaced />
+                <q-separator spaced />
 
-              <q-card-section class="row justify-around items-center q-pt-lg">
-                <div class="column items-center">
-                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
-                  <div class="text-caption text-grey-7 q-mt-xs">From</div>
-                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(fromBreak) }}</div>
-                </div>
-                <q-icon name="arrow_forward" size="32px" color="grey-6" />
-                <div class="column items-center">
-                  <q-icon name="schedule" size="32px" style="color: #1c5d99;" />
-                  <div class="text-caption text-grey-7 q-mt-xs">To</div>
-                  <div class="text-h5 q-mt-xs">{{ formatTo12Hour(toBreak) }}</div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
+                <q-card-section class="row justify-around items-center q-pt-lg">
+                  <div class="column items-center">
+                    <q-icon
+                      name="schedule"
+                      size="32px"
+                      style="color: #1c5d99"
+                    />
+                    <div class="text-caption text-grey-7 q-mt-xs">From</div>
+                    <div class="text-h5 q-mt-xs">
+                      {{ formatTo12Hour(fromBreak) }}
+                    </div>
+                  </div>
+                  <q-icon name="arrow_forward" size="32px" color="grey-6" />
+                  <div class="column items-center">
+                    <q-icon
+                      name="schedule"
+                      size="32px"
+                      style="color: #1c5d99"
+                    />
+                    <div class="text-caption text-grey-7 q-mt-xs">To</div>
+                    <div class="text-h5 q-mt-xs">
+                      {{ formatTo12Hour(toBreak) }}
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
 
             <!-- Second Item -->
             <div v-else class="col-12 col-md-6">
@@ -212,13 +248,17 @@
                   </q-item>
                   <q-separator />
                   <q-separator />
-                  <q-item >
-                    <q-item-section >
+                  <q-item>
+                    <q-item-section>
                       <q-scroll-area
                         :horizontal-thumb-style="{ opacity: 0 }"
-                        style="height: 200px; overflow-x: hidden ; overflow-x: auto;"
+                        style="
+                          height: 200px;
+                          overflow-x: hidden;
+                          overflow-x: auto;
+                        "
                       >
-                        <q-list style="padding: 5px;  overflow-x: hidden ">
+                        <q-list style="padding: 5px; overflow-x: hidden">
                           <q-item
                             v-if="paginatedQueueList.length === 0"
                             class="text-center text-grey q-pa-md"
@@ -233,16 +273,16 @@
                             v-for="(customer, index) in paginatedQueueList"
                             :key="customer.id"
                           >
-                          <q-item
-                            style="height: 80px; border-radius: 10px; "
-                            class="bg-white draggable-item shadow-2 q-mb-sm"
-                            :class="{ 'drag-over': dragOverIndex === index }"
-                            draggable="true"
-                            @dragstart="onDragStart($event, index)"
-                            @dragover.prevent="onDragOver(index)"
-                            @dragleave="onDragLeave"
-                            @drop="onDrop(index)"
-                          >
+                            <q-item
+                              style="height: 80px; border-radius: 10px"
+                              class="bg-white draggable-item shadow-2 q-mb-sm"
+                              :class="{ 'drag-over': dragOverIndex === index }"
+                              draggable="true"
+                              @dragstart="onDragStart($event, index)"
+                              @dragover.prevent="onDragOver(index)"
+                              @dragleave="onDragLeave"
+                              @drop="onDrop(index)"
+                            >
                               <div
                                 class="text-white text-bold glossy"
                                 :style="
@@ -355,28 +395,28 @@
               </q-card>
 
               <!-- Drag area of Currency -->
-              
-                <div class='q-mt-md'>
+
+              <div class="q-mt-md">
                 <!-- <q-scroll-area 
                 class="my-scroll" 
                 style="height: 250px; overflow-y: auto"> -->
-                  <div class="row bg-info text-secondary q-pa-md rounded-borders">
-                    <div class="col-6"><strong>Currency</strong></div>
-                    <div class="col-3"><strong>Buy</strong></div>
-                    <div class="col-3"><strong>Sell</strong></div>
-                  </div>
-                  <q-scroll-area
-                    :horizontal-thumb-style="{ opacity: 0 }"
-                    :style="{
-                      height:
-                        tellerInformation?.type_name == 'Online Appointment' ||
-                        tellerInformation?.type_name == 'Manual Queueing'
-                          ? '500px'
-                          : '200px',
-                      marginBottom: '10px',
-                    }"
-                  >
-                    <q-item
+                <div class="row bg-info text-secondary q-pa-md rounded-borders">
+                  <div class="col-6"><strong>Currency</strong></div>
+                  <div class="col-3"><strong>Buy</strong></div>
+                  <div class="col-3"><strong>Sell</strong></div>
+                </div>
+                <q-scroll-area
+                  :horizontal-thumb-style="{ opacity: 0 }"
+                  :style="{
+                    height:
+                      tellerInformation?.type_name == 'Online Appointment' ||
+                      tellerInformation?.type_name == 'Manual Queueing'
+                        ? '500px'
+                        : '200px',
+                    marginBottom: '10px',
+                  }"
+                >
+                  <q-item
                     v-for="(row, index) in rowsCurrency"
                     :key="row.id"
                     draggable="true"
@@ -407,15 +447,20 @@
                       </div>
                     </q-item-section>
                   </q-item>
-                  </q-scroll-area>
+                </q-scroll-area>
 
-                  <!-- </q-scroll-area> -->
-                </div>
-                
+                <!-- </q-scroll-area> -->
+              </div>
             </div>
 
-
-            <div class="col-12 col-md-6" v-if="(newFormattedTime >= fromBreak && formattedCurrentTime < toBreak) == false || isCurrentlyServing === true" >
+            <div
+              class="col-12 col-md-6"
+              v-if="
+                (newFormattedTime >= fromBreak &&
+                  formattedCurrentTime < toBreak) == false ||
+                isCurrentlyServing === true
+              "
+            >
               <q-card
                 class="q-mb-sm bg-primary text-white shadow-3 rounded-borders"
               >
@@ -594,15 +639,15 @@
                         icon="verified"
                         @click="validateReference"
                         class="q-ml-md full-width"
-                      >           
-                      <q-tooltip
-                        anchor="center left"
-                        self="center right"
-                        :offset="[10, 10]"
                       >
-                        <strong>Validate </strong>
-                      </q-tooltip>
-                    </q-btn>
+                        <q-tooltip
+                          anchor="center left"
+                          self="center right"
+                          :offset="[10, 10]"
+                        >
+                          <strong>Validate </strong>
+                        </q-tooltip>
+                      </q-btn>
                     </div>
                     <div class="col-1">
                       <q-btn
@@ -611,14 +656,14 @@
                         @click="clearReference"
                         class="q-ml-md full-width"
                       >
-                      <q-tooltip
-                        anchor="center left"
-                        self="center right"
-                        :offset="[10, 10]"
-                      >
-                        <strong>Clear </strong>
-                      </q-tooltip>
-                    </q-btn>
+                        <q-tooltip
+                          anchor="center left"
+                          self="center right"
+                          :offset="[10, 10]"
+                        >
+                          <strong>Clear </strong>
+                        </q-tooltip>
+                      </q-btn>
                     </div>
                   </div>
                 </q-card-section>
@@ -952,7 +997,7 @@ export default {
     const ServiceAvail = ref("");
     const customModel = ref("no");
     const prioritySelected = ref();
-    const Address = ref ('');
+    const Address = ref("");
 
     // Pagination
     const currentPage = ref(1);
@@ -1007,8 +1052,8 @@ export default {
 
           // Update and store current serving
           currentServing.value = response.data.current_serving;
-          console.log(currentServing.value)
-          if(currentServing.value !== null){
+          console.log(currentServing.value);
+          if (currentServing.value !== null) {
             isCurrentlyServing.value = true;
           }
           localStorage.setItem(
@@ -1280,8 +1325,6 @@ export default {
       localStorage.removeItem("wait_duration");
     };
 
-  
-
     watch(
       () => queueList.value.length,
       (newLength, oldLength) => {
@@ -1296,20 +1339,21 @@ export default {
     const paginatedQueueList = computed(() => queueList.value);
 
     watch(
-        () => currentServing.value,
-        (newValue) => {
-          if (newValue !== null) {
-            // If a customer is currently being served, stop the auto-serving interval
-            isCurrentlyServing.value = true;
-          }else{
-            // If no customer is being served, start the auto-serving interval
-            isCurrentlyServing.value = false;
-          }
+      () => currentServing.value,
+      (newValue) => {
+        if (newValue !== null) {
+          // If a customer is currently being served, stop the auto-serving interval
+          isCurrentlyServing.value = true;
+        } else {
+          // If no customer is being served, start the auto-serving interval
+          isCurrentlyServing.value = false;
         }
-      );
+      }
+    );
 
-      const debouncedUpdateQueuePositions = debounce(async () => {
-        const updatedPositions = paginatedQueueList.value.map((customer, index) => ({
+    const debouncedUpdateQueuePositions = debounce(async () => {
+      const updatedPositions = paginatedQueueList.value.map(
+        (customer, index) => ({
           id: customer.id,
           position: index + 1,
         })
@@ -1730,7 +1774,7 @@ export default {
           fetchCurrency();
           setInterval(() => {
             fetchCategories();
-          },1500)
+          }, 1500);
           currencyInterval = setInterval(fetchCurrency, 30000);
           fetchBreakTime();
           intervalId = setInterval(() => {
@@ -1880,26 +1924,30 @@ export default {
     };
 
     const joinQueue = async () => {
-      
       if (isServiceAvailable.value == "") {
         if (name.value == "" && email.value == "" && Address.value == "") {
-        formError.value.name = "Name field is required";
-        formError.value.email = "Email field is required";
-        formError.value.Address = "Address field is required";
-        formError.value.selectId = "Service is not available at the moment";
-      }
+          formError.value.name = "Name field is required";
+          formError.value.email = "Email field is required";
+          formError.value.Address = "Address field is required";
+          formError.value.selectId = "Service is not available at the moment";
+        }
         return;
       }
 
-      if (selectId.value == "" && name.value == "" && email.value == "" && Address.value == "" ) {
+      if (
+        selectId.value == "" &&
+        name.value == "" &&
+        email.value == "" &&
+        Address.value == ""
+      ) {
         formError.value.name = "Name field is required";
         formError.value.email = "Email field is required";
         formError.value.Address = "Address field is required";
         formError.value.selectId = "Service field is required";
         return;
       }
-      
-      if (name.value == "" ) {
+
+      if (name.value == "") {
         formError.value.name = "Name field is required";
         return;
       } else if (email.value == "") {
@@ -1918,7 +1966,6 @@ export default {
       await generateRandomString(); // Generate random token before the submission
 
       try {
-        
         // Check if the category is 'Foreign Exchange' and validate the currency selection
         if (categoryForeignExchange.value === 1) {
           if (currencySelected.value == null) {
@@ -1937,10 +1984,10 @@ export default {
           $dialog.loading.show({
             message: "Process is in progress. Hang on...",
           });
-          
+
           setTimeout(() => {
             $dialog.loading.hide();
-          },2000)
+          }, 2000);
         }
         // Capitalize the name properly
         name.value = name.value
@@ -1967,8 +2014,6 @@ export default {
         );
         indicator.value = selectedCategory.indicator;
 
-
-
         generatedQrValue.value = `http://192.168.0.164:8080/customer-dashboard/${token.value}`;
 
         // generate the qr code image
@@ -1994,8 +2039,8 @@ export default {
           qrCodeDataUrl
         );
 
-          // sending email
-          await $axios.post("sent-email-dashboard", {
+        // sending email
+        await $axios.post("sent-email-dashboard", {
           id: data.id,
           token: token.value,
           queue_number: `${indicator.value}#-${String(
@@ -2064,7 +2109,11 @@ export default {
       qrCodeDataUrl
     ) => {
       try {
-        const printWindow = window.open("", "", "height=430,width=450, resizable=yes");
+        const printWindow = window.open(
+          "",
+          "",
+          "height=430,width=450, resizable=yes"
+        );
 
         // Write the content of the print window
         printWindow.document.write("<html>");
@@ -2145,7 +2194,9 @@ export default {
         printWindow.document.write('<div class="container">');
         printWindow.document.write("<div><p><strong>Name:</strong></p></div>");
         printWindow.document.write("<div><p>" + customerName + "</p></div>");
-        printWindow.document.write("<div><p><strong>Address:</strong></p></div>");
+        printWindow.document.write(
+          "<div><p><strong>Address:</strong></p></div>"
+        );
         printWindow.document.write("<div><p>" + Address + "</p></div>");
         printWindow.document.write(
           "<div><p><strong>Service Type:</strong></p></div>"
@@ -2285,13 +2336,13 @@ export default {
 
     const checkAppointment = async () => {
       try {
-        await $axios.post ('/appointment/index')
+        await $axios.post("/appointment/index");
       } catch (error) {
         if (error.response.status === 422) {
           console.log(error.message);
         }
       }
-    }
+    };
 
     onUnmounted(() => {
       // Cleanup all timers and intervals
