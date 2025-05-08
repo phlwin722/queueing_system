@@ -14,7 +14,6 @@
         virtual-scroll
         dense
         v-model:pagination="pagination"
-        selection="multiple"
         v-model:selected="selected"
         :rows-per-page-options="[0]"
         class="q-ma-md q-mt-sm q-pt-sm"
@@ -28,19 +27,23 @@
                 <!-- Spacer to push the search input to the right -->
                 <q-space />
 
-                <!-- Search Input -->
-                <q-input
+                <!-- Branch Selection -->
+                <div style="position: absolute; max-width: 400px; right: 10px; display: flex; align-items: center; gap: 10px;" class="class-auto">
+              <q-select
+                v-if="!adminInformation"
+                style="width: 250px;"
                 outlined
+                label="Branch name"
+                hide-bottom-space
                 dense
-                v-model="text"
-                placeholder="Search..."
-                clearable
-                class="q-ml-sm"
-                >
-                <template v-slot:append>
-                    <q-icon name="search" />
-                </template>
-                </q-input>
+                v-model="branch_name"
+                emit-value
+                map-options
+                :options="branchList"
+                option-label="branch_name"
+                option-value="id"
+              />
+            </div> 
             </q-toolbar>
             </template>
   

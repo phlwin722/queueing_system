@@ -5,3 +5,4 @@ axios.defaults.baseURL =
     ? window.location.origin
     : "http://192.168.0.153:8002";
 export { axios };
+
