@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('manager_lastname');
             $table->string('manager_username')->unique();
             $table->string('manager_password');
+            $table->string('role')->default('Manager');
             $table->string('Image')->nullable();
             $table->string('manager_status');
             $table->unsignedBigInteger('branch_id')->nullable();

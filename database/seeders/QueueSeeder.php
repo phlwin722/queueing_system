@@ -70,7 +70,7 @@ class QueueSeeder extends Seeder
                 'manager_username' => 'dex', 
                 'manager_password' => bcrypt('dex'), 
                 'Image' => 'assets/manager/1/profile.jpg',
-                'manager_status' => 'Online',
+                'manager_status' => 'Offline',
                 'branch_id' => '1',
                 'created_at' => now(), 
                 'updated_at' => now()
@@ -82,7 +82,7 @@ class QueueSeeder extends Seeder
                 'manager_username' => 'alv', 
                 'manager_password' => bcrypt('alv'), 
                 'Image' => 'assets/manager/2/image.png',
-                'manager_status' => 'Online',
+                'manager_status' => 'Offline',
                 'branch_id' => '2',
                 'created_at' => now(), 
                 'updated_at' => now()

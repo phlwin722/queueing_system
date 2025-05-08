@@ -9,8 +9,10 @@ return new class extends Migration {
     {
         Schema::create('break_times', function (Blueprint $table) {
             $table->id();
-            $table->time('break_from'); // Stores start time
-            $table->time('break_to');   // Stores end time
+            $table->time('break_from')
+            ->nullable(); // Stores start time
+            $table->time('break_to')
+            ->nullable(); // Stores end time
             $table->timestamps();       // Created_at & updated_at
         });
     }

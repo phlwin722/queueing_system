@@ -71,6 +71,7 @@ Route::post('/upload-image', [AdminController::class, 'uploadImage']);
 
 Route::post('/admin/break_time', [BreakTimeController::class, 'storeBreakTime']);
 Route::post('/admin/fetch_break_time', [BreakTimeController::class, 'fetchBreakTime']);
+Route::post('/admin/reset_break_time', [BreakTimeController::class, 'resetBreakTime']);
 
 // adminside
 // Teller Routes

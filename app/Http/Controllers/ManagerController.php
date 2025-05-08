@@ -61,6 +61,7 @@ class ManagerController extends Controller
             'manager_lastname' => ucwords($request->teller_lastname),
             'manager_username' => $request->teller_username,
             'manager_password' => Hash::make($request-> teller_password),
+            'role' => $request->role,
             'manager_status' => 'Offline',
             'created_at' => now(),
             'updated_at' => now(),
@@ -143,64 +144,160 @@ class ManagerController extends Controller
     public function update(TellerRequest $request)
     {
         try {
-            $manager = Manager::find($request->id);
-    
-            // Check if manager exists
-            if (!$manager) {
+            $oldRole = $request->oldRole;
+            $newRole = $request->role;
+            $message = "";
+            if($oldRole != $newRole) {
+                if($request->teller_password == "oldpass"){
+                    $message = "New password is required for this role change!";
+                    return response()->json([
+                        "message" => $message,
+                    ], 400);
+                }
+                if(!$request->hasFile('Image')) {
+                    $message = "Reuploading image is required for this role change!";
+                    return response()->json([
+                        "message" => $message,
+                    ], 401);
+                }
+                DB::table('tellers')
+                ->where('id', $request->id)
+                ->delete();
+                $managerID = DB::table('managers')->insertGetId([
+                    'manager_firstname' => ucwords($request->teller_firstname),
+                    'manager_lastname' => ucwords($request->teller_lastname),
+                    'manager_username' => $request->teller_username,
+                    'manager_password' => Hash::make($request-> teller_password),
+                    'role' => $request->role,
+                    'manager_status' => 'Offline',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+        
+                // check if existing image on database
+                $managerImage = DB::table('managers')
+                    ->where('id',$managerID)
+                    ->first();
+        
+                // delete old image if it exist
+                if($managerImage->Image) {
+                    $oldImagePath = public_path($managerImage->Image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath); // Delete the file
+                    }
+                }
+        
+                // process and save the upload file
+                if($request->hasFile('Image')) {
+                    $file = $request->file('Image');
+                    $filename = time() . '.' . $file->getClientOriginalExtension();
+        
+                    // define the folder path 
+                    $folderPath = public_path('assets/manager/' . $managerID);
+        
+                    // ensure the folder exists
+                    if (!file_exists($folderPath)) {
+                        mkdir($folderPath,0755, true); // Create folder with proper permissions
+                    }
+        
+                    // move file to the folder
+                    $file->move($folderPath,$filename);
+        
+                    // correct url public access
+                    $filePath = "assets/manager/{$managerID}/{$filename}";
+        
+                    // Update database using Query Builder (no `save()` method)
+                    DB::table('managers')
+                        ->where('id',$managerID)
+                        ->update(["Image" => $filePath]);   
+                }
+        
+                // Fetch the newly inserted manager and join with the types table
+                $newManager = DB::table('managers as m')
+                ->select(
+                    "m.id",
+                    "m.manager_firstname",
+                    "m.manager_lastname",
+                    "m.manager_username",
+                    "m.manager_password",
+                    "m.manager_status",
+                    "Image",
+                    "b.branch_name"
+                 )
+                ->where("m.id", $managerID)
+                ->leftJoin("branchs as b","b.id","=","m.branch_id")
+                ->first();
+
+
+        
                 return response()->json([
-                    "message" => "Manager not found!"
-                ], 404);
-            }
+                    'success' => true,
+                    'message' => 'Successfully Updated!',
+                    'row' => $newManager
+                ]);
+
+
+            }else{
+                $manager = Manager::find($request->id);
     
-            // Update fields manually
-            $manager->manager_firstname = ucwords($request->teller_firstname);
-            $manager->manager_lastname = ucwords($request->teller_lastname);
-            $manager->manager_username = $request->teller_username;
-    
-            // Update password only if provided
-            if ($request->teller_password != "oldpass") {
-                $manager->manager_password = Hash::make($request->teller_password);
-            }
-    
-            // Update the image if provided
-            if ($request->hasFile('Image')) {
-                // Delete the old image if it exists
-                if ($manager->Image && file_exists(public_path($manager->Image))) {
-                    unlink(public_path($manager->Image)); // Delete the old image file
+                // Check if manager exists
+                if (!$manager) {
+                    return response()->json([
+                        "message" => "Manager not found!"
+                    ], 404);
+                }
+        
+                // Update fields manually
+                $manager->manager_firstname = ucwords($request->teller_firstname);
+                $manager->manager_lastname = ucwords($request->teller_lastname);
+                $manager->manager_username = $request->teller_username;
+        
+                // Update password only if provided
+                if ($request->teller_password != "oldpass") {
+                    $manager->manager_password = Hash::make($request->teller_password);
                 }
     
-                // Process and save the new uploaded image
-                $file = $request->file('Image');
-                $filename = time() . '.' . $file->getClientOriginalExtension();
-    
-                // Define the folder path (inside the public directory)
-                $folderPath = public_path('assets/manager/' . $request->id);
-    
-                // Ensure the folder exists
-                if (!file_exists($folderPath)) {
-                    mkdir($folderPath, 0755, true);  // Create folder with proper permissions
+                // Update the image if provided
+                if ($request->hasFile('Image')) {
+                    // Delete the old image if it exists
+                    if ($manager->Image && file_exists(public_path($manager->Image))) {
+                        unlink(public_path($manager->Image)); // Delete the old image file
+                    }
+        
+                    // Process and save the new uploaded image
+                    $file = $request->file('Image');
+                    $filename = time() . '.' . $file->getClientOriginalExtension();
+        
+                    // Define the folder path (inside the public directory)
+                    $folderPath = public_path('assets/manager/' . $request->id);
+        
+                    // Ensure the folder exists
+                    if (!file_exists($folderPath)) {
+                        mkdir($folderPath, 0755, true);  // Create folder with proper permissions
+                    }
+        
+                    // Move the file to the folder
+                    $file->move($folderPath, $filename);
+        
+                    // Save the file path in the database
+                    $filePath = "assets/manager/{$request->id}/{$filename}";
+        
+                    // Update the image path using Eloquent
+                    $manager->Image = $filePath;
                 }
     
-                // Move the file to the folder
-                $file->move($folderPath, $filename);
-    
-                // Save the file path in the database
-                $filePath = "assets/manager/{$request->id}/{$filename}";
-    
-                // Update the image path using Eloquent
-                $manager->Image = $filePath;
+                // Save the updates (will save the image path as well)
+                $manager->save();
+        
+                // Fetch updated data
+                $row = $this->getData($manager->id);
+        
+                return response()->json([
+                    "row" => $row,
+                    "message" => "Successfully Updated!"
+                ]);
             }
-    
-            // Save the updates (will save the image path as well)
-            $manager->save();
-    
-            // Fetch updated data
-            $row = $this->getData($manager->id);
-    
-            return response()->json([
-                "row" => $row,
-                "message" => "Successfully Updated!"
-            ]);
+            
         } catch (\Exception $e) {
             return response()->json([
                 "message" => env('APP_DEBUG') ? $e->getMessage() : "An error occurred"
