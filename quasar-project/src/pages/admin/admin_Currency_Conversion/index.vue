@@ -306,10 +306,25 @@ export default defineComponent({
           const { data } = await $axios.post(URL + "/showData", {
           });
           rows.value.splice(0, rows.value.length, ...data.rows);
+
+          if (rows.value.length === 0) {
+            generateDefaultCurrencies()
+          }
       
         
       } catch (error) {
         console.log(error);
+      }
+    };
+
+    const generateDefaultCurrencies = async () => {
+      try {
+        const { data } = await $axios.post("/generateDefaultCurrencies");
+        rows.value.splice(0, rows.value.length, ...data.rows);
+        $notify("positive", "check", data.message);
+      } catch (error) {
+        console.log(error);
+        $notify("negative", "error", error.response.data.message);
       }
     };
 

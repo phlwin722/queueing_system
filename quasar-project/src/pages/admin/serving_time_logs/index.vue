@@ -297,14 +297,6 @@ export default defineComponent({
               field: 'minutes',
               sortable: true
             },
-            {
-              name: 'actions',
-              label: 'Actions',
-              align: 'left',
-              field: 'actions',
-              sortable: false,
-              style: 'width: 100px;'
-            }
           ]
         }else {
           columns.value = [
