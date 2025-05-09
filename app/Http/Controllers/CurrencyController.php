@@ -132,4 +132,43 @@ class CurrencyController extends Controller
             ]);
         } 
     }
+
+    public function generateDefaultCurrencies()
+    {
+        try {
+            $currencies = [
+                ['currency_name' => 'US Dollar',     'currency_symbol' => '$',   'flag' => 'fi-us', 'buy_value' => 55.20, 'sell_value' => 56.00],
+                ['currency_name' => 'Euro',                     'currency_symbol' => '€',   'flag' => 'fi-eu', 'buy_value' => 59.00, 'sell_value' => 60.20],
+                ['currency_name' => 'British Pound',   'currency_symbol' => '£',   'flag' => 'fi-gb', 'buy_value' => 68.00, 'sell_value' => 69.50],
+                ['currency_name' => 'Japanese Yen',             'currency_symbol' => '¥',   'flag' => 'fi-jp', 'buy_value' => 0.35,  'sell_value' => 0.38],
+                ['currency_name' => 'Australian Dollar',        'currency_symbol' => 'A$',  'flag' => 'fi-au', 'buy_value' => 36.50, 'sell_value' => 37.30],
+                ['currency_name' => 'Canadian Dollar',          'currency_symbol' => 'C$',  'flag' => 'fi-ca', 'buy_value' => 40.00, 'sell_value' => 41.20],
+                ['currency_name' => 'Swiss Franc',              'currency_symbol' => 'CHF', 'flag' => 'fi-ch', 'buy_value' => 62.00, 'sell_value' => 63.50],
+                ['currency_name' => 'Chinese Yuan',             'currency_symbol' => '¥',   'flag' => 'fi-cn', 'buy_value' => 7.60,  'sell_value' => 7.90],
+                ['currency_name' => 'Singapore Dollar',         'currency_symbol' => 'S$',  'flag' => 'fi-sg', 'buy_value' => 41.20, 'sell_value' => 42.00],
+                ['currency_name' => 'Hong Kong Dollar',         'currency_symbol' => 'HK$', 'flag' => 'fi-hk', 'buy_value' => 7.00,  'sell_value' => 7.30],
+            ];
+
+            foreach ($currencies as &$currency) {
+                $currency['created_at'] = now();
+                $currency['updated_at'] = now();
+            }
+
+            foreach ($currencies as $currency) {
+                Currency::create($currency);
+            }
+
+            return response()->json([
+                "message" => "Default currencies generated successfully!"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => env('APP_DEBUG') 
+                    ? $e->getMessage() 
+                    : "Something went wrong in generating default currencies!"
+            ]);
+        }
+    }
+
+
 }

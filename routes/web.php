@@ -129,6 +129,7 @@ Route::post('/currency/showData', [CurrencyController::class, 'showData']);
 Route::post('/currency/create', [CurrencyController::class, 'create']);
 Route::post('/currency/update', [CurrencyController::class, 'update']);
 Route::post('/currency/delete', [CurrencyController::class, 'delete']);
+Route::post('/generateDefaultCurrencies', [CurrencyController::class, 'generateDefaultCurrencies']);
 
 //Serving Time Routes
 Route::post('/teller/save-serving-time', [ServingTimeController::class, 'saveServingTime']);

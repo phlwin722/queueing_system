@@ -262,53 +262,6 @@ class QueueSeeder extends Seeder
             ],
         ]);
 
-        Currency::insert([
-            [
-                'currency_name' => 'US Dollar',
-                'currency_symbol' => '$',
-                'flag' => 'fi-us',
-                'buy_value' => '12.00',
-                'sell_value' => '32.00',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'currency_name' => 'Euro',
-                'currency_symbol' => '€',
-                'flag' => 'fi-eu',
-                'buy_value' => '59.00',
-                'sell_value' => '32.00',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'currency_name' => 'Philippine Peso',
-                'currency_symbol' => '₱',
-                'flag' => 'fi-ph',
-                'buy_value' => '25.00',
-                'sell_value' => '32.00',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'currency_name' => 'Hong Kong Dollar',
-                'currency_symbol' => 'HK$',
-                'flag' => 'fi-hk',
-                'buy_value' => '12.00',
-                'sell_value' => '32.00',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'currency_name' => 'Egyptian Poun',
-                'currency_symbol' => 'E£',
-                'flag' => 'fi-eg',
-                'buy_value' => '10.00',
-                'sell_value' => '38.00',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
 
         // update branchs
         DB::table ('branchs')
@@ -652,6 +605,61 @@ class QueueSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+        ]);
+
+        // Insert dummy serving time data
+        DB::table('serving_times')->insert([
+            [
+                'minutes' => 10,
+                'start_time' => '10:33:53 AM',
+                'end_time' => '10:43:53 AM',
+                'type_id' => 1,
+                'teller_id' => 1,
+                'branch_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'minutes' => 7,
+                'start_time' => '10:45:53 AM',
+                'end_time' => '10:52:53 AM',
+                'type_id' => 1,
+                'teller_id' => 1,
+                'branch_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'minutes' => 12,
+                'start_time' => '10:53:53 AM',
+                'end_time' => '11:05:53 AM',
+                'type_id' => 1,
+                'teller_id' => 1,
+                'branch_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'minutes' => 15,
+                'start_time' => '11:05:53 AM',
+                'end_time' => '11:20:53 AM',
+                'type_id' => 1,
+                'teller_id' => 1,
+                'branch_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'minutes' => 14,
+                'start_time' => '11:21:53 AM',
+                'end_time' => '11:35:53 AM',
+                'type_id' => 1,
+                'teller_id' => 1,
+                'branch_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            
         ]);
 
 
