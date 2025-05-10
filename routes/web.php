@@ -22,6 +22,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ResetWindowSettingController;
 use App\Http\Controllers\ArchiveController;
 use App\Models\Appointment;
+use App\Http\Controllers\StudentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -205,3 +206,6 @@ Route::post('/api/barangays', [BranchController::class, 'getBarangays']);
 // archieve
 Route::post('/admin/archive', [ArchiveController::class, 'index']);
 Route::post('/archieve/restore',[ArchiveController::class, 'restore']);
+
+// Define a POST route to insert the student and trigger broadcasting
+Route::post('/src-insert', [StudentController::class, 'insert']);
