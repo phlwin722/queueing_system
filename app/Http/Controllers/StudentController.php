@@ -27,4 +27,13 @@ class StudentController extends Controller
         // Return the newly created student as a response
         return response()->json(['message' => 'Student created successfully', 'student' => $newStudent]);
     }
+
+    public function fetch()
+    {
+        // Fetch all students from the database
+        $students = DB::table('students')->get();
+
+        // Return the list of students as a response
+        return response()->json(['row' => $students]);
+    }
 }

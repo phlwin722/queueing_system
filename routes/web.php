@@ -209,3 +209,4 @@ Route::post('/archieve/restore',[ArchiveController::class, 'restore']);
 
 // Define a POST route to insert the student and trigger broadcasting
 Route::post('/src-insert', [StudentController::class, 'insert']);
+Route::post('/src-fetch', [StudentController::class, 'fetch']);
