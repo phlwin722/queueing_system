@@ -36,6 +36,14 @@ const routes = [
     component: () => import("pages/Teller/index.vue"), // Dynamically load the login component
   },
   {
+    path: '/insert',  // Route for inserting a student
+    component: () => import("pages/pakideelete/InsertPage.vue"), // Dynamically load the login component
+  },
+  {
+    path: '/students',  // Route to display the student list
+    component: () => import("pages/pakideelete/DisplayPage.vue")
+  },
+  {
     path: "/vrtsystem/onlineAppointment", 
     component: ()=> import ('layouts/OnlineAppointment.vue'),
 
