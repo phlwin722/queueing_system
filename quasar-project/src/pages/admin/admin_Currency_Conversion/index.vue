@@ -479,7 +479,7 @@ export default defineComponent({
     watch (() => branch_name.value, (newVal) => {
       getTableData();
     })
-    let intervalId;
+
     onMounted( async () => {
       const managerInformation = localStorage.getItem('managerInformation')
       if (managerInformation) {
@@ -490,9 +490,6 @@ export default defineComponent({
         branch_name.value = 0;
       }
       await getTableData()
-      intervalId = setInterval(() => {
-          getTableData();
-      }, 5000);
       // await fetchBranch()
       await  columnCheck()
     });

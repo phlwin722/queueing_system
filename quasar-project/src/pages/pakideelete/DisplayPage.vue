@@ -46,7 +46,11 @@ export default defineComponent({
 
       // Listen for the 'StudentCreated' event on the channel
       channel.bind("StudentCreated", (data) => {
+        if (data) {
+          // Update the students list with the new student data
+          alert('hahaa')
         students.value.push(data.student); // Add the new student to the list
+        }  
       });
 
       display(); // Fetch the initial list of students

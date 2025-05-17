@@ -1085,6 +1085,7 @@ export default {
   padding: 8px; /* Spacing between cards */
   box-sizing: border-box;
   min-height: 300px;
+  max-height: 500px; /* Optional: limit height if needed */
 }
 
 /* Teller card */
