@@ -27,8 +27,8 @@ class SendingDashBoard extends Mailable
     public function build()
     {
         return $this->from(env('MAIL_FROM_ADDRESS')) // Fetch sender email from .env
-                    ->subject($this->data['subject']) // Set the email subject dynamically
-                    ->html($this->generateEmailContent()); // Generate HTML email content dynamically
+            ->subject($this->data['subject']) // Set the email subject dynamically
+            ->html($this->generateEmailContent()); // Generate HTML email content dynamically
     }
 
     /**
@@ -135,7 +135,7 @@ class SendingDashBoard extends Mailable
                         <table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0'>
                             <tr>
                                 <td align='center'>
-                                    <a href='http://192.168.0.194:8080/customer-dashboard/{$this->data['token']}' 
+                                    <a href='http://192.168.0.153:8080/customer-dashboard/{$this->data['token']}' 
                                         class='button' 
                                         style='display: inline-block; background: #007bff; color: #ffffff; 
                                                 padding: 10px 20px; text-decoration: none; font-size: 16px; 

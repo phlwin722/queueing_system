@@ -183,7 +183,7 @@ export default {
     const waitingTimeChart = ref(null);
     const branchList = ref([]);
     const adminMangerInformation = ref();
-    let channel = null
+    let channel = null;
 
     const rowsWorkStation = ref([]);
     const branch_name = ref(null);
@@ -223,6 +223,14 @@ export default {
       }
     };
 
+    const generateDefaultCurrencies = async () => {
+      try {
+        $axios.post("/generateDefaultCurrencies");
+      } catch (error) {
+        console.log(error);
+        $notify("negative", "error", error.response.data.message);
+      }
+    };
     const computePercentages = () => {
       total.value = rows.value.length;
       if (total === 0) {
@@ -516,6 +524,7 @@ export default {
       renderSurveyCharts();
       fetchBranch();
       checkColumn();
+      generateDefaultCurrencies();
 
       // Make sure `branch_name` is set to a meaningful default value
       if (!adminMangerInformation.value && !branch_name.value) {
@@ -544,7 +553,7 @@ export default {
 
       if (pusher) {
         pusher.unsubscribe("teller-channel");
-        channel.unbind_all()
+        channel.unbind_all();
       }
     });
 

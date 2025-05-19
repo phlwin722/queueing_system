@@ -255,7 +255,7 @@
                         style="
                           height: 200px;
                           overflow-x: hidden;
-                          overflow-x: auto;
+                          overflow-y: auto;
                         "
                       >
                         <q-list style="padding: 5px; overflow-x: hidden">
@@ -2313,7 +2313,6 @@ export default {
 
     return {
       formError,
-      fetchCurrency,
       queueList,
       currentServing,
       handleAssignedTellerClick,
