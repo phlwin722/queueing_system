@@ -545,6 +545,7 @@ export default {
       channel.bind("TellerEvent", (data) => {
         if (data) {
           fetchWorkStation();
+          console.log('data', data.teller.branch_id)
         }
       });
     });
