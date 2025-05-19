@@ -255,7 +255,7 @@
                         style="
                           height: 200px;
                           overflow-x: hidden;
-                          overflow-x: auto;
+                          overflow-y: auto;
                         "
                       >
                         <q-list style="padding: 5px; overflow-x: hidden">
@@ -1360,10 +1360,10 @@ export default {
                     "startingTime" + tellerInformation.value.id.toString(),
                     startingTime
                   );
-                }, 2000); // Delay for 3 seconds before serving the customer
+                }, 1000); // Delay for 3 seconds before serving the customer
               }
             }
-          }, 5000); // Check every 2 seconds
+          }, 2000); // Check every 2 seconds
         } else {
           // Auto Serving is disabled
           $notify("positive", "check", "Automatic Serving Disabled");
@@ -2295,7 +2295,9 @@ export default {
     onUnmounted(() => {
       if (waitTimer) clearInterval(waitTimer);
       if (refreshInterval) clearInterval(refreshInterval);
-      fetchQueueDatapusher.unsubscribe("queuelist-channel");
+      if (pusher) {
+        fetchQueueDatapusher.unsubscribe("queuelist-channel");
+      }
     });
     onBeforeUnmount(() => {
       if (autoServingInterval) {
@@ -2307,7 +2309,6 @@ export default {
 
     return {
       formError,
-      fetchCurrency,
       queueList,
       currentServing,
       handleAssignedTellerClick,

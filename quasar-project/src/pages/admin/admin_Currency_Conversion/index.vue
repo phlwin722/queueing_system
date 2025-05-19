@@ -10,8 +10,9 @@
         />
       </q-breadcrumbs>
     </div>
-    
-    <q-table v-if="!adminManagerInformation"
+
+    <q-table
+      v-if="!adminManagerInformation"
       title="Currency"
       :rows="filteredRows"
       :columns="columns"
@@ -24,8 +25,7 @@
       :rows-per-page-options="[0]"
       class="q-ma-md q-mt-sm q-pt-sm"
     >
-    
-      <template v-slot:top  v-if="!adminManagerInformation">
+      <template v-slot:top v-if="!adminManagerInformation">
         <div class="row q-col-gutter-sm q-pb-xs">
           <div class="">
             <q-btn
@@ -92,7 +92,10 @@
         </q-td>
       </template>
 
-      <template v-slot:body-cell-actions="props"  v-if="!adminManagerInformation">
+      <template
+        v-slot:body-cell-actions="props"
+        v-if="!adminManagerInformation"
+      >
         <q-td :props="props">
           <div class="q-gutter-x-sm">
             <q-btn
@@ -139,7 +142,8 @@
       </template>
     </q-table>
 
-    <q-table v-else
+    <q-table
+      v-else
       title="Currency"
       :rows="filteredRows"
       :columns="columns"
@@ -150,8 +154,7 @@
       :rows-per-page-options="[0]"
       class="q-ma-md q-mt-sm q-pt-sm"
     >
-    
-      <template v-slot:top  v-if="!adminManagerInformation">
+      <template v-slot:top v-if="!adminManagerInformation">
         <div class="row q-col-gutter-sm q-pb-xs">
           <div class="">
             <q-btn
@@ -218,7 +221,10 @@
         </q-td>
       </template>
 
-      <template v-slot:body-cell-actions="props"  v-if="!adminManagerInformation">
+      <template
+        v-slot:body-cell-actions="props"
+        v-if="!adminManagerInformation"
+      >
         <q-td :props="props">
           <div class="q-gutter-x-sm">
             <q-btn
@@ -283,8 +289,8 @@ export default defineComponent({
     const text = ref("");
     const rows = ref([]);
     const $dialog = useQuasar();
-    const adminManagerInformation = ref (null)
-    const branch_name = ref (null);
+    const adminManagerInformation = ref(null);
+    const branch_name = ref(null);
     // const branch_list =ref ([]);
 
     const columns = ref([]);
@@ -302,29 +308,10 @@ export default defineComponent({
 
     const getTableData = async () => {
       try {
-    
-          const { data } = await $axios.post(URL + "/showData", {
-          });
-          rows.value.splice(0, rows.value.length, ...data.rows);
-
-          if (rows.value.length === 0) {
-            generateDefaultCurrencies()
-          }
-      
-        
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    const generateDefaultCurrencies = async () => {
-      try {
-        const { data } = await $axios.post("/generateDefaultCurrencies");
+        const { data } = await $axios.post(URL + "/showData", {});
         rows.value.splice(0, rows.value.length, ...data.rows);
-        $notify("positive", "check", data.message);
       } catch (error) {
         console.log(error);
-        $notify("negative", "error", error.response.data.message);
       }
     };
 
@@ -427,11 +414,16 @@ export default defineComponent({
               field: "sell_value",
               sortable: true,
             },
-            { name: "actions", label: "Actions", align: "left", sortable: false },
-          ]
-        }else {
+            {
+              name: "actions",
+              label: "Actions",
+              align: "left",
+              sortable: false,
+            },
+          ];
+        } else {
           columns.value = [
-           {
+            {
               name: "currency_name",
               label: "Currency Name",
               align: "left",
@@ -467,31 +459,34 @@ export default defineComponent({
               field: "sell_value",
               sortable: true,
             },
-          ]
+          ];
         }
       } catch (error) {
         if (error.response.status === 422) {
-          console.log(error)
+          console.log(error);
         }
       }
-    }
+    };
 
-    watch (() => branch_name.value, (newVal) => {
-      getTableData();
-    })
+    watch(
+      () => branch_name.value,
+      (newVal) => {
+        getTableData();
+      }
+    );
 
-    onMounted( async () => {
-      const managerInformation = localStorage.getItem('managerInformation')
+    onMounted(async () => {
+      const managerInformation = localStorage.getItem("managerInformation");
       if (managerInformation) {
-        adminManagerInformation.value = JSON.parse(managerInformation)
+        adminManagerInformation.value = JSON.parse(managerInformation);
       }
 
-      if (adminManagerInformation.value == null ) {
+      if (adminManagerInformation.value == null) {
         branch_name.value = 0;
       }
-      await getTableData()
+      await getTableData();
       // await fetchBranch()
-      await  columnCheck()
+      await columnCheck();
     });
 
     return {
@@ -532,11 +527,11 @@ export default defineComponent({
 <style>
 @import "flag-icons/css/flag-icons.min.css";
 </style>
-<style >
-  span.q-table__bottom-item{
-    width: 200px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-  }
+<style>
+span.q-table__bottom-item {
+  width: 200px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

@@ -23,17 +23,19 @@ class SendingAppointment extends Mailable
         $this->data = $data;
     }
 
-     /**
+    /**
      * Builds the email message.
      */
 
-     public function build() {
+    public function build()
+    {
         return $this->from(env('MAIL_FROM_ADDRESS'))
-                    ->subject($this->data['subject'])
-                    ->html($this->generatedEmailContent());
-     }
+            ->subject($this->data['subject'])
+            ->html($this->generatedEmailContent());
+    }
 
-     private function generatedEmailContent() {
+    private function generatedEmailContent()
+    {
         return "
             <html>
             <head>
@@ -145,5 +147,5 @@ class SendingAppointment extends Mailable
             </body>
         </html>
         ";
-     }
+    }
 }
