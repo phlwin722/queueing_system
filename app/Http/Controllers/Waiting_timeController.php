@@ -6,6 +6,7 @@ use App\Http\Requests\Waiting_time;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\WaitingTime;
+use App\Events\CustomerDashBoardQueuelist;
 
 class Waiting_timeController extends Controller
 {
@@ -33,7 +34,8 @@ class Waiting_timeController extends Controller
                 ]);
                 $message = "Waiting time created successfully!";
             }
-
+            $newWaitingTime = DB::table('waiting_times')->where('id', $waitingTime)->first();
+            broadcast(new CustomerDashBoardQueuelist($newWaitingTime));
             return response()->json([
                 "message" => $message,
                 "time" => [

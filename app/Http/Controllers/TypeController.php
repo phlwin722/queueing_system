@@ -9,6 +9,7 @@ use \App\Models\Teller;
 use \App\Models\Window;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use Illuminate\Support\Facades\DB;
+use App\Events\CustomerDashBoardQueuelist;
 
 class TypeController extends Controller
 {
@@ -136,7 +137,8 @@ class TypeController extends Controller
         try {
             $row = Type::create($request->all());
             $rows = $this->getData($row->id);
-
+            $newType = DB::table('types')->where('id', $row)->first();
+            broadcast(new CustomerDashBoardQueuelist($newType));
             return response()->json([
                 "row" => $rows,
                 "message" => "Successfully Created!"
@@ -158,6 +160,9 @@ class TypeController extends Controller
             $row->update($request->all());
 
             $getData = $this->getData($id);
+
+            $newType = DB::table('types')->where('id', $row)->first();
+            broadcast(new CustomerDashBoardQueuelist($newType));
             return response()->json([
                 "row" => $getData, // Return updated record
                 "message" => "Successfully Updated!"
@@ -198,7 +203,7 @@ class TypeController extends Controller
             DB::table('types')
                 ->whereIn('id', $ids)
                 ->delete();
-    
+            broadcast(new CustomerDashBoardQueueList(['action' => 'deleted', 'id' => $ids]));
             return response()->json([
                 "message" => "Successfully Deleted!"
             ]);

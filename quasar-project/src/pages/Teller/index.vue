@@ -165,7 +165,7 @@
             <div
               class="col-12 col-md-6"
               v-if="
-                newFormattedTime >= fromBreak && formattedCurrentTime < toBreak
+                (newFormattedTime >= fromBreak && formattedCurrentTime < toBreak) && onBreak == true
               "
             >
               <q-card
@@ -949,6 +949,7 @@ import {
   watch,
   nextTick,
   onBeforeUnmount,
+  inject,
 } from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import { useQuasar } from "quasar";
@@ -998,6 +999,7 @@ export default {
     const customModel = ref("no");
     const prioritySelected = ref();
     const Address = ref("");
+    const fetchQueueDatapusher = inject("$pusher")
 
     // Pagination
     const currentPage = ref(1);
@@ -1024,11 +1026,8 @@ export default {
       referenceNumber: "",
     });
 
-    // Fetch queue data with error handling
-    const QueueListlastUpdatedAt = ref(null); // default to null
-    let polling = true;
+
     const fetchQueue = async () => {
-      if (!polling) return;
       try {
         isLoading.value = true;
 
@@ -1037,18 +1036,13 @@ export default {
         const response = await $axios.post("/teller/queue-list", {
           type_id: tellerInformation.value.type_id,
           teller_id: tellerInformation.value.id,
-          last_updated: QueueListlastUpdatedAt.value,
           branch_id: tellerInformation.value.branch_id,
         });
 
         if (response.data.updated) {
           let fetchedQueue = response.data.queue;
 
-          // fetchedQueue = fetchedQueue.sort((a, b) => {
-          //   if (a.priority_service && !b.priority_service) return -1;
-          //   if (!a.priority_service && b.priority_service) return 1;
-          // });
-          // console.log(fetchedQueue)
+
 
           // Update and store current serving
           currentServing.value = response.data.current_serving;
@@ -1061,10 +1055,7 @@ export default {
             JSON.stringify(currentServing.value)
           );
 
-          // Remove current serving from the queue list
-          // const updatedQueue = fetchedQueue.filter(
-          //   (q) => q.id !== currentServing.value?.id
-          // );
+
 
           // Preserve the local order while updating new queue items
           queueList.value = fetchedQueue;
@@ -1077,54 +1068,14 @@ export default {
           noOfQueue.value = queueList.value.length;
 
           isQueuelistEmpty.value = queueList.value.length == 0;
-          QueueListlastUpdatedAt.value = response.data.last_updated_at;
         }
       } catch (error) {
         console.error("Error fetching queue:", error);
         //   $notify("negative", "error", "Failed to fetch queue data");
-      } finally {
-        isLoading.value = false;
-        if (noOfQueue.value > 5) {
-          if (polling) setTimeout(fetchQueue, 10000);
-        } else {
-          if (polling) setTimeout(fetchQueue, 5000);
-        }
-      }
+      } 
     };
 
-    // Helper function to maintain the local order
-    // const reorderQueue = (storedQueue, updatedQueue) => {
-    //   const orderMap = new Map(storedQueue.map((q, index) => [q.id, index]));
-    //   return updatedQueue.sort(
-    //     (a, b) =>
-    //       (orderMap.get(a.id) ?? Infinity) - (orderMap.get(b.id) ?? Infinity)
-    //   );
-    // };
-    // const fetchIdLastUpdatedAt = ref(null); // last update tracker
-    // let fetchIdPolling = true; // Flag to control recursive polling
-    // const fetchId = async () => {
-    //   if (!fetchIdPolling) return; // Prevent re-fetch if polling is stopped
-    //   try {
 
-    //     const response = await $axios.post("/teller/queue-list", {
-    //       type_id: tellerInformation.value.type_id,
-    //       teller_id: tellerInformation.value.id,
-    //       last_updated: fetchIdLastUpdatedAt.value,
-    //     });
-    //     if (response.data.updated) {
-    //       if (response.data.current_serving) {
-    //       cusId.value = response.data.current_serving.id;
-    //       console.log(cusId.value)
-    //     }
-    //       fetchIdLastUpdatedAt.value = response.data.last_updated_at;
-    //     }
-
-    //   } catch (error) {
-    //     console.error("Error fetching customer ID:", error);
-    //   }finally {
-    //     if (fetchIdPolling) setTimeout(fetchId, 3000); // Poll every 3 seconds
-    //   }
-    // };
     // Cater customer with error handling
     const caterCustomer = async (customerId, type_id) => {
       try {
@@ -1280,13 +1231,9 @@ export default {
     };
 
     // Fetch waiting time with error handling
-    const fetchWaitingtimelastUpdatedAt = ref(null); // default to null
-    let fetchWaitingtimepolling = true;
     const fetchWaitingtime = async () => {
-      if (!fetchWaitingtimepolling) return;
       try {
         const { data } = await $axios.post("/admin/waiting_Time-fetch", {
-          last_updated: fetchWaitingtimelastUpdatedAt.value,
           branch_id: tellerInformation.value.branch_id,
         });
         if (data.updated) {
@@ -1294,12 +1241,9 @@ export default {
             waitTime.value = data.dataValue.Waiting_time;
           }
 
-          fetchWaitingtimelastUpdatedAt.value = data.last_updated_at;
         }
       } catch (error) {
         console.error("Error fetching waiting time:", error);
-      } finally {
-        if (fetchWaitingtimepolling) setTimeout(fetchWaitingtime, 10000);
       }
     };
 
@@ -1549,6 +1493,7 @@ export default {
           }
         } else {
           console.warn("No break time found");
+          onBreak.value = false;
         }
       } catch (error) {
         console.error("Error fetching break time:", error);
@@ -1677,9 +1622,6 @@ export default {
           if (data.message) {
             localStorage.removeItem("authTokenTeller");
             localStorage.removeItem("tellerInformation");
-            polling = false;
-            fetchWaitingtimepolling = false;
-            // fetchIdPolling = false;
             router.push("/login");
             setTimeout(() => {
               window.location.reload();
@@ -1749,58 +1691,7 @@ export default {
       }
     };
 
-    // Timer references for cleanup
 
-    let currencyInterval;
-    let intervalId = null;
-
-    onMounted(() => {
-      try {
-        $dialog.loading.show({
-          message: "Process is in progress. Hang on...",
-        });
-
-        const storedTellerInfo = localStorage.getItem("tellerInformation");
-        if (storedTellerInfo) {
-          tellerInformation.value = JSON.parse(storedTellerInfo);
-          fetchType_idValue();
-          fetch_Image();
-          // Start periodic data fetching
-          fetchQueue();
-          fetchWaitingtime();
-          // fetchId()
-          fetchTodayServingStats();
-          // Start currency data fetching
-          fetchCurrency();
-          setInterval(() => {
-            fetchCategories();
-          }, 1500);
-          currencyInterval = setInterval(fetchCurrency, 30000);
-          fetchBreakTime();
-          intervalId = setInterval(() => {
-            fetchBreakTime();
-          }, 30000);
-          // Restore wait timer if exists
-          const startTime =
-            parseInt(localStorage.getItem("wait_start_time")) || 0;
-          const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
-          if (startTime && duration) {
-            waiting.value = true;
-            startTimer();
-          }
-        } else {
-          console.error("No teller information found");
-          router.push("/login");
-        }
-      } catch (error) {
-        console.error("Initialization error:", error);
-        router.push("/login");
-      } finally {
-        setTimeout(() => {
-          $dialog.loading.hide();
-        }, 1200);
-      }
-    });
 
     const validateReference = async () => {
       try {
@@ -2344,19 +2235,73 @@ export default {
       }
     };
 
+      onMounted(() => {
+        try {
+          $dialog.loading.show({
+            message: "Process is in progress. Hang on...",
+          });
+
+          const storedTellerInfo = localStorage.getItem("tellerInformation");
+          if (storedTellerInfo) {
+            tellerInformation.value = JSON.parse(storedTellerInfo);
+            fetchType_idValue();
+            fetch_Image();
+            // Start periodic data fetching
+            // fetchId()
+            fetchTodayServingStats();
+            const startTime =
+              parseInt(localStorage.getItem("wait_start_time")) || 0;
+            const duration = parseInt(localStorage.getItem("wait_duration")) || 0;
+            if (startTime && duration) {
+              waiting.value = true;
+              startTimer();
+            }
+
+              const fetchQueueDatapusher = new Pusher("8d3b62bc5d67d22d3605", {
+                cluster: "us2",
+              });
+              const fetchQueueDatachannel = fetchQueueDatapusher.subscribe("queuelist-channel");
+
+                    // Listen for the 'StudentCreated' event on the channel
+              fetchQueueDatachannel.bind("CustomerDashBoardQueuelist", () => {
+                fetchQueue()
+                fetchWaitingtime()
+                fetchCategories()
+                fetchCurrency()
+                fetchBreakTime()
+            });
+
+              fetchQueue()
+              fetchWaitingtime()
+              fetchCategories()
+              fetchCurrency()
+              fetchBreakTime()
+          } else {
+            console.error("No teller information found");
+            router.push("/login");
+          }
+        } catch (error) {
+          console.error("Initialization error:", error);
+          router.push("/login");
+        } finally {
+          setTimeout(() => {
+            $dialog.loading.hide();
+          }, 1200);
+        }
+
+
+    });
+
     onUnmounted(() => {
-      // Cleanup all timers and intervals
-      clearInterval(currencyInterval);
       if (waitTimer) clearInterval(waitTimer);
       if (refreshInterval) clearInterval(refreshInterval);
+      fetchQueueDatapusher.unsubscribe("queuelist-channel");
     });
     onBeforeUnmount(() => {
       if (autoServingInterval) {
         clearInterval(autoServingInterval);
       }
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+
       checkAppointment();
     });
 
@@ -2433,6 +2378,7 @@ export default {
       selectId,
       clearReference,
       isServiceAvailable,
+      onBreak,
       categoriesPriority: [
         "Elderly Customers",
         "Pregnant Women",

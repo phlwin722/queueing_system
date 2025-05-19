@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\CustomerDashBoardQueuelist;
 use App\Models\Queue;
 use App\Models\Teller;
 use App\Http\Requests\QueueRequest;
@@ -201,6 +202,8 @@ class QueueController extends Controller
                 ->where('referenceNumber', $request->referenceNumber)
                 ->update(['status' => 'Arrived']);
         }
+        $newCustomer = DB::table('queues')->where('id', $queue)->first();
+        broadcast(new CustomerDashBoardQueuelist($newCustomer));
         // Return a JSON response to the user with the details of the newly joined queue.
         return response()->json([
             'message' => 'Successfully joined queue',         // Success message.
@@ -315,7 +318,8 @@ class QueueController extends Controller
                 ->where('teller_id', $assignedTellerId)
                 ->select('window_name')
                 ->first();
-
+            $newCustomer = DB::table('queues')->where('id', $customerID)->first();
+            broadcast(new CustomerDashBoardQueuelist($newCustomer));
         return response()->json([
             'message' => 'Successfully joined queue',
             'id' => $customerID ,
@@ -417,6 +421,9 @@ class QueueController extends Controller
     {
         Queue::where('id', $request->id)
             ->update(['status' => 'cancelled']);
+
+        $updatedCustomer = DB::table('queues')->where('id', $request->id)->first();
+        broadcast(new CustomerDashBoardQueuelist($updatedCustomer));
         return response()->json([
             'message' => 'Queue left successfully'
         ]);
@@ -765,6 +772,7 @@ class QueueController extends Controller
     public function WaitCustomer(Request $request)
     {
         $queue = Queue::find($request->id);
+
         if ($queue) {
             $queue->update([
                 'waiting_customer' => 'yes',
@@ -772,7 +780,8 @@ class QueueController extends Controller
             ]);
         }
 
-
+        $updatedCustomer = DB::table('queues')->where('id', $request->id)->first();
+        broadcast(new CustomerDashBoardQueuelist($updatedCustomer));
         return response()->json([
             'message' => 'Customer is being waited.'
         ]);
