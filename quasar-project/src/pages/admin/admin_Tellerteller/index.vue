@@ -1,5 +1,3 @@
- 
-
 <template>
   <q-page class="q-px-sm" style="height: auto; min-height: unset">
     <div class="q-ma-md bg-white q-pa-sm shadow-1">
@@ -26,7 +24,6 @@
       :rows-per-page-options="[0]"
       class="q-ma-md q-mt-sm q-pt-sm"
     >
-      
       <template v-slot:top>
         <div class="row q-col-gutter-sm q-pb-xs">
           <div class="col-auto">
@@ -67,11 +64,9 @@
             </q-btn>
           </div>
 
-          
-
           <div v-if="!adminInformation" class="class-auto">
             <q-select
-              style="width: 250px; position: absolute;  right: 270px;"
+              style="width: 250px; position: absolute; right: 270px"
               outlined
               label="Branch name"
               hide-bottom-space
@@ -87,7 +82,7 @@
 
           <div v-if="!adminInformation" class="class-auto">
             <q-select
-              style="width: 250px; position: absolute;  right: 10px;"
+              style="width: 250px; position: absolute; right: 10px"
               outlined
               label="Roles"
               hide-bottom-space
@@ -101,30 +96,28 @@
         </div>
       </template>
 
-       <!-- types cell template for the table -->
-       <template v-slot:body-cell-type_names="props">
-         <q-td :props="props">
-           {{ props.row.type_names ? props.row.type_names : 'No service assigned' }}
-         </q-td>
-        </template>
+      <!-- types cell template for the table -->
+      <template v-slot:body-cell-type_names="props">
+        <q-td :props="props">
+          {{
+            props.row.type_names ? props.row.type_names : "No service assigned"
+          }}
+        </q-td>
+      </template>
 
       <!-- Status cell template for the table -->
       <template v-slot:body-cell-status="props">
         <q-td :props="props">
-          <q-badge
-            :color="props.row.status === 'Online' ? 'green' : 'red'" 
-          >
-
-            {{ props.row.status }}  <!-- Display the status text -->
-
+          <q-badge :color="props.row.status === 'Online' ? 'green' : 'red'">
+            {{ props.row.status === null ? "Offline" : props.row.status }}
+            <!-- Display the status text -->
           </q-badge>
         </q-td>
       </template>
 
-
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <div class="q-gutter-x-sm ">
+          <div class="q-gutter-x-sm">
             <q-btn
               square
               color="positive"
@@ -171,7 +164,14 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, onUnmounted, watch } from "vue";
+import {
+  defineComponent,
+  ref,
+  onMounted,
+  onUnmounted,
+  watch,
+  inject,
+} from "vue";
 import { $axios, $notify, Dialog } from "boot/app";
 import MyForm from "pages/admin/admin_Tellerteller/form.vue";
 import { useQuasar } from "quasar";
@@ -184,93 +184,92 @@ export default defineComponent({
   setup() {
     const $dialog = useQuasar();
     const rows = ref([]);
-    const branchList = ref([ { id: 0, branch_name:'All Branches'} ])
+    const branchList = ref([{ id: 0, branch_name: "All Branches" }]);
     const branch_name = ref(null);
     const columns = ref([]);
-    const personnel_role = ref('');
+    const personnel_role = ref("");
     const selected = ref([]);
     const dialogForm = ref(null);
-    const adminInformation = ref (null);
+    const adminInformation = ref(null);
     const isTeller = ref(false);
+    // Access the global pusher instance injected into the app
+    const pusher = inject("$pusher"); // Injecting $pusher that was set in the boot file
 
     const getTableData = async () => {
-      if(isTeller.value == true){
-        console.log(personnel_role.value)
+      if (isTeller.value == true) {
+        console.log(personnel_role.value);
         try {
-        if (adminInformation.value && adminInformation.value.branch_id != null) {
-          const { data } = await $axios.post(URL + "/index",{
-            branch_id: adminInformation.value.branch_id
-          });
-          rows.value.splice(0, rows.value.length, ...data.rows);
-          data.rows.forEach((newRow, index) => {
-              if (rows.value[index]) {
-                // Update individual fields
-                rows.value[index].role = 'Teller';
-              }
-            });
-        } else {
-          if (branch_name.value != null) {
-            const { data } = await $axios.post(URL + "/index",{
-              branch_id: branch_name.value
+          if (
+            adminInformation.value &&
+            adminInformation.value.branch_id != null
+          ) {
+            const { data } = await $axios.post(URL + "/index", {
+              branch_id: adminInformation.value.branch_id,
             });
             rows.value.splice(0, rows.value.length, ...data.rows);
             data.rows.forEach((newRow, index) => {
               if (rows.value[index]) {
                 // Update individual fields
-                rows.value[index].role = 'Teller';
+                rows.value[index].role = "Teller";
               }
             });
-          }else {
-            const { data } = await $axios.post(URL + "/index");
-            rows.value.splice(0, rows.value.length, ...data.rows);
-            data.rows.forEach((newRow, index) => {
-              if (rows.value[index]) {
-                // Update individual fields
-                rows.value[index].role = 'Teller';
-              }
-            });
+          } else {
+            if (branch_name.value != null) {
+              const { data } = await $axios.post(URL + "/index", {
+                branch_id: branch_name.value,
+              });
+              rows.value.splice(0, rows.value.length, ...data.rows);
+              data.rows.forEach((newRow, index) => {
+                if (rows.value[index]) {
+                  // Update individual fields
+                  rows.value[index].role = "Teller";
+                }
+              });
+            } else {
+              const { data } = await $axios.post(URL + "/index");
+              rows.value.splice(0, rows.value.length, ...data.rows);
+              data.rows.forEach((newRow, index) => {
+                if (rows.value[index]) {
+                  // Update individual fields
+                  rows.value[index].role = "Teller";
+                }
+              });
+            }
+            fetchColumn();
           }
-          fetchColumn()
+        } catch (error) {
+          console.log(error);
         }
-      } catch (error) {
-        console.log(error);
-      }
-      }else{
+      } else {
         try {
           if (branch_name.value != null) {
-            const { data } = await $axios.post('/manager' + "/index",{
-              branch_id: branch_name.value
+            const { data } = await $axios.post("/manager" + "/index", {
+              branch_id: branch_name.value,
             });
             rows.value.splice(0, rows.value.length, ...data.rows);
             data.rows.forEach((newRow, index) => {
               if (rows.value[index]) {
                 // Update individual fields
-                rows.value[index].role = 'Manager';
+                rows.value[index].role = "Manager";
               }
             });
-          }else{
-            const { data } = await $axios.post('/manager' + "/index");
+          } else {
+            const { data } = await $axios.post("/manager" + "/index");
             rows.value.splice(0, rows.value.length, ...data.rows);
-            console.log("try",rows.value);  // Add this line to check the rows
+            console.log("try", rows.value); // Add this line to check the rows
             data.rows.forEach((newRow, index) => {
               if (rows.value[index]) {
                 // Update individual fields
-                rows.value[index].role = 'Manager';
+                rows.value[index].role = "Manager";
               }
             });
           }
-          fetchColumn()
-        
+          fetchColumn();
         } catch (error) {
           console.log(error);
         }
       }
-      
     };
-
-
-
-
 
     const handleShowForm = (mode, row) => {
       dialogForm.value.showDialog(mode, row);
@@ -278,14 +277,13 @@ export default defineComponent({
 
     const handleDelete = async (ids) => {
       try {
-        if(personnel_role.value == 'Teller'){
+        if (personnel_role.value == "Teller") {
           const { data } = await $axios.post(URL + "/delete", { ids });
           $notify("positive", "check", data.message);
-        }else{
-          const { data } = await $axios.post('/manager' + "/delete", { ids });
+        } else {
+          const { data } = await $axios.post("/manager" + "/delete", { ids });
           $notify("positive", "check", data.message);
         }
-
 
         for (const x of ids) {
           const index = rows.value.findIndex((o) => o.id === x);
@@ -296,17 +294,17 @@ export default defineComponent({
         selected.value.splice(0, selected.value.length);
       } catch (error) {
         console.error("Error deleting tellers:", error);
-      
+
         if (error.response.status === 400) {
-          $notify('negative', 'error', error.response.data.error)
+          $notify("negative", "error", error.response.data.error);
+        } else {
+          $notify("negative", "error", error.response.data.message);
         }
-        else {
-          $notify("negative", "error", error.response.data.message);}
-        }
+      }
     };
 
     const beforeDelete = (isMany, row) => {
-     const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
+      const ids = isMany ? selected.value.map((x) => x.id) : [row.id];
 
       $dialog
         .dialog({
@@ -348,229 +346,240 @@ export default defineComponent({
       }
     };
 
-    let dataTimeout;
-    const optimizedFetchData = async () => {
-          await getTableData()
-          dataTimeout = setTimeout(optimizedFetchData, 5000); // Recursive Timeout
-        };
+    const fetchBranch = async () => {
+      try {
+        const { data } = await $axios.post("/type/Branch");
 
-        const fetchBranch = async () => {
-          try {
-            const { data } = await $axios.post('/type/Branch');
+        branchList.value = [
+          { id: 0, branch_name: "All Branches" },
+          ...data.branch,
+        ];
+      } catch (error) {
+        if (error.response.status === 422) console.log(error);
+      }
+    };
 
-            branchList.value = [{id: 0, branch_name: 'All Branches'}, ...data.branch]
-          } catch (error) {
-            if (error.response.status === 422) 
-              console.log(error)
-            }
-        }
-
-        const fetchColumn = async () => {
-          try {
-            if (adminInformation.value && adminInformation.value.branch_id != null) {
-              columns.value = [
-               {
-                  name: "teller_firstname",
-                  label: "First Name",
-                  align: "left",
-                  field: "teller_firstname",
-                  sortable: true,
-                },
-                {
-                  name: "teller_lastname",
-                  label: "Last Name",
-                  align: "left",
-                  field: "teller_lastname",
-                  sortable: true,
-                },
-                {
-                  name: "teller_username",
-                  label: "Username",
-                  align: "left",
-                  field: "teller_username",
-                  sortable: true,
-                },
-                {
-                  name: "type_names",
-                  label: "Type",
-                  align: "left",
-                  field: "type_names",
-                  sortable: true,
-                },
-                {
-                  name: "status",
-                  label: "Status",
-                  align: "left",
-                  field: "status",
-                },
-                {
-                  name: "actions",
-                  label: "Actions",
-                  align: "left",
-                  sortable: false,
-                },
-                /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
-              ]
-            }else {
-              if(personnel_role.value == 'Teller'){
-           
-                columns.value = [
-                {
-                  name: "branch_name",
-                  label: "Branch name",
-                  align: "left",
-                  field: "branch_name",
-                  sortable: "true",
-                  format: val => val ?? 'No branch assigned'
-                },
-                {
-                  name: "teller_firstname",
-                  label: "First Name",
-                  align: "left",
-                  field: "teller_firstname",
-                  sortable: true,
-                },
-                {
-                  name: "teller_lastname",
-                  label: "Last Name",
-                  align: "left",
-                  field: "teller_lastname",
-                  sortable: true,
-                },
-                {
-                  name: "teller_username",
-                  label: "Username",
-                  align: "left",
-                  field: "teller_username",
-                  sortable: true,
-                },
-                {
-                  name: "type_names",
-                  label: "Type",
-                  align: "left",
-                  field: "type_names",
-                  sortable: true,
-                },
-                {
-                  name: "status",
-                  label: "Status",
-                  align: "left",
-                  field: "status",
-                },
-                {
-                  name: "actions",
-                  label: "Actions",
-                  align: "left",
-                  sortable: false,
-                },
-                /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
-              ]
-              }else{  
-           
-                columns.value = [
-                {
-                  name: "branch_name",
-                  label: "Branch name",
-                  align: "left",
-                  field: "branch_name",
-                  sortable: "true",
-                  format: val => val ?? 'No branch assigned'
-                },
-                {
-                  name: "teller_firstname",
-                  label: "First Name",
-                  align: "left",
-                  field: "teller_firstname",
-                  sortable: true,
-                },
-                {
-                  name: "teller_lastname",
-                  label: "Last Name",
-                  align: "left",
-                  field: "teller_lastname",
-                  sortable: true,
-                },
-                {
-                  name: "teller_username",
-                  label: "Username",
-                  align: "left",
-                  field: "teller_username",
-                  sortable: true,
-                },
-                {
-                  name: "status",
-                  label: "Status",
-                  align: "left",
-                  field: "status",
-                },
-                {
-                  name: "actions",
-                  label: "Actions",
-                  align: "left",
-                  sortable: false,
-                },
-                /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
-              ]
-              }
-             
-            }
-          } catch (error) {
-            if (error.response.status === 422) {
-              console.log(error)
-            }
+    const fetchColumn = async () => {
+      try {
+        if (
+          adminInformation.value &&
+          adminInformation.value.branch_id != null
+        ) {
+          columns.value = [
+            {
+              name: "teller_firstname",
+              label: "First Name",
+              align: "left",
+              field: "teller_firstname",
+              sortable: true,
+            },
+            {
+              name: "teller_lastname",
+              label: "Last Name",
+              align: "left",
+              field: "teller_lastname",
+              sortable: true,
+            },
+            {
+              name: "teller_username",
+              label: "Username",
+              align: "left",
+              field: "teller_username",
+              sortable: true,
+            },
+            {
+              name: "type_names",
+              label: "Type",
+              align: "left",
+              field: "type_names",
+              sortable: true,
+            },
+            {
+              name: "status",
+              label: "Status",
+              align: "left",
+              field: "status",
+            },
+            {
+              name: "actions",
+              label: "Actions",
+              align: "left",
+              sortable: false,
+            },
+            /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
+          ];
+        } else {
+          if (personnel_role.value == "Teller") {
+            columns.value = [
+              {
+                name: "branch_name",
+                label: "Branch name",
+                align: "left",
+                field: "branch_name",
+                sortable: "true",
+                format: (val) => val ?? "No branch assigned",
+              },
+              {
+                name: "teller_firstname",
+                label: "First Name",
+                align: "left",
+                field: "teller_firstname",
+                sortable: true,
+              },
+              {
+                name: "teller_lastname",
+                label: "Last Name",
+                align: "left",
+                field: "teller_lastname",
+                sortable: true,
+              },
+              {
+                name: "teller_username",
+                label: "Username",
+                align: "left",
+                field: "teller_username",
+                sortable: true,
+              },
+              {
+                name: "type_names",
+                label: "Type",
+                align: "left",
+                field: "type_names",
+                sortable: true,
+              },
+              {
+                name: "status",
+                label: "Status",
+                align: "left",
+                field: "status",
+              },
+              {
+                name: "actions",
+                label: "Actions",
+                align: "left",
+                sortable: false,
+              },
+              /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
+            ];
+          } else {
+            columns.value = [
+              {
+                name: "branch_name",
+                label: "Branch name",
+                align: "left",
+                field: "branch_name",
+                sortable: "true",
+                format: (val) => val ?? "No branch assigned",
+              },
+              {
+                name: "teller_firstname",
+                label: "First Name",
+                align: "left",
+                field: "teller_firstname",
+                sortable: true,
+              },
+              {
+                name: "teller_lastname",
+                label: "Last Name",
+                align: "left",
+                field: "teller_lastname",
+                sortable: true,
+              },
+              {
+                name: "teller_username",
+                label: "Username",
+                align: "left",
+                field: "teller_username",
+                sortable: true,
+              },
+              {
+                name: "status",
+                label: "Status",
+                align: "left",
+                field: "status",
+              },
+              {
+                name: "actions",
+                label: "Actions",
+                align: "left",
+                sortable: false,
+              },
+              /* { name: 'role', align: 'left', field: 'role', sortable: true, classes: 'hidden' }, */
+            ];
           }
         }
+      } catch (error) {
+        if (error.response.status === 422) {
+          console.log(error);
+        }
+      }
+    };
 
-        watch(
-        () => personnel_role.value,
-        (newVal) => {
-            if(newVal == 'Teller'){
-                isTeller.value = true
-                personnel_role.value = 'Teller'
-                getTableData()
-                
-            }
-            else if(newVal === ''){
-                isTeller.value = true
-                personnel_role.value = 'Teller'
-                fetchColumn()
-                getTableData()
-            }
-            else{
-                isTeller.value = false
-                personnel_role.value = 'Manager'
-                getTableData()
-                
-            }
-        },
-        { immediate: true }  // 👈 this makes it run right away on mount
-        )
+    watch(
+      () => personnel_role.value,
+      (newVal) => {
+        if (newVal == "Teller") {
+          isTeller.value = true;
+          personnel_role.value = "Teller";
+          getTableData();
+        } else if (newVal === "") {
+          isTeller.value = true;
+          personnel_role.value = "Teller";
+          fetchColumn();
+          getTableData();
+        } else {
+          isTeller.value = false;
+          personnel_role.value = "Manager";
+          getTableData();
+        }
+      },
+      { immediate: true } // 👈 this makes it run right away on mount
+    );
 
-        watch(()=> branch_name.value, async (newVal) => {
-          getTableData()
-        })
-        
-        onMounted(() => {
-          const storeManagerInfo = localStorage.getItem('managerInformation');
-          if (storeManagerInfo) {
-            adminInformation.value = JSON.parse(storeManagerInfo)
-          }
-          
-          fetchColumn()
-          fetchBranch()
-          optimizedFetchData()
-          getTypes()
-          getTableData()
-          
-          // Make sure `branch_name` is set to a meaningful default value
-          if (!branch_name.value) {
-            branch_name.value = 0;  // Set default to 'All branches' if needed
-          }
-        })
+    watch(
+      () => branch_name.value,
+      async (newVal) => {
+        getTableData();
+      }
+    );
 
-        onUnmounted(() => {
-          clearTimeout(dataTimeout)
-        });
+    onMounted(() => {
+      const storeManagerInfo = localStorage.getItem("managerInformation");
+      if (storeManagerInfo) {
+        adminInformation.value = JSON.parse(storeManagerInfo);
+      }
+
+      // Make sure `branch_name` is set to a meaningful default value
+      if (!branch_name.value) {
+        branch_name.value = 0; // Set default to 'All branches' if needed
+      }
+
+      fetchColumn();
+      fetchBranch();
+      getTypes();
+      getTableData();
+
+      // create new pusher instance and subscribe to channel
+      const pusher = new Pusher("8d3b62bc5d67d22d3605", {
+        cluster: "us2",
+      });
+
+      const channel = pusher.subscribe("teller-channel");
+
+      // listen for tellerevent on the channel
+      channel.bind("TellerEvent", (data) => {
+        if (data) {
+          // Update the students list with the new student data
+          getTableData();
+        }
+      });
+    });
+
+    onUnmounted(() => {
+      if (pusher) {
+        pusher.unsubscribe("teller-channel");
+      }
+    });
 
     return {
       rows,
@@ -584,7 +593,7 @@ export default defineComponent({
       adminInformation,
       branchList,
       branch_name,
-      personnel_role
+      personnel_role,
     };
   },
 });
@@ -604,15 +613,12 @@ export default defineComponent({
   margin-left: 5px;
   border-radius: 5px;
 }
-
-
-
 </style>
-<style >
-  span.q-table__bottom-item{
-    width: 200px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-  }
+<style>
+span.q-table__bottom-item {
+  width: 200px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

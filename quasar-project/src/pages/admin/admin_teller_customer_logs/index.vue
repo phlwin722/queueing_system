@@ -19,8 +19,7 @@
         row-key="index"
         v-model:pagination="pagination"
         dense
-        >
-        
+      >
         <!-- 🎯 Insert Search & Date Picker Inside Table Toolbar -->
         <template v-slot:top>
           <q-toolbar class="q-gutter-sm q-mt-xs">
@@ -102,15 +101,20 @@
                   icon="download"
                   @click="generatePDF"
                   dense
-                  style="min-width: 35px; max-width: 40px; height: 38px; margin-left: 5px;"
+                  style="
+                    min-width: 35px;
+                    max-width: 40px;
+                    height: 38px;
+                    margin-left: 5px;
+                  "
                 >
-                <q-tooltip
-                anchor="top middle"
-                self="bottom middle"
-                :offset="[10, 10]"
-              >
-                generate pdf
-              </q-tooltip>
+                  <q-tooltip
+                    anchor="top middle"
+                    self="bottom middle"
+                    :offset="[10, 10]"
+                  >
+                    generate pdf
+                  </q-tooltip>
                 </q-btn>
               </div>
             </div>
@@ -477,58 +481,39 @@ export default defineComponent({
 
           // Unwrap columns and rows to remove the Proxy object
           const unwrappedRows = toRaw(filteredRows.value);
+          // Step 1: Prepare the table body
+          const bodyRows = unwrappedRows.map((row) =>
+            columnLabels.map((label) => {
+              const column = columns.value.find((c) => c.label === label);
+              return column ? row[column.field] || "" : ""; // Clean blank/null fields
+            })
+          );
 
-          // Create table in the PDF
+          // Step 2: Create the table
           autoTable(doc, {
-            head: [columnLabels],
-            body: unwrappedRows.map((row) => {
-              return columnLabels.map((label) => {
-                const column = columns.value.find((c) => c.label === label);
-                if (column) {
-                  return row[column.field] || ""; // Return empty string if data is missing
-                }
-                return "";
-              });
-            }),
-            theme: "grid",
+            head: [columnLabels], // Table headers
+            body: bodyRows, // Table body
+            theme: "grid", // Table style
             headStyles: {
-              fillColor: [33, 150, 243],
-              textColor: [255, 255, 255],
-              fontStyle: "bold",
+              fillColor: [33, 150, 243], // Header bg color
+              textColor: [255, 255, 255], // Header text color
+              fontStyle: "bold", // Bold header
             },
-            margin: { top: 120, bottom: 20 },
-            didDrawPage: function (data) {
-              // Add header for each page
-              addHeader();
-              if (data.pageNumber > 1) {
-                // For subsequent pages, reduce the margin-top
-                autoTable(doc, {
-                  head: [columnLabels],
-                  body: unwrappedRows.map((row) => {
-                    return columnLabels.map((label) => {
-                      const column = columns.value.find(
-                        (c) => c.label === label
-                      );
-                      return column ? row[column.field] || "" : "";
-                    });
-                  }),
-                  theme: "grid",
-                  headStyles: {
-                    fillColor: [33, 150, 243],
-                    textColor: [255, 255, 255],
-                    fontStyle: "bold",
-                  },
-                  margin: { top:30, bottom: 20 },
-                });
-              }
+            startY: 120, // First page: start table 120px from top
+            margin: { top: 30, bottom: 20 }, // Subsequent pages: use 20px top margin
 
-              // Add page number to the bottom-right corner
+            didDrawPage: function (data) {
+              // Draw custom header (logo + underline)
+              addHeader();
+
+              // Draw page number on every page (bottom-right)
               doc.setFontSize(10);
+              doc.setTextColor(100);
               doc.text(
-                `Page ${data.pageNumber}`,
-                pageWidth - 15,
-                doc.internal.pageSize.height - 10,
-                { align: "right" }
+                `Page ${data.pageNumber}`, // Page label
+                doc.internal.pageSize.width - 15, // X: align to right
+                doc.internal.pageSize.height - 10, // Y: near bottom
+                { align: "right" } // Align right
               );
             },
           });

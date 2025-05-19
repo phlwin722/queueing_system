@@ -152,7 +152,15 @@ export default {
   components: { QrcodeVue },
   setup() {
     const registrationLink = ref(null);
-    let intervalId = null; // Store interval ID for cleanup
+    const intervalQr = ref(null);
+    const intervalBreakTime = ref(null);
+    const $q = useQuasar();
+    const fromBreak = ref("");
+    const toBreak = ref("");
+    const formattedCurrentTime = ref("");
+    const branch_id = ref(null);
+    const adminManagerInformation = ref(null);
+
     const icons = ref([
       {
         icon: "qr_code",
@@ -179,12 +187,7 @@ export default {
         description: "It will notify you when its your turn",
       },
     ]);
-    const $q = useQuasar();
-    const fromBreak = ref("");
-    const toBreak = ref("");
-    const formattedCurrentTime = ref("");
-    const branch_id = ref(null);
-    const adminManagerInformation = ref(null);
+
     // Fetch a new QR code link from the backend
     const fetchQrCode = async () => {
       try {
@@ -277,18 +280,30 @@ export default {
         console.log(val ? "In fullscreen now" : "Exited fullscreen");
       }
     );
-    let Qrtimeout;
+
     const optimizedFecthQr = async () => {
-      await fetchQrCode();
-      Qrtimeout = setTimeout(optimizedFecthQr, 3000); // Recursive Timeout
+      // clear existing interval to avoid duplicates
+      if (intervalQr.value !== null) {
+        clearInterval(intervalQr.value);
+      }
+
+      intervalQr.value = setInterval(() => {
+        fetchQrCode();
+      }, 3000);
+    };
+
+    const optimizeFetchBreaktime = async () => {
+      // clear existing interval to avoid duplicates
+      if (intervalBreakTime.value !== null) {
+        clearInterval(intervalBreakTime.value)
+      }
+
+      intervalBreakTime.value = setInterval(() => {
+        fetchBreakTime();
+      },9000);
     };
 
     onMounted(() => {
-      optimizedFecthQr();
-      fetchBreakTime();
-      intervalId = setInterval(() => {
-        fetchBreakTime();
-      }, 10000);
       const managerInformation = localStorage.getItem("managerInformation");
       if (managerInformation) {
         adminManagerInformation.value = JSON.parse(managerInformation);
@@ -299,10 +314,21 @@ export default {
       } else {
         branch_id.value = adminManagerInformation.value.branch_id;
       }
+      fetchQrCode();
+      optimizedFecthQr();
+      optimizeFetchBreaktime();
     });
 
     onUnmounted(() => {
-      clearTimeout(Qrtimeout);
+      if (intervalQr.value !== null) {
+        clearInterval(intervalQr.value);
+        intervalQr.value = null;
+      }
+
+      if (intervalBreakTime.value !== null) {
+        clearInterval(intervalBreakTime.value);
+        intervalBreakTime.value = null
+      }
     });
 
     return {
