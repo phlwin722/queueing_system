@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Events\CustomerDashBoardQueuelist;
+use App\Events\TellerEvent;
 use App\Models\Queue;
 use App\Models\Teller;
 use App\Http\Requests\QueueRequest;
@@ -424,6 +425,7 @@ class QueueController extends Controller
 
         $updatedCustomer = DB::table('queues')->where('id', $request->id)->first();
         broadcast(new CustomerDashBoardQueuelist($updatedCustomer));
+        broadcast(new TellerEvent($updatedCustomer));
         return response()->json([
             'message' => 'Queue left successfully'
         ]);
@@ -563,7 +565,7 @@ class QueueController extends Controller
             
             }
             
-
+            
             return response()->json([
                 'rows' => $res
             ]);

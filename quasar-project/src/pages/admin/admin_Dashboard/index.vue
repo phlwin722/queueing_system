@@ -190,7 +190,7 @@ export default {
     const columnsWorkStation = ref([]);
     const pusher = inject("$pusher");
 
-    const intervalID = ref(null);
+
 
     const getTableData = async () => {
       try {
@@ -309,6 +309,7 @@ export default {
         }
       }
     };
+
 
     const renderSurveyCharts = async () => {
       try {
@@ -500,16 +501,7 @@ export default {
       }
     };
 
-    const fetchgetTable = async () => {
-      // clear existing interval to avoid duplicates
-      if (intervalID.value !== null) {
-        clearInterval(intervalID.value);
-      }
 
-      intervalID.value = setInterval(() => {
-        getTableData();
-      }, 10000);
-    };
 
     watch(
       () => branch_name.value,
@@ -528,7 +520,6 @@ export default {
       if (mangerInformation) {
         adminMangerInformation.value = JSON.parse(mangerInformation);
       }
-      fetchgetTable();
       updateAllServingTime();
       renderSurveyCharts();
       fetchBranch();
@@ -551,16 +542,14 @@ export default {
       // listen for tellerEvent event on the channel
       channel.bind("TellerEvent", (data) => {
         if (data) {
-          fetchWorkStation();
+          fetchWorkStation()
+          getTableData()
         }
       });
+      getTableData()
     });
 
     onUnmounted(() => {
-      if (intervalID.value !== null) {
-        clearInterval(intervalID.value);
-        intervalID.value = null;
-      }
 
       if (pusher) {
         pusher.unsubscribe("teller-channel");

@@ -48,7 +48,7 @@
         </q-card>
       </div> -->
       <div
-        v-if="newFormattedTime >= newTime && formattedCurrentTime < toBreak"
+        v-if="newFormattedTime >= newTime && formattedCurrentTime < toBreak && onBreak == true"
         class="col q-mb-xl"
       >
         <q-card
@@ -142,7 +142,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, inject } from "vue";
 import QrcodeVue from "qrcode.vue";
 import { $axios } from "boot/app";
 import { useQuasar } from "quasar";
@@ -153,14 +153,15 @@ export default {
   setup() {
     const registrationLink = ref(null);
     const intervalQr = ref(null);
-    const intervalBreakTime = ref(null);
     const $q = useQuasar();
     const fromBreak = ref("");
     const toBreak = ref("");
     const formattedCurrentTime = ref("");
     const branch_id = ref(null);
     const adminManagerInformation = ref(null);
-
+    const pusher = inject("$pusher");
+    let channel = null;
+    const onBreak = ref(false);
     const icons = ref([
       {
         icon: "qr_code",
@@ -218,6 +219,7 @@ export default {
         });
 
         if (data?.dataValue) {
+          onBreak.value = true;
           // ✅ Correctly assign break start & end times
           fromBreak.value = data.dataValue.break_from.slice(0, 5); // Start of break
           toBreak.value = data.dataValue.break_to.slice(0, 5); // End of break
@@ -241,6 +243,7 @@ export default {
           newFormattedTime.value = formatTime(totalFormatMinutes);
         } else {
           console.warn("No break time found");
+          onBreak.value = false;
         }
       } catch (error) {
         console.error("Error fetching break time:", error);
@@ -292,16 +295,7 @@ export default {
       }, 3000);
     };
 
-    const optimizeFetchBreaktime = async () => {
-      // clear existing interval to avoid duplicates
-      if (intervalBreakTime.value !== null) {
-        clearInterval(intervalBreakTime.value)
-      }
 
-      intervalBreakTime.value = setInterval(() => {
-        fetchBreakTime();
-      },9000);
-    };
 
     onMounted(() => {
       const managerInformation = localStorage.getItem("managerInformation");
@@ -316,7 +310,21 @@ export default {
       }
       fetchQrCode();
       optimizedFecthQr();
-      optimizeFetchBreaktime();
+
+      // new pusher instanve and subscribe to the channel
+      const pusher = new Pusher("8d3b62bc5d67d22d3605", {
+        cluster: "us2",
+      });
+
+      channel = pusher.subscribe("queuelist-channel");
+      // listen for tellerEvent event on the channel
+      channel.bind("CustomerDashBoardQueuelist", (data) => {
+        if (data) {
+          fetchBreakTime()
+        }
+      });
+
+      fetchBreakTime()
     });
 
     onUnmounted(() => {
@@ -325,9 +333,10 @@ export default {
         intervalQr.value = null;
       }
 
-      if (intervalBreakTime.value !== null) {
-        clearInterval(intervalBreakTime.value);
-        intervalBreakTime.value = null
+
+      if (pusher) {
+        pusher.unsubscribe("queuelist-channel");
+        channel.unbind_all()
       }
     });
 
@@ -341,6 +350,7 @@ export default {
       newTime,
       newFormattedTime,
       originalFromBreak,
+      onBreak,
     };
   },
 };
