@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\BreakTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log; // ✅ Import Log
+use App\Events\CustomerDashBoardQueuelist;
 
 class BreakTimeController extends Controller
 {
@@ -42,7 +43,8 @@ class BreakTimeController extends Controller
                 ]);
                 $message = "Break time created successfully!";
             }
-
+            $newBreakTime = DB::table('break_times')->where('id', $breakTime)->first();
+            broadcast(new CustomerDashBoardQueuelist($newBreakTime));
             return response()->json([
                 "message" => $message,
                 "time" => [
@@ -100,6 +102,7 @@ class BreakTimeController extends Controller
 
             if ($breakTime) {
                 $breakTime->delete();
+                broadcast(new CustomerDashBoardQueueList(['action' => 'deleted', 'branch_id' => $branchId]));
                 return response()->json([
                     'message' => 'Break time reset successfully!'
                 ]);

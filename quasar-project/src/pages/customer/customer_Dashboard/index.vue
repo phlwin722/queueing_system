@@ -398,7 +398,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, onBeforeUnmount } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick, onBeforeUnmount, inject } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { $axios, $notify } from "boot/app";
 import { useQuasar, date } from "quasar";
@@ -441,6 +441,7 @@ export default {
     const prepared = ref("");
     const remainingTime = ref(0);
     let waitInterval = null;
+    const fetchQueueDatapusher = inject("$pusher")
     const generatedQrValue = ref(
       "http://192.168.0.164:8080/customer-dashboard/" + tokenurl.value
     ); // User input (for the bank name)
@@ -514,9 +515,6 @@ export default {
       }
     }; */
 
-    const totalPages = computed(() =>
-      Math.ceil(queueList.value.length / itemsPerPage)
-    );
 
     // Function to abbreviate name as per your requirement
     const abbreviateName = (name) => {
@@ -540,19 +538,16 @@ export default {
     //   });
     // }
     // Fetch queue list and current serving number
-    const QueueListlastUpdatedAt = ref(null); // default to null
-    let polling = true;
+    // const QueueListlastUpdatedAt = ref(null); // default to null
+    // let polling = true;
     const fetchQueueData = async () => {
-      if (!polling) return;
   try {
     const response = await $axios.post("/customer-list", {
       token: tokenurl.value,
-      last_updated: QueueListlastUpdatedAt.value,
+
     });
 
-    // Only process if there's an update
-    if (response.data.updated) {
-      // Update the queue
+
       queueList.value = response.data.queue.filter(
         (q) => !["finished", "cancelled", "serving"].includes(q.status)
       );
@@ -574,50 +569,16 @@ export default {
         queuePosition.value = customer.status === 'serving' ? 0 : customer.position;
         customerStatus.value = customer.status;
 
-        // if (customer.status === "finished" && !hasNotified.value) {
-        //   await $axios.post("/sent-email-finish", {
-        //     id: userInformation.value.id,
-        //     email: userInformation.value.email,
-        //     subject: "Thank you for visit",
-        //   });
-        //   console.log("finished")
-        //   hasNotified.value = true;
-        //   $notify("positive", "check", "Your turn is finished. Thank you!");
-        //   polling = false;
-        //   waitingPolling = false;
-        //   waitingTimePolling = false;
-        //   setTimeout(() => router.push("/customer-thankyou/"), 2000);
-        // }
 
-        // if (customer.status === "cancelled" && !hasNotified.value) {
-        //   hasNotified.value = true;
-        //   $notify("negative", "error", "The Admin cancelled your queueing number.");
-
-        //   await $axios.post("/sent-email-finish", {
-        //     id: customerId.value,
-        //     email: customer.email,
-        //     subject: "Thank you for visit",
-        //   });
-        //   polling = false;
-        //   waitingPolling = false;
-        //   waitingTimePolling = false;
-        //   setTimeout(() => router.push("/customer-thankyou/"), 2000);
-        // }
       }
       getTableData();
  
-      QueueListlastUpdatedAt.value = response.data.last_updated_at; // Update timestamp
-    }
+  
+    
   } catch (error) {
     console.error(error);
-  }finally{
-    if(queueList.value.length > 5){
-      if (polling) setTimeout(fetchQueueData, 10000);
-    }else{
-      if (polling) setTimeout(fetchQueueData, 5000);
-    }
-
   }
+
 };
 
   // const branch_id = ref()
@@ -653,7 +614,7 @@ export default {
         userInformation.value.status = data.userInfo.status;
         userInformation.value.priority_service = data.userInfo.priority_service;
 
-        setInterval(fetchCurrency(userInformation.value.branch_id),30000);
+        fetchCurrency(userInformation.value.branch_id)
         fetchImage(tellerId.value);
         sendingDashboard(); // trigger sendingDashboard
         // updateBranchId()
@@ -672,9 +633,6 @@ export default {
           console.log("Status Cancelled:", newValue);
           hasNotified.value = true;
           $notify("negative", "error", "The Admin cancelled your queueing number.");
-          polling = false;
-          waitingPolling = false;
-          waitingTimePolling = false; 
           setTimeout(() => window.location.href = "/customer-thankyou/" + tokenurl.value, 2000);
             await $axios.post("/sent-email-finish", {
               id: customerId.value,
@@ -685,9 +643,6 @@ export default {
           console.log("Status Finished:", userInformation.value.email);
           hasNotified.value = true;
           $notify("positive", "check", "Your turn is finished. Thank you!");
-          polling = false;
-          waitingPolling = false;
-          waitingTimePolling = false;
           setTimeout(() => window.location.href = "/customer-thankyou/" + tokenurl.value, 2000);
 
           if (userInformation.value.email_status != 'thankyou_sending') {
@@ -745,13 +700,12 @@ export default {
     const tempToBreak = ref()
 
 
-    const fetchBreakTimeLastUpdatedAt = ref(null); // last update tracker
+    
 
 const fetchBreakTime = async () => {
 
   try {
     const { data } = await $axios.post("/admin/fetch_break_time", {
-      last_updated: fetchBreakTimeLastUpdatedAt.value,
       branch_id: userInformation.value.branch_id,
     });
     if (data?.dataValue) {
@@ -865,44 +819,19 @@ const fetchBreakTime = async () => {
       }
       }
     );
-    // Start countdown timer
-    // const startCountdown = () => {
-    //   if (!countdownInterval) {
-    //     countdown.value = 60
-    //     $notify('warning', 'hourglass_empty', 'The admin is waiting for you! Please proceed. '+ formatTime(remainingTime))
 
-    //     countdownInterval = setInterval(() => {
-    //       if (countdown.value > 0) {
-    //         countdown.value--
-    //       } else {
-    //         clearInterval(countdownInterval)
-    //         isWaiting.value = false
-    //       }
-    //     }, 1000)
-    //   }
-    // }
-    //resets countdown
-    // const resetCountdown = () => {
-    //   const newStartTime = Math.floor(Date.now() / 1000);
-    //   localStorage.setItem('countdown_start_time', newStartTime);
-    //   countdown.value = 60; // Reset to 60 seconds
-    // };
+    
 
-    // Fetch the waiting status from the backend
-    const fetchWaitingStatuslastUpdatedAt = ref(null); // default to null
-let waitingPolling = true; // Flag to control recursive polling
 
 const fetchWaitingStatus = async () => {
-  if (!waitingPolling) return;
 
   try {
     const { data } = await $axios.post("/customer-check-waiting", {
       token: tokenurl.value,
-      last_updated: fetchWaitingStatuslastUpdatedAt.value,
       branch_id: userInformation.value.branch_id,
     });
 
-    if (data.updated) {
+    
       if (data.waiting_customer === "yes") {
         if (!isWaiting.value) {
           // Start countdown only if not already waiting
@@ -912,73 +841,41 @@ const fetchWaitingStatus = async () => {
       } else {
         stopCountdown();
       }
-      fetchWaitingStatuslastUpdatedAt.value = data.last_updated_at;
-    }
+    
 
   } catch (error) {
     console.error("Error fetching waiting status:", error);
-  } finally {
-    if (waitingPolling) setTimeout(fetchWaitingStatus, 5000); // Schedule next poll
   }
 };
 
     
 
 
-const fetchWaitingTimeLastUpdatedAt = ref(null); // last update tracker
-let waitingTimePolling = true; // Flag to control recursive polling
+
+
 
 const fetchWaitingtime = async () => {
-  if (!waitingTimePolling) return; // Prevent re-fetch if polling is stopped
 
   try {
+    console.log("haha "+userInformation.value.branch_id)
     const { data } = await $axios.post("/admin/waiting_Time-fetch", {
-      last_updated: fetchWaitingTimeLastUpdatedAt.value,
       branch_id: userInformation.value.branch_id,
     });
-
-    // Only update if data was changed
-    if (data.updated) {
+    
       if (data?.dataValue?.Waiting_time) {
         waitTime.value = data.dataValue.Waiting_time;
         console.log(waitTime.value)
-        fetchWaitingTimeLastUpdatedAt.value = data.last_updated_at;
       } else {
         console.log("No data available");
       }
-    }
+    
 
   } catch (error) {
     console.log("Error fetching data:", error);
-  } finally {
-    if (waitingTimePolling) setTimeout(fetchWaitingtime, 10000); // Schedule next poll
   }
 };
 
-      // // Fetch waiting time with error handling
-      // const fetchWaitingtimelastUpdatedAt = ref(null); // default to null
-      // let fetchWaitingtimepolling = true;
-      // const fetchWaitingtimes = async () => {
-      //   if (!fetchWaitingtimepolling) return;
-      //   try {
-      //     const { data } = await $axios.post("/admin/waiting_Time-fetch",{
-      //       last_updated: fetchWaitingtimelastUpdatedAt.value,
-      //       branch_id: tellerInformation.value.branch_id,
-      //     });
-      //     if (data.updated) {
-      //       if (data?.dataValue?.Waiting_time) {
-      //         waitTime.value = data.dataValue.Waiting_time;
-      //       }
-            
-      //       fetchWaitingtimelastUpdatedAt.value = data.last_updated_at;
-      //     }
-          
-      //   } catch (error) {
-      //     console.error("Error fetching waiting time:", error);
-      //   }finally {
-      //     if (fetchWaitingtimepolling) setTimeout(fetchWaitingtime, 10000);
-      //   }
-      // };
+
     
 
 
@@ -1064,10 +961,7 @@ const fetchWaitingtime = async () => {
         await $axios.post("/customer-leave", { id: customerId.value });
         hasNotified.value = true; // Mark as notified
         $notify("positive", "check", "You have left the queue.");
-        polling = false;
-        waitingPolling = false;
-        waitingTimePolling = false;
-        setTimeout(() => window.location.href = "/customer-thankyou/" + tokenUrl.value, 1000)
+        setTimeout(() => window.location.href = "/customer-thankyou/" + tokenurl.value, 1000)
         if (userInformation.value.email_status != 'thankyou_sending') {
             await $axios.post("/sent-email-finish", {
               id: customerId.value,
@@ -1149,13 +1043,6 @@ const fetchWaitingtime = async () => {
           console.log(error);
         }
       }
-    };
-
-    const optimizedFetchQueueData = async () => {
-      await fetchQueueData();
-      await getTableData();
-      await fetchType();
-      queueTimeout = setTimeout(optimizedFetchQueueData, 5000); // Recursive Timeout
     };
 
     const isMoneyRatesDialogOpen = ref(false);
@@ -1376,11 +1263,7 @@ const fetchWaitingtime = async () => {
     }
 
     onBeforeUnmount(async() => {
-      clearTimeout(queueTimeout); // Clear the timeout when the component is destroyed
       clearInterval(waitInterval); // Clear the interval when the component is destroyed
-      polling = false; // Stop polling
-      waitingPolling = false; // Stop waiting status polling
-      waitingTimePolling = false; // Stop waiting time polling
     });
 
 
@@ -1392,16 +1275,32 @@ const fetchWaitingtime = async () => {
       if (data.email_status === "thankyou_sending") {
         window.location.href = "/customer-thankyou/" + tokenurl.value
       }
+      
       getTableData()
-      fetchQueueData()
-      fetchWaitingStatus()
-      fetchWaitingtime()
-      fetchBreakTime()
-      setInterval(() => {
-        fetchBreakTime();
-      }, 10000); 
-      fetchType();
-      // updateBranchId()
+      const fetchQueueDatapusher = new Pusher("8d3b62bc5d67d22d3605", {
+        cluster: "us2",
+      });
+      const fetchQueueDatachannel = fetchQueueDatapusher.subscribe("queuelist-channel");
+
+            // Listen for the 'StudentCreated' event on the channel
+      fetchQueueDatachannel.bind("CustomerDashBoardQueuelist", () => {
+          fetchQueueData()
+          fetchType()
+          fetchWaitingtime()
+          fetchWaitingStatus()
+          fetchBreakTime()
+          fetchCurrency(userInformation.value.branch_id)
+      });
+        fetchQueueData()
+        fetchType()
+        fetchWaitingtime()
+        fetchWaitingStatus()
+        fetchBreakTime()
+        fetchCurrency(userInformation.value.branch_id)
+    });
+
+    onUnmounted(() => {
+      fetchQueueDatapusher.unsubscribe("queuelist-channel");
     });
 
 

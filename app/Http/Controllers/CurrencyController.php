@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Currency;
 use App\Http\Requests\CurrencyRequest;
 use Illuminate\Support\Facades\DB;
+use App\Events\CustomerDashBoardQueuelist;
 
 class CurrencyController extends Controller
 {
@@ -43,7 +44,8 @@ class CurrencyController extends Controller
             $row = Currency::create($request->all());
 
             $fetch = $this->getData($row->id);
-
+            $newCurrency = DB::table('currencies')->where('id', $row)->first();
+            broadcast(new CustomerDashBoardQueuelist($newCurrency));
             return response()->json([
                 "row" => $fetch,
                 "message" => "Successfully Created!"
@@ -65,6 +67,8 @@ class CurrencyController extends Controller
                  ->update($request->all());
 
             $fetch = $this->getData( $id );
+            $newCurrency = DB::table('currencies')->where('id', $row)->first();
+            broadcast(new CustomerDashBoardQueuelist($newCurrency));
             return response()->json([
                 "row" => $fetch, // Return updated record
                 "message" => "Successfully Updated!"
@@ -91,7 +95,7 @@ class CurrencyController extends Controller
     
             // Use whereIn to delete multiple records
             Currency::whereIn('id', $request->ids)->delete();
-    
+            broadcast(new CustomerDashBoardQueueList(['action' => 'deleted', 'id' => $request->ids]));
             return response()->json([
                 "message" => "Successfully Deleted!"
             ]);
@@ -157,7 +161,8 @@ class CurrencyController extends Controller
             foreach ($currencies as $currency) {
                 Currency::create($currency);
             }
-
+            $newCurrency = DB::table('currencies')->get();
+            broadcast(new CustomerDashBoardQueuelist($newCurrency));
             return response()->json([
                 "message" => "Default currencies generated successfully!"
             ]);
