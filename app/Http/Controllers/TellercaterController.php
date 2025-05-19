@@ -8,6 +8,7 @@ use App\Http\Requests\QueueRequest;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Events\CustomerDashBoardQueuelist;
+use App\Events\TellerEvent;
 
 class TellercaterController extends Controller
 {
@@ -213,6 +214,7 @@ class TellercaterController extends Controller
         
         $updateStatus = DB::table('queues')->where('id', $queue)->first();
         broadcast(new CustomerDashBoardQueuelist($updateStatus));
+        broadcast(new TellerEvent($updateStatus));
         return response()->json([
             'message' => 'Customer removed from queue'
         ]);
@@ -242,6 +244,7 @@ class TellercaterController extends Controller
         }
         $updateStatus = DB::table('queues')->where('id', $queue)->first();
         broadcast(new CustomerDashBoardQueuelist($updateStatus));
+        broadcast(new TellerEvent($updateStatus));
         return response()->json([
             'message' => 'Customer marked as finished.'
         ]);

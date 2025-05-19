@@ -1000,7 +1000,7 @@ export default {
     const prioritySelected = ref();
     const Address = ref("");
     const fetchQueueDatapusher = inject("$pusher")
-
+    let fetchQueueDatachannel = null
     // Pagination
     const currentPage = ref(1);
     const itemsPerPage = 10;
@@ -1345,7 +1345,7 @@ export default {
               const nextCustomer = queueList.value[0];
 
               if (nextCustomer) {
-                setTimeout(() => {
+               
                   caterCustomer(nextCustomer.id, nextCustomer.type_id);
                   startWait(nextCustomer.id, nextCustomer.queue_number);
                   serveStartTime = new Date();
@@ -1360,10 +1360,10 @@ export default {
                     "startingTime" + tellerInformation.value.id.toString(),
                     startingTime
                   );
-                }, 2000); // Delay for 3 seconds before serving the customer
+               
               }
             }
-          }, 5000); // Check every 2 seconds
+          }, 3000); // Check every 2 seconds
         } else {
           // Auto Serving is disabled
           $notify("positive", "check", "Automatic Serving Disabled");
@@ -2260,15 +2260,18 @@ export default {
               const fetchQueueDatapusher = new Pusher("8d3b62bc5d67d22d3605", {
                 cluster: "us2",
               });
-              const fetchQueueDatachannel = fetchQueueDatapusher.subscribe("queuelist-channel");
+              fetchQueueDatachannel = fetchQueueDatapusher.subscribe("queuelist-channel");
 
                     // Listen for the 'StudentCreated' event on the channel
-              fetchQueueDatachannel.bind("CustomerDashBoardQueuelist", () => {
-                fetchQueue()
-                fetchWaitingtime()
-                fetchCategories()
-                fetchCurrency()
-                fetchBreakTime()
+              fetchQueueDatachannel.bind("CustomerDashBoardQueuelist", (data) => {
+                if (data){
+                  fetchQueue()
+                  fetchWaitingtime()
+                  fetchCategories()
+                  fetchCurrency()
+                  fetchBreakTime()
+                }
+
             });
 
               fetchQueue()
@@ -2295,7 +2298,10 @@ export default {
     onUnmounted(() => {
       if (waitTimer) clearInterval(waitTimer);
       if (refreshInterval) clearInterval(refreshInterval);
-      fetchQueueDatapusher.unsubscribe("queuelist-channel");
+      if (fetchQueueDatapusher) {
+        fetchQueueDatapusher.unsubscribe("queuelist-channel");
+        fetchQueueDatachannel.unbind_all()
+      }
     });
     onBeforeUnmount(() => {
       if (autoServingInterval) {

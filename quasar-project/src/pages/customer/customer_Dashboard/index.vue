@@ -442,6 +442,7 @@ export default {
     const remainingTime = ref(0);
     let waitInterval = null;
     const fetchQueueDatapusher = inject("$pusher")
+    let fetchQueueDatachannel = null
     const generatedQrValue = ref(
       "http://192.168.0.164:8080/customer-dashboard/" + tokenurl.value
     ); // User input (for the bank name)
@@ -1280,16 +1281,19 @@ const fetchWaitingtime = async () => {
       const fetchQueueDatapusher = new Pusher("8d3b62bc5d67d22d3605", {
         cluster: "us2",
       });
-      const fetchQueueDatachannel = fetchQueueDatapusher.subscribe("queuelist-channel");
+      fetchQueueDatachannel = fetchQueueDatapusher.subscribe("queuelist-channel");
 
             // Listen for the 'StudentCreated' event on the channel
-      fetchQueueDatachannel.bind("CustomerDashBoardQueuelist", () => {
-          fetchQueueData()
-          fetchType()
-          fetchWaitingtime()
-          fetchWaitingStatus()
-          fetchBreakTime()
-          fetchCurrency(userInformation.value.branch_id)
+      fetchQueueDatachannel.bind("CustomerDashBoardQueuelist", (data) => {
+          if (data){
+            fetchQueueData()
+            fetchType()
+            fetchWaitingtime()
+            fetchWaitingStatus()
+            fetchBreakTime()
+            fetchCurrency(userInformation.value.branch_id)
+          }
+
       });
         fetchQueueData()
         fetchType()
@@ -1300,7 +1304,10 @@ const fetchWaitingtime = async () => {
     });
 
     onUnmounted(() => {
-      fetchQueueDatapusher.unsubscribe("queuelist-channel");
+      if (fetchQueueDatapusher) {
+        fetchQueueDatapusher.unsubscribe("queuelist-channel");
+        fetchQueueDatachannel.unbind_all()
+      }
     });
 
 
