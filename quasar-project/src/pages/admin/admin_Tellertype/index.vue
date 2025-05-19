@@ -1,4 +1,3 @@
-
 <template>
   <q-page class="q-px-sm" style="height: auto; min-height: unset">
     <div class="q-ma-md bg-white q-pa-sm shadow-1">
@@ -64,19 +63,19 @@
               </q-tooltip>
             </q-btn>
           </div>
-            <div v-if="!adminInformation" class="col-auto">
-              <q-select
-                style="width: 250px; position: absolute;  right: 10px;"
-                outlined
-                v-model="branch_namee"
-                label="Branch name"
-                hide-bottom-space
-                dense
-                emit-value
-                map-options
-                :options="branchList"
-                option-label="branch_name"
-                option-value="id"
+          <div v-if="!adminInformation" class="col-auto">
+            <q-select
+              style="width: 250px; position: absolute; right: 10px"
+              outlined
+              v-model="branch_namee"
+              label="Branch name"
+              hide-bottom-space
+              dense
+              emit-value
+              map-options
+              :options="branchList"
+              option-label="branch_name"
+              option-value="id"
             />
           </div>
         </div>
@@ -143,32 +142,34 @@ export default defineComponent({
   setup() {
     const $dialog = useQuasar();
     const rows = ref([]);
-    const adminInformation = ref (null);
+    const adminInformation = ref(null);
     const columns = ref([]);
-    const branch_namee = ref (null);
-    const branchList = ref ([
-      { id:0 ,branch_name: "All branches" }
-    ]);
+    const branch_namee = ref(null);
+    const branchList = ref([{ id: 0, branch_name: "All branches" }]);
 
     const selected = ref([]);
     const dialogForm = ref(null);
+    
     const getTableData = async () => {
-      try {          
-        // if managaer login 
-        if (adminInformation.value && adminInformation.value.branch_id != null) {
-          const { data } = await $axios.post(URL + "/index",{
-            branch_id: adminInformation.value.branch_id
+      try {
+        // if managaer login
+        if (
+          adminInformation.value &&
+          adminInformation.value.branch_id != null
+        ) {
+          const { data } = await $axios.post(URL + "/index", {
+            branch_id: adminInformation.value.branch_id,
           });
           rows.value.splice(0, rows.value.length, ...data.rows);
         }
-        // if super login 
+        // if super login
         else {
           if (branch_namee.value != null) {
-            const { data } = await $axios.post(URL + "/index",{
-              branch_id: branch_namee.value
+            const { data } = await $axios.post(URL + "/index", {
+              branch_id: branch_namee.value,
             });
             rows.value.splice(0, rows.value.length, ...data.rows);
-          }else {
+          } else {
             const { data } = await $axios.post(URL + "/index");
             rows.value.splice(0, rows.value.length, ...data.rows);
           }
@@ -184,7 +185,9 @@ export default defineComponent({
 
     const handleDelete = async (dataHandleDelete) => {
       try {
-        const { data } = await $axios.post(URL + "/delete", { dataHandleDelete });
+        const { data } = await $axios.post(URL + "/delete", {
+          dataHandleDelete,
+        });
         $notify("positive", "check", data.message);
 
         for (const x of dataHandleDelete) {
@@ -206,17 +209,17 @@ export default defineComponent({
     };
 
     const beforeDelete = (isMany, row) => {
-      const ids = isMany 
-        ? 
-        selected.value.map((x) =>({
-          id: x.id,
-          name: x.name
-        })) 
-        : 
-        [{
-          id: row.id, 
-          name: row.name
-        }];
+      const ids = isMany
+        ? selected.value.map((x) => ({
+            id: x.id,
+            name: x.name,
+          }))
+        : [
+            {
+              id: row.id,
+              name: row.name,
+            },
+          ];
       $dialog
         .dialog({
           title: "Confirm",
@@ -239,22 +242,30 @@ export default defineComponent({
         })
         .onOk(async () => {
           for (const id of ids) {
-            console.log(id.name)
-            if (id.name == 'Foreign Exchange' && id.name == 'Online Appointment' && id.name == 'Manual Queueing') {
-              $notify("negative", "error", "Cannot delete Foreign exchange and Online Application");
+            console.log(id.name);
+            if (
+              id.name == "Foreign Exchange" &&
+              id.name == "Online Appointment" &&
+              id.name == "Manual Queueing"
+            ) {
+              $notify(
+                "negative",
+                "error",
+                "Cannot delete Foreign exchange and Online Application"
+              );
               return; // Stops further execution for this iteration, no handleDelete will be called
-            } else if (id.name === 'Foreign Exchange'){
+            } else if (id.name === "Foreign Exchange") {
               $notify("negative", "error", "Cannot delete foreign exchange");
               return; // Stops further execution for this iteration, no handleDelete will be called
-            } else if (id.name === 'Online Appointment'){
+            } else if (id.name === "Online Appointment") {
               $notify("negative", "error", "Cannot delete Online Appointment");
               return; // Stops further execution for this iteration, no handleDelete will be called
-            } else if (id.name === 'Manual Queueing'){
+            } else if (id.name === "Manual Queueing") {
               $notify("negative", "error", "Cannot delete Manual Queueing");
               return; // Stops further execution for this iteration, no handleDelete will be called
             }
           }
-           handleDelete(ids); 
+          handleDelete(ids);
         })
         .onDismiss(() => {
           // console.log('I am triggered on both OK and Cancel')
@@ -278,23 +289,23 @@ export default defineComponent({
             field: "indicator",
             sortable: false,
           },
-          { 
-            name:'serving_time',
-            label:'Serving Time',
-            align: 'left', 
-            field: row => row.serving_time+' minute/s' || '10 minute/s',
-            sortable: false
+          {
+            name: "serving_time",
+            label: "Serving Time",
+            align: "left",
+            field: (row) => row.serving_time + " minute/s" || "10 minute/s",
+            sortable: false,
           },
-          { 
-            name: "actions", 
-            label: "Actions", 
-            align: "left", 
-            sortable: false 
+          {
+            name: "actions",
+            label: "Actions",
+            align: "left",
+            sortable: false,
           },
-        ]
+        ];
       } else {
         columns.value = [
-         {
+          {
             name: "branch_name",
             label: "Branch name",
             align: "left",
@@ -315,58 +326,59 @@ export default defineComponent({
             field: "indicator",
             sortable: false,
           },
-          { 
-            name:'serving_time',
-            label:'Serving Time',
-            align: 'left', 
-            field: row => row.serving_time+' minute/s' || '10 minute/s',
-            sortable: false
+          {
+            name: "serving_time",
+            label: "Serving Time",
+            align: "left",
+            field: (row) => row.serving_time + " minute/s" || "10 minute/s",
+            sortable: false,
           },
-          { 
-            name: "actions", 
-            label: "Actions", 
-            align: "left", 
-            sortable: false 
+          {
+            name: "actions",
+            label: "Actions",
+            align: "left",
+            sortable: false,
           },
-        ]
+        ];
       }
-    }
+    };
 
     const fetchBranch = async () => {
       try {
-        const { data } = await $axios.post('/type/Branch')
-            // Add real data after fetching
-        branchList.value = [{ id: 0, branch_name: "All Branches" }, ...data.branch];
-
+        const { data } = await $axios.post("/type/Branch");
+        // Add real data after fetching
+        branchList.value = [
+          { id: 0, branch_name: "All Branches" },
+          ...data.branch,
+        ];
       } catch (error) {
         if (error.response.status === 422) {
-          console.log(error)
+          console.log(error);
         }
       }
-    }
+    };
 
-    setInterval(()=> {
-      getTableData()
-    },5000);
-
-    watch(()=> branch_namee.value, async (newVal) => {
-      getTableData()
-    })
-
-    onMounted (() => {
-      const storeManagerInfo = localStorage.getItem('managerInformation');
-        if (storeManagerInfo) {
-            adminInformation.value = JSON.parse(storeManagerInfo);
-        }
-        fetchBranch();
-        fetchColumn();
+    watch(
+      () => branch_namee.value,
+      async (newVal) => {
         getTableData();
-        
-          // Make sure `branch_name` is set to a meaningful default value
-          if (!branch_namee.value) {
-            branch_namee.value = 0;  // Set default to 'All branches' if needed
-          }
-    })
+      }
+    );
+
+    onMounted(() => {
+      const storeManagerInfo = localStorage.getItem("managerInformation");
+      if (storeManagerInfo) {
+        adminInformation.value = JSON.parse(storeManagerInfo);
+      }
+      fetchBranch();
+      fetchColumn();
+      getTableData();
+
+      // Make sure `branch_name` is set to a meaningful default value
+      if (!branch_namee.value) {
+        branch_namee.value = 0; // Set default to 'All branches' if needed
+      }
+    });
 
     return {
       rows,
@@ -401,13 +413,11 @@ export default defineComponent({
 }
 </style>
 
-<style >
-  span.q-table__bottom-item{
-    width: 200px;
-    text-align: right;
-    display: flex;
-    justify-content: flex-end;
-  }
-
-
+<style>
+span.q-table__bottom-item {
+  width: 200px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

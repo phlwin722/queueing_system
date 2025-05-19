@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Events\StudentCreated;
@@ -9,7 +10,7 @@ class StudentController extends Controller
 {
     public function insert(Request $request)
     {
- 
+
         // Insert the student into the database using raw SQL
         $student = DB::table('students')->insertGetId([
             'name' => $request->name,
