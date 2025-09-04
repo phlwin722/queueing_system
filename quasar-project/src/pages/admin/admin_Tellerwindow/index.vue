@@ -198,7 +198,6 @@ export default defineComponent({
             branch_id: adminInformation.value.branch_id
           });
           rows.value.splice(0, rows.value.length, ...data.rows);
-          console.log(rows.value)
         }
         // if super login 
         else {
