@@ -40,7 +40,7 @@
           <p><strong>5. Contact</strong></p>
           <p>
             If you have any questions regarding this policy, you can reach us at
-            <strong>sample@vrtsystems.ph</strong>.
+            <strong>sample@phlwin722.ph</strong>.
           </p>
         </div>
       </div>

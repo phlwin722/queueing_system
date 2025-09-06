@@ -4,7 +4,7 @@
     <q-header v-if="shouldShowSideNav">
       <q-toolbar>
         <q-img
-          src="~assets/vrtlogowhite1.png"
+          src="~assets/queueapp.png"
           alt="Logo"
           fit="full"
           :style="{
@@ -82,7 +82,7 @@
     <q-header v-if="shouldShowSideNav">
       <q-toolbar>
         <q-img
-          src="~assets/vrtlogowhite1.png"
+          src="~assets/queueapp.png"
           alt="Logo"
           fit="full"
           :style="{

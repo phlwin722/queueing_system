@@ -4,7 +4,7 @@
     <q-header>
       <q-toolbar>
         <q-img
-        src="~assets/vrtlogowhite1.png"
+        src="~assets/queueapp.png"
         alt="Logo"
         fit="full"
         :style="{
@@ -30,7 +30,7 @@
     <div class="row justify-around items-start">
       <!-- Column 1: About -->
       <div class="col-12 col-sm-4 q-mb-md q-pl-sm">
-        <div class="text-weight-bold text-info q-mb-sm">About VRT</div>
+        <div class="text-weight-bold text-info q-mb-sm">About QUEUEAPP</div>
         <div class="text-caption">
           VRTSystems Technologies Corporation is a Filipino-owned corporation involved in test systems integration, process automation, test program development, technical consulting, and equipment trading.
         </div>
@@ -61,14 +61,14 @@
         </div>
         <div class="text-caption row items-center q-mt-xs">
           <q-icon name="email" size="16px" class="q-mr-xs" />
-          sample@vrtsystems.ph
+          sample@phlwin722.ph
         </div>
       </div>
 
       <!-- Bottom Line -->
       <div class="col-12">
         <div class="text-caption text-grey-5 text-center text-sm-right">
-          © 2025 VRTSystems Technologies Corporation. All rights reserved.
+          © 2025 phlwin722. All rights reserved.
         </div>
       </div>
     </div>

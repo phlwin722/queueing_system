@@ -15,7 +15,7 @@
           :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
         />
         <q-img
-          src="~assets/vrtlogowhite1.png"
+          src="~assets/queueapp.png"
           alt="Logo"
           fit="full"
           :style="{
@@ -104,7 +104,7 @@
           :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
         />
         <q-img
-          src="~assets/vrtlogowhite1.png"
+          src="~assets/queueapp.png"
           alt="Logo"
           fit="full"
           :style="{

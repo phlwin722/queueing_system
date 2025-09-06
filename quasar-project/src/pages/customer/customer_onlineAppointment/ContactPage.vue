@@ -33,7 +33,7 @@
         </div>
         <div class="q-mb-md row items-center">
           <q-icon name="email" class="q-mr-sm text-primary" />
-          <div><strong>Email:</strong> sample@vrtsystems.ph</div>
+          <div><strong>Email:</strong> sample@phlwin722.ph</div>
         </div>
         <div class="q-mb-md row items-center">
           <q-icon name="place" class="q-mr-sm text-primary" />

@@ -128,7 +128,7 @@ class ThankyouMail extends Mailable
             <body>
                 <div class='email-container'>
                     <!-- Email Header -->
-                    <div class='header'>VRTSystems</div>
+                    <div class='header'>QueueApp</div>
                     
                     <!-- Email Content -->
                     <div class='queue-center'>
@@ -143,7 +143,7 @@ class ThankyouMail extends Mailable
 
                     <!-- Email Footer -->
                     <div class='footer'>
-                        &copy; " . date('Y') . " VRTSYSTEMS TECHNOLOGIES CORPORATION. All rights reserved.
+                        &copy; " . date('Y') . " QUEUEAPP TECHNOLOGIES CORPORATION. All rights reserved.
                     </div>
                 </div>
             </body>
