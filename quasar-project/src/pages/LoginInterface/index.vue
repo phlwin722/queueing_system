@@ -3,14 +3,14 @@
 
   <div class="column flex flex-center q-pa-md content-container">
     <q-img
-      src="~assets/vrtlogowhite.webp"
+      src="~assets/queueapp.png"
       alt="Logo"
       fit="full"
       class="logo"
-      style="width: 250px; margin-top: -40px;"
+      style="width: 250px; margin-top: 10px;"
     />
 
-    <q-card class="q-pa-lg shadow-3 login-card" style="margin-top: -25px;">
+    <q-card class="q-pa-lg shadow-3 login-card" style="margin-top: -10px;">
       <q-card-section class="text-center">
         <h2 class="text-primary welcome-heading">Login</h2>
       </q-card-section>

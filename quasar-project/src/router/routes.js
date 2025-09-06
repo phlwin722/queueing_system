@@ -1,7 +1,7 @@
 const routes = [
   {
     path: "/", // The root URL ("/") of the application
-    redirect: "/vrtsystem/onlineAppointment", // Automatically redirect to "/login" when accessing "/"
+    redirect: "/QueueApp/onlineAppointment", // Automatically redirect to "/login" when accessing "/"
   },
   {
     path: "/login", // The login page path
@@ -44,12 +44,12 @@ const routes = [
     component: () => import("pages/pakideelete/DisplayPage.vue")
   },
   {
-    path: "/vrtsystem/onlineAppointment", 
+    path: "/QueueApp/onlineAppointment", 
     component: ()=> import ('layouts/OnlineAppointment.vue'),
 
     children: [
       {
-        path: "/vrtsystem/onlineAppointment",
+        path: "/QueueApp/onlineAppointment",
         component: ()=> import ('pages/customer/customer_onlineAppointment/firstpage.vue')
       },
       {

@@ -117,7 +117,7 @@ class MyMail extends Mailable
         <body>
             <div class='email-container'>
                 <!-- Email Header -->
-                <div class='header'>VRTSystems</div>
+                <div class='header'>QueueApp</div>
                 
                 <!-- Email Content -->
                 <div class='content'>
@@ -128,7 +128,7 @@ class MyMail extends Mailable
                     <table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0'>
                         <tr>
                             <td align='center'>
-                                <a href='http://192.168.0.153:8080/customer-dashboard/{$this->data['token']}' 
+                                <a href='http://192.168.100.184:8080/customer-dashboard/{$this->data['token']}' 
                                     class='button' 
                                     style='display: inline-block; background: #007bff; color: #ffffff; 
                                             padding: 10px 20px; text-decoration: none; font-size: 16px; 
@@ -143,7 +143,7 @@ class MyMail extends Mailable
             </div>
                 <!-- Email Footer -->
                 <div class='footer'>
-                    &copy; " . date('Y') . " VRTSYSTEMS TECHNOLOGIES CORPORATION. All rights reserved.
+                    &copy; " . date('Y') . " QUEUEAPP TECHNOLOGIES CORPORATION. All rights reserved.
                 </div>
             </div>
         </body>
